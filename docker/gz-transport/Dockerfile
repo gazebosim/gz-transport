@@ -66,12 +66,12 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo apt-get install -y \
     libgz-cmake3-dev \
     libgz-math7-dev \
-    libgz-msgs9-dev \
+    libgz-msgs10-dev \
     libgz-utils2-cli-dev \
  && sudo apt-get clean
 
 # Gazebo transport
-RUN git clone https://github.com/gazebosim/gz-transport.git -b gz-transport12 \
+RUN git clone https://github.com/gazebosim/gz-transport.git -b gz-transport13 \
  && cd gz-transport \
  && mkdir build \
  && cd build \

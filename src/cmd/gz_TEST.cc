@@ -78,6 +78,19 @@ void topicCB(const msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
+/// \brief A generic callback.
+void genericCb(const transport::ProtoMsg &/*_msg*/)
+{
+}
+
+//////////////////////////////////////////////////
+/// \brief A raw callback.
+void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
+           const transport::MessageInfo &/*_info*/)
+{
+}
+
+//////////////////////////////////////////////////
 /// \brief Check 'gz topic -l' running the advertiser on a different process.
 TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
@@ -106,6 +119,36 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz topic -l' running a subscriber on a different process.
+TEST(gzTest, TopicListSub)
+{
+  transport::Node node;
+  node.Subscribe("/foo", topicCB);
+  node.Subscribe("/bar", genericCb);
+  node.SubscribeRaw("/baz", cbRaw, msgs::StringMsg().GetTypeName());
+  node.Subscribe("/no", topicCB);
+  node.Unsubscribe("/no");
+
+  // Check the 'gz topic -l' command.
+  std::string gz = std::string(GZ_PATH);
+
+  unsigned int retries = 0u;
+  bool topicFound = false;
+
+  while (!topicFound && retries++ < 10u)
+  {
+    std::string output = custom_exec_str(gz + " topic -l " + g_gzVersion);
+    topicFound = output.find("/foo\n") != std::string::npos;
+    topicFound &= output.find("/bar\n") != std::string::npos;
+    topicFound &= output.find("/baz\n") != std::string::npos;
+    topicFound &= output.find("/no\n") == std::string::npos;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+
+  EXPECT_TRUE(topicFound);
 }
 
 //////////////////////////////////////////////////

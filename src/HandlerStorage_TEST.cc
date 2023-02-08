@@ -81,6 +81,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_FALSE(reps.HasHandlersForTopic(topic));
   EXPECT_FALSE(reps.RemoveHandlersForNode(topic, nUuid1));
   EXPECT_FALSE(reps.HasHandlersForNode(topic, nUuid1));
+  EXPECT_TRUE(reps.AllHandlers().empty());
 
   // Create a REP handler.
   std::shared_ptr<transport::RepHandler<msgs::Vector3d,
@@ -104,6 +105,7 @@ TEST(RepStorageTest, RepStorageAPI)
   EXPECT_TRUE(reps.Handlers(topic, m));
   EXPECT_EQ(m.size(), 1u);
   EXPECT_EQ(m.begin()->first, nUuid1);
+  EXPECT_EQ(1u, reps.AllHandlers().size());
 
   reset();
 

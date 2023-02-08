@@ -398,6 +398,14 @@ namespace gz
         return true;
       }
 
+      /// \brief Send the response to a SUBSCRIBERS_REQ message.
+      /// \param[in] _pub Information to send.
+      public: void SendSubscribersRep(const MessagePublisher &_pub) const
+      {
+        this->SendMsg(
+          DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REP, _pub);
+      }
+
       /// \brief Register a node from this process as a remote subscriber.
       /// \param[in] _pub Contains information about the subscriber.
       public: void Register(const MessagePublisher &_pub) const
@@ -431,6 +439,17 @@ namespace gz
       {
         std::lock_guard<std::mutex> lock(this->mutex);
         return this->info.Publishers(_topic, _publishers);
+      }
+
+      /// \brief Get all the subscribers' information known for a given topic.
+      /// \param[in] _topic Topic name.
+      /// \param[out] _subscribers All remote subscribers for this topic.
+      /// \return True if the topic is found and there is at least one publisher
+      public: bool RemoteSubscribers(const std::string &_topic,
+                                     Addresses_M<Pub> &_subscribers) const
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        return this->remoteSubscribers.Publishers(_topic, _subscribers);
       }
 
       /// \brief Unadvertise a new message. Broadcast a discovery
@@ -573,6 +592,15 @@ namespace gz
         this->unregistrationCb = _cb;
       }
 
+      /// \brief Register a callback to receive an event when a node requests
+      /// the list of remote subscribers.
+      /// \param[in] _cb Function callback.
+      public: void SubscribersCb(const std::function<void()> &_cb)
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        this->subscribersCb = _cb;
+      }
+
       /// \brief Print the current discovery state.
       public: void PrintCurrentState() const
       {
@@ -615,13 +643,33 @@ namespace gz
         std::cout << "---------------" << std::endl;
       }
 
-      /// \brief Get the list of topics currently advertised in the network.
+      /// \brief Get the list of topics currently advertised and subscribed
+      /// in the network.
       /// \param[out] _topics List of advertised topics.
-      public: void TopicList(std::vector<std::string> &_topics) const
+      public: void TopicList(std::vector<std::string> &_topics)
       {
+        this->remoteSubscribers.Clear();
+
+        // Request the list of subscribers.
+        Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
+        this->SendMsg(
+          DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REQ, pub);
+
         this->WaitForInit();
         std::lock_guard<std::mutex> lock(this->mutex);
         this->info.TopicList(_topics);
+
+        std::vector<std::string> remoteSubs;
+        this->remoteSubscribers.TopicList(remoteSubs);
+
+        // Add the remote subscribers
+        for (auto const &t : remoteSubs)
+        {
+          if (std::find(_topics.begin(), _topics.end(), t) == _topics.end())
+          {
+            _topics.push_back(t);
+          }
+        }
       }
 
       /// \brief Check if ready/initialized. If not, then wait on the
@@ -926,6 +974,7 @@ namespace gz
         DiscoveryCallback<Pub> disconnectCb;
         DiscoveryCallback<Pub> registerCb;
         DiscoveryCallback<Pub> unregisterCb;
+        std::function<void()> subscribersReqCb;
         {
           std::lock_guard<std::mutex> lock(this->mutex);
           this->activity[recvPUuid] = std::chrono::steady_clock::now();
@@ -933,6 +982,7 @@ namespace gz
           disconnectCb = this->disconnectionCb;
           registerCb = this->registrationCb;
           unregisterCb = this->unregistrationCb;
+          subscribersReqCb = this->subscribersCb;
         }
 
         switch (msg.type())
@@ -1009,6 +1059,25 @@ namespace gz
                   msgs::Discovery::ADVERTISE, nodeInfo);
             }
 
+            break;
+          }
+          case msgs::Discovery::SUBSCRIBERS_REQ:
+          {
+            if (subscribersReqCb)
+              subscribersReqCb();
+
+            break;
+          }
+          case msgs::Discovery::SUBSCRIBERS_REP:
+          {
+            // Save the remote subscriber.
+            Pub publisher;
+            publisher.SetFromDiscovery(msg);
+
+            {
+              std::lock_guard<std::mutex> lock(this->mutex);
+              this->remoteSubscribers.AddPublisher(publisher);
+            }
             break;
           }
           case msgs::Discovery::NEW_CONNECTION:
@@ -1114,6 +1183,7 @@ namespace gz
         discoveryMsg.set_version(this->Version());
         discoveryMsg.set_type(_type);
         discoveryMsg.set_process_uuid(this->pUuid);
+        _pub.FillDiscovery(discoveryMsg);
 
         switch (_type)
         {
@@ -1132,6 +1202,8 @@ namespace gz
           }
           case msgs::Discovery::HEARTBEAT:
           case msgs::Discovery::BYE:
+          case msgs::Discovery::SUBSCRIBERS_REQ:
+          case msgs::Discovery::SUBSCRIBERS_REP:
             break;
           default:
             std::cerr << "Discovery::SendMsg() error: Unrecognized message"
@@ -1450,8 +1522,14 @@ namespace gz
       /// \brief Callback executed when a new remote subscriber is unregistered.
       private: DiscoveryCallback<Pub> unregistrationCb;
 
+      /// \brief Callback executed when a SUBSCRIBERS_REQ message is received.
+      private: std::function<void()> subscribersCb;
+
       /// \brief Addressing information.
       private: TopicStorage<Pub> info;
+
+      /// \brief Remote subscribers.
+      private: TopicStorage<Pub> remoteSubscribers;
 
       /// \brief Activity information. Every time there is a message from a
       /// remote node, its activity information is updated. If we do not hear

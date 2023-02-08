@@ -128,23 +128,28 @@ void Publisher::FillDiscovery(msgs::Discovery &_msg) const
 //////////////////////////////////////////////////
 void Publisher::SetFromDiscovery(const msgs::Discovery &_msg)
 {
-  this->topic = _msg.pub().topic();
-  this->addr = _msg.pub().address();
-  this->pUuid = _msg.pub().process_uuid();
-  this->nUuid = _msg.pub().node_uuid();
-
-  switch (_msg.pub().scope())
+  if (_msg.has_sub())
+    this->topic = _msg.sub().topic();
+  else if (_msg.has_pub())
   {
-    case msgs::Discovery::Publisher::PROCESS:
-      this->opts.SetScope(Scope_t::PROCESS);
-      break;
-    case msgs::Discovery::Publisher::HOST:
-      this->opts.SetScope(Scope_t::HOST);
-      break;
-    default:
-    case msgs::Discovery::Publisher::ALL:
-      this->opts.SetScope(Scope_t::ALL);
-      break;
+    this->topic = _msg.pub().topic();
+    this->addr = _msg.pub().address();
+    this->pUuid = _msg.pub().process_uuid();
+    this->nUuid = _msg.pub().node_uuid();
+
+    switch (_msg.pub().scope())
+    {
+      case msgs::Discovery::Publisher::PROCESS:
+        this->opts.SetScope(Scope_t::PROCESS);
+        break;
+      case msgs::Discovery::Publisher::HOST:
+        this->opts.SetScope(Scope_t::HOST);
+        break;
+      default:
+      case msgs::Discovery::Publisher::ALL:
+        this->opts.SetScope(Scope_t::ALL);
+        break;
+    }
   }
 }
 

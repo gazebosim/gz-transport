@@ -362,6 +362,12 @@ namespace gz
         }
       }
 
+      /// \brief Clear the content.
+      public: void Clear()
+      {
+        this->data.clear();
+      }
+
       /// \brief The keys are topics. The values are another map, where the key
       /// is the process UUID and the value a vector of publishers.
       private: std::map<std::string,

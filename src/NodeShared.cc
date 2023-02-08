@@ -353,6 +353,9 @@ NodeShared::NodeShared()
   this->dataPtr->msgDiscovery->UnregistrationsCb(
       std::bind(&NodeShared::OnEndRegistration, this, std::placeholders::_1));
 
+  this->dataPtr->msgDiscovery->SubscribersCb(
+      std::bind(&NodeShared::OnSubscribers, this));
+
   // Set the callback to notify svc discovery updates (new services).
   this->dataPtr->srvDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
@@ -1392,6 +1395,18 @@ void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
 }
 
 //////////////////////////////////////////////////
+void NodeShared::OnSubscribers()
+{
+  // Get the list of local subscribers.
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  auto pubs = this->localSubscribers.Convert(this->myAddress, this->pUuid);
+
+  // Reply to the SUBSCRIBERS_REQ with multiple SUBSCRIBERS_REP.
+  for (auto const &publisher : pubs)
+    this->dataPtr->msgDiscovery->SendSubscribersRep(publisher);
+}
+
+//////////////////////////////////////////////////
 bool NodeShared::InitializeSockets()
 {
   try
@@ -1660,6 +1675,38 @@ bool NodeShared::HandlerWrapper::RemoveHandlersForNode(
   return removed;
 }
 
+//////////////////////////////////////////////////
+std::vector<MessagePublisher> NodeShared::HandlerWrapper::Convert(
+    const std::string &_addr, const std::string &_pUuid)
+{
+  std::vector<MessagePublisher> res;
+
+  for (const auto &[topic, handlerCollection] : this->normal.AllHandlers())
+  {
+    for (const auto &[nUuid, handlerNode] : handlerCollection)
+    {
+      for (const auto &[hUuid, handler] : handlerNode)
+      {
+        res.push_back(MessagePublisher(topic, _addr, "", _pUuid, nUuid,
+          handler->TypeName(), AdvertiseMessageOptions()));
+      }
+    }
+  }
+
+  for (const auto &[topic, handlerCollection] : this->raw.AllHandlers())
+  {
+    for (const auto &[nUuid, handlerNode] : handlerCollection)
+    {
+      for (const auto &[hUuid, handler] : handlerNode)
+      {
+        res.push_back(MessagePublisher(topic, _addr, "", _pUuid, nUuid,
+          handler->TypeName(), AdvertiseMessageOptions()));
+      }
+    }
+  }
+
+  return res;
+}
 
 //////////////////////////////////////////////////
 void NodeSharedPrivate::SecurityOnNewConnection()
