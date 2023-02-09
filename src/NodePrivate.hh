@@ -50,6 +50,12 @@ namespace gz
       /// \sa TopicUtils::FullyQualifiedName
       public: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
 
+      /// \brief Helper function to remove handlers from the shared publish
+      /// queue. This is called when the node unsubscribes to a topic
+      /// \param[in] _topic Topic that the node unsubcribed to.
+      /// \return True on success.
+      public: bool RemoveHandlersFromPubQueue(const std::string &_topic);
+
       /// \brief The list of topics subscribed by this node.
       public: std::unordered_set<std::string> topicsSubscribed;
 

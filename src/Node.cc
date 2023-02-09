@@ -602,20 +602,20 @@ bool Node::Unsubscribe(const std::string &_topic)
     return false;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
-
-  // Remove the subscribers for the given topic that belong to this node.
-  this->dataPtr->shared->localSubscribers.RemoveHandlersForNode(
-        fullyQualifiedTopic, this->dataPtr->nUuid);
-
   // Remove handlers from shared pubQueue to avoid invoking callbacks after
   // unsuscribing to the topic
-  if (!this->RemoveHandlersFromPubQueue(topic))
+  if (!this->dataPtr->RemoveHandlersFromPubQueue(topic))
   {
     std::cerr << "Error removing subscription handlers from publish queue "
               << "when unsubscribing from Topic [" << _topic << "]"
               <<  std::endl;
   }
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  // Remove the subscribers for the given topic that belong to this node.
+  this->dataPtr->shared->localSubscribers.RemoveHandlersForNode(
+        fullyQualifiedTopic, this->dataPtr->nUuid);
 
   // Remove the topic from the list of subscribed topics in this node.
   this->dataPtr->topicsSubscribed.erase(fullyQualifiedTopic);
@@ -1042,12 +1042,12 @@ bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
 }
 
 //////////////////////////////////////////////////
-bool Node::RemoveHandlersFromPubQueue(const std::string &_topic)
+bool NodePrivate::RemoveHandlersFromPubQueue(const std::string &_topic)
 {
   // Remove from pubQueue
   std::unique_lock<std::mutex> queueLock(
-      this->dataPtr->shared->dataPtr->pubThreadMutex);
-  for (auto &msgDetails : this->dataPtr->shared->dataPtr->pubQueue)
+      this->shared->dataPtr->pubThreadMutex);
+  for (auto &msgDetails : this->shared->dataPtr->pubQueue)
   {
     // check if there is a pub queue with message details that has topic
     // which the node unsubscribes to
@@ -1058,7 +1058,7 @@ bool Node::RemoveHandlersFromPubQueue(const std::string &_topic)
     for (auto handlerIt = msgDetails->localHandlers.begin();
          handlerIt != msgDetails->localHandlers.end();)
     {
-      if ((*handlerIt)->NodeUuid() == this->dataPtr->nUuid)
+      if ((*handlerIt)->NodeUuid() == this->nUuid)
       {
         msgDetails->localHandlers.erase(handlerIt);
       }
@@ -1070,7 +1070,7 @@ bool Node::RemoveHandlersFromPubQueue(const std::string &_topic)
     for (auto handlerIt = msgDetails->rawHandlers.begin();
          handlerIt != msgDetails->rawHandlers.end();)
     {
-      if ((*handlerIt)->NodeUuid() == this->dataPtr->nUuid)
+      if ((*handlerIt)->NodeUuid() == this->nUuid)
       {
         msgDetails->rawHandlers.erase(handlerIt);
       }
