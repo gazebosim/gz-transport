@@ -22,12 +22,10 @@
 
 TEST(CallbackScope, CleanupCorrectly)
 {
+  // test cleanup for serialized msgs
   gz::transport::Node node;
-
   auto publisher = node.Advertise<gz::msgs::Int32>("/my_topic");
-
   gz::msgs::Int32 msg;
-
   {
     auto msg2 = std::make_unique<gz::msgs::Int32>();
 
@@ -38,7 +36,6 @@ TEST(CallbackScope, CleanupCorrectly)
         {
           FAIL();
         }
-
         return;
       };
 
@@ -49,5 +46,32 @@ TEST(CallbackScope, CleanupCorrectly)
 
     // Clear msg2
     msg2.reset();
+  }
+
+  // test cleanup for raw msgs
+  gz::transport::Node nodeRaw;
+  auto publisherRaw = nodeRaw.Advertise<gz::msgs::Int32>("/my_topic_raw");
+  gz::msgs::Int32 msgRaw;
+  {
+    auto msg2Raw = std::make_unique<gz::msgs::Int32>();
+    std::function<void(const char *_msg, const size_t,
+        const gz::transport::MessageInfo &)> rawCallback =
+            [&msg2Raw](const char *, const size_t,
+            const gz::transport::MessageInfo &) {
+
+        if (nullptr == msg2Raw)
+        {
+          FAIL();
+        }
+        return;
+      };
+
+    nodeRaw.SubscribeRaw("/my_topic_raw", rawCallback);
+    // use Publish intead of PublishRaw so the msgs end up in the pub queue
+    publisherRaw.Publish(msgRaw);
+    publisherRaw.Publish(msgRaw);
+    nodeRaw.Unsubscribe("/my_topic_raw");
+
+    msg2Raw.reset();
   }
 }
