@@ -55,7 +55,7 @@ namespace ignition
     template<typename MessageT>
     bool Node::Subscribe(
         const std::string &_topic,
-        std::function<void(const MessageT &_msg)> &_cb,
+        std::function<void(const MessageT &_msg)> _cb,
         const SubscribeOptions &_opts)
     {
       std::function<void(const MessageT &, const MessageInfo &)> f =
@@ -109,7 +109,7 @@ namespace ignition
     bool Node::Subscribe(
         const std::string &_topic,
         std::function<void(const MessageT &_msg,
-                           const MessageInfo &_info)> &_cb,
+                           const MessageInfo &_info)> _cb,
         const SubscribeOptions &_opts)
     {
       // Topic remapping.
