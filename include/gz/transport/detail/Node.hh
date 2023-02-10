@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace ignition
 {
@@ -59,10 +60,10 @@ namespace ignition
         const SubscribeOptions &_opts)
     {
       std::function<void(const MessageT &, const MessageInfo &)> f =
-        [_cb](const MessageT & _internalMsg,
+        [cb = std::move(_cb)](const MessageT & _internalMsg,
               const MessageInfo &/*_internalInfo*/)
       {
-        _cb(_internalMsg);
+        cb(_internalMsg);
       };
 
       return this->Subscribe<MessageT>(_topic, f, _opts);
@@ -129,7 +130,7 @@ namespace ignition
           new SubscriptionHandler<MessageT>(this->NodeUuid(), _opts));
 
       // Insert the callback into the handler.
-      subscrHandlerPtr->SetCallback(_cb);
+      subscrHandlerPtr->SetCallback(std::move(_cb));
 
       std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
