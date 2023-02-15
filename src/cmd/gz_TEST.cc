@@ -187,6 +187,40 @@ TEST(gzTest, TopicInfo)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check 'gz topic -i' running a subscriber on a different process.
+TEST(gzTest, TopicInfoSub)
+{
+  transport::Node node;
+  node.Subscribe("/foo", topicCB);
+  node.SubscribeRaw("/baz", cbRaw, msgs::StringMsg().GetTypeName());
+  node.Subscribe("/no", topicCB);
+  node.Unsubscribe("/no");
+
+  // Check the 'gz topic -i' command.
+  std::string gz = std::string(GZ_PATH);
+
+  for (auto topic : {"/foo", "/baz"})
+  {
+    unsigned int retries = 0u;
+    bool infoFound = false;
+    std::string output;
+
+    while (!infoFound && retries++ < 10u)
+    {
+      output = custom_exec_str(gz + " topic -i -t " + topic + " "
+        + g_gzVersion);
+      infoFound = output.size() > 60u;
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    }
+
+    EXPECT_TRUE(infoFound) << "OUTPUT["
+      << output << "] Size[" << output.size()
+      << "]. Expected Size>60" << std::endl;
+    EXPECT_TRUE(output.find("gz.msgs.") != std::string::npos);
+  }
+}
+
+//////////////////////////////////////////////////
 /// \brief Check 'gz service -l' running the advertiser on a different
 /// process.
 TEST(gzTest, ServiceList)
