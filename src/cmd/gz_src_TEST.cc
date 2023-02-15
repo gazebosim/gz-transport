@@ -88,7 +88,10 @@ TEST(gzTest, cmdTopicInfo)
 
   // A topic without advertisers should show an empty list of publishers.
   cmdTopicInfo(g_topic.c_str());
-  EXPECT_EQ(stdOutBuffer.str(), "No publishers on topic [/topic]\n");
+  EXPECT_TRUE(stdOutBuffer.str().find("No publishers on topic [/topic]\n") !=
+    std::string::npos);
+  EXPECT_TRUE(stdOutBuffer.str().find("No subscribers on topic [/topic]\n") !=
+    std::string::npos);
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
   restoreIO();

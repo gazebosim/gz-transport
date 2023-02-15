@@ -522,7 +522,7 @@ TEST(twoProcPubSub, TopicInfo)
   EXPECT_FALSE(node.TopicInfo("@", publishers, subscribers));
   EXPECT_EQ(publishers.size(), 0u);
 
-  EXPECT_FALSE(node.TopicInfo("/bogus", publishers, subscribers));
+  EXPECT_TRUE(node.TopicInfo("/bogus", publishers, subscribers));
   EXPECT_EQ(publishers.size(), 0u);
 
   EXPECT_TRUE(node.TopicInfo("/foo", publishers, subscribers));
