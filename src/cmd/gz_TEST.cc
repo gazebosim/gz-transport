@@ -173,13 +173,13 @@ TEST(gzTest, TopicInfo)
   while (!infoFound && retries++ < 10u)
   {
     output = custom_exec_str(gz + " topic -t /foo -i " + g_gzVersion);
-    infoFound = output.size() > 50u;
+    infoFound = output.size() > 60u;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
 
   EXPECT_TRUE(infoFound) << "OUTPUT["
     << output << "] Size[" << output.size()
-    << "]. Expected Size=50" << std::endl;
+    << "]. Expected Size>60" << std::endl;
   EXPECT_TRUE(output.find("gz.msgs.Vector3d") != std::string::npos);
 
   // Wait for the child process to return.
@@ -341,7 +341,7 @@ TEST(gzTest, TopicInfoSameProc)
   while (!infoFound && retries++ < 10u)
   {
     output = custom_exec_str(gz + " topic -t /foo -i " + g_gzVersion);
-    infoFound = output.size() > 50u;
+    infoFound = output.size() > 60u;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
 
