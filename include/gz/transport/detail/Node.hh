@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace ignition
 {
@@ -55,14 +56,14 @@ namespace ignition
     template<typename MessageT>
     bool Node::Subscribe(
         const std::string &_topic,
-        std::function<void(const MessageT &_msg)> &_cb,
+        std::function<void(const MessageT &_msg)> _cb,
         const SubscribeOptions &_opts)
     {
       std::function<void(const MessageT &, const MessageInfo &)> f =
-        [_cb](const MessageT & _internalMsg,
+        [cb = std::move(_cb)](const MessageT & _internalMsg,
               const MessageInfo &/*_internalInfo*/)
       {
-        _cb(_internalMsg);
+        cb(_internalMsg);
       };
 
       return this->Subscribe<MessageT>(_topic, f, _opts);
@@ -109,7 +110,7 @@ namespace ignition
     bool Node::Subscribe(
         const std::string &_topic,
         std::function<void(const MessageT &_msg,
-                           const MessageInfo &_info)> &_cb,
+                           const MessageInfo &_info)> _cb,
         const SubscribeOptions &_opts)
     {
       // Topic remapping.
@@ -129,7 +130,7 @@ namespace ignition
           new SubscriptionHandler<MessageT>(this->NodeUuid(), _opts));
 
       // Insert the callback into the handler.
-      subscrHandlerPtr->SetCallback(_cb);
+      subscrHandlerPtr->SetCallback(std::move(_cb));
 
       std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
