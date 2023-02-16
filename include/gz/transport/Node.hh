@@ -273,7 +273,7 @@ namespace ignition
       public: template<typename MessageT>
       bool Subscribe(
           const std::string &_topic,
-          std::function<void(const MessageT &_msg)> &_callback,
+          std::function<void(const MessageT &_msg)> _callback,
           const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Subscribe to a topic registering a callback.
@@ -322,7 +322,7 @@ namespace ignition
       bool Subscribe(
           const std::string &_topic,
           std::function<void(const MessageT &_msg,
-                             const MessageInfo &_info)> &_callback,
+                             const MessageInfo &_info)> _callback,
           const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Subscribe to a topic registering a callback.
