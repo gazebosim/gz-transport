@@ -172,17 +172,16 @@ TEST(gzTest, TopicInfo)
 
   while (!infoFound && retries++ < 10u)
   {
-    output = custom_exec_str(gz + " topic -t /foo2 -i " + g_gzVersion);
-    std::cout << output.size() << std::endl;
-    infoFound = output.size() > 70u;
+    output = custom_exec_str(gz + " topic -t /foo -i " + g_gzVersion);
+    bool pubsFound = output.find("No publishers") == std::string::npos;
+    bool subsFound = output.find("No subscribers") == std::string::npos;
+    // We should have publishers info but no subscribers.
+    infoFound = pubsFound && !subsFound;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
 
-  EXPECT_TRUE(infoFound) << "OUTPUT["
-    << output << "] Size[" << output.size()
-    << "]. Expected Size>70" << std::endl;
+  EXPECT_TRUE(infoFound);
   EXPECT_TRUE(output.find("gz.msgs.Vector3d") != std::string::npos);
-  std::cout << output << std::endl;
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
@@ -211,13 +210,14 @@ TEST(gzTest, TopicInfoSub)
     {
       output = custom_exec_str(gz + " topic -i -t " + topic + " "
         + g_gzVersion);
-      infoFound = output.size() > 60u;
+      bool pubsFound = output.find("No publishers") == std::string::npos;
+      bool subsFound = output.find("No subscribers") == std::string::npos;
+      // We should have subscribers info but no publishers.
+      infoFound = !pubsFound && subsFound;
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
 
-    EXPECT_TRUE(infoFound) << "OUTPUT["
-      << output << "] Size[" << output.size()
-      << "]. Expected Size>60" << std::endl;
+    EXPECT_TRUE(infoFound);
     EXPECT_TRUE(output.find("gz.msgs.") != std::string::npos);
   }
 }
