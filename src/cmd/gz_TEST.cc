@@ -173,17 +173,53 @@ TEST(gzTest, TopicInfo)
   while (!infoFound && retries++ < 10u)
   {
     output = custom_exec_str(gz + " topic -t /foo -i " + g_gzVersion);
-    infoFound = output.size() > 50u;
+    bool pubsFound = output.find("No publishers") == std::string::npos;
+    bool subsFound = output.find("No subscribers") == std::string::npos;
+    // We should have publishers info but no subscribers.
+    infoFound = pubsFound && !subsFound;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
 
-  EXPECT_TRUE(infoFound) << "OUTPUT["
-    << output << "] Size[" << output.size()
-    << "]. Expected Size=50" << std::endl;
+  EXPECT_TRUE(infoFound);
   EXPECT_TRUE(output.find("gz.msgs.Vector3d") != std::string::npos);
 
   // Wait for the child process to return.
   testing::waitAndCleanupFork(pi);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz topic -i' running a subscriber on a different process.
+TEST(gzTest, TopicInfoSub)
+{
+  transport::Node node;
+  node.Subscribe("/foo", topicCB);
+  node.SubscribeRaw("/baz", cbRaw, msgs::StringMsg().GetTypeName());
+  node.Subscribe("/no", topicCB);
+  node.Unsubscribe("/no");
+
+  // Check the 'gz topic -i' command.
+  std::string gz = std::string(GZ_PATH);
+
+  for (auto topic : {"/foo", "/baz"})
+  {
+    unsigned int retries = 0u;
+    bool infoFound = false;
+    std::string output;
+
+    while (!infoFound && retries++ < 10u)
+    {
+      output = custom_exec_str(gz + " topic -i -t " + topic + " "
+        + g_gzVersion);
+      bool pubsFound = output.find("No publishers") == std::string::npos;
+      bool subsFound = output.find("No subscribers") == std::string::npos;
+      // We should have subscribers info but no publishers.
+      infoFound = !pubsFound && subsFound;
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    }
+
+    EXPECT_TRUE(infoFound);
+    EXPECT_TRUE(output.find("gz.msgs.") != std::string::npos);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -307,7 +343,7 @@ TEST(gzTest, TopicInfoSameProc)
   while (!infoFound && retries++ < 10u)
   {
     output = custom_exec_str(gz + " topic -t /foo -i " + g_gzVersion);
-    infoFound = output.size() > 50u;
+    infoFound = output.size() > 60u;
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
 
