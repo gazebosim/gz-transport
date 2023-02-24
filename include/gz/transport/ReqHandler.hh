@@ -32,6 +32,8 @@
 #include <memory>
 #include <string>
 
+#include <gz/msgs/Factory.hh>
+
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/TransportTypes.hh"
@@ -318,6 +320,43 @@ namespace gz
       {
       }
 
+      /// \brief Create a specific protobuf message given its serialized data.
+      /// \param[in] _data The serialized data.
+      /// \return Pointer to the specific protobuf message.
+      public: std::shared_ptr<google::protobuf::Message>
+      CreateMsg(const std::string &_data) const
+      {
+        // Instantiate a specific protobuf message
+        std::shared_ptr<google::protobuf::Message> msgPtr =
+            gz::msgs::Factory::New(this->RepTypeName());
+        if (!msgPtr)
+        {
+          std::cerr << "Unable to create response of type["
+                    << this->RepTypeName() << "].\n";
+          return nullptr;
+        }
+
+        // Create the message using some serialized data
+        if (!msgPtr->ParseFromString(_data))
+        {
+          std::cerr << "ReqHandler::CreateMsg() error: ParseFromString failed"
+                    << std::endl;
+        }
+
+        return msgPtr;
+      }
+
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback with the following parameters:
+      /// * _rep Protobuf message containing the service response.
+      /// * _result True when the service request was successful or
+      /// false otherwise.
+      public: void SetCallback(const std::function <void(
+        const google::protobuf::Message &_rep, const bool _result)> &_cb)
+      {
+        this->cb = _cb;
+      }
+
       /// \brief Set the REQ protobuf message for this handler.
       /// \param[in] _reqMsg Protofub message containing the input parameters of
       /// of the service request.
@@ -371,8 +410,25 @@ namespace gz
       // Documentation inherited.
       public: void NotifyResult(const std::string &_rep, const bool _result)
       {
-        this->rep = _rep;
-        this->result = _result;
+        // Execute the callback (if existing).
+        if (this->cb)
+        {
+          // Instantiate the specific protobuf message associated to this topic.
+          auto msg = this->CreateMsg(_rep);
+          if (!msg)
+          {
+            /// \todo(srmainwaring) verify this is the correct fail behaviour
+            this->result = false;
+            this->repAvailable = false;
+            this->condition.notify_one();
+          }
+          this->cb(*msg, _result);
+        }
+        else
+        {
+          this->rep = _rep;
+          this->result = _result;
+        }
 
         this->repAvailable = true;
         this->condition.notify_one();
@@ -409,6 +465,14 @@ namespace gz
 
       /// \brief Protobuf message containing the response.
       private: google::protobuf::Message *repMsg = nullptr;
+
+      /// \brief Callback to the function registered for this handler with the
+      /// following parameters:
+      /// \param[in] _rep Protobuf message containing the service response.
+      /// \param[in] _result True when the service request was successful or
+      /// false otherwise.
+      private: std::function<void(
+          const google::protobuf::Message &_rep, const bool _result)> cb;
     };
     }
   }
