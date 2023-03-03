@@ -19,12 +19,12 @@
 #include <string>
 #include <ignition/msgs.hh>
 
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/TopicUtils.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/TopicUtils.hh"
 #include "gtest/gtest.h"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static bool responseExecuted;
 static bool wrongResponseExecuted;
@@ -45,7 +45,7 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const ignition::msgs::Int32 &_rep, const bool _result)
+void response(const msgs::Int32 &_rep, const bool _result)
 {
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
@@ -56,7 +56,7 @@ void response(const ignition::msgs::Int32 &_rep, const bool _result)
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void wrongResponse(const ignition::msgs::Vector3d &/*_rep*/, bool /*_result*/)
+void wrongResponse(const msgs::Vector3d &/*_rep*/, bool /*_result*/)
 {
   wrongResponseExecuted = true;
 }
@@ -75,7 +75,7 @@ TEST(twoProcSrvCall, SrvTwoProcs)
 
   reset();
 
-  ignition::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   transport::Node node;
@@ -120,8 +120,8 @@ TEST(twoProcSrvCall, SrvTwoProcs)
 /// that the service call does not succeed.
 TEST(twoProcSrvCall, SrvRequestWrongReq)
 {
-  ignition::msgs::Vector3d wrongReq;
-  ignition::msgs::Int32 rep;
+  msgs::Vector3d wrongReq;
+  msgs::Int32 rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -160,8 +160,8 @@ TEST(twoProcSrvCall, SrvRequestWrongReq)
 /// verify that the service call does not succeed.
 TEST(twoProcSrvCall, SrvRequestWrongRep)
 {
-  ignition::msgs::Int32 req;
-  ignition::msgs::Vector3d wrongRep;
+  msgs::Int32 req;
+  msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -200,9 +200,9 @@ TEST(twoProcSrvCall, SrvRequestWrongRep)
 /// are used.
 TEST(twoProcSrvCall, SrvTwoRequestsOneWrong)
 {
-  ignition::msgs::Int32 req;
-  ignition::msgs::Int32 goodRep;
-  ignition::msgs::Vector3d badRep;
+  msgs::Int32 req;
+  msgs::Int32 goodRep;
+  msgs::Vector3d badRep;
   bool result;
   unsigned int timeout = 2000;
 

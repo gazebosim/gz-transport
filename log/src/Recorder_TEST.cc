@@ -18,10 +18,10 @@
 #include <regex>
 #include <string>
 
-#include "ignition/transport/log/Recorder.hh"
+#include "gz/transport/log/Recorder.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 TEST(Record, Start)

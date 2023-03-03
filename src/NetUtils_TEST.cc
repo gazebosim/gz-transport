@@ -15,10 +15,10 @@
  *
 */
 
-#include "ignition/transport/NetUtils.hh"
+#include "gz/transport/NetUtils.hh"
 #include "gtest/gtest.h"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 /// \brief Check the hostname() function.

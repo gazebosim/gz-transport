@@ -17,11 +17,11 @@
 
 #include <iostream>
 #include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/transport.hh>
 
 //////////////////////////////////////////////////
 /// \brief Service response callback.
-void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
+void responseCb(const gz::msgs::StringMsg &_rep, const bool _result)
 {
   if (_result)
     std::cout << "Response: [" << _rep.data() << "]" << std::endl;
@@ -33,7 +33,7 @@ void responseCb(const ignition::msgs::StringMsg &_rep, const bool _result)
 int main(int argc, char **argv)
 {
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   std::cout << "Press <CTRL-C> to exit" << std::endl;
 
@@ -41,5 +41,5 @@ int main(int argc, char **argv)
   node.Request("/quote", responseCb);
 
   // Zzzzzz.
-  ignition::transport::waitForShutdown();
+  gz::transport::waitForShutdown();
 }

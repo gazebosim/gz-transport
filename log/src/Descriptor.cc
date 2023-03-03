@@ -20,7 +20,7 @@
 #include <string>
 #include <utility>
 
-using namespace ignition::transport::log;
+using namespace gz::transport::log;
 
 //////////////////////////////////////////////////
 void Descriptor::Implementation::Reset(const TopicKeyMap &_columns)

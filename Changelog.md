@@ -1,5 +1,23 @@
 ## Gazebo Transport 11.X
 
+### Gazebo Transport 11.3.2 (2022-12-08)
+
+1. Fix include/ignition/.../parameters header files
+    * [Pull request #374](https://github.com/gazebosim/gz-transport/pull/374)
+
+### Gazebo Transport 11.3.1 (2022-12-01)
+
+1. Fix CLI configuration install path to ignition
+    * [Pull request #372](https://github.com/gazebosim/gz-transport/pull/372)
+
+### Gazebo Transport 11.3.0 (2022-10-31)
+
+1. Add parameters component
+    * [Pull request #305](https://github.com/gazebosim/gz-transport/pull/305)
+
+1. Fix build for Debian Bullseye
+    * [Pull request #363](https://github.com/gazebosim/gz-transport/pull/363)
+
 ### Gazebo Transport 11.2.0 (2022-08-16)
 
 1. Remove problematic discovery test
@@ -228,6 +246,17 @@
    and publication, age, and reception statistics.
     * [Pull request 205](https://github.com/ignitionrobotics/ign-transport/pull/205)
 
+### Gazebo Transport 8.4.0 (2022-11-17)
+
+1. ign -> gz : Remove redundant namespace references.
+    * [Pull request #345](https://github.com/gazebosim/gz-transport/pull/345)
+
+1. Backport Windows fix from main branch.
+    * [Pull request #350](https://github.com/gazebosim/gz-transport/pull/350)
+
+1. ign -> gz Migrate Ignition Headers : gz-transport.
+    * [Pull request #347](https://github.com/gazebosim/gz-transport/pull/347)
+
 ### Gazebo Transport 8.3.0 (2022-07-27)
 
 1. Ignition -> Gazebo
@@ -445,7 +474,7 @@
 
 1. Added a `-n` argument to the echo command line tool, where `-n` can be used
    to specify the number of messages to echo and then exit. Made the
-   `ign.hh` header file private (not installed).
+   `gz.hh` header file private (not installed).
     * [BitBucket pull request 367](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/367)
 
 1. Added start of C interface, currently it supports only pub/sub.
@@ -620,7 +649,7 @@
 1. Workaround for the ghost Msbuild warning in Jenkins plugin
     * [BitBucket pull request 205](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/205)
 
-1. Added tests for ign.cc
+1. Added tests for gz.cc
     * [BitBucket pull request 209](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/209)
 
 1. Remove manual setting of flags for dynamic linking of the Windows CRT library

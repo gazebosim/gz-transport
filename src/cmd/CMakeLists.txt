@@ -3,14 +3,14 @@
 ign_get_libsources_and_unittests(sources gtest_sources)
 
 # Skip command line tests for Windows, see
-# https://github.com/ignitionrobotics/ign-transport/issues/104
+# https://github.com/gazebosim/gz-transport/issues/104
 if (MSVC)
-  list(REMOVE_ITEM gtest_sources ign_TEST.cc)
+  list(REMOVE_ITEM gtest_sources gz_TEST.cc)
 endif()
 
 # Make a small static lib of command line functions
-add_library(ign STATIC ign.cc)
-target_link_libraries(ign
+add_library(gz STATIC gz.cc)
+target_link_libraries(gz
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 
@@ -18,21 +18,21 @@ target_link_libraries(ign
 set(topic_executable ign-transport-topic)
 add_executable(${topic_executable} topic_main.cc)
 target_link_libraries(${topic_executable}
-  ign
+  gz
   ignition-utils${IGN_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
-install(TARGETS ${topic_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/ignition/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${topic_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build service CLI executable
 set(service_executable ign-transport-service)
 add_executable(${service_executable} service_main.cc)
 target_link_libraries(${service_executable}
-  ign
+  gz
   ignition-utils${IGN_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
-install(TARGETS ${service_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/ignition/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${service_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build the unit tests.
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
@@ -40,7 +40,7 @@ ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 
 foreach(test ${test_list})
-  target_link_libraries(${test} ign)
+  target_link_libraries(${test} gz)
 
   # Inform each test of its output directory so it knows where to call the
   # auxiliary files from. Using a generator expression here is useful for
@@ -52,9 +52,9 @@ foreach(test ${test_list})
 
 endforeach()
 
-if (TARGET UNIT_ign_TEST)
+if (TARGET UNIT_gz_TEST)
   set_tests_properties(
-    UNIT_ign_TEST
+    UNIT_gz_TEST
     PROPERTIES
     ENVIRONMENT
       "IGN_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>"
@@ -65,7 +65,7 @@ endif()
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
 # Ex: cmdtransport0.rb
-set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/ignition/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_script_configured_test "${CMAKE_CURRENT_BINARY_DIR}/test_cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb.configured")
 
 # Set the library_location variable to the full path of the library file within
@@ -93,8 +93,8 @@ set(cmd_script_configured "${cmd_script_generated}.configured")
 
 # Set the library_location variable to the relative path to the library file
 # within the install directory structure.
-set(service_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/ignition/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${service_executable}>")
-set(topic_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/ignition/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${topic_executable}>")
+set(service_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${service_executable}>")
+set(topic_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${topic_executable}>")
 
 configure_file(
   "cmd${GZ_DESIGNATION}.rb.in"
@@ -106,7 +106,7 @@ file(GENERATE
   INPUT  "${cmd_script_configured}")
 
 # Install the ruby command line library in an unversioned location.
-install(FILES ${cmd_script_generated} DESTINATION lib/ruby/ignition)
+install(FILES ${cmd_script_generated} DESTINATION lib/ruby/gz)
 
 #===============================================================================
 # Bash completion

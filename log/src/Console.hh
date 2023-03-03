@@ -15,12 +15,12 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_LOG_SRC_CONSOLE_HH_
-#define IGNITION_TRANSPORT_LOG_SRC_CONSOLE_HH_
+#ifndef GZ_TRANSPORT_LOG_SRC_CONSOLE_HH_
+#define GZ_TRANSPORT_LOG_SRC_CONSOLE_HH_
 
 #include <iostream>
 
-#include <ignition/transport/config.hh>
+#include <gz/transport/config.hh>
 
 namespace ignition
 {
@@ -38,23 +38,23 @@ namespace ignition
 }
 
 #define LDBG(statements) do { \
-  if (ignition::transport::log::__verbosity >= 4) {std::cout << statements;} \
+  if (gz::transport::log::__verbosity >= 4) {std::cout << statements;} \
 } while (false)
 
 #define LMSG(statements) do { \
-  if (ignition::transport::log::__verbosity >= 3) {std::cout << statements;} \
+  if (gz::transport::log::__verbosity >= 3) {std::cout << statements;} \
 } while (false)
 
 #define LWRN(statements) do { \
-  if (ignition::transport::log::__verbosity >= 2) {std::cout << statements;} \
+  if (gz::transport::log::__verbosity >= 2) {std::cout << statements;} \
 } while (false)
 
 #define LERR(statements) do { \
-  if (ignition::transport::log::__verbosity >= 1) {std::cerr << statements;} \
+  if (gz::transport::log::__verbosity >= 1) {std::cerr << statements;} \
 } while (false)
 
 #define LFATAL(statements) do { \
-  if (ignition::transport::log::__verbosity >= 0) {std::cerr << statements;} \
+  if (gz::transport::log::__verbosity >= 0) {std::cerr << statements;} \
 } while (false)
 
 #endif

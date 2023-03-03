@@ -19,10 +19,10 @@
 #include <cstring>
 #include <iostream>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Helpers.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Helpers.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 namespace ignition

@@ -20,10 +20,10 @@
 #include <optional>
 #include <numeric>
 
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/Recorder.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/Recorder.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
 #include "ChirpParams.hh"
 
@@ -38,12 +38,12 @@ static std::string partition;
 /// \param VerifyTopic A boolean function that can verify that the topic name is
 /// valid.
 /// \return True if the message we are viewing is valid.
-void VerifyMessage(const ignition::transport::log::Message &_msg,
+void VerifyMessage(const gz::transport::log::Message &_msg,
                    const int64_t _msgCount,
                    const int64_t _numTopics,
                    const std::function<bool(const std::string&)> &VerifyTopic)
 {
-  using MsgType = ignition::transport::log::test::ChirpMsgType;
+  using MsgType = gz::transport::log::test::ChirpMsgType;
 
   const std::string &data = _msg.Data();
   const std::string &type = _msg.Type();
@@ -76,11 +76,11 @@ TEST(recorder,
   // topics that don't specify one.
   std::vector<std::string> topics = {"/foo", "/bar"};
 
-  ignition::transport::log::Recorder recorder;
+  gz::transport::log::Recorder recorder;
   EXPECT_TRUE(recorder.Filename().empty());
   for (const std::string &topic : topics)
   {
-    EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+    EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
               recorder.AddTopic(topic));
   }
 
@@ -88,13 +88,13 @@ TEST(recorder,
     "file:recorderBeginRecordingTopicsBeforeAdvertise?mode=memory&cache=shared";
 
   EXPECT_EQ(recorder.Start(logName),
-            ignition::transport::log::RecorderError::SUCCESS);
+            gz::transport::log::RecorderError::SUCCESS);
 
   EXPECT_EQ(logName, recorder.Filename());
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+      gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -103,7 +103,7 @@ TEST(recorder,
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Open log before stopping so sqlite memory database is shared
-  ignition::transport::log::Log log;
+  gz::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
   recorder.Stop();
 
@@ -124,7 +124,7 @@ TEST(recorder,
 
   int64_t count = 0;
 
-  for (const ignition::transport::log::Message &msg : log.QueryMessages())
+  for (const gz::transport::log::Message &msg : log.QueryMessages())
   {
     VerifyMessage(msg, count,
                   static_cast<int64_t>(topics.size()),
@@ -146,9 +146,9 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
   const std::string logName =
     "file:recorderBeginRecordingTopicsAfterAdvertise?mode=memory&cache=shared";
 
-  ignition::transport::log::Recorder recorder;
+  gz::transport::log::Recorder recorder;
 
-  const int delay_ms = ignition::transport::log::test::DelayBetweenChirps_ms;
+  const int delay_ms = gz::transport::log::test::DelayBetweenChirps_ms;
 
   // We want to chirp for this many seconds
   const double secondsToChirpFor = 1.5;
@@ -158,10 +158,10 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
         std::ceil(secondsToChirpFor * 1000.0/static_cast<double>(delay_ms)));
 
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+      gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   const int waitBeforeSubscribing_ms =
-      ignition::transport::log::test::DelayBeforePublishing_ms
+      gz::transport::log::test::DelayBeforePublishing_ms
       + static_cast<int>(0.1*secondsToChirpFor)*1000;
 
   std::this_thread::sleep_for(
@@ -176,7 +176,7 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
   EXPECT_EQ(topics.size(), recorder.Topics().size());
 
   EXPECT_EQ(recorder.Start(logName),
-            ignition::transport::log::RecorderError::SUCCESS);
+            gz::transport::log::RecorderError::SUCCESS);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -185,17 +185,17 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Open log before stopping so sqlite memory database is shared
-  ignition::transport::log::Log log;
+  gz::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
   recorder.Stop();
 
-  using MsgType = ignition::transport::log::test::ChirpMsgType;
+  using MsgType = gz::transport::log::test::ChirpMsgType;
   MsgType protoMsg;
 
   std::string data;
   std::string type;
 
-  for (const ignition::transport::log::Message &msg : log.QueryMessages())
+  for (const gz::transport::log::Message &msg : log.QueryMessages())
   {
     data = msg.Data();
     type = msg.Type();
@@ -223,15 +223,15 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
   const std::string logName =
     "file:recorder_RecordPatternBeforeAdvertisement?mode=memory&cache=shared";
 
-  ignition::transport::log::Recorder recorder;
+  gz::transport::log::Recorder recorder;
   recorder.AddTopic(_pattern);
 
   EXPECT_EQ(recorder.Start(logName),
-            ignition::transport::log::RecorderError::SUCCESS);
+            gz::transport::log::RecorderError::SUCCESS);
 
   const int numChirps = 100;
   testing::forkHandlerType chirper =
-      ignition::transport::log::test::BeginChirps(topics, numChirps, partition);
+      gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
   testing::waitAndCleanupFork(chirper);
@@ -240,7 +240,7 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Open log before stopping so sqlite memory database is shared
-  ignition::transport::log::Log log;
+  gz::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
   recorder.Stop();
 
@@ -255,7 +255,7 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
 
   int64_t count = 0;
 
-  for (const ignition::transport::log::Message &msg : log.QueryMessages())
+  for (const gz::transport::log::Message &msg : log.QueryMessages())
   {
     VerifyMessage(msg, count, numMatchingTopics, VerifyTopic);
     ++count;
@@ -287,23 +287,23 @@ TEST(recorder, DataWriterQueue)
   // topics that don't specify one.
   std::string topic{"/foo"};
 
-  ignition::transport::log::Recorder recorder;
+  gz::transport::log::Recorder recorder;
   recorder.SetBufferSize(100);
   EXPECT_TRUE(recorder.Filename().empty());
-  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
             recorder.AddTopic(topic));
 
   const std::string logName =
     "file:recorderDataWriterQueue?mode=memory&cache=shared";
 
   EXPECT_EQ(recorder.Start(logName),
-            ignition::transport::log::RecorderError::SUCCESS);
+            gz::transport::log::RecorderError::SUCCESS);
 
   EXPECT_EQ(logName, recorder.Filename());
 
-  using MsgType = ignition::transport::log::test::ChirpMsgType;
+  using MsgType = gz::transport::log::test::ChirpMsgType;
 
-  ignition::transport::Node node;
+  gz::transport::Node node;
   auto pub = node.Advertise<MsgType>(topic);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -322,7 +322,7 @@ TEST(recorder, DataWriterQueue)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Open log before stopping so sqlite memory database is shared
-  ignition::transport::log::Log log;
+  gz::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
   recorder.Stop();
 
@@ -376,28 +376,28 @@ TEST(recorder, DataWriterQueueClockUpdates)
   // topics that don't specify one.
   std::string topic{"/foo"};
 
-  ignition::transport::log::Recorder recorder;
+  gz::transport::log::Recorder recorder;
   recorder.SetBufferSize(100);
   EXPECT_TRUE(recorder.Filename().empty());
-  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
             recorder.AddTopic(topic));
 
   const std::string logName =
     "file:recorderDataWriterQueueClockUpdates?mode=memory&cache=shared";
 
-  using MsgType = ignition::transport::log::test::ChirpMsgType;
+  using MsgType = gz::transport::log::test::ChirpMsgType;
 
-  ignition::transport::Node node;
+  gz::transport::Node node;
   auto pub = node.Advertise<MsgType>(topic);
 
   const std::string clockTopic{"/test_clock"};
   auto clockPub = node.Advertise<MsgType>(clockTopic);
 
-  ignition::transport::NetworkClock clock(clockTopic);
+  gz::transport::NetworkClock clock(clockTopic);
   recorder.Sync(&clock);
 
   EXPECT_EQ(recorder.Start(logName),
-            ignition::transport::log::RecorderError::SUCCESS);
+            gz::transport::log::RecorderError::SUCCESS);
 
   EXPECT_EQ(logName, recorder.Filename());
 
@@ -418,7 +418,7 @@ TEST(recorder, DataWriterQueueClockUpdates)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Open log before stopping so sqlite memory database is shared
-  ignition::transport::log::Log log;
+  gz::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
   recorder.Stop();
 
@@ -450,25 +450,25 @@ void TestBufferSizeSettings(const std::optional<std::size_t> &_bufferSize,
   // topics that don't specify one.
   std::string topic{"/foo"};
 
-  ignition::transport::log::Recorder recorder;
+  gz::transport::log::Recorder recorder;
   if (_bufferSize.has_value())
   {
     recorder.SetBufferSize(*_bufferSize);
   }
   EXPECT_TRUE(recorder.Filename().empty());
-  EXPECT_EQ(ignition::transport::log::RecorderError::SUCCESS,
+  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
             recorder.AddTopic(topic));
 
   const std::string logName =
     "file:recorderDataWriterQueueBufferSize?mode=memory&cache=shared";
 
-  using MsgType = ignition::msgs::Int32_V;
+  using MsgType = gz::msgs::Int32_V;
 
-  ignition::transport::Node node;
+  gz::transport::Node node;
   auto pub = node.Advertise<MsgType>(topic);
 
   EXPECT_EQ(recorder.Start(logName),
-            ignition::transport::log::RecorderError::SUCCESS);
+            gz::transport::log::RecorderError::SUCCESS);
 
   EXPECT_EQ(logName, recorder.Filename());
 
@@ -492,7 +492,7 @@ void TestBufferSizeSettings(const std::optional<std::size_t> &_bufferSize,
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Open log before stopping so sqlite memory database is shared
-  ignition::transport::log::Log log;
+  gz::transport::log::Log log;
   EXPECT_TRUE(log.Open(logName));
   recorder.Stop();
 
@@ -539,7 +539,7 @@ int main(int argc, char **argv)
   // Set the partition name for this process.
   setenv("IGN_PARTITION", partition.c_str(), 1);
 
-  setenv(ignition::transport::log::SchemaLocationEnvVar.c_str(),
+  setenv(gz::transport::log::SchemaLocationEnvVar.c_str(),
          IGN_TRANSPORT_LOG_SQL_PATH, 1);
 
   ::testing::InitGoogleTest(&argc, argv);

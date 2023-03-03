@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/CIface.h"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/CIface.h"
+#include "gz/transport/test_config.h"
 
 static int count;
 
@@ -31,7 +31,7 @@ void cb(const char *_data, size_t _size, const char *_msgType, void *_userData)
   ASSERT_NE(nullptr, userData);
   EXPECT_EQ(42, *userData);
 
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
   EXPECT_STREQ("ignition.msgs.StringMsg", _msgType);
   EXPECT_EQ(msg.data(), "HELLO");
@@ -47,7 +47,7 @@ void cbNonConst(char *_data, size_t _size, char *_msgType, void *_userData)
   ASSERT_NE(nullptr, userData);
   EXPECT_EQ(42, *userData);
 
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
   EXPECT_STREQ("ignition.msgs.StringMsg", _msgType);
   EXPECT_EQ(msg.data(), "HELLO");
@@ -74,7 +74,7 @@ TEST(CIfaceTest, PubSub)
 
 
   // Prepare the message.
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Get the size of the serialized message
@@ -130,7 +130,7 @@ TEST(CIfaceTest, PubSubPartitions)
         const_cast<char *>(topic), cbNonConst, &userData));
 
   // Prepare the message.
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.set_data("HELLO");
 
   // Get the size of the serialized message

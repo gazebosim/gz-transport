@@ -21,16 +21,16 @@
 #include <mutex>
 
 #include <ignition/msgs.hh>
-#include <ignition/transport/Clock.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Clock.hh>
+#include <gz/transport/Node.hh>
 
-using namespace ignition::transport;
+using namespace gz::transport;
 
 //////////////////////////////////////////////////
-class ignition::transport::NetworkClock::Implementation
+class gz::transport::NetworkClock::Implementation
 {
   /// \brief Implementation constructor.
-  /// \param[in] _topicName Name of the ignition::msgs::Clock type
+  /// \param[in] _topicName Name of the gz::msgs::Clock type
   /// topic to be used
   /// \param[in] _timeBase Time base for this clock, defaults to
   /// simulation time
@@ -50,11 +50,11 @@ class ignition::transport::NetworkClock::Implementation
   /// \brief Updates current clock time from a message
   /// \param[in] _msg Message to update clock time from
   /// \remarks Writes are synchronized
-  public: void UpdateTimeFromMessage(const ignition::msgs::Time &_msg);
+  public: void UpdateTimeFromMessage(const gz::msgs::Time &_msg);
 
   /// \brief Clock message subscriber callback.
   /// \param[in] _msg Received clock message
-  public: void OnClockMessageReceived(const ignition::msgs::Clock &_msg);
+  public: void OnClockMessageReceived(const gz::msgs::Clock &_msg);
 
   /// \brief Current clock time, in nanoseconds.
   public: std::chrono::nanoseconds clockTimeNS;
@@ -83,7 +83,7 @@ NetworkClock::Implementation::Implementation(const std::string& _topicName,
   {
     std::cerr << "Could not subscribe to [" << _topicName << "] topic\n";
   }
-  this->pub = node.Advertise<ignition::msgs::Clock>(_topicName);
+  this->pub = node.Advertise<gz::msgs::Clock>(_topicName);
 }
 
 //////////////////////////////////////////////////
@@ -102,7 +102,7 @@ void NetworkClock::Implementation::SetTime(std::chrono::nanoseconds _time)
   int nsecs = (_time -
     std::chrono::duration_cast<std::chrono::nanoseconds>(timeAsSecs)).count();
 
-  ignition::msgs::Clock msg;
+  gz::msgs::Clock msg;
   switch (this->clockTimeBase)
   {
     case NetworkClock::TimeBase::SIM:
@@ -128,7 +128,7 @@ void NetworkClock::Implementation::SetTime(std::chrono::nanoseconds _time)
 
 //////////////////////////////////////////////////
 void NetworkClock::Implementation::UpdateTimeFromMessage(
-    const ignition::msgs::Time& msg)
+    const gz::msgs::Time& msg)
 {
   std::lock_guard<std::mutex> lock(this->clockMutex);
   this->clockTimeNS = std::chrono::seconds(msg.sec()) +
@@ -137,7 +137,7 @@ void NetworkClock::Implementation::UpdateTimeFromMessage(
 
 //////////////////////////////////////////////////
 void NetworkClock::Implementation::OnClockMessageReceived(
-    const ignition::msgs::Clock& msg)
+    const gz::msgs::Clock& msg)
 {
   switch (this->clockTimeBase)
   {
@@ -206,7 +206,7 @@ bool NetworkClock::IsReady() const {
 }
 
 //////////////////////////////////////////////////
-class ignition::transport::WallClock::Implementation
+class gz::transport::WallClock::Implementation
 {
   /// \brief Default constructor
   public: Implementation();

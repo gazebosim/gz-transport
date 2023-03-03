@@ -17,10 +17,10 @@
 
 #include <string>
 
-#include "ignition/transport/MessageInfo.hh"
-#include "ignition/transport/TopicUtils.hh"
+#include "gz/transport/MessageInfo.hh"
+#include "gz/transport/TopicUtils.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 namespace ignition

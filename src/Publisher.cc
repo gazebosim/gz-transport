@@ -20,13 +20,13 @@
 #include <iostream>
 #include <string>
 
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/Helpers.hh"
-#include "ignition/transport/Publisher.hh"
-#include "ignition/transport/NodeShared.hh"
-#include "ignition/transport/SubscriptionHandler.hh"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/NodeShared.hh"
+#include "gz/transport/SubscriptionHandler.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////

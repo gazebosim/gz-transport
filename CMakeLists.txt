@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-transport11 VERSION 11.2.0)
+project(ignition-transport11 VERSION 11.3.2)
 
 #============================================================================
 # Find ignition-cmake
@@ -15,7 +15,9 @@ set(IGN_CMAKE_VER ${ignition-cmake2_VERSION_MAJOR})
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX)
+ign_configure_project(
+  REPLACE_IGNITION_INCLUDE_PATH gz/transport
+)
 
 #============================================================================
 # Set project-specific options
@@ -57,6 +59,8 @@ if (UNIX AND NOT APPLE)
     message(WARNING "lsb_release executable not found. Disabling focal-specific workarounds")
   elseif (${RELEASE_CODENAME} STREQUAL "focal")
     set(UBUNTU_FOCAL 1)
+  elseif (${RELEASE_CODENAME} STREQUAL "bullseye")
+    set(DEBIAN_BULLSEYE 1)
   endif()
 endif()
 
@@ -113,7 +117,7 @@ ign_find_package(SQLite3
 # Configure the build
 #============================================================================
 ign_configure_build(QUIT_IF_BUILD_ERRORS
-  COMPONENTS log)
+  COMPONENTS log parameters)
 
 #============================================================================
 # ign command line support

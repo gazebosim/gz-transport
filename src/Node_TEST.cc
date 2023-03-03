@@ -25,16 +25,16 @@
 #include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
-#include "ignition/transport/AdvertiseOptions.hh"
-#include "ignition/transport/MessageInfo.hh"
-#include "ignition/transport/Node.hh"
-#include "ignition/transport/NodeOptions.hh"
-#include "ignition/transport/TopicStatistics.hh"
-#include "ignition/transport/TopicUtils.hh"
-#include "ignition/transport/TransportTypes.hh"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/MessageInfo.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/NodeOptions.hh"
+#include "gz/transport/TopicStatistics.hh"
+#include "gz/transport/TopicUtils.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static std::string partition; // NOLINT(*)
 static std::string g_FQNPartition; // NOLINT(*)
@@ -72,7 +72,7 @@ void reset()
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb(const ignition::msgs::Int32 &_msg)
+void cb(const msgs::Int32 &_msg)
 {
   EXPECT_EQ(_msg.data(), data);
   cbExecuted = true;
@@ -84,7 +84,7 @@ void cb(const ignition::msgs::Int32 &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
-void cb2(const ignition::msgs::Int32 &_msg)
+void cb2(const msgs::Int32 &_msg)
 {
   EXPECT_EQ(_msg.data(), data);
   cb2Executed = true;
@@ -93,8 +93,8 @@ void cb2(const ignition::msgs::Int32 &_msg)
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
 /// This callback includes message information.
-void cbInfo(const ignition::msgs::Int32 &_msg,
-            const ignition::transport::MessageInfo &_info)
+void cbInfo(const msgs::Int32 &_msg,
+            const transport::MessageInfo &_info)
 {
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(_msg.data(), data);
@@ -107,14 +107,14 @@ void cbInfo(const ignition::msgs::Int32 &_msg,
 
 //////////////////////////////////////////////////
 void rawCbInfo(const char *_msgData, const size_t _size,
-               const ignition::transport::MessageInfo &_info)
+               const transport::MessageInfo &_info)
 {
   EXPECT_EQ(_info.Topic(), g_topic);
   EXPECT_EQ(g_FQNPartition, _info.Partition());
   EXPECT_TRUE(_info.IntraProcess());
   cbExecuted = true;
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   EXPECT_TRUE(msg.ParseFromArray(_msgData, _size));
   EXPECT_EQ(msg.data(), data);
 
@@ -132,8 +132,8 @@ void genericCb(const transport::ProtoMsg &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call.
-bool srvEcho(const ignition::msgs::Int32 &_req,
-  ignition::msgs::Int32 &_rep)
+bool srvEcho(const msgs::Int32 &_req,
+  msgs::Int32 &_rep)
 {
   srvExecuted = true;
 
@@ -144,7 +144,7 @@ bool srvEcho(const ignition::msgs::Int32 &_req,
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call without input.
-bool srvWithoutInput(ignition::msgs::Int32 &_rep)
+bool srvWithoutInput(msgs::Int32 &_rep)
 {
   srvExecuted = true;
   _rep.set_data(data);
@@ -153,7 +153,7 @@ bool srvWithoutInput(ignition::msgs::Int32 &_rep)
 
 //////////////////////////////////////////////////
 /// \brief Provide a service call without waiting for response.
-void srvWithoutOutput(const ignition::msgs::Int32 &_req)
+void srvWithoutOutput(const msgs::Int32 &_req)
 {
   srvExecuted = true;
 
@@ -163,7 +163,7 @@ void srvWithoutOutput(const ignition::msgs::Int32 &_req)
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void response(const ignition::msgs::Int32 &_rep, const bool _result)
+void response(const msgs::Int32 &_rep, const bool _result)
 {
   EXPECT_EQ(_rep.data(), data);
   EXPECT_TRUE(_result);
@@ -174,14 +174,14 @@ void response(const ignition::msgs::Int32 &_rep, const bool _result)
 
 //////////////////////////////////////////////////
 /// \brief Service call response callback.
-void wrongResponse(const ignition::msgs::Vector3d &/*_rep*/, bool /*_result*/)
+void wrongResponse(const msgs::Vector3d &/*_rep*/, bool /*_result*/)
 {
   wrongResponseExecuted = true;
 }
 
 //////////////////////////////////////////////////
 /// \brief Callback for receiving Vector3d data.
-void cbVector(const ignition::msgs::Vector3d &/*_msg*/)
+void cbVector(const msgs::Vector3d &/*_msg*/)
 {
   cbVectorExecuted = true;
 }
@@ -220,8 +220,8 @@ class MyTestClass
 
   /// \brief Member function used as a callback for responding to a service
   /// call.
-  public: bool Echo(const ignition::msgs::Int32 &_req,
-    ignition::msgs::Int32 &_rep)
+  public: bool Echo(const msgs::Int32 &_req,
+    msgs::Int32 &_rep)
   {
     EXPECT_EQ(_req.data(), data);
     _rep.set_data(_req.data());
@@ -231,7 +231,7 @@ class MyTestClass
 
   /// \brief Member function used as a callback for responding to a service
   /// call without input.
-  public: bool WithoutInput(ignition::msgs::Int32 &_rep)
+  public: bool WithoutInput(msgs::Int32 &_rep)
   {
     _rep.set_data(data);
     this->callbackSrvExecuted = true;
@@ -240,14 +240,14 @@ class MyTestClass
 
   // Member function used as a callback for responding to a service call
   // without without waiting for a response.
-  public: void WithoutOutput(const ignition::msgs::Int32 &_req)
+  public: void WithoutOutput(const msgs::Int32 &_req)
   {
     EXPECT_EQ(_req.data(), data);
     this->callbackSrvExecuted = true;
   }
 
   /// \brief Response callback to a service request.
-  public: void EchoResponse(const ignition::msgs::Int32 &_rep,
+  public: void EchoResponse(const msgs::Int32 &_rep,
     const bool _result)
   {
     EXPECT_EQ(_rep.data(), data);
@@ -257,7 +257,7 @@ class MyTestClass
   }
 
   /// \brief Response callback to a service request without input.
-  public: void WithoutInputResponse(const ignition::msgs::Int32 &_rep,
+  public: void WithoutInputResponse(const msgs::Int32 &_rep,
     const bool _result)
   {
     EXPECT_EQ(_rep.data(), data);
@@ -267,7 +267,7 @@ class MyTestClass
   }
 
   /// \brief Member function called each time a topic update is received.
-  public: void Cb(const ignition::msgs::Int32 &_msg)
+  public: void Cb(const msgs::Int32 &_msg)
   {
     EXPECT_EQ(_msg.data(), data);
     this->callbackExecuted = true;
@@ -275,8 +275,8 @@ class MyTestClass
 
   /// \brief Member function called each time a topic update is received.
   /// This callback accepts a parameter with some message information.
-  public: void CbInfo(const ignition::msgs::Int32 &_msg,
-                      const ignition::transport::MessageInfo &_info)
+  public: void CbInfo(const msgs::Int32 &_msg,
+                      const transport::MessageInfo &_info)
   {
     EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
@@ -289,19 +289,19 @@ class MyTestClass
   /// \brief Advertise a topic and publish a message.
   public: void SendSomeData()
   {
-    ignition::msgs::Int32 msg;
+    msgs::Int32 msg;
     msg.set_data(data);
 
     // Advertise an illegal topic.
-    auto pub = this->node.Advertise<ignition::msgs::Int32>("invalid topic");
+    auto pub = this->node.Advertise<msgs::Int32>("invalid topic");
     EXPECT_FALSE(pub);
     EXPECT_FALSE(pub.HasConnections());
 
-    auto pubId = this->node.Advertise<ignition::msgs::Int32>("invalid topic");
+    auto pubId = this->node.Advertise<msgs::Int32>("invalid topic");
     EXPECT_FALSE(pubId);
     EXPECT_FALSE(pubId.Valid());
 
-    pubId = this->node.Advertise<ignition::msgs::Int32>(g_topic);
+    pubId = this->node.Advertise<msgs::Int32>(g_topic);
     EXPECT_TRUE(pubId);
     EXPECT_TRUE(pubId.Valid());
     EXPECT_TRUE(pubId.HasConnections());
@@ -312,10 +312,10 @@ class MyTestClass
   /// blocking call.
   public: void TestServiceCall()
   {
-    ignition::msgs::Int32 req;
-    ignition::msgs::Int32 rep;
-    ignition::msgs::Vector3d wrongReq;
-    ignition::msgs::Vector3d wrongRep;
+    msgs::Int32 req;
+    msgs::Int32 rep;
+    msgs::Vector3d wrongReq;
+    msgs::Vector3d wrongRep;
     int timeout = 500;
     bool result;
 
@@ -367,8 +367,8 @@ class MyTestClass
   /// using non-blocking and blocking call.
   public: void TestServiceCallWithoutInput()
   {
-    ignition::msgs::Int32 rep;
-    ignition::msgs::Vector3d wrongRep;
+    msgs::Int32 rep;
+    msgs::Vector3d wrongRep;
     int timeout = 500;
     bool result;
 
@@ -404,8 +404,8 @@ class MyTestClass
   /// \brief Advertise and request a service without waiting for response.
   public: void TestServiceCallWithoutOutput()
   {
-    ignition::msgs::Int32 req;
-    ignition::msgs::Vector3d wrongReq;
+    msgs::Int32 req;
+    msgs::Vector3d wrongReq;
 
     req.set_data(data);
 
@@ -473,11 +473,11 @@ void CreatePubSubTwoThreads(
   transport::AdvertiseMessageOptions opts;
   opts.SetScope(_sc);
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node(_nodeOptions);
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic, opts);
+  auto pub = node.Advertise<msgs::Int32>(g_topic, opts);
   EXPECT_TRUE(pub);
 
   // Subscribe to a topic in a different thread and wait until the callback is
@@ -509,9 +509,9 @@ TEST(NodePubTest, BoolOperatorTest)
   const transport::Node::Publisher pub_const;
   EXPECT_FALSE(pub);
   EXPECT_FALSE(pub_const);
-  pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  pub = node.Advertise<msgs::Vector3d>(g_topic);
   const transport::Node::Publisher pub2_const =
-      node2.Advertise<ignition::msgs::Vector3d>(g_topic);
+      node2.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub2_const);
 }
@@ -522,7 +522,7 @@ TEST(NodeTest, PubWithoutAdvertise)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   // Check that an invalid namespace is ignored. The callbacks are expecting an
@@ -547,7 +547,7 @@ TEST(NodeTest, PubWithoutAdvertise)
   ASSERT_EQ(advertisedTopics.size(), 1u);
   EXPECT_EQ(advertisedTopics.at(0), g_topic);
 
-  auto pub2 = node2.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub2 = node2.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub2);
   advertisedTopics = node2.AdvertisedTopics();
   ASSERT_EQ(advertisedTopics.size(), 1u);
@@ -584,15 +584,15 @@ TEST(NodeTest, PubSubSameThread)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
   // Advertise an illegal topic.
-  EXPECT_FALSE(node.Advertise<ignition::msgs::Int32>("invalid topic"));
+  EXPECT_FALSE(node.Advertise<msgs::Int32>("invalid topic"));
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   // Subscribe to an illegal topic.
@@ -632,12 +632,12 @@ TEST(NodeTest, PubSubSameThreadGenericCb)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, genericCb));
@@ -676,11 +676,11 @@ TEST(NodeTest, PubSubSameThreadMessageInfo)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
@@ -716,11 +716,11 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
@@ -756,11 +756,11 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.SubscribeRaw(g_topic, rawCbInfo));
@@ -796,11 +796,11 @@ TEST(NodeTest, PubRawSubSameThreadMessageInfo)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.SubscribeRaw(g_topic, rawCbInfo));
@@ -837,20 +837,20 @@ TEST(NodeTest, PubSubSameThreadLambda)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   std::mutex mutex;
   std::condition_variable condition;
 
   bool executed = false;
-  std::function<void(const ignition::msgs::Int32&)> subCb =
-    [&executed, &mutex, &condition](const ignition::msgs::Int32 &_msg)
+  std::function<void(const msgs::Int32&)> subCb =
+    [&executed, &mutex, &condition](const msgs::Int32 &_msg)
   {
     EXPECT_EQ(_msg.data(), data);
     std::lock_guard<std::mutex> lk(mutex);
@@ -884,19 +884,19 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   bool executed = false;
-  std::function<void(const ignition::msgs::Int32&,
-                     const ignition::transport::MessageInfo &)> subCb =
-    [&executed](const ignition::msgs::Int32 &_msg,
-                const ignition::transport::MessageInfo &_info)
+  std::function<void(const msgs::Int32&,
+                     const transport::MessageInfo &)> subCb =
+    [&executed](const msgs::Int32 &_msg,
+                const transport::MessageInfo &_info)
   {
     EXPECT_EQ(_info.Topic(), g_topic);
     EXPECT_EQ(_msg.data(), data);
@@ -931,11 +931,11 @@ TEST(NodeTest, AdvertiseTwoEqualTopics)
   transport::Node node1;
   transport::Node node2;
 
-  auto pub1 = node1.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub1 = node1.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub1);
-  auto pub2 = node1.Advertise<ignition::msgs::StringMsg>(g_topic);
+  auto pub2 = node1.Advertise<msgs::StringMsg>(g_topic);
   EXPECT_FALSE(pub2);
-  auto pub3 = node2.Advertise<ignition::msgs::StringMsg>(g_topic);
+  auto pub3 = node2.Advertise<msgs::StringMsg>(g_topic);
   EXPECT_TRUE(pub3);
 }
 
@@ -1027,14 +1027,14 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node1;
   transport::Node node2;
 
   {
-    auto pub1 = node1.Advertise<ignition::msgs::Int32>(g_topic);
+    auto pub1 = node1.Advertise<msgs::Int32>(g_topic);
     EXPECT_TRUE(pub1);
 
     // Subscribe to topic in node1.
@@ -1156,8 +1156,8 @@ TEST(NodeTest, TypeMismatch)
 {
   reset();
 
-  ignition::msgs::Int32 rightMsg;
-  ignition::msgs::Vector3d wrongMsg;
+  msgs::Int32 rightMsg;
+  msgs::Vector3d wrongMsg;
   rightMsg.set_data(1);
   wrongMsg.set_x(1);
   wrongMsg.set_y(2);
@@ -1165,7 +1165,7 @@ TEST(NodeTest, TypeMismatch)
 
   transport::Node node;
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_FALSE(pub.Publish(wrongMsg));
@@ -1180,7 +1180,7 @@ TEST(NodeTest, ServiceCallAsync)
 {
   reset();
 
-  ignition::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   transport::Node node;
@@ -1307,7 +1307,7 @@ TEST(NodeTest, ServiceWithoutOutputCallAsync)
   reset();
 
   transport::Node node;
-  ignition::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   // Advertise an invalid service name.
@@ -1349,8 +1349,8 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 {
   reset();
 
-  std::function<bool(const ignition::msgs::Int32 &, ignition::msgs::Int32 &)>
-    advCb = [](const ignition::msgs::Int32 &_req, ignition::msgs::Int32 &_rep)
+  std::function<bool(const msgs::Int32 &, msgs::Int32 &)>
+    advCb = [](const msgs::Int32 &_req, msgs::Int32 &_rep)
     -> bool
   {
     EXPECT_EQ(_req.data(), data);
@@ -1359,19 +1359,19 @@ TEST(NodeTest, ServiceCallAsyncLambda)
   };
 
   transport::Node node;
-  EXPECT_TRUE((node.Advertise<ignition::msgs::Int32,
-        ignition::msgs::Int32>(g_topic, advCb)));
+  EXPECT_TRUE((node.Advertise<msgs::Int32,
+        msgs::Int32>(g_topic, advCb)));
 
   bool executed = false;
-  std::function<void(const ignition::msgs::Int32 &, const bool)> reqCb =
-    [&executed](const ignition::msgs::Int32 &_rep, const bool _result)
+  std::function<void(const msgs::Int32 &, const bool)> reqCb =
+    [&executed](const msgs::Int32 &_rep, const bool _result)
   {
     EXPECT_EQ(_rep.data(), data);
     EXPECT_TRUE(_result);
     executed = true;
   };
 
-  ignition::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   EXPECT_TRUE((node.Request(g_topic, req, reqCb)));
@@ -1387,19 +1387,19 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 {
   reset();
 
-  std::function<bool(ignition::msgs::Int32 &)> advCb =
-    [](ignition::msgs::Int32 &_rep) -> bool
+  std::function<bool(msgs::Int32 &)> advCb =
+    [](msgs::Int32 &_rep) -> bool
   {
     _rep.set_data(data);
     return true;
   };
 
   transport::Node node;
-  EXPECT_TRUE((node.Advertise<ignition::msgs::Int32>(g_topic, advCb)));
+  EXPECT_TRUE((node.Advertise<msgs::Int32>(g_topic, advCb)));
 
   bool executed = false;
-  std::function<void(const ignition::msgs::Int32 &, const bool)> reqCb =
-    [&executed](const ignition::msgs::Int32 &_rep, const bool _result)
+  std::function<void(const msgs::Int32 &, const bool)> reqCb =
+    [&executed](const msgs::Int32 &_rep, const bool _result)
   {
     EXPECT_EQ(_rep.data(), data);
     EXPECT_TRUE(_result);
@@ -1420,17 +1420,17 @@ TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
 {
   bool executed = false;
 
-  std::function<void(const ignition::msgs::Int32 &)> advCb =
-    [&executed](const ignition::msgs::Int32 &_req)
+  std::function<void(const msgs::Int32 &)> advCb =
+    [&executed](const msgs::Int32 &_req)
   {
     EXPECT_EQ(_req.data(), data);
     executed = true;
   };
 
   transport::Node node;
-  EXPECT_TRUE((node.Advertise<ignition::msgs::Int32>(g_topic, advCb)));
+  EXPECT_TRUE((node.Advertise<msgs::Int32>(g_topic, advCb)));
 
-  ignition::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   EXPECT_TRUE(node.Request(g_topic, req));
@@ -1443,7 +1443,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
 {
   reset();
 
-  ignition::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   transport::Node node;
@@ -1561,7 +1561,7 @@ TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
   reset();
 
   transport::Node node;
-  ignition::msgs::Int32 req;
+  msgs::Int32 req;
   req.set_data(data);
 
   // Advertise an invalid service name.
@@ -1614,8 +1614,8 @@ TEST(NodeTest, ServiceCallSync)
 {
   reset();
 
-  ignition::msgs::Int32 req;
-  ignition::msgs::Int32 rep;
+  msgs::Int32 req;
+  msgs::Int32 rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -1642,7 +1642,7 @@ TEST(NodeTest, ServiceCallWithoutInputSync)
 {
   reset();
 
-  ignition::msgs::Int32 rep;
+  msgs::Int32 rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -1667,8 +1667,8 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 {
   reset();
 
-  ignition::msgs::Int32 req;
-  ignition::msgs::Int32 rep;
+  msgs::Int32 req;
+  msgs::Int32 rep;
   bool result;
   int64_t timeout = 1000;
 
@@ -1700,7 +1700,7 @@ TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 {
   reset();
 
-  ignition::msgs::Int32 rep;
+  msgs::Int32 rep;
   bool result;
   int64_t timeout = 1000;
 
@@ -1733,11 +1733,11 @@ void createInfinitePublisher()
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
   transport::Node node;
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   auto i = 0;
@@ -1814,16 +1814,16 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
-  ignition::msgs::Vector3d msgV;
+  msgs::Vector3d msgV;
   msgV.set_x(1);
   msgV.set_y(2);
   msgV.set_z(3);
 
   transport::Node node;
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
@@ -1858,14 +1858,14 @@ TEST(NodeTest, PubSubWrongTypesOnSubscription)
 {
   reset();
 
-  ignition::msgs::Vector3d msgV;
+  msgs::Vector3d msgV;
   msgV.set_x(1);
   msgV.set_y(2);
   msgV.set_z(3);
 
   transport::Node node;
 
-  auto pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+  auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
@@ -1890,13 +1890,13 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node1;
   transport::Node node2;
 
-  auto pub1 = node1.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub1 = node1.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub1);
 
   // Good subscriber.
@@ -1929,15 +1929,15 @@ TEST(NodeTest, SubThrottled)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
-  ignition::transport::SubscribeOptions opts;
+  transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1u);
   EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
 
@@ -1964,14 +1964,14 @@ TEST(NodeTest, PubThrottled)
 {
   reset();
 
-  ignition::msgs::Int32 msg;
+  msgs::Int32 msg;
   msg.set_data(data);
 
   transport::Node node;
 
-  ignition::transport::AdvertiseMessageOptions opts;
+  transport::AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(1u);
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic, opts);
+  auto pub = node.Advertise<msgs::Int32>(g_topic, opts);
   EXPECT_TRUE(pub);
 
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
@@ -2002,8 +2002,8 @@ TEST(NodeTest, SrvRequestWrongReq)
 {
   reset();
 
-  ignition::msgs::Vector3d wrongReq;
-  ignition::msgs::Int32 rep;
+  msgs::Vector3d wrongReq;
+  msgs::Int32 rep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -2033,8 +2033,8 @@ TEST(NodeTest, SrvRequestWrongRep)
 {
   reset();
 
-  ignition::msgs::Int32 req;
-  ignition::msgs::Vector3d wrongRep;
+  msgs::Int32 req;
+  msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -2062,7 +2062,7 @@ TEST(NodeTest, SrvWithoutInputRequestWrongRep)
 {
   reset();
 
-  ignition::msgs::Vector3d wrongRep;
+  msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -2089,9 +2089,9 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
 {
   reset();
 
-  ignition::msgs::Int32 req;
-  ignition::msgs::Int32 goodRep;
-  ignition::msgs::Vector3d badRep;
+  msgs::Int32 req;
+  msgs::Int32 goodRep;
+  msgs::Vector3d badRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -2124,8 +2124,8 @@ TEST(NodeTest, SrvWithoutInputTwoRequestsOneWrong)
 {
   reset();
 
-  ignition::msgs::Int32 goodRep;
-  ignition::msgs::Vector3d badRep;
+  msgs::Int32 goodRep;
+  msgs::Vector3d badRep;
   bool result;
   unsigned int timeout = 1000;
 
@@ -2156,8 +2156,8 @@ TEST(NodeTest, TopicList)
   transport::Node node1;
   transport::Node node2;
 
-  auto pub1 = node1.Advertise<ignition::msgs::Int32>("topic1");
-  auto pub2 = node2.Advertise<ignition::msgs::Int32>("topic2");
+  auto pub1 = node1.Advertise<msgs::Int32>("topic1");
+  auto pub2 = node2.Advertise<msgs::Int32>("topic2");
 
   node1.TopicList(topics);
   EXPECT_EQ(topics.size(), 2u);
@@ -2187,7 +2187,7 @@ TEST(NodeTest, TopicListRemap)
   nodeOptions.AddTopicRemap(g_topic, g_topic_remap);
   transport::Node node(nodeOptions);
 
-  auto pub = node.Advertise<ignition::msgs::Int32>(g_topic);
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
 
   node.TopicList(topics);
   ASSERT_EQ(1u, topics.size());
@@ -2260,14 +2260,14 @@ TEST(NodeTest, WrongTopicRemap)
 /// \brief Check the high water mark of the receiving message buffer.
 TEST(NodeTest, RcvHwm)
 {
-  EXPECT_EQ(ignition::transport::kDefaultRcvHwm, ignition::transport::rcvHwm());
+  EXPECT_EQ(transport::kDefaultRcvHwm, transport::rcvHwm());
 }
 
 //////////////////////////////////////////////////
 /// \brief Check the high water mark of the sending message buffer.
 TEST(NodeTest, SndHwm)
 {
-  EXPECT_EQ(ignition::transport::kDefaultSndHwm, ignition::transport::sndHwm());
+  EXPECT_EQ(transport::kDefaultSndHwm, transport::sndHwm());
 }
 
 //////////////////////////////////////////////////
@@ -2278,7 +2278,7 @@ TEST(NodePubTest, DestructionOrder)
 
   {
     transport::Node node;
-    pub = node.Advertise<ignition::msgs::Vector3d>(g_topic);
+    pub = node.Advertise<msgs::Vector3d>(g_topic);
   }
 }
 
@@ -2288,7 +2288,7 @@ TEST(NodePubTest, DestructionOrder)
 /// and is able to terminate.
 TEST(NodeTest, waitForShutdownSIGINT)
 {
-  std::thread aThread([]{ignition::transport::waitForShutdown();});
+  std::thread aThread([]{transport::waitForShutdown();});
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
   raise(SIGINT);
   aThread.join();
@@ -2300,7 +2300,7 @@ TEST(NodeTest, waitForShutdownSIGINT)
 /// and is able to terminate.
 TEST(NodeTest, waitForShutdownSIGTERM)
 {
-  std::thread aThread([]{ignition::transport::waitForShutdown();});
+  std::thread aThread([]{transport::waitForShutdown();});
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
   raise(SIGTERM);
   aThread.join();

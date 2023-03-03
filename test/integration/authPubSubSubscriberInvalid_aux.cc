@@ -17,23 +17,30 @@
 
 #include <chrono>
 #include <string>
-#include <ignition/msgs.hh>
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+#include <ignition/msgs/int32.pb.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 #ifdef _WIN32
   #include <filesystem>
 #endif
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 #include "gtest/gtest.h"
-#include "ignition/transport/test_config.h"
+#include "gz/transport/test_config.h"
 
-using namespace ignition;
+using namespace gz;
 
 static bool cbExecuted;
 static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief Function is called everytime a topic update is received.
-void cb(const ignition::msgs::Int32 &/*_msg*/)
+void cb(const msgs::Int32 &/*_msg*/)
 {
   std::cerr << "CALLBACK\n";
   cbExecuted = true;

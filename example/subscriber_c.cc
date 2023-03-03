@@ -15,15 +15,15 @@
  *
 */
 #include <stdio.h>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/transport/CIface.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/transport/CIface.h>
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
 void cb(const char *_data, const size_t _size, const char *_msgType,
         void *_userData)
 {
-  ignition::msgs::StringMsg msg;
+  gz::msgs::StringMsg msg;
   msg.ParseFromArray(_data, _size);
   const char *partition;
 

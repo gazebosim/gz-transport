@@ -27,15 +27,15 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/Playback.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/Playback.hh>
 #include "Console.hh"
 #include "build_config.hh"
 #include "raii-sqlite3.hh"
 
-using namespace ignition::transport;
-using namespace ignition::transport::log;
+using namespace gz::transport;
+using namespace gz::transport::log;
 
 // We check whether sqlite3 is potentially threadsafe. Note that this only
 // knows whether sqlite3 was compiled with multi-threading capabilities. It
@@ -45,7 +45,7 @@ static const bool kSqlite3Threadsafe = (sqlite3_threadsafe() != 0);
 
 //////////////////////////////////////////////////
 /// \brief Private implementation of Playback
-class ignition::transport::log::Playback::Implementation
+class gz::transport::log::Playback::Implementation
 {
   /// \brief Constructor. Creates and initializes the log file
   /// \param[in] _file The full path of the file to open
@@ -167,13 +167,13 @@ class PlaybackHandle::Implementation
   /// \brief node used to create publishers
   /// \note This member needs to come before the publishers member so that they
   /// get destructed in the correct order
-  public: std::unique_ptr<ignition::transport::Node> node;
+  public: std::unique_ptr<Node> node;
 
   /// \brief Map whose key is a topic name and value is another map whose
   /// key is a message type name and value is a publisher
   public: std::unordered_map<std::string,
           std::unordered_map<std::string,
-            ignition::transport::Node::Publisher>> publishers;
+            Node::Publisher>> publishers;
 
   /// \brief a mutex to use when waiting for playback to finish
   public: std::mutex waitMutex;
@@ -480,7 +480,7 @@ void PlaybackHandle::Implementation::CreatePublisher(
   {
     // Create a map for the message topic
     this->publishers[_topic] = std::unordered_map<std::string,
-      ignition::transport::Node::Publisher>();
+      Node::Publisher>();
     firstMapIter = this->publishers.find(_topic);
   }
 

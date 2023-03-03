@@ -15,16 +15,23 @@
  *
 */
 
-#ifndef IGNITION_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
-#define IGNITION_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
+#ifndef GZ_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
+#define GZ_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
 
-#include <ignition/msgs/int32.pb.h>
-#include <ignition/transport/test_config.h>
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+#include <gz/msgs/int32.pb.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+#include <gz/transport/test_config.h>
 
 #include <string>
 #include <vector>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
 
 namespace ignition
@@ -47,7 +54,7 @@ namespace ignition
 
         /// \brief This is the message type that will be used by the chirping
         /// topics.
-        using ChirpMsgType = ignition::msgs::Int32;
+        using ChirpMsgType = gz::msgs::Int32;
 
 
         //////////////////////////////////////////////////
