@@ -668,18 +668,18 @@ namespace ignition
       /// \param[in] _topic Service name requested.
       /// \param[in] _request Protobuf message serialized into a string
       /// containing the request's parameters.
-      /// \param[out] _requestType Message type of the request.
+      /// \param[in] _requestType Message type of the request.
+      /// \param[in] _responseType Message type of the response.
       /// \param[in] _timeout The request will timeout after '_timeout' ms.
       /// \param[out] _response Serialized protobuf message containing the
       ///  response.
-      /// \param[out] _responseType Message type of the response.
       /// \param[out] _result Result of the service call.
       /// \return true when the request was executed or false if the timeout
       /// expired.
       public: bool RequestRaw(const std::string &_topic,
                   const std::string &_request, const std::string &_requestType,
-                  unsigned int _timeout,
-                  std::string &_response, std::string &_responseType,
+                  const std::string &_responseType, unsigned int _timeout,
+                  std::string &_response,
                   bool &_result);
 
       /// \brief Unadvertise a service.

@@ -345,11 +345,10 @@ class MyTestClass
     std::string reqStr, repStr, repTypeName;
     req.SerializeToString(&reqStr);
     EXPECT_TRUE(this->node.RequestRaw(g_topic, reqStr, req.GetTypeName(),
-          timeout, repStr, repTypeName, result));
+          rep.GetTypeName(), timeout, repStr, result));
     rep.ParseFromString(repStr);
     ASSERT_TRUE(result);
     EXPECT_EQ(rep.data(), data);
-    ASSERT_EQ(repTypeName, rep.GetTypeName());
     EXPECT_TRUE(this->callbackSrvExecuted);
 
     this->Reset();

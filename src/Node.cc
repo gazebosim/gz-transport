@@ -1040,21 +1040,9 @@ bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
 /////////////////////////////////////////////////
 bool Node::RequestRaw(const std::string &_topic,
     const std::string &_request, const std::string &_requestType,
-    unsigned int _timeout,
-    std::string &_response, std::string &_responseType,
-    bool &_result)
+    const std::string &_responseType, unsigned int _timeout,
+    std::string &_response, bool &_result)
 {
-  std::vector<ServicePublisher> publishers;
-  this->ServiceInfo(_topic, publishers);
-
-  if (publishers.empty())
-  {
-    std::cerr << "Node::RequestRaw(): Error getting response type for "
-      << "service [" << _topic << "]\n";
-    return false;
-  }
-  _responseType = publishers.front().RepTypeName();
-
   std::unique_ptr<google::protobuf::Message> req =
     msgs::Factory::New(_requestType);
   if (!req)
