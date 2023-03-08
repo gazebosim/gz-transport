@@ -1,5 +1,15 @@
 ## Gazebo Transport 11.X
 
+### Gazebo Transport 11.4.0 (2023-03-08)
+
+1. Added Node::RequestRaw
+    * [Pull request #351](https://github.com/gazebosim/gz-transport/pull/351)
+
+1. Suppress some Windows warnings.
+    * [Pull request #367](https://github.com/gazebosim/gz-transport/pull/367)
+
+1. All changes up to version 8.2.0.
+
 ### Gazebo Transport 11.3.2 (2022-12-08)
 
 1. Fix include/ignition/.../parameters header files
