@@ -1054,7 +1054,7 @@ bool Node::RequestRaw(const std::string &_topic,
 
   std::unique_ptr<google::protobuf::Message> res =
     msgs::Factory::New(_responseType);
-  if (!req)
+  if (!res)
   {
     std::cerr << "Unable to create response of type["
       << _responseType << "].\n";
@@ -1062,6 +1062,5 @@ bool Node::RequestRaw(const std::string &_topic,
   }
 
   bool executed = this->Request(_topic, *req, _timeout, *res, _result);
-  res->SerializeToString(&_response);
-  return executed;
+  return executed && res->SerializeToString(&_response);
 }

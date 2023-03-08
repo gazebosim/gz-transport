@@ -32,28 +32,20 @@ int main(int argc, char **argv)
   bool result;
   unsigned int timeout = 5000;
 
-  std::string reqStr, repStr, repMsgType;
+  std::string reqStr, repStr;
   req.SerializeToString(&reqStr);
 
   // Request the "/echo" service.
   bool executed = node.RequestRaw("/echo", reqStr, "ignition.msgs.StringMsg",
-      timeout, repStr, repMsgType, result);
+      "ignition.msgs.StringMsg", timeout, repStr, result);
 
   if (executed)
   {
     if (result)
     {
-      if (repMsgType == "ignition.msgs.StringMsg")
-      {
-        ignition::msgs::StringMsg rep;
-        rep.ParseFromString(repStr);
-        std::cout << "Response: [" << rep.data() << "]" << std::endl;
-      }
-      else
-      {
-        std::cout << "Expected reply message type of ignition.msgs.StringMsg "
-          << "received " << repMsgType << std::endl;
-      }
+      ignition::msgs::StringMsg rep;
+      rep.ParseFromString(repStr);
+      std::cout << "Response: [" << rep.data() << "]" << std::endl;
     }
     else
       std::cout << "Service call failed" << std::endl;
