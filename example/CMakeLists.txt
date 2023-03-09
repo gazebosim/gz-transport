@@ -101,6 +101,12 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/requester_oneway.cc")
     gz-transport${GZ_TRANSPORT_VER}::core)
 endif()
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/requester_raw.cc")
+  add_executable(requester_raw requester_raw.cc)
+  target_link_libraries(requester_raw
+    gz-transport${GZ_TRANSPORT_VER}::core)
+endif()
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/responser_no_input.cc")
   add_executable(responser_no_input responser_no_input.cc)
   target_link_libraries(responser_no_input
