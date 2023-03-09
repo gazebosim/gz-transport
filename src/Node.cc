@@ -1080,3 +1080,31 @@ bool NodePrivate::RemoveHandlersFromPubQueue(const std::string &_topic)
   }
   return true;
 }
+
+/////////////////////////////////////////////////
+bool Node::RequestRaw(const std::string &_topic,
+    const std::string &_request, const std::string &_requestType,
+    const std::string &_responseType, unsigned int _timeout,
+    std::string &_response, bool &_result)
+{
+  std::unique_ptr<google::protobuf::Message> req =
+    msgs::Factory::New(_requestType);
+  if (!req)
+  {
+    std::cerr << "Unable to create request of type[" << _requestType << "].\n";
+    return false;
+  }
+  req->ParseFromString(_request);
+
+  std::unique_ptr<google::protobuf::Message> res =
+    msgs::Factory::New(_responseType);
+  if (!res)
+  {
+    std::cerr << "Unable to create response of type["
+      << _responseType << "].\n";
+    return false;
+  }
+
+  bool executed = this->Request(_topic, *req, _timeout, *res, _result);
+  return executed && res->SerializeToString(&_response);
+}
