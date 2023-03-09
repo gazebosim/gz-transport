@@ -21,7 +21,7 @@
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-#include <ignition/msgs/int32.pb.h>
+#include <gz/msgs/int32.pb.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif

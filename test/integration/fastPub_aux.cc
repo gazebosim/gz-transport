@@ -20,7 +20,7 @@
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-#include <ignition/msgs/vector3d.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
