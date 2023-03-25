@@ -31,7 +31,12 @@
 #endif
 
 #ifndef __APPLE__
-  #if __unix__ && __GNUC__ < 8
+  #if ((defined(__clang__) && __cplusplus < 201703L) || \
+      (__unix__ && __GNUC__ < 8))
+    #define GZ_EXPERIMENTAL_FILESYSTEM
+  #endif
+
+  #ifdef GZ_EXPERIMENTAL_FILESYSTEM
     #include <experimental/filesystem>
   #else
     #include <filesystem>
@@ -98,7 +103,7 @@ namespace testing
     // Ugly as hell but trying to avoid boost::filesystem
     return _str1 + "/" + _str2;
 #else
-    #if __unix__ && __GNUC__ < 8
+  #ifdef GZ_EXPERIMENTAL_FILESYSTEM
       using namespace std::experimental::filesystem;
     #else
       using namespace std::filesystem;
