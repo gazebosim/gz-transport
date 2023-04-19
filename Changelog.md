@@ -1,5 +1,34 @@
 ## Gazebo Transport 12.X
 
+### Gazebo Transport 12.2.0 (2023-04-19)
+
+1. CI workflow: use checkout v3
+    * [Pull request #394](https://github.com/gazebosim/gz-transport/pull/394)
+
+1. Rename COPYING to LICENSE
+    * [Pull request #392](https://github.com/gazebosim/gz-transport/pull/392)
+
+1. Support clang and std::filesystem
+    * [Pull request #390](https://github.com/gazebosim/gz-transport/pull/390)
+
+1. Added Node::RequestRaw
+    * [Pull request #351](https://github.com/gazebosim/gz-transport/pull/351)
+
+1. Pass std::function by value to Node::Subscribe
+    * [Pull request #382](https://github.com/gazebosim/gz-transport/pull/382)
+
+1. Prevent invoking callbacks after a node unsubscribes to a topic
+    * [Pull request #381](https://github.com/gazebosim/gz-transport/pull/381)
+
+1. Suppress some Windows warnings
+    * [Pull request #367](https://github.com/gazebosim/gz-transport/pull/367)
+
+1. Fix include/ignition/.../parameters header files
+    * [Pull request #374](https://github.com/gazebosim/gz-transport/pull/374)
+
+1. Fix CLI configuration install path to ignition
+    * [Pull request #372](https://github.com/gazebosim/gz-transport/pull/372)
+
 ### Gazebo Transport 12.1.0 (2023-01-11)
 
 1. Ignition to Gazebo renaming.
