@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-transport13 VERSION 13.0.0)
+project(gz-transport12 VERSION 12.2.0)
 
 #============================================================================
 # Find gz-cmake
@@ -15,10 +15,25 @@ set(GZ_CMAKE_VER ${gz-cmake3_VERSION_MAJOR})
 #============================================================================
 # Configure the project
 #============================================================================
+option(SKIP_PYBIND11
+      "Skip generating Python bindings via pybind11"
+      OFF)
+
+# Python interfaces vars
+include(CMakeDependentOption)
+include(GzPython)
+cmake_dependent_option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
+      "Install python modules in standard system paths in the system"
+      OFF "NOT SKIP_PYBIND11" OFF)
+
+cmake_dependent_option(USE_DIST_PACKAGES_FOR_PYTHON
+      "Use dist-packages instead of site-package to install python modules"
+      OFF "NOT SKIP_PYBIND11" OFF)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX pre1)
+gz_configure_project(VERSION_SUFFIX)
 
 #============================================================================
 # Set project-specific options
@@ -86,8 +101,8 @@ set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs10 REQUIRED)
-set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
+gz_find_package(gz-msgs9 REQUIRED)
+set(GZ_MSGS_VER ${gz-msgs9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ifaddrs
@@ -117,13 +132,44 @@ gz_find_package(SQLite3
 #============================================================================
 # Configure the build
 #============================================================================
+
+########################################
+# Python interfaces
+if (NOT PYTHON3_FOUND)
+  GZ_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
+  message (STATUS "Searching for Python - not found.")
+else()
+  message (STATUS "Searching for Python - found version ${Python3_VERSION}.")
+
+  if (SKIP_PYBIND11)
+    message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
+  else()
+    set(PYBIND11_PYTHON_VERSION 3)
+    find_package(pybind11 2.4 QUIET)
+
+    if (${pybind11_FOUND})
+      find_package(Python3 ${GZ_PYTHON_VERSION} REQUIRED COMPONENTS Development)
+      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+    else()
+      GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+      message (STATUS "Searching for pybind11 - not found.")
+    endif()
+  endif()
+endif()
+
 gz_configure_build(QUIT_IF_BUILD_ERRORS
   COMPONENTS log parameters)
-
 #============================================================================
 # gz command line support
 #============================================================================
 add_subdirectory(conf)
+
+#============================================================================
+# gz transport python bindings
+#============================================================================
+if (pybind11_FOUND AND NOT SKIP_PYBIND11)
+  add_subdirectory(python)
+endif()
 
 #============================================================================
 # Create package information
