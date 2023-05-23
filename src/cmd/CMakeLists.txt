@@ -11,7 +11,8 @@ endif()
 # Make a small static lib of command line functions
 add_library(gz STATIC gz.cc)
 target_link_libraries(gz
-  ${PROJECT_LIBRARY_TARGET_NAME}
+  PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
+  PRIVATE gz_msgs_gen
 )
 
 # Build topic CLI executable
@@ -40,7 +41,7 @@ gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 
 foreach(test ${test_list})
-  target_link_libraries(${test} gz)
+  target_link_libraries(${test} gz gz_msgs_gen)
 
   # Inform each test of its output directory so it knows where to call the
   # auxiliary files from. Using a generator expression here is useful for

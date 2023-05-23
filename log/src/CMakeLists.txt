@@ -4,7 +4,8 @@ list(APPEND sources cmd/LogCommandAPI.cc)
 gz_add_component(log SOURCES ${sources} GET_TARGET_NAME log_lib_target)
 
 target_link_libraries(${log_lib_target}
-  PRIVATE SQLite3::SQLite3)
+  PRIVATE SQLite3::SQLite3
+  PRIVATE gz_msgs_gen)
 
 if (MSVC)
   # Warning #4251 is the "dll-interface" warning that tells you when types used

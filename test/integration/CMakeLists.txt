@@ -25,16 +25,14 @@ endif()
 
 gz_build_tests(TYPE INTEGRATION SOURCES ${tests}
   TEST_LIST test_list
-  LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
+  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} gz_msgs_gen)
 
 foreach(test ${test_list})
-
   # Inform each test of its output directory so it knows where to call the
   # auxiliary files from. Using a generator expression here is useful for
   # multi-configuration generators, like Visual Studio.
   target_compile_definitions(${test} PRIVATE
     "DETAIL_GZ_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\"")
-
 endforeach()
 
 set(auxiliary_files
@@ -63,6 +61,7 @@ foreach(AUX_EXECUTABLE ${auxiliary_files})
       ${PROJECT_LIBRARY_TARGET_NAME}
       gtest
       ${EXTRA_TEST_LIB_DEPS}
+      gz_msgs_gen
   )
 
   if(UNIX)

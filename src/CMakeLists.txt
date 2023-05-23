@@ -9,14 +9,14 @@ gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
-    gz-msgs${GZ_MSGS_VER}::gz-msgs${GZ_MSGS_VER}
     CPPZMQ::CPPZMQ
   PRIVATE
+    gz_msgs_gen
     ${ZeroMQ_TARGET}
 )
 
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
-  SYSTEM PUBLIC 
+  SYSTEM PUBLIC
     $<TARGET_PROPERTY:protobuf::libprotobuf,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:CPPZMQ::CPPZMQ,INTERFACE_INCLUDE_DIRECTORIES>)
 
@@ -34,14 +34,13 @@ gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 
 foreach(test ${test_list})
-
   # Inform each test of its output directory so it knows where to call the
   # auxiliary files from. Using a generator expression here is useful for
   # multi-configuration generators, like Visual Studio.
   target_compile_definitions(${test} PRIVATE
     "DETAIL_GZ_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\""
     "GZ_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\"")
-
+  target_link_libraries(${test} gz_msgs_gen)
 endforeach()
 
 if(MSVC)
