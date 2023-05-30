@@ -5,33 +5,6 @@ if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(PYTHON_LIBRARIES "${PYTHON_DEBUG_LIBRARIES}")
 endif()
 
-message(STATUS "Building pybind11 interfaces")
-set(BINDINGS_MODULE_NAME "transport${PROJECT_VERSION_MAJOR}")
-# Split from main extension and converted to pybind11
-pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
-src/transport/_gz_transport_pybind11.cc
-)
-
-target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
-  ${PROJECT_LIBRARY_TARGET_NAME}
-)
-
-target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
-  BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # Workaround for Clang and pybind11 on Focal
-  # https://github.com/pybind/pybind11/issues/1604
-  # Resolved by newer versions of pybind11
-  if(${pybind11_VERSION} VERSION_LESS "2.4.4")
-    target_compile_options(${BINDINGS_MODULE_NAME} PRIVATE -fsized-deallocation)
-  endif()
-
-  # Suppress warnings that clang misidentifies:
-  # https://github.com/pybind/pybind11/issues/1893
-  target_compile_options(${BINDINGS_MODULE_NAME} PRIVATE -Wno-self-assign-overloaded)
-endif()
-
 if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
   if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
     execute_process(
@@ -57,24 +30,34 @@ else()
   set(GZ_PYTHON_INSTALL_PATH ${GZ_LIB_INSTALL_DIR}/python)
 endif()
 
-set(GZ_PYTHON_INSTALL_PATH "${GZ_PYTHON_INSTALL_PATH}/gz")
-
 # Set the build location and install location for a CPython extension
 function(configure_build_install_location _library_name)
-  # Install into test folder in build space for unit tests to import
-  set_target_properties(${_library_name} PROPERTIES
-    # Use generator expression to avoid prepending a build type specific directory on Windows
-    LIBRARY_OUTPUT_DIRECTORY $<1:${CMAKE_CURRENT_BINARY_DIR}/test>
-    RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_CURRENT_BINARY_DIR}/test>)
-
   # Install library for actual use
   install(TARGETS ${_library_name}
     DESTINATION "${GZ_PYTHON_INSTALL_PATH}/"
   )
 endfunction()
 
+message(STATUS "Building pybind11 interfaces")
+set(BINDINGS_MODULE_NAME "transport${PROJECT_VERSION_MAJOR}")
+# Split from main extension and converted to pybind11
+pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
+  src/transport/_gz_transport_pybind11.cc
+)
+
+target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
+  ${PROJECT_LIBRARY_TARGET_NAME}
+)
+
+target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
+  BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
+
+set_target_properties(${BINDINGS_MODULE_NAME} PROPERTIES
+  OUTPUT_NAME "transport${PROJECT_VERSION_MAJOR}")
+# Deal with naming collision on Windows. It is caused by the both the import
+# library of sdformat library and the import library of the pybind11 bindings
+# library are called sdformat13.lib.
+set_target_properties(${BINDINGS_MODULE_NAME} PROPERTIES
+  ARCHIVE_OUTPUT_NAME "python_transport${PROJECT_VERSION_MAJOR}")
+
 configure_build_install_location(${BINDINGS_MODULE_NAME})
-
-if (BUILD_TESTING AND NOT WIN32)
-
-endif()

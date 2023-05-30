@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-transport12 VERSION 12.2.0)
+project(gz-transport13 VERSION 13.0.0)
 
 #============================================================================
 # Find gz-cmake
@@ -101,8 +101,8 @@ set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs9 REQUIRED)
-set(GZ_MSGS_VER ${gz-msgs9_VERSION_MAJOR})
+gz_find_package(gz-msgs10 REQUIRED)
+set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ifaddrs

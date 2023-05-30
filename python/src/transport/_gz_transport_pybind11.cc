@@ -34,11 +34,16 @@ namespace transport
 namespace python
 {
 
-
-PYBIND11_MODULE(gz-transport, m) {
-    py::class_<Publisher>(m, "Publisher")
-
-}  // gz-transport module
+PYBIND11_MODULE(transport13, m) {
+    py::class_<gz::transport::Node::Publisher>(m, "Publisher")
+      .def(py::init<>())
+      .def("publish", &gz::transport::Node::Publisher::Publish,
+          py::arg("msg"),
+          "Publish a message")
+      .def("publish_raw", &gz::transport::Node::Publisher::PublishRaw,
+          py::arg("msgData"),
+          py::arg("msgType"));
+}  // gz-transport13 module
 
 }  // python
 }  // transport
