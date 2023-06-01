@@ -67,7 +67,7 @@ TEST(CallbackScope, CleanupCorrectly)
       };
 
     nodeRaw.SubscribeRaw("/my_topic_raw", rawCallback);
-    // use Publish intead of PublishRaw so the msgs end up in the pub queue
+    // use Publish instead of PublishRaw so the msgs end up in the pub queue
     publisherRaw.Publish(msgRaw);
     publisherRaw.Publish(msgRaw);
     nodeRaw.Unsubscribe("/my_topic_raw");
