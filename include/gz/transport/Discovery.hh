@@ -788,7 +788,7 @@ namespace ignition
         sockaddr_in clntAddr;
         socklen_t addrLen = sizeof(clntAddr);
 
-        ssize_t received = recvfrom(this->sockets.at(0),
+        int64_t received = recvfrom(this->sockets.at(0),
               reinterpret_cast<raw_type *>(rcvStr),
               this->kMaxRcvStr, 0,
               reinterpret_cast<sockaddr *>(&clntAddr),
