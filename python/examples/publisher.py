@@ -20,6 +20,8 @@ def main():
 
           print("Publishing 'Hello' on topic [{}]".format(topic_name))
           time.sleep(1.0)
+          print(f"Has connections {pub.has_connections()}")
+          print(pub.publish_raw(msg.SerializeToString(), msg_type))
 
     except KeyboardInterrupt:
         pass

@@ -60,7 +60,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       ;
 
     py::class_<SubscribeOptions>(
-      module, "SubscribeOptions",
+      m, "SubscribeOptions",
       "A class to provide different options for a subscription")
       .def(py::init<>())
       .def_property_readonly("throttled",
@@ -94,14 +94,12 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           Node &_node,
           const std::string &_topic,
           std::function<void(const google::protobuf::Message &_msg)> &_callback,
-          const std::string &_msg_type_name,
           const SubscribeOptions &_opts)
           {
             return _node.Subscribe(_topic, _callback, _opts);
           },
           pybind11::arg("topic"),
           pybind11::arg("callback"),
-          pybind11::arg("msg_type_name"),
           pybind11::arg("options"),
           "Subscribe to a topic registering a callback")
       .def("subscribed_topics", &Node::SubscribedTopics,
@@ -178,7 +176,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       ;
 
   // register Node::Publisher as a subclass of Node
-  py::class_<gz::transport::Node::Publisher>(node, "_Publisher",
+  py::class_<gz::transport::Node::Publisher>(node, "Publisher",
       "A class that is used to store information about an"
       " advertised publisher.")
       .def(py::init<>())
