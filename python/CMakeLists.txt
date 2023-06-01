@@ -27,19 +27,19 @@ if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
   endif()
 else()
   # If not a system installation, respect local paths
-  set(GZ_PYTHON_INSTALL_PATH ${GZ_LIB_INSTALL_DIR}/python)
+  set(GZ_PYTHON_INSTALL_PATH ${GZ_LIB_INSTALL_DIR}/python/gz)
 endif()
 
 # Set the build location and install location for a CPython extension
 function(configure_build_install_location _library_name)
   # Install library for actual use
   install(TARGETS ${_library_name}
-    DESTINATION "${GZ_PYTHON_INSTALL_PATH}/"
+    DESTINATION "${GZ_PYTHON_INSTALL_PATH}/transport${PROJECT_VERSION_MAJOR}"
   )
 endfunction()
 
 message(STATUS "Building pybind11 interfaces")
-set(BINDINGS_MODULE_NAME "transport${PROJECT_VERSION_MAJOR}")
+set(BINDINGS_MODULE_NAME "_transport")
 # Split from main extension and converted to pybind11
 pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/transport/_gz_transport_pybind11.cc
@@ -52,8 +52,6 @@ target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
 target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
   BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
 
-set_target_properties(${BINDINGS_MODULE_NAME} PROPERTIES
-  OUTPUT_NAME "transport${PROJECT_VERSION_MAJOR}")
 # Deal with naming collision on Windows. It is caused by the both the import
 # library of sdformat library and the import library of the pybind11 bindings
 # library are called sdformat13.lib.
@@ -61,3 +59,8 @@ set_target_properties(${BINDINGS_MODULE_NAME} PROPERTIES
   ARCHIVE_OUTPUT_NAME "python_transport${PROJECT_VERSION_MAJOR}")
 
 configure_build_install_location(${BINDINGS_MODULE_NAME})
+
+install(FILES
+  __init__.py  
+  DESTINATION "${GZ_PYTHON_INSTALL_PATH}/transport${PROJECT_VERSION_MAJOR}"
+)
