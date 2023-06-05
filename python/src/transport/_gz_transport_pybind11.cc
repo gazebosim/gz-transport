@@ -72,6 +72,12 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           "Set the maximum number of messages per second received per topic")
       ;
 
+    py::class_<MessageInfo>(
+      m, "MessageInfo",
+      "A class that provides information about the message received.")
+      .def(py::init<>())
+      ;
+
     auto node = py::class_<Node>(m, "Node",
       "A class that allows a client to communicate with other peers."
       " There are two main communication modes: pub/sub messages"
@@ -83,9 +89,9 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
               const std::string &,
               const AdvertiseMessageOptions &
           )>(&Node::Advertise),
-          pybind11::arg("topic"),
-          pybind11::arg("msg_type_name"),
-          pybind11::arg("options"),
+          py::arg("topic"),
+          py::arg("msg_type_name"),
+          py::arg("options"),
           "Advertise a new topic. If a topic is currently advertised,"
           " you cannot advertise it a second time (regardless of its type)")
       .def("advertised_topics", &Node::AdvertisedTopics,
@@ -98,14 +104,32 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           {
             return _node.Subscribe(_topic, _callback, _opts);
           },
-          pybind11::arg("topic"),
-          pybind11::arg("callback"),
-          pybind11::arg("options"),
+          py::arg("topic"),
+          py::arg("callback"),
+          py::arg("options"),
           "Subscribe to a topic registering a callback")
+      .def("subscribe_raw", [](
+          Node &_node,
+          const std::string &_topic,
+          std::function<void(py::bytes _msgData, const size_t _size,
+                           const MessageInfo &_info)> &_callback,
+          const std::string &_msgType,
+          const SubscribeOptions &_opts)
+          {
+            auto _cb = [_callback](const char *_msgData, const size_t _size,
+                           const MessageInfo &_info){
+                return _callback(py::bytes(_msgData, _size), _size, _info);
+            };
+            return _node.SubscribeRaw(_topic, _cb, _msgType, _opts);
+          },
+          py::arg("topic"),
+          py::arg("callback"),
+          py::arg("msg_type"),
+          py::arg("options"))
       .def("subscribed_topics", &Node::SubscribedTopics,
           "Get the list of topics subscribed by this node")
       .def("unsubscribe", &Node::Unsubscribe,
-          pybind11::arg("topic"),
+          py::arg("topic"),
           "Unsubscribe from a topic")
       .def("topic_list", [](
           Node &_node)
@@ -123,7 +147,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
             _node.TopicInfo(_topic, publishers);
             return publishers;
           },
-          pybind11::arg("topic"),
+          py::arg("topic"),
           "Get the information about a topic")
       .def("advertised_services", &Node::AdvertisedServices,
           "Get the list of services advertised by this node")
@@ -149,10 +173,10 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
                _service, _request, _timeout, *rep, result);
             return std::make_tuple(executed, result);
           },
-          pybind11::arg("service"),
-          pybind11::arg("request"),
-          pybind11::arg("timeout"),
-          pybind11::arg("rep_type_name"),
+          py::arg("service"),
+          py::arg("request"),
+          py::arg("timeout"),
+          py::arg("rep_type_name"),
           "Request a new service without input parameter using"
           " a blocking call")
       .def("service_list", [](
@@ -171,7 +195,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
             _node.ServiceInfo(_service, publishers);
             return publishers;
           },
-          pybind11::arg("service"),
+          py::arg("service"),
           "Get the information about a service")
       ;
 

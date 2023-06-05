@@ -1,5 +1,6 @@
 from ._transport import Node as _Node
-from ._transport import AdvertiseMessageOptions
+from ._transport import AdvertiseMessageOptions, SubscribeOptions
+from importlib import import_module
 
 class Publisher():
     def __init__(self, publisher):
@@ -19,3 +20,14 @@ class Publisher():
 class Node(_Node):
     def advertise(self, topic, msg_type_name, options):
         return Publisher(super().advertise(topic, msg_type_name, options))
+    
+    def subscribe(self, topic, callback, msgType, options = SubscribeOptions()):
+        def cb_deserialize(proto_msg, msg_size, msg_info):
+            module, msg_class = msgType.rsplit('.', 1)
+            if "gz.msgs" in msgType:
+                module = "gz.msgs10." + msg_class.lower() + "_pb2"
+            msg_class = getattr(import_module(module), msg_class)
+            deserialized_msg = msg_class()
+            deserialized_msg.ParseFromString(proto_msg)
+            callback(deserialized_msg)
+        return self.subscribe_raw(topic, cb_deserialize, msgType, options)

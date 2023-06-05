@@ -1,25 +1,39 @@
-from gz.msgs.stringmsg_pb2 import StringMsg
+from gz.msgs10.stringmsg_pb2 import StringMsg
+from gz.msgs10.vector3d_pb2 import Vector3d
 from gz.transport13 import SubscribeOptions
 from gz.transport13 import Node
 
 import time
 
-def cb(msg: StringMsg) -> None:
-    print("Received message: [{}]".format(msg.data))
+def stringmsg_cb(msg: StringMsg):
+    print("Received StringMsg: [{}]".format(msg.data))
+
+def vector3_cb(msg: Vector3d):
+    print("Received Vector3: [x: {}, y: {}, z: {}]".format(msg.x, msg.y, msg.z))
 
 def main():
     # create a transport node
     node = Node()
-    topic = "/example_topic"
-    msg_type = StringMsg.DESCRIPTOR.full_name
+    topic_stringmsg = "/example_stringmsg_topic"
+    topic_vector3d = "/example_vector3d_topic"
+    stringmsg_type = StringMsg.DESCRIPTOR.full_name
+    vector3d_type = Vector3d.DESCRIPTOR.full_name
     sub_options = SubscribeOptions()
 
     # subscribe to a topic by registering a callback
-    if node.subscribe(topic, cb, msg_type, sub_options):
+    if node.subscribe(topic_stringmsg, stringmsg_cb, stringmsg_type, sub_options):
         print("Subscribing to type {} on topic [{}]".format(
-            msg_type, topic))
+            stringmsg_type, topic_stringmsg))
     else:
-        print("Error subscribing to topic [{}]".format(topic))
+        print("Error subscribing to topic [{}]".format(topic_stringmsg))
+        return
+
+    # subscribe to a topic by registering a callback
+    if node.subscribe(topic_vector3d, vector3_cb, vector3d_type, sub_options):
+        print("Subscribing to type {} on topic [{}]".format(
+            vector3d_type, topic_vector3d))
+    else:
+        print("Error subscribing to topic [{}]".format(topic_vector3d))
         return
 
     # wait for shutdown
