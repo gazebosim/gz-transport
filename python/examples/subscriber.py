@@ -16,22 +16,19 @@ def main():
     node = Node()
     topic_stringmsg = "/example_stringmsg_topic"
     topic_vector3d = "/example_vector3d_topic"
-    stringmsg_type = StringMsg.DESCRIPTOR.full_name
-    vector3d_type = Vector3d.DESCRIPTOR.full_name
-    sub_options = SubscribeOptions()
 
     # subscribe to a topic by registering a callback
-    if node.subscribe(topic_stringmsg, stringmsg_cb, stringmsg_type, sub_options):
+    if node.subscribe(StringMsg, topic_stringmsg, stringmsg_cb):
         print("Subscribing to type {} on topic [{}]".format(
-            stringmsg_type, topic_stringmsg))
+            StringMsg, topic_stringmsg))
     else:
         print("Error subscribing to topic [{}]".format(topic_stringmsg))
         return
 
     # subscribe to a topic by registering a callback
-    if node.subscribe(topic_vector3d, vector3_cb, vector3d_type, sub_options):
+    if node.subscribe(Vector3d, topic_vector3d, vector3_cb):
         print("Subscribing to type {} on topic [{}]".format(
-            vector3d_type, topic_vector3d))
+            Vector3d, topic_vector3d))
     else:
         print("Error subscribing to topic [{}]".format(topic_vector3d))
         return
@@ -42,6 +39,11 @@ def main():
         time.sleep(0.001)
     except KeyboardInterrupt:
       pass
+    # TODO(azeey) The subscriber if we quit without unsubscribing. This may not
+    # be needed after https://github.com/gazebosim/gz-transport/pull/381.
+    node.unsubscribe(topic_stringmsg)
+    node.unsubscribe(topic_vector3d)
+    print("Done")
 
 if __name__ == "__main__":
     main()
