@@ -15,8 +15,8 @@
  *
 */
 
-#include <gz/msgs.hh>
-#include <gz/transport.hh>
+#include <google/protobuf/message.h>
+#include <gz/transport/Node.hh>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
@@ -24,6 +24,7 @@
 
 #include <functional>
 #include <tuple>
+#include <utility>
 
 namespace py = pybind11;
 
@@ -144,8 +145,9 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           const std::string &_topic)
           {
             std::vector<MessagePublisher> publishers;
-            _node.TopicInfo(_topic, publishers);
-            return publishers;
+            std::vector<MessagePublisher> subscribers;
+            _node.TopicInfo(_topic, publishers, subscribers);
+            return std::make_pair(publishers, subscribers);
           },
           py::arg("topic"),
           "Get the information about a topic")
