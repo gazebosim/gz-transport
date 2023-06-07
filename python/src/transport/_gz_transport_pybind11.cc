@@ -204,6 +204,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       "A class that is used to store information about an"
       " advertised publisher.")
       .def(py::init<>())
+      .def(py::init<const gz::transport::Node::Publisher &>())
       .def("valid", &gz::transport::Node::Publisher::Valid,
           "Return true if valid information, such as a non-empty"
           " topic name, is present.")
