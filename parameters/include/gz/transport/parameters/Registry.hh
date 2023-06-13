@@ -125,8 +125,17 @@ namespace gz
           const std::string & _parameterName,
           std::unique_ptr<google::protobuf::Message> _value);
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
         /// \brief Pointer to implementation.
         private: std::unique_ptr<ParametersRegistryPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
       };
       }
     }

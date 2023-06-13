@@ -14,10 +14,20 @@
  * limitations under the License.
  *
 */
-#include <gz/msgs/int32.pb.h>
 
 #include <chrono>
 #include <string>
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+#include <gz/msgs/int32.pb.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+#ifdef _WIN32
+  #include <filesystem>
+#endif
 
 #include "gz/transport/Node.hh"
 #include "gtest/gtest.h"

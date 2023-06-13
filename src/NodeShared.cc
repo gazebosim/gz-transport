@@ -1935,7 +1935,7 @@ void NodeSharedPrivate::PublishThread()
 
       // Get the message
       msgDetails = std::move(this->pubQueue.front());
-      this->pubQueue.pop();
+      this->pubQueue.pop_front();
     }
 
     // Send the message to all the local handlers.
