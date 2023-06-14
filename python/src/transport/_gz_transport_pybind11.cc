@@ -154,31 +154,26 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       .def("advertised_services", &Node::AdvertisedServices,
           "Get the list of services advertised by this node")
       // send a service request using the blocking interface
-      .def("request", [](
+      .def("request_raw", [](
           Node &_node,
           const std::string &_service,
-          const google::protobuf::Message &_request,
+          const std::string &_request,
+          const std::string &_reqType,
+          const std::string &_repType,
           const unsigned int &_timeout,
-          const std::string &_repType)
+          std::string &_response)
           {
-            // see ign-transport/src/cmd/ign.cc L227-240
-            auto rep = gz::msgs::Factory::New(_repType);
-            if (!rep)
-            {
-              std::cerr << "Unable to create response of type["
-                        << _repType << "].\n";
-              return std::make_tuple(false, false);
-            }
-
             bool result{false};
-            bool executed = _node.Request(
-               _service, _request, _timeout, *rep, result);
-            return std::make_tuple(executed, result);
+            result = _node.RequestRaw(_service, _request, _reqType,
+                            _repType, _timeout, _response, result);
+            return std::make_tuple(result, py::bytes(_response.c_str(), _response.size()));
           },
-          py::arg("service"),
+          py::arg("topic"),
           py::arg("request"),
+          py::arg("request_type"),
+          py::arg("response_type"),
           py::arg("timeout"),
-          py::arg("rep_type_name"),
+          py::arg("response"),
           "Request a new service without input parameter using"
           " a blocking call")
       .def("service_list", [](

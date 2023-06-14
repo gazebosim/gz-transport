@@ -27,3 +27,10 @@ class Node(_Node):
 
         return self.subscribe_raw(topic, cb_deserialize,
                                   msg_type.DESCRIPTOR.full_name, options)
+    
+    def request(self, service, request, request_type, response_type, timeout, response):
+        result, serialized_response = self.request_raw(service, request.SerializeToString(), request_type.DESCRIPTOR.full_name,
+                                response_type.DESCRIPTOR.full_name, timeout, response.SerializeToString())
+        deserialized_response = response_type()
+        deserialized_response.ParseFromString(serialized_response)
+        return result, deserialized_response
