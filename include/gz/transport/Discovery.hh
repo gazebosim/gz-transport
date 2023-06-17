@@ -791,7 +791,7 @@ namespace ignition
         sockaddr_in clntAddr;
         socklen_t addrLen = sizeof(clntAddr);
 
-        uint16_t received = recvfrom(this->sockets.at(0),
+        int64_t received = recvfrom(this->sockets.at(0),
               reinterpret_cast<raw_type *>(rcvStr),
               this->kMaxRcvStr, 0,
               reinterpret_cast<sockaddr *>(&clntAddr),
@@ -823,7 +823,7 @@ namespace ignition
           // unexpected size, then we ignore the message.
 
           // If-condition for version 8+
-          if (len + sizeof(len) == received)
+          if (len + sizeof(len) == static_cast<uint16_t>(received))
           {
             std::string srcAddr = inet_ntoa(clntAddr.sin_addr);
             uint16_t srcPort = ntohs(clntAddr.sin_port);
