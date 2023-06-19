@@ -10,9 +10,7 @@ def main():
     timeout = 5000
 
     result, response = node.request(service_name, request, StringMsg, StringMsg, timeout, response)
-    print("Success:", result)
-    print("Response:", response.data)
-
+    print("Result:", result, "\nResponse:", response.data)
 
 if __name__ == "__main__":
     main()

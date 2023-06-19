@@ -10,7 +10,6 @@ class Publisher(_Node.Publisher):
         msg_type = proto_msg.DESCRIPTOR.full_name
         return self.publish_raw(msg_string, msg_type)
 
-
 class Node(_Node):
 
     def advertise(self, topic, msg_type, options=AdvertiseMessageOptions()):
