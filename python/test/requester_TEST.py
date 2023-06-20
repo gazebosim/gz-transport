@@ -6,7 +6,7 @@ import unittest
 class pubSubTEST(unittest.TestCase):
 
     def setUp(self):
-        # TODO: Call the responser.cc file
+        # TODO: Call the twoProcsSrvCallReplier_aux file
         # Requester Setup
         self.node = Node()
         self.assertTrue(self.node)
