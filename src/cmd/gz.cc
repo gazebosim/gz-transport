@@ -290,8 +290,16 @@ extern "C" void cmdTopicEcho(const char *_topic,
       case MsgOutputFormat::kJSON:
         {
           std::string jsonStr;
-          google::protobuf::util::MessageToJsonString(_msg, &jsonStr);
-          std::cout << jsonStr << std::endl;
+          auto status =
+              google::protobuf::util::MessageToJsonString(_msg, &jsonStr);
+          if (status.ok())
+          {
+            std::cout << jsonStr << std::endl;
+          }
+          else
+          {
+            std::cerr << status;
+          }
         }
         break;
       default:
