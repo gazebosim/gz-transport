@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Open Source Robotics Foundation
+ * Copyright (C) 2023 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 #include <google/protobuf/message.h>
 #include <gz/transport/Node.hh>
 
-#include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
+#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include <functional>
@@ -44,8 +44,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       .def_property("scope",
           &AdvertiseOptions::Scope,
           &AdvertiseOptions::SetScope,
-          "The scope used in this topic/service")
-      ;
+          "The scope used in this topic/service");
 
     py::class_<AdvertiseMessageOptions, AdvertiseOptions>(
       m, "AdvertiseMessageOptions",
@@ -57,8 +56,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       .def_property("msgs_per_sec",
           &AdvertiseMessageOptions::MsgsPerSec,
           &AdvertiseMessageOptions::SetMsgsPerSec,
-          "The maximum number of messages per second to be published")
-      ;
+          "The maximum number of messages per second to be published");
 
     py::class_<SubscribeOptions>(
       m, "SubscribeOptions",
@@ -70,14 +68,12 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       .def_property("msgs_per_sec",
           &SubscribeOptions::MsgsPerSec,
           &SubscribeOptions::SetMsgsPerSec,
-          "Set the maximum number of messages per second received per topic")
-      ;
+          "Set the maximum number of messages per second received per topic");
 
     py::class_<MessageInfo>(
       m, "MessageInfo",
       "A class that provides information about the message received.")
-      .def(py::init<>())
-      ;
+      .def(py::init<>());
 
     auto node = py::class_<Node>(m, "Node",
       "A class that allows a client to communicate with other peers."
@@ -193,8 +189,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
             return publishers;
           },
           py::arg("service"),
-          "Get the information about a service")
-      ;
+          "Get the information about a service");
 
   // register Node::Publisher as a subclass of Node
   py::class_<gz::transport::Node::Publisher>(node, "Publisher",
@@ -213,8 +208,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           "")
       .def("has_connections",
           &gz::transport::Node::Publisher::HasConnections,
-          "Return true if this publisher has subscribers")
-      ;
+          "Return true if this publisher has subscribers");
 }  // gz-transport13 module
 
 }  // python

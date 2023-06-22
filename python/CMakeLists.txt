@@ -66,7 +66,6 @@ install(FILES
 )
 
 if (BUILD_TESTING AND NOT WIN32)
-
   set(python_tests
     pubSub_TEST
   )
@@ -77,7 +76,6 @@ if (BUILD_TESTING AND NOT WIN32)
   if(${PYTEST_result} EQUAL 0)
     set(pytest_FOUND TRUE)
   else()
-    message("")
     message(WARNING "Pytest package not available: ${PYTEST_error}")
   endif()
 
