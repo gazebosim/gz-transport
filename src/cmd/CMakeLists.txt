@@ -10,10 +10,8 @@ endif()
 
 # Make a small static lib of command line functions
 add_library(gz STATIC gz.cc)
-target_link_libraries(gz
-  PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
-  PRIVATE gz_msgs_gen
-)
+target_link_messages(TARGET gz MSG_TARGETS gz_msgs_gen)
+target_link_libraries(gz ${PROJECT_LIBRARY_TARGET_NAME})
 
 # Build topic CLI executable
 set(topic_executable gz-transport-topic)
