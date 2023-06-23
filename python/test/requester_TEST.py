@@ -13,25 +13,38 @@
 # limitations under the License.
 #
 
-from gz.msgs10.stringmsg_pb2 import StringMsg
+from gz.msgs10.int32_pb2 import Int32
 from gz.transport13 import Node
 
+import os
+import subprocess
 import unittest
 
-class pubSubTEST(unittest.TestCase):
+class requesterTEST(unittest.TestCase):
 
     def setUp(self):
-        # TODO: Call the twoProcsSrvCallReplier_aux file
+        # Environment Setup
+        gz_partition = 'python_requester_test'
+        os.environ['GZ_PARTITION'] = gz_partition
+        
+        # Subprocess Setup
+        cmd = f"{os.getenv('CMAKE_BINARY_DIR')}/INTEGRATION_twoProcsSrvCallReplier_aux {gz_partition}"
+        self.service_process = subprocess.Popen(cmd, shell=True)
+        
         # Requester Setup
         self.node = Node()
         self.assertTrue(self.node)
-        self.service_name = "/echo"
-        self.request = self.response = StringMsg()
-        self.request.data = "Hello world"
+        self.service_name = "/foo"
+        self.request = Int32()
+        self.response = Int32()
+        self.request.data = 100
         self.timeout = 5000
 
+    def tearDown(self):
+        self.service_process.kill()
+
     def test_msg_callback(self):
-        self.assertNotEqual(response.data, self.request.data)
-        result, response = self.node.request(self.service_name, self.request, StringMsg, StringMsg, self.timeout, self.response)
+        self.assertNotEqual(self.response.data, self.request.data)
+        result, response = self.node.request(self.service_name, self.request, Int32, Int32, self.timeout, self.response)
         self.assertTrue(result)
         self.assertEqual(response.data, self.request.data)

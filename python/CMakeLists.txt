@@ -68,6 +68,7 @@ install(FILES
 if (BUILD_TESTING AND NOT WIN32)
   set(python_tests
     pubSub_TEST
+    requester_TEST
   )
   execute_process(COMMAND "${Python3_EXECUTABLE}" -m pytest --version
     OUTPUT_VARIABLE PYTEST_output
@@ -88,6 +89,7 @@ if (BUILD_TESTING AND NOT WIN32)
         "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
     endif()
     set(_env_vars)
+    list(APPEND _env_vars "CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}/bin")
     list(APPEND _env_vars "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/:${CMAKE_BINARY_DIR}/lib:$ENV{PYTHONPATH}")
     list(APPEND _env_vars "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}:$ENV{LD_LIBRARY_PATH}")
     set_tests_properties(${test}.py PROPERTIES
