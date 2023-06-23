@@ -54,8 +54,6 @@ def main():
         time.sleep(0.001)
     except KeyboardInterrupt:
       pass
-    # TODO(azeey) The subscriber if we quit without unsubscribing. This may not
-    # be needed after https://github.com/gazebosim/gz-transport/pull/381.
     node.unsubscribe(topic_stringmsg)
     node.unsubscribe(topic_vector3d)
     print("Done")
