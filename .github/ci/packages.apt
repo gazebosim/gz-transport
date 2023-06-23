@@ -9,4 +9,5 @@ libsqlite3-dev
 libzmq3-dev
 pkg-config
 protobuf-compiler
+python3-pybind11
 uuid-dev
