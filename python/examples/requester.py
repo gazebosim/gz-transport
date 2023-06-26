@@ -24,7 +24,7 @@ def main():
     response = StringMsg()
     timeout = 5000
 
-    result, response = node.request(service_name, request, StringMsg, StringMsg, timeout, response)
+    result, response = node.request(service_name, request, StringMsg, StringMsg, timeout)
     print("Result:", result, "\nResponse:", response.data)
 
 if __name__ == "__main__":

@@ -36,7 +36,6 @@ class requesterTEST(unittest.TestCase):
         self.assertTrue(self.node)
         self.service_name = "/foo"
         self.request = Int32()
-        self.response = Int32()
         self.request.data = 100
         self.timeout = 5000
 
@@ -44,7 +43,6 @@ class requesterTEST(unittest.TestCase):
         self.service_process.kill()
 
     def test_msg_callback(self):
-        self.assertNotEqual(self.response.data, self.request.data)
-        result, response = self.node.request(self.service_name, self.request, Int32, Int32, self.timeout, self.response)
+        result, response = self.node.request(self.service_name, self.request, Int32, Int32, self.timeout)
         self.assertTrue(result)
         self.assertEqual(response.data, self.request.data)

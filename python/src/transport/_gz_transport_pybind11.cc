@@ -93,18 +93,6 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           " you cannot advertise it a second time (regardless of its type)")
       .def("advertised_topics", &Node::AdvertisedTopics,
           "Get the list of topics advertised by this node")
-      .def("subscribe", [](
-          Node &_node,
-          const std::string &_topic,
-          std::function<void(const google::protobuf::Message &_msg)> &_callback,
-          const SubscribeOptions &_opts)
-          {
-            return _node.Subscribe(_topic, _callback, _opts);
-          },
-          py::arg("topic"),
-          py::arg("callback"),
-          py::arg("options"),
-          "Subscribe to a topic registering a callback")
       .def("subscribe_raw", [](
           Node &_node,
           const std::string &_topic,
@@ -156,10 +144,10 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           const std::string &_request,
           const std::string &_reqType,
           const std::string &_repType,
-          const unsigned int &_timeout,
-          std::string &_response)
+          const unsigned int &_timeout)
           {
             bool result{false};
+            std::string _response;
             result = _node.RequestRaw(_service, _request, _reqType,
                             _repType, _timeout, _response, result);
             return std::make_tuple(result, py::bytes(_response.c_str(), _response.size()));
@@ -169,7 +157,6 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           py::arg("request_type"),
           py::arg("response_type"),
           py::arg("timeout"),
-          py::arg("response"),
           "Request a new service without input parameter using"
           " a blocking call")
       .def("service_list", [](

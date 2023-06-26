@@ -15,9 +15,10 @@ set(GZ_CMAKE_VER ${gz-cmake3_VERSION_MAJOR})
 #============================================================================
 # Configure the project
 #============================================================================
+set(skip_pybind11_default_value OFF)
 option(SKIP_PYBIND11
       "Skip generating Python bindings via pybind11"
-      OFF)
+      ${skip_pybind11_default_value})
 
 # Python interfaces vars
 include(CMakeDependentOption)
@@ -33,7 +34,7 @@ cmake_dependent_option(USE_DIST_PACKAGES_FOR_PYTHON
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX)
+gz_configure_project(VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
@@ -87,6 +88,7 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
 #--------------------------------------
 # Find uuid
 if (MSVC)
+  set(skip_pybind11_default_value ON)
   message (STATUS "UUID: Using Windows RPC UuidCreate function\n")
 else()
   gz_find_package(UUID REQUIRED)

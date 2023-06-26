@@ -16,33 +16,39 @@
 from ._transport import Node as _Node
 from ._transport import AdvertiseMessageOptions, SubscribeOptions
 
-class Publisher(_Node.Publisher):
 
+class Publisher(_Node.Publisher):
     def publish(self, proto_msg):
         msg_string = proto_msg.SerializeToString()
         msg_type = proto_msg.DESCRIPTOR.full_name
         return self.publish_raw(msg_string, msg_type)
 
-class Node(_Node):
 
+class Node(_Node):
     def advertise(self, topic, msg_type, options=AdvertiseMessageOptions()):
         return Publisher(
             _Node.advertise(self, topic, msg_type.DESCRIPTOR.full_name,
-                            options))
+                            options)
+        )
 
     def subscribe(self, msg_type, topic, callback, options=SubscribeOptions()):
-
         def cb_deserialize(proto_msg, msg_size, msg_info):
             deserialized_msg = msg_type()
             deserialized_msg.ParseFromString(proto_msg)
             callback(deserialized_msg)
 
-        return self.subscribe_raw(topic, cb_deserialize,
-                                  msg_type.DESCRIPTOR.full_name, options)
-    
-    def request(self, service, request, request_type, response_type, timeout, response):
-        result, serialized_response = self.request_raw(service, request.SerializeToString(), request_type.DESCRIPTOR.full_name,
-                                response_type.DESCRIPTOR.full_name, timeout, response.SerializeToString())
+        return self.subscribe_raw(
+            topic, cb_deserialize, msg_type.DESCRIPTOR.full_name, options
+        )
+
+    def request(self, service, request, request_type, response_type, timeout):
+        result, serialized_response = self.request_raw(
+            service,
+            request.SerializeToString(),
+            request_type.DESCRIPTOR.full_name,
+            response_type.DESCRIPTOR.full_name,
+            timeout
+        )
         deserialized_response = response_type()
         deserialized_response.ParseFromString(serialized_response)
         return result, deserialized_response
