@@ -15,23 +15,28 @@
 
 from ._transport import Node as _Node
 from ._transport import AdvertiseMessageOptions, SubscribeOptions
+from typing import TypeVar, Callable
+
+ProtoMsg = TypeVar("ProtoMsg")
+ProtoMsgType = TypeVar("ProtoMsgType")
 
 
 class Publisher(_Node.Publisher):
-    def publish(self, proto_msg):
+    def publish(self, proto_msg: ProtoMsg):
         msg_string = proto_msg.SerializeToString()
         msg_type = proto_msg.DESCRIPTOR.full_name
         return self.publish_raw(msg_string, msg_type)
 
 
 class Node(_Node):
-    def advertise(self, topic, msg_type, options=AdvertiseMessageOptions()):
+    def advertise(self, topic: str, msg_type: ProtoMsg,
+                  options=AdvertiseMessageOptions()):
         return Publisher(
             _Node.advertise(self, topic, msg_type.DESCRIPTOR.full_name,
-                            options)
-        )
+                            options))
 
-    def subscribe(self, msg_type, topic, callback, options=SubscribeOptions()):
+    def subscribe(self, msg_type: ProtoMsg, topic: str,
+                  callback: Callable, options=SubscribeOptions()):
         def cb_deserialize(proto_msg, msg_size, msg_info):
             deserialized_msg = msg_type()
             deserialized_msg.ParseFromString(proto_msg)
@@ -41,13 +46,15 @@ class Node(_Node):
             topic, cb_deserialize, msg_type.DESCRIPTOR.full_name, options
         )
 
-    def request(self, service, request, request_type, response_type, timeout):
+    def request(self, service: str, request: ProtoMsg,
+                request_type: ProtoMsgType,
+                response_type: ProtoMsgType, timeout: int):
         result, serialized_response = self.request_raw(
             service,
             request.SerializeToString(),
             request_type.DESCRIPTOR.full_name,
             response_type.DESCRIPTOR.full_name,
-            timeout
+            timeout,
         )
         deserialized_response = response_type()
         deserialized_response.ParseFromString(serialized_response)

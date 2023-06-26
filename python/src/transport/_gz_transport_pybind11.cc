@@ -41,35 +41,67 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       "A class for customizing the publication options for"
       " a topic or service advertised")
       .def(py::init<>())
+      .def(py::init<const AdvertiseOptions &>())
       .def_property("scope",
           &AdvertiseOptions::Scope,
           &AdvertiseOptions::SetScope,
-          "The scope used in this topic/service");
+          "The scope used in this topic/service")
+      .def("__copy__", [](const AdvertiseOptions &self)
+          {
+            return AdvertiseOptions(self);
+          })
+      .def("__deepcopy__",[](const AdvertiseOptions &self, pybind11::dict)
+          {
+            return AdvertiseOptions(self);
+          });
 
     py::class_<AdvertiseMessageOptions, AdvertiseOptions>(
       m, "AdvertiseMessageOptions",
       "A class for customizing the publication options for a topic")
       .def(py::init<>())
+      .def(py::init<const AdvertiseMessageOptions &>())
       .def_property_readonly("throttled",
           &AdvertiseMessageOptions::Throttled,
           "Whether the publication has been throttled")
       .def_property("msgs_per_sec",
           &AdvertiseMessageOptions::MsgsPerSec,
           &AdvertiseMessageOptions::SetMsgsPerSec,
-          "The maximum number of messages per second to be published");
+          "The maximum number of messages per second to be published")
+      .def("__copy__", 
+          [](const AdvertiseMessageOptions &self)
+          {
+            return AdvertiseMessageOptions(self);
+          })
+      .def("__deepcopy__",
+          [](const AdvertiseMessageOptions &self, pybind11::dict)
+          {
+            return AdvertiseMessageOptions(self);
+          });
 
     py::class_<SubscribeOptions>(
       m, "SubscribeOptions",
       "A class to provide different options for a subscription")
       .def(py::init<>())
+      .def(py::init<const SubscribeOptions &>())
       .def_property_readonly("throttled",
           &SubscribeOptions::Throttled,
           "Whether the subscription has been throttled")
       .def_property("msgs_per_sec",
           &SubscribeOptions::MsgsPerSec,
           &SubscribeOptions::SetMsgsPerSec,
-          "Set the maximum number of messages per second received per topic");
+          "Set the maximum number of messages per second received per topic")
+      .def("__copy__", 
+          [](const SubscribeOptions &self)
+          {
+            return SubscribeOptions(self);
+          })
+      .def("__deepcopy__",
+          [](const SubscribeOptions &self, pybind11::dict)
+          {
+            return SubscribeOptions(self);
+          });
 
+    // We are leaving this as an opaque class
     py::class_<MessageInfo>(
       m, "MessageInfo",
       "A class that provides information about the message received.")
@@ -116,6 +148,28 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       .def("unsubscribe", &Node::Unsubscribe,
           py::arg("topic"),
           "Unsubscribe from a topic")
+      // Send a service request using the blocking interface
+      .def("request_raw", [](
+          Node &_node,
+          const std::string &_service,
+          const std::string &_request,
+          const std::string &_reqType,
+          const std::string &_repType,
+          const unsigned int &_timeout)
+          {
+            bool result{false};
+            std::string _response;
+            result = _node.RequestRaw(_service, _request, _reqType,
+                            _repType, _timeout, _response, result);
+            return py::make_tuple(result, py::bytes(_response.c_str(), _response.size()));
+          },
+          py::arg("topic"),
+          py::arg("request"),
+          py::arg("request_type"),
+          py::arg("response_type"),
+          py::arg("timeout"),
+          "Request a new service without input parameter using"
+          " a blocking call")
       .def("topic_list", [](
           Node &_node)
           {
@@ -131,34 +185,10 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
             std::vector<MessagePublisher> publishers;
             std::vector<MessagePublisher> subscribers;
             _node.TopicInfo(_topic, publishers, subscribers);
-            return std::make_pair(publishers, subscribers);
+            return py::make_tuple(publishers, subscribers);
           },
           py::arg("topic"),
           "Get the information about a topic")
-      .def("advertised_services", &Node::AdvertisedServices,
-          "Get the list of services advertised by this node")
-      // send a service request using the blocking interface
-      .def("request_raw", [](
-          Node &_node,
-          const std::string &_service,
-          const std::string &_request,
-          const std::string &_reqType,
-          const std::string &_repType,
-          const unsigned int &_timeout)
-          {
-            bool result{false};
-            std::string _response;
-            result = _node.RequestRaw(_service, _request, _reqType,
-                            _repType, _timeout, _response, result);
-            return std::make_tuple(result, py::bytes(_response.c_str(), _response.size()));
-          },
-          py::arg("topic"),
-          py::arg("request"),
-          py::arg("request_type"),
-          py::arg("response_type"),
-          py::arg("timeout"),
-          "Request a new service without input parameter using"
-          " a blocking call")
       .def("service_list", [](
           Node &_node)
           {
@@ -178,7 +208,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           py::arg("service"),
           "Get the information about a service");
 
-  // register Node::Publisher as a subclass of Node
+  // Register Node::Publisher as a subclass of Node
   py::class_<gz::transport::Node::Publisher>(node, "Publisher",
       "A class that is used to store information about an"
       " advertised publisher.")

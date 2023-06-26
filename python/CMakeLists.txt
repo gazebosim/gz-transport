@@ -56,12 +56,6 @@ target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
 target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
   BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
 
-# Deal with naming collision on Windows. It is caused by the both the import
-# library of transport library and the import library of the pybind11 bindings
-# library are called transport{MAJOR_VERSION}.lib.
-set_target_properties(${BINDINGS_MODULE_NAME} PROPERTIES
-  ARCHIVE_OUTPUT_NAME "python_transport${PROJECT_VERSION_MAJOR}")
-
 configure_build_install_location(${BINDINGS_MODULE_NAME})
 
 install(FILES

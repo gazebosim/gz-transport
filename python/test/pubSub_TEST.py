@@ -18,8 +18,8 @@ from gz.transport13 import Node, AdvertiseMessageOptions, SubscribeOptions
 
 import unittest
 
-class pubSubTEST(unittest.TestCase):
 
+class PubSubTEST(unittest.TestCase):
     def vector3_cb(self, msg: Vector3d):
         self.received_msg = msg.x
 
@@ -38,10 +38,12 @@ class pubSubTEST(unittest.TestCase):
         # Subscriber set up
         self.sub_node = Node()
         self.assertTrue(self.sub_node)
-        self.assertTrue(self.sub_node.subscribe(Vector3d, vector3d_topic, self.vector3_cb))
+        self.assertTrue(
+            self.sub_node.subscribe(Vector3d, vector3d_topic, self.vector3_cb)
+        )
         self.received_msg = 0
         self.assertTrue(self.pub.has_connections())
-    
+
     def test_msg_callback(self):
         self.assertEqual(self.received_msg, 0)
         self.assertTrue(self.pub.publish(self.vector3d_msg))

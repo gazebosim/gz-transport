@@ -20,17 +20,17 @@ import os
 import subprocess
 import unittest
 
-class requesterTEST(unittest.TestCase):
 
+class RequesterTEST(unittest.TestCase):
     def setUp(self):
         # Environment Setup
-        gz_partition = 'python_requester_test'
-        os.environ['GZ_PARTITION'] = gz_partition
-        
+        gz_partition = "python_requester_test"
+        os.environ["GZ_PARTITION"] = gz_partition
+
         # Subprocess Setup
         cmd = f"{os.getenv('CMAKE_BINARY_DIR')}/INTEGRATION_twoProcsSrvCallReplier_aux {gz_partition}"
         self.service_process = subprocess.Popen(cmd, shell=True)
-        
+
         # Requester Setup
         self.node = Node()
         self.assertTrue(self.node)
@@ -43,6 +43,8 @@ class requesterTEST(unittest.TestCase):
         self.service_process.kill()
 
     def test_msg_callback(self):
-        result, response = self.node.request(self.service_name, self.request, Int32, Int32, self.timeout)
+        result, response = self.node.request(
+            self.service_name, self.request, Int32, Int32, self.timeout
+        )
         self.assertTrue(result)
         self.assertEqual(response.data, self.request.data)
