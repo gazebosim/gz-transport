@@ -24,7 +24,7 @@
 #endif
 #include <google/protobuf/message.h>
 #include <google/protobuf/stubs/common.h>
-#if GOOGLE_PROTOBUF_VERSION >= 3000000
+#if GOOGLE_PROTOBUF_VERSION > 2999999 && GOOGLE_PROTOBUF_VERSION < 4022000
 #include <google/protobuf/stubs/casts.h>
 #endif
 #ifdef _MSC_VER
@@ -141,7 +141,11 @@ namespace gz
           return false;
         }
 
-#if GOOGLE_PROTOBUF_VERSION > 2999999
+#if GOOGLE_PROTOBUF_VERSION >= 4022000
+        auto msgReq =
+          google::protobuf::internal::DownCast<const Req*>(&_msgReq);
+        auto msgRep = google::protobuf::internal::DownCast<Rep*>(&_msgRep);
+#elif GOOGLE_PROTOBUF_VERSION > 2999999
         auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
         auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
 #else

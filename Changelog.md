@@ -4,6 +4,35 @@
 
 ## Gazebo Transport 12.X
 
+### Gazebo Transport 12.2.0 (2023-04-19)
+
+1. CI workflow: use checkout v3
+    * [Pull request #394](https://github.com/gazebosim/gz-transport/pull/394)
+
+1. Rename COPYING to LICENSE
+    * [Pull request #392](https://github.com/gazebosim/gz-transport/pull/392)
+
+1. Support clang and std::filesystem
+    * [Pull request #390](https://github.com/gazebosim/gz-transport/pull/390)
+
+1. Added Node::RequestRaw
+    * [Pull request #351](https://github.com/gazebosim/gz-transport/pull/351)
+
+1. Pass std::function by value to Node::Subscribe
+    * [Pull request #382](https://github.com/gazebosim/gz-transport/pull/382)
+
+1. Prevent invoking callbacks after a node unsubscribes to a topic
+    * [Pull request #381](https://github.com/gazebosim/gz-transport/pull/381)
+
+1. Suppress some Windows warnings
+    * [Pull request #367](https://github.com/gazebosim/gz-transport/pull/367)
+
+1. Fix include/ignition/.../parameters header files
+    * [Pull request #374](https://github.com/gazebosim/gz-transport/pull/374)
+
+1. Fix CLI configuration install path to ignition
+    * [Pull request #372](https://github.com/gazebosim/gz-transport/pull/372)
+
 ### Gazebo Transport 12.1.0 (2023-01-11)
 
 1. Ignition to Gazebo renaming.
@@ -107,13 +136,33 @@
 
 ## Gazebo Transport 11.X
 
+### Gazebo Transport 11.4.0 (2023-03-08)
+
+1. Added Node::RequestRaw
+    * [Pull request #351](https://github.com/gazebosim/gz-transport/pull/351)
+
+1. Suppress some Windows warnings.
+    * [Pull request #367](https://github.com/gazebosim/gz-transport/pull/367)
+
+1. All changes up to version 8.2.0.
+
+### Gazebo Transport 11.3.2 (2022-12-08)
+
+1. Fix include/ignition/.../parameters header files
+    * [Pull request #374](https://github.com/gazebosim/gz-transport/pull/374)
+
+### Gazebo Transport 11.3.1 (2022-12-01)
+
+1. Fix CLI configuration install path to ignition
+    * [Pull request #372](https://github.com/gazebosim/gz-transport/pull/372)
+
 ### Gazebo Transport 11.3.0 (2022-10-31)
 
 1. Add parameters component
-    * [Pull request #305](https://github.com/gazebosim/ign-transport/pull/305)
+    * [Pull request #305](https://github.com/gazebosim/gz-transport/pull/305)
 
 1. Fix build for Debian Bullseye
-    * [Pull request #363](https://github.com/gazebosim/ign-transport/pull/363)
+    * [Pull request #363](https://github.com/gazebosim/gz-transport/pull/363)
 
 ### Gazebo Transport 11.2.0 (2022-08-16)
 
@@ -342,6 +391,17 @@
 1. Addition of topic statistics that can report number of dropped messages
    and publication, age, and reception statistics.
     * [Pull request 205](https://github.com/gazebosim/gz-transport/pull/205)
+
+### Gazebo Transport 8.4.0 (2022-11-17)
+
+1. ign -> gz : Remove redundant namespace references.
+    * [Pull request #345](https://github.com/gazebosim/gz-transport/pull/345)
+
+1. Backport Windows fix from main branch.
+    * [Pull request #350](https://github.com/gazebosim/gz-transport/pull/350)
+
+1. ign -> gz Migrate Ignition Headers : gz-transport.
+    * [Pull request #347](https://github.com/gazebosim/gz-transport/pull/347)
 
 ### Gazebo Transport 8.3.0 (2022-07-27)
 

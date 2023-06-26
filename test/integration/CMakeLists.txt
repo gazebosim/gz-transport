@@ -3,6 +3,7 @@ set(TEST_TYPE "INTEGRATION")
 set(tests
   authPubSub.cc
   scopedTopic.cc
+  callback_scope_TEST.cc
   statistics.cc
   twoProcsPubSub.cc
   twoProcsSrvCall.cc

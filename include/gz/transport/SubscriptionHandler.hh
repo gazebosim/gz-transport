@@ -24,7 +24,7 @@
 #endif
 #include <google/protobuf/message.h>
 #include <google/protobuf/stubs/common.h>
-#if GOOGLE_PROTOBUF_VERSION >= 3000000
+#if GOOGLE_PROTOBUF_VERSION >= 3000000 && GOOGLE_PROTOBUF_VERSION < 4022000
 #include <google/protobuf/stubs/casts.h>
 #endif
 #ifdef _MSC_VER
@@ -210,7 +210,9 @@ namespace gz
         if (!this->UpdateThrottling())
           return true;
 
-#if GOOGLE_PROTOBUF_VERSION >= 3000000
+#if GOOGLE_PROTOBUF_VERSION >= 4022000
+        auto msgPtr = google::protobuf::internal::DownCast<const T*>(&_msg);
+#elif GOOGLE_PROTOBUF_VERSION >= 3000000
         auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
 #else
         auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
