@@ -251,7 +251,20 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
             return publishers;
           },
           py::arg("service"),
-          "Get the information about a service");
+          "Get the information about a service")
+      .def("enable_stats", &Node::EnableStats,
+          py::arg("topic"),
+          py::arg("enable"),
+          py::arg("publicationTopic"),
+          py::arg("publicationRate"),
+          "Turn topic statistics on or off.")
+      .def("topic_stats", &Node::TopicStats,
+          py::arg("topic"),
+          "Get the current statistics for a topic. Statistics must"
+          "have been enabled using the EnableStats function, otherwise"
+          "the return value will be null.")
+      .def_property_readonly("options", &Node::Options,
+          "Get the reference to the current node options.");
 
   // Register Node::Publisher as a subclass of Node
   py::class_<gz::transport::Node::Publisher>(node, "Publisher",
