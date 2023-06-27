@@ -16,12 +16,17 @@
 from gz.msgs10.vector3d_pb2 import Vector3d
 from gz.transport13 import Node, AdvertiseMessageOptions, SubscribeOptions
 
+from threading import Lock
+
+import time
 import unittest
 
+mutex = Lock()
 
 class PubSubTEST(unittest.TestCase):
     def vector3_cb(self, msg: Vector3d):
-        self.received_msg = msg.x
+        with mutex:
+            self.received_msg = msg.x
 
     def setUp(self):
         # Publisher set up
@@ -47,4 +52,6 @@ class PubSubTEST(unittest.TestCase):
     def test_msg_callback(self):
         self.assertEqual(self.received_msg, 0)
         self.assertTrue(self.pub.publish(self.vector3d_msg))
-        self.assertEqual(self.received_msg, self.vector3d_msg.x)
+        time.sleep(0.5)
+        with mutex:    
+            self.assertEqual(self.received_msg, self.vector3d_msg.x)

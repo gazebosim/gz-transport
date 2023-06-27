@@ -170,24 +170,6 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           " you cannot advertise it a second time (regardless of its type)")
       .def("advertised_topics", &Node::AdvertisedTopics,
           "Get the list of topics advertised by this node")
-      .def("subscribe_raw", [](
-          Node &_node,
-          const std::string &_topic,
-          std::function<void(py::bytes _msgData, const size_t _size,
-                           const MessageInfo &_info)> &_callback,
-          const std::string &_msgType,
-          const SubscribeOptions &_opts)
-          {
-            auto _cb = [_callback](const char *_msgData, const size_t _size,
-                           const MessageInfo &_info){
-                return _callback(py::bytes(_msgData, _size), _size, _info);
-            };
-            return _node.SubscribeRaw(_topic, _cb, _msgType, _opts);
-          },
-          py::arg("topic"),
-          py::arg("callback"),
-          py::arg("msg_type"),
-          py::arg("options"))
       .def("subscribed_topics", &Node::SubscribedTopics,
           "Get the list of topics subscribed by this node")
       .def("unsubscribe", &Node::Unsubscribe,
@@ -252,6 +234,26 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           },
           py::arg("service"),
           "Get the information about a service")
+      .def("subscribe_raw", [](
+          Node &_node,
+          const std::string &_topic,
+          std::function<void(py::bytes _msgData, const size_t _size,
+                           const MessageInfo &_info)> &_callback,
+          const std::string &_msgType,
+          const SubscribeOptions &_opts)
+          {
+            auto _cb = [_callback](const char *_msgData, const size_t _size,
+                           const MessageInfo &_info){
+                return _callback(py::bytes(_msgData, _size), _size, _info);
+            };
+            return _node.SubscribeRaw(_topic, _cb, _msgType, _opts);
+          },
+          py::arg("topic"),
+          py::arg("callback"),
+          py::arg("msg_type"),
+          py::arg("options"))
+      .def_property_readonly("options", &Node::Options,
+          "Get the reference to the current node options.")
       .def("enable_stats", &Node::EnableStats,
           py::arg("topic"),
           py::arg("enable"),
@@ -262,10 +264,8 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           py::arg("topic"),
           "Get the current statistics for a topic. Statistics must"
           "have been enabled using the EnableStats function, otherwise"
-          "the return value will be null.")
-      .def_property_readonly("options", &Node::Options,
-          "Get the reference to the current node options.");
-
+          "the return value will be null.");
+      
   // Register Node::Publisher as a subclass of Node
   py::class_<gz::transport::Node::Publisher>(node, "Publisher",
       "A class that is used to store information about an"
