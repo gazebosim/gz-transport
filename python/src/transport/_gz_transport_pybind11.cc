@@ -78,6 +78,49 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
             return AdvertiseMessageOptions(self);
           });
 
+    py::class_<NodeOptions>(
+      m, "NodeOptions",
+      "A class to provide different options for the node")
+      .def(py::init<>())
+      .def(py::init<const NodeOptions &>())
+      .def_property("namespace",
+          &NodeOptions::NameSpace,
+          &NodeOptions::SetNameSpace,
+          "Set the node's namespace.")
+      .def_property("partition",
+          &NodeOptions::Partition,
+          &NodeOptions::SetPartition,
+          "Set the node's partition name.")
+      .def("add_topic_remap",
+          &NodeOptions::AddTopicRemap,
+          py::arg("fromTopic"),
+          py::arg("toTopic"),
+          "Add a new topic remapping.If a topic is remapped, the '_fromTopic'"
+          "topic will be renamed to '_toTopic' in any of the previous functions."
+          "Is not possible to add two remaps over the same '_fromTopic'.")
+      .def("topic_remap",[](
+          NodeOptions &_nodeOptions,
+          const std::string &fromTopic)
+          {
+            std::string toTopic;
+            bool result{false};
+            result = _nodeOptions.TopicRemap(fromTopic, toTopic);
+            return py::make_tuple(result, toTopic);
+          },
+          py::arg("fromTopic"),
+          "Get a topic remapping. Returns a pair with the result of the method"
+          "and the remapped name of the topic.")
+      .def("__copy__", 
+          [](const NodeOptions &self)
+          {
+            return NodeOptions(self);
+          })
+      .def("__deepcopy__",
+          [](const NodeOptions &self, pybind11::dict)
+          {
+            return NodeOptions(self);
+          });
+
     py::class_<SubscribeOptions>(
       m, "SubscribeOptions",
       "A class to provide different options for a subscription")
@@ -101,7 +144,8 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
             return SubscribeOptions(self);
           });
 
-    // We are leaving this as an opaque class
+    // We are leaving this as an opaque class in order to be able to add bindings
+    // to it later without breaking ABI.
     py::class_<MessageInfo>(
       m, "MessageInfo",
       "A class that provides information about the message received.")
@@ -112,6 +156,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       " There are two main communication modes: pub/sub messages"
       " and service calls")
       .def(py::init<>())
+      .def(py::init<const NodeOptions &>())
       .def("advertise", static_cast<
           Node::Publisher (Node::*) (
               const std::string &,
