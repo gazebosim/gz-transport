@@ -17,6 +17,14 @@ from ._transport import Node as _Node
 from ._transport import AdvertiseMessageOptions, SubscribeOptions
 from typing import TypeVar, Callable
 
+# The "ProtoMsg" TypeVar represents an actual msg of a protobuf type.
+# On the other hand, the "ProtoMsgType" TypeVar represents the protobuf type.
+# For example, let's take the following code: 
+#   from gz.msgs10.stringmsg_pb2 import StringMsg
+#   proto_msg = StringMsg()
+# The variable `proto_msg` would be the expected input for a "ProtoMsg"
+# type argument and `StringMsg` would be the expected input for a 
+# "ProtoMsgType" type argument.
 ProtoMsg = TypeVar("ProtoMsg")
 ProtoMsgType = TypeVar("ProtoMsgType")
 

@@ -54,8 +54,6 @@ def main():
         time.sleep(0.001)
     except KeyboardInterrupt:
       pass
-    node.unsubscribe(topic_stringmsg)
-    node.unsubscribe(topic_vector3d)
     print("Done")
 
 if __name__ == "__main__":

@@ -93,21 +93,21 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           "Set the node's partition name.")
       .def("add_topic_remap",
           &NodeOptions::AddTopicRemap,
-          py::arg("fromTopic"),
-          py::arg("toTopic"),
+          py::arg("from_topic"),
+          py::arg("to_topic"),
           "Add a new topic remapping.If a topic is remapped, the '_fromTopic'"
           "topic will be renamed to '_toTopic' in any of the previous functions."
           "Is not possible to add two remaps over the same '_fromTopic'.")
       .def("topic_remap",[](
-          NodeOptions &_nodeOptions,
+          NodeOptions &self,
           const std::string &fromTopic)
           {
             std::string toTopic;
             bool result{false};
-            result = _nodeOptions.TopicRemap(fromTopic, toTopic);
+            result = self.TopicRemap(fromTopic, toTopic);
             return py::make_tuple(result, toTopic);
           },
-          py::arg("fromTopic"),
+          py::arg("from_topic"),
           "Get a topic remapping. Returns a pair with the result of the method"
           "and the remapped name of the topic.")
       .def("__copy__", 
@@ -257,8 +257,8 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       .def("enable_stats", &Node::EnableStats,
           py::arg("topic"),
           py::arg("enable"),
-          py::arg("publicationTopic"),
-          py::arg("publicationRate"),
+          py::arg("publication_topic") = "/statistics",
+          py::arg("publication_rate") = 1,
           "Turn topic statistics on or off.")
       .def("topic_stats", &Node::TopicStats,
           py::arg("topic"),
@@ -276,8 +276,8 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           "Return true if valid information, such as a non-empty"
           " topic name, is present.")
       .def("publish_raw", &gz::transport::Node::Publisher::PublishRaw,
-          py::arg("msgData"),
-          py::arg("msgType"))
+          py::arg("msg_data"),
+          py::arg("msg_type"))
       .def("throttled_update_ready",
           &gz::transport::Node::Publisher::ThrottledUpdateReady,
           "")

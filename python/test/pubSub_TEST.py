@@ -31,7 +31,6 @@ class PubSubTEST(unittest.TestCase):
     def setUp(self):
         # Publisher set up
         self.pub_node = Node()
-        self.assertTrue(self.pub_node)
         vector3d_topic = "/test_vector3d"
         self.pub = self.pub_node.advertise(vector3d_topic, Vector3d)
         self.assertTrue(self.pub)
@@ -42,7 +41,6 @@ class PubSubTEST(unittest.TestCase):
 
         # Subscriber set up
         self.sub_node = Node()
-        self.assertTrue(self.sub_node)
         self.assertTrue(
             self.sub_node.subscribe(Vector3d, vector3d_topic, self.vector3_cb)
         )

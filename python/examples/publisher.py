@@ -44,7 +44,7 @@ def main():
 
           print("Publishing 'Hello' on topic [{}]".format(stringmsg_topic))
           print("Publishing a Vector3d on topic [{}]".format(vector3d_topic))
-          time.sleep(0.00001)
+          time.sleep(0.1)
 
     except KeyboardInterrupt:
         pass

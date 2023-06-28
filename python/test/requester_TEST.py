@@ -33,7 +33,6 @@ class RequesterTEST(unittest.TestCase):
 
         # Requester Setup
         self.node = Node()
-        self.assertTrue(self.node)
         self.service_name = "/foo"
         self.request = Int32()
         self.request.data = 100
