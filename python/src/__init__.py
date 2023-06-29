@@ -19,32 +19,88 @@ from typing import TypeVar, Callable
 
 # The "ProtoMsg" TypeVar represents an actual msg of a protobuf type.
 # On the other hand, the "ProtoMsgType" TypeVar represents the protobuf type.
-# For example, let's take the following code: 
+# For example, let's take the following code:
 #   from gz.msgs10.stringmsg_pb2 import StringMsg
 #   proto_msg = StringMsg()
 # The variable `proto_msg` would be the expected input for a "ProtoMsg"
-# type argument and `StringMsg` would be the expected input for a 
+# type argument and `StringMsg` would be the expected input for a
 # "ProtoMsgType" type argument.
 ProtoMsg = TypeVar("ProtoMsg")
 ProtoMsgType = TypeVar("ProtoMsgType")
 
 
 class Publisher(_Node.Publisher):
+    """
+    A wrapper class representing extends the _Node.Publisher class for
+    in order to publish serialized protocol buffer messages.
+
+    """
+
     def publish(self, proto_msg: ProtoMsg):
+        """
+        Publishes a serialized protocol buffer message.
+
+        Args:
+            proto_msg (ProtoMsg): The protocol buffer message to be published.
+
+        Returns:
+            None
+
+        """
         msg_string = proto_msg.SerializeToString()
         msg_type = proto_msg.DESCRIPTOR.full_name
         return self.publish_raw(msg_string, msg_type)
 
 
 class Node(_Node):
-    def advertise(self, topic: str, msg_type: ProtoMsg,
-                  options=AdvertiseMessageOptions()):
-        return Publisher(
-            _Node.advertise(self, topic, msg_type.DESCRIPTOR.full_name,
-                            options))
+    """
+    A wrapper class that extends the _Node class for managing
+    publishers, subscribers and service request.
+    """
 
-    def subscribe(self, msg_type: ProtoMsg, topic: str,
-                  callback: Callable, options=SubscribeOptions()):
+    def advertise(
+        self, topic: str, msg_type: ProtoMsg, options=AdvertiseMessageOptions()
+    ):
+        """
+        Advertises a topic for publishing messages of a specific type.
+
+        Args:
+            topic (str): The name of the topic to advertise.
+            msg_type (ProtoMsg): The type of the messages to be published.
+            options (AdvertiseMessageOptions): Options for advertising
+              the topic. Defaults to AdvertiseMessageOptions().
+
+        Returns:
+            Publisher: A publisher object associated with the advertised topic.
+
+        """
+        return Publisher(
+            _Node.advertise(self, topic, msg_type.DESCRIPTOR.full_name, options)
+        )
+
+    def subscribe(
+        self,
+        msg_type: ProtoMsg,
+        topic: str,
+        callback: Callable,
+        options=SubscribeOptions(),
+    ):
+        """
+        Subscribes to a topic to receive messages of a specific type and
+        invokes a callback function for each received message.
+
+        Args:
+            msg_type (ProtoMsg): The type of the messages to subscribe to.
+            topic (str): The name of the topic to subscribe to.
+            callback (Callable): The callback function to be invoked
+            options (SubscribeOptions): Options for subscribing to
+              the topic. Defaults to SubscribeOptions().
+
+        Returns:
+            None.
+
+        """
+
         def cb_deserialize(proto_msg, msg_size, msg_info):
             deserialized_msg = msg_type()
             deserialized_msg.ParseFromString(proto_msg)
@@ -54,9 +110,30 @@ class Node(_Node):
             topic, cb_deserialize, msg_type.DESCRIPTOR.full_name, options
         )
 
-    def request(self, service: str, request: ProtoMsg,
-                request_type: ProtoMsgType,
-                response_type: ProtoMsgType, timeout: int):
+    def request(
+        self,
+        service: str,
+        request: ProtoMsg,
+        request_type: ProtoMsgType,
+        response_type: ProtoMsgType,
+        timeout: int,
+    ):
+        """
+        Sends a request of a specific type to a service and waits for a
+        response of a specific type.
+
+        Args:
+            service (str): The name of the service to send the request to.
+            request (ProtoMsg): The request message to be sent.
+            request_type (ProtoMsgType): The type of the request.
+            response_type (ProtoMsgType): The expected type of the response.
+            timeout (int): The maximum time (in ms) to wait for a response.
+
+        Returns:
+            tuple: A tuple containing the result of the request (bool) and the
+              deserialized response message.
+
+        """
         result, serialized_response = self.request_raw(
             service,
             request.SerializeToString(),
