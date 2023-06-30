@@ -24,11 +24,12 @@ import unittest
 
 mutex = Lock()
 
+
 class PubSubTEST(unittest.TestCase):
     def vector3_cb(self, msg: Vector3d):
         with mutex:
             self.received_msg = msg.x
-    
+
     def stringmsg_cb(self, msg: StringMsg):
         with mutex:
             self.msg_counter += 1
@@ -53,7 +54,23 @@ class PubSubTEST(unittest.TestCase):
         self.assertTrue(self.pub.publish(self.vector3d_msg))
         self.assertFalse(self.pub.publish(string_msg))
 
-    # Check that a message is received if the callback does not use the 
+    def test_advertised_topics(self):
+        advertised_topics = self.pub_node.advertised_topics()
+        self.assertEqual(len(advertised_topics), 1)
+        self.assertEqual(advertised_topics[0], self.vector3d_topic)
+
+    def test_subscribed_topics(self):
+        sub_node = Node()
+        subscribed_topics = sub_node.subscribed_topics()
+        self.assertEqual(len(subscribed_topics), 0)
+        self.assertTrue(
+            sub_node.subscribe(Vector3d, self.vector3d_topic, self.vector3_cb)
+        )
+        subscribed_topics = sub_node.subscribed_topics()
+        self.assertEqual(len(subscribed_topics), 1)
+        self.assertEqual(subscribed_topics[0], self.vector3d_topic)
+
+    # Check that a message is received if the callback does not use the
     # advertised types.
     def test_msg_callback(self):
         # Subscriber set up
@@ -72,14 +89,15 @@ class PubSubTEST(unittest.TestCase):
             self.assertEqual(self.received_msg, self.vector3d_msg.x)
         self.assertTrue(sub_node.unsubscribe(self.vector3d_topic))
         self.assertFalse(self.pub.has_connections())
-    
+
     # Check that a message is not received if the callback does not use
     # the advertised types.
     def test_wrong_msg_type_callback(self):
         # Subscriber set up
         sub_node = Node()
         self.assertTrue(
-            sub_node.subscribe(StringMsg, self.vector3d_topic, self.stringmsg_cb)
+            sub_node.subscribe(StringMsg, self.vector3d_topic,
+                               self.stringmsg_cb)
         )
         self.received_msg = 0
         self.assertFalse(self.pub.has_connections())
@@ -101,8 +119,8 @@ class PubSubTEST(unittest.TestCase):
         self.assertTrue(pub_throttle)
         self.assertFalse(pub_throttle.has_connections())
         msg = StringMsg()
-        msg.data = 'Hello'
-        
+        msg.data = "Hello"
+
         # Subscriber set up
         sub_node = Node()
         self.assertTrue(
@@ -128,14 +146,15 @@ class PubSubTEST(unittest.TestCase):
         self.assertTrue(pub)
         self.assertFalse(pub.has_connections())
         msg = StringMsg()
-        msg.data = 'Hello'
-        
+        msg.data = "Hello"
+
         # Subscriber set up
         sub_node = Node()
         opts = SubscribeOptions()
         opts.msgs_per_sec = 1
         self.assertTrue(
-            sub_node.subscribe(StringMsg, throttle_topic, self.stringmsg_cb, opts)
+            sub_node.subscribe(StringMsg, throttle_topic, self.stringmsg_cb,
+                               opts)
         )
         self.msg_counter = 0
         self.assertTrue(pub.has_connections())
@@ -165,3 +184,5 @@ class PubSubTEST(unittest.TestCase):
         self.assertEqual(len(topics), 2)
         # Check alphabetical order of the list of topics
         self.assertEqual(topics[0], string_msg_topic)
+
+    # Test Topic Info -> Need to create bindings for MessagePublisher class

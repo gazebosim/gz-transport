@@ -67,6 +67,7 @@ if (BUILD_TESTING AND NOT WIN32)
   set(python_tests
     pubSub_TEST
     requester_TEST
+    options_TEST
   )
   execute_process(COMMAND "${Python3_EXECUTABLE}" -m pytest --version
     OUTPUT_VARIABLE PYTEST_output

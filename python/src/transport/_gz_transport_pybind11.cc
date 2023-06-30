@@ -109,7 +109,8 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           },
           py::arg("from_topic"),
           "Get a topic remapping. Returns a pair with the result of the method"
-          "and the remapped name of the topic.")
+          "and the remapped name of the topic. The topic name remains empty if" 
+          "there isn't any remap for the topic")
       .def("__copy__", 
           [](const NodeOptions &self)
           {

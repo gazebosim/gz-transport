@@ -14,7 +14,7 @@
 #
 
 from ._transport import Node as _Node
-from ._transport import AdvertiseMessageOptions, SubscribeOptions
+from ._transport import AdvertiseMessageOptions, SubscribeOptions, NodeOptions
 from typing import TypeVar, Callable
 
 # The "ProtoMsg" TypeVar represents an actual msg of a protobuf type.
@@ -75,7 +75,8 @@ class Node(_Node):
 
         """
         return Publisher(
-            _Node.advertise(self, topic, msg_type.DESCRIPTOR.full_name, options)
+            _Node.advertise(self, topic, msg_type.DESCRIPTOR.full_name,
+                            options)
         )
 
     def subscribe(

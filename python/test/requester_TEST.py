@@ -14,6 +14,7 @@
 #
 
 from gz.msgs10.int32_pb2 import Int32
+from gz.msgs10.stringmsg_pb2 import StringMsg
 from gz.transport13 import Node
 
 import os
@@ -36,14 +37,40 @@ class RequesterTEST(unittest.TestCase):
         self.service_name = "/foo"
         self.request = Int32()
         self.request.data = 100
-        self.timeout = 5000
+        self.timeout = 2000
 
     def tearDown(self):
         self.service_process.kill()
 
-    def test_msg_callback(self):
+    def test_request(self):
         result, response = self.node.request(
             self.service_name, self.request, Int32, Int32, self.timeout
         )
         self.assertTrue(result)
         self.assertEqual(response.data, self.request.data)
+
+    def test_wrong_type(self):
+        result, response = self.node.request(
+            self.service_name, self.request, StringMsg, Int32, self.timeout
+        )
+        self.assertFalse(result)
+        self.assertNotEqual(response.data, self.request.data)
+
+        result, response = self.node.request(
+            self.service_name, self.request, Int32, StringMsg, self.timeout
+        )
+        self.assertFalse(result)
+        self.assertNotEqual(response.data, self.request.data)
+
+        result, response = self.node.request(
+            self.service_name, self.request, StringMsg, StringMsg, self.timeout
+        )
+        self.assertFalse(result)
+        self.assertNotEqual(response.data, self.request.data)
+
+    def test_service_list(self):
+        services = self.node.service_list()
+        self.assertTrue(services)
+        self.assertEqual(len(services), 1)
+
+    # Test Service Info -> Needs to create bindings for ServicePublisher class
