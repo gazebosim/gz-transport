@@ -60,6 +60,7 @@ class PubSubTEST(unittest.TestCase):
         self.assertEqual(advertised_topics[0], self.vector3d_topic)
 
     def test_subscribed_topics(self):
+        # Subscriber set up
         sub_node = Node()
         subscribed_topics = sub_node.subscribed_topics()
         self.assertEqual(len(subscribed_topics), 0)
@@ -96,8 +97,7 @@ class PubSubTEST(unittest.TestCase):
         # Subscriber set up
         sub_node = Node()
         self.assertTrue(
-            sub_node.subscribe(StringMsg, self.vector3d_topic,
-                               self.stringmsg_cb)
+            sub_node.subscribe(StringMsg, self.vector3d_topic, self.stringmsg_cb)
         )
         self.received_msg = 0
         self.assertFalse(self.pub.has_connections())
@@ -153,8 +153,7 @@ class PubSubTEST(unittest.TestCase):
         opts = SubscribeOptions()
         opts.msgs_per_sec = 1
         self.assertTrue(
-            sub_node.subscribe(StringMsg, throttle_topic, self.stringmsg_cb,
-                               opts)
+            sub_node.subscribe(StringMsg, throttle_topic, self.stringmsg_cb, opts)
         )
         self.msg_counter = 0
         self.assertTrue(pub.has_connections())
@@ -185,4 +184,19 @@ class PubSubTEST(unittest.TestCase):
         # Check alphabetical order of the list of topics
         self.assertEqual(topics[0], string_msg_topic)
 
-    # Test Topic Info -> Need to create bindings for MessagePublisher class
+    def test_topic_info(self):
+        # Publisher set up
+        pub_node = Node()
+        string_msg_topic = "/test_stringmsg_topic"
+        pub = pub_node.advertise(string_msg_topic, StringMsg)
+        self.assertTrue(pub)
+        self.assertTrue(pub.valid())
+        self.assertFalse(pub.has_connections())
+
+        # Node set up
+        node = Node()
+        topic_info = node.topic_info('/topic_no_publisher')
+        self.assertEqual(len(topic_info[0]), 0)
+        topic_info = node.topic_info(string_msg_topic)
+        self.assertEqual(len(topic_info[0]), 1)
+        self.assertEqual(topic_info[0][0].msg_type_name, 'gz.msgs.StringMsg')

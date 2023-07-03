@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2023 Open Source Robotics Foundation
  * Copyright (C) 2022 Rhys Mainwaring
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -151,6 +152,59 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       m, "MessageInfo",
       "A class that provides information about the message received.")
       .def(py::init<>());
+
+    py::class_<MessagePublisher>(
+      m, "MessagePublisher",
+      "This class stores all the information about a message publisher.")
+      .def(py::init<>())
+      .def(py::init<const std::string &,
+                    const std::string &,
+                    const std::string &,
+                    const std::string &,
+                    const std::string &,
+                    const std::string &,
+                    const AdvertiseMessageOptions &>())
+      .def_property("ctrl",
+          &MessagePublisher::Ctrl,
+          &MessagePublisher::SetCtrl,
+          "Set the ZeroMQ control address of the publisher.")
+      .def_property("msg_type_name",
+          &MessagePublisher::MsgTypeName,
+          &MessagePublisher::SetMsgTypeName,
+          "Set the message type advertised by this publisher.")
+      .def_property("options",
+          &MessagePublisher::Options,
+          &MessagePublisher::SetOptions,
+          "Set the advertised options.");
+
+    py::class_<ServicePublisher>(
+      m, "ServicePublisher",
+      "This class stores all the information about a service publisher.")
+      .def(py::init<>())
+      .def(py::init<const std::string &,
+                    const std::string &,
+                    const std::string &,
+                    const std::string &,
+                    const std::string &,
+                    const std::string &,
+                    const std::string &,
+                    const AdvertiseServiceOptions &>())
+      .def_property("socket_id",
+          &ServicePublisher::SocketId,
+          &ServicePublisher::SetSocketId,
+          "Set the ZeroMQ socket ID for this publisher.")
+      .def_property("req_type_name",
+          &ServicePublisher::ReqTypeName,
+          &ServicePublisher::SetReqTypeName,
+          "Set the name of the request's protobuf message advertised.")
+      .def_property("rep_type_name",
+          &ServicePublisher::RepTypeName,
+          &ServicePublisher::SetRepTypeName,
+          "Set the advertised options.")
+      .def_property("options",
+          &ServicePublisher::Options,
+          &ServicePublisher::SetOptions,
+          "Set the advertised options.");
 
     auto node = py::class_<Node>(m, "Node",
       "A class that allows a client to communicate with other peers."

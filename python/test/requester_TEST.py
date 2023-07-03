@@ -73,4 +73,8 @@ class RequesterTEST(unittest.TestCase):
         self.assertTrue(services)
         self.assertEqual(len(services), 1)
 
-    # Test Service Info -> Needs to create bindings for ServicePublisher class
+    def test_service_info(self):
+        service_info_list = self.node.service_info('/service_no_responser')
+        self.assertEqual(len(service_info_list), 0)
+        service_info_list = self.node.topic_info(self.service_name)
+        self.assertEqual(len(service_info_list), 2)
