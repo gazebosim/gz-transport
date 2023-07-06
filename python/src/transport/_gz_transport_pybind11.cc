@@ -157,54 +157,37 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       m, "MessagePublisher",
       "This class stores all the information about a message publisher.")
       .def(py::init<>())
-      .def(py::init<const std::string &,
-                    const std::string &,
-                    const std::string &,
-                    const std::string &,
-                    const std::string &,
-                    const std::string &,
-                    const AdvertiseMessageOptions &>())
-      .def_property("ctrl",
+      .def_property_readonly("ctrl",
           &MessagePublisher::Ctrl,
-          &MessagePublisher::SetCtrl,
-          "Set the ZeroMQ control address of the publisher.")
-      .def_property("msg_type_name",
+          "Get the ZeroMQ control address of the publisher.")
+      .def_property_readonly("msg_type_name",
           &MessagePublisher::MsgTypeName,
-          &MessagePublisher::SetMsgTypeName,
-          "Set the message type advertised by this publisher.")
-      .def_property("options",
+          "Get the message type advertised by this publisher.")
+      .def_property_readonly("options",
           &MessagePublisher::Options,
-          &MessagePublisher::SetOptions,
-          "Set the advertised options.");
+          "Get the advertised options.");
 
     py::class_<ServicePublisher>(
       m, "ServicePublisher",
       "This class stores all the information about a service publisher.")
       .def(py::init<>())
-      .def(py::init<const std::string &,
-                    const std::string &,
-                    const std::string &,
-                    const std::string &,
-                    const std::string &,
-                    const std::string &,
-                    const std::string &,
-                    const AdvertiseServiceOptions &>())
-      .def_property("socket_id",
+      .def_property_readonly("socket_id",
           &ServicePublisher::SocketId,
-          &ServicePublisher::SetSocketId,
-          "Set the ZeroMQ socket ID for this publisher.")
-      .def_property("req_type_name",
+          "Get the ZeroMQ socket ID for this publisher.")
+      .def_property_readonly("req_type_name",
           &ServicePublisher::ReqTypeName,
-          &ServicePublisher::SetReqTypeName,
-          "Set the name of the request's protobuf message advertised.")
-      .def_property("rep_type_name",
+          "Get the name of the request's protobuf message advertised.")
+      .def_property_readonly("rep_type_name",
           &ServicePublisher::RepTypeName,
-          &ServicePublisher::SetRepTypeName,
-          "Set the advertised options.")
-      .def_property("options",
+          "Get the advertised options.")
+      .def_property_readonly("options",
           &ServicePublisher::Options,
-          &ServicePublisher::SetOptions,
-          "Set the advertised options.");
+          "Get the advertised options.");
+
+    py::class_<TopicStatistics>(
+      m, "TopicStatistics",
+      "This class encapsulates statistics for a single topic..")
+      .def(py::init<>());
 
     auto node = py::class_<Node>(m, "Node",
       "A class that allows a client to communicate with other peers."
@@ -292,14 +275,14 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       .def("subscribe_raw", [](
           Node &_node,
           const std::string &_topic,
-          std::function<void(py::bytes _msgData, const size_t _size,
+          std::function<void(py::bytes _msgData,
                            const MessageInfo &_info)> &_callback,
           const std::string &_msgType,
           const SubscribeOptions &_opts)
           {
             auto _cb = [_callback](const char *_msgData, const size_t _size,
                            const MessageInfo &_info){
-                return _callback(py::bytes(_msgData, _size), _size, _info);
+                return _callback(py::bytes(_msgData, _size), _info);
             };
             return _node.SubscribeRaw(_topic, _cb, _msgType, _opts);
           },

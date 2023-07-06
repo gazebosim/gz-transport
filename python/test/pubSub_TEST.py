@@ -15,7 +15,7 @@
 
 from gz.msgs10.stringmsg_pb2 import StringMsg
 from gz.msgs10.vector3d_pb2 import Vector3d
-from gz.transport13 import Node, AdvertiseMessageOptions, SubscribeOptions
+from gz.transport13 import Node, AdvertiseMessageOptions, SubscribeOptions, TopicStatistics
 
 from threading import Lock
 
@@ -46,6 +46,9 @@ class PubSubTEST(unittest.TestCase):
         self.vector3d_msg = Vector3d()
         self.vector3d_msg.x = 10
 
+    def tearDown(self):
+        del self.pub, self.pub_node
+
     # Check that the publisher publishes a message of the appropiate type
     # but doesn't publish when the message is not the appropiate type.
     def test_publish_msg(self):
@@ -54,11 +57,13 @@ class PubSubTEST(unittest.TestCase):
         self.assertTrue(self.pub.publish(self.vector3d_msg))
         self.assertFalse(self.pub.publish(string_msg))
 
+    # Checks the `advertised_topic` method.
     def test_advertised_topics(self):
         advertised_topics = self.pub_node.advertised_topics()
         self.assertEqual(len(advertised_topics), 1)
         self.assertEqual(advertised_topics[0], self.vector3d_topic)
 
+    # Checks the `subscribed_topics` method
     def test_subscribed_topics(self):
         # Subscriber set up
         sub_node = Node()
@@ -109,6 +114,7 @@ class PubSubTEST(unittest.TestCase):
         self.assertTrue(sub_node.unsubscribe(self.vector3d_topic))
         self.assertFalse(self.pub.has_connections())
 
+    # Checks the functioning of a publisher that is throttled
     def test_pub_throttle(self):
         # Throttle Publisher set up
         pub_node = Node()
@@ -138,6 +144,7 @@ class PubSubTEST(unittest.TestCase):
         self.assertTrue(sub_node.unsubscribe(throttle_topic))
         self.assertFalse(pub_throttle.has_connections())
 
+    # Checks the functioning of a subscriber that is throttled.
     def test_sub_throttle(self):
         # Publisher set up
         pub_node = Node()
@@ -167,6 +174,7 @@ class PubSubTEST(unittest.TestCase):
         self.assertTrue(sub_node.unsubscribe(throttle_topic))
         self.assertFalse(pub.has_connections())
 
+    # Checks that the node is able to retrieve the list of topics.
     def test_topic_list(self):
         # Second Publisher set up
         pub_node = Node()
@@ -184,19 +192,22 @@ class PubSubTEST(unittest.TestCase):
         # Check alphabetical order of the list of topics
         self.assertEqual(topics[0], string_msg_topic)
 
+    # Checks that the node is able to retrieve the information of a topic.
     def test_topic_info(self):
-        # Publisher set up
-        pub_node = Node()
-        string_msg_topic = "/test_stringmsg_topic"
-        pub = pub_node.advertise(string_msg_topic, StringMsg)
-        self.assertTrue(pub)
-        self.assertTrue(pub.valid())
-        self.assertFalse(pub.has_connections())
-
         # Node set up
         node = Node()
         topic_info = node.topic_info('/topic_no_publisher')
         self.assertEqual(len(topic_info[0]), 0)
-        topic_info = node.topic_info(string_msg_topic)
+        topic_info = node.topic_info(self.vector3d_topic)
         self.assertEqual(len(topic_info[0]), 1)
-        self.assertEqual(topic_info[0][0].msg_type_name, 'gz.msgs.StringMsg')
+        self.assertEqual(topic_info[0][0].msg_type_name, 'gz.msgs.Vector3d')
+
+    # Checks that the methods to enable a topic statistics and get those stats
+    # are working as expected.
+    def test_topic_stats(self):
+        self.assertEqual(len(self.pub_node.topic_info('/statistics')[0]), 0)
+        self.assertTrue(self.pub_node.enable_stats(self.vector3d_topic, True, '/statistics', 1))
+        self.assertEqual(len(self.pub_node.topic_info('/statistics')[0]), 1)
+        topic_stats = self.pub_node.topic_stats(self.vector3d_topic)
+        self.assertEqual(topic_stats, None)
+        self.assertTrue(self.pub_node.enable_stats(self.vector3d_topic, False))

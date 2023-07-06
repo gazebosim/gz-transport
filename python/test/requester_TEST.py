@@ -42,6 +42,7 @@ class RequesterTEST(unittest.TestCase):
     def tearDown(self):
         self.service_process.kill()
 
+    # Checks that the node is able to create a service request.
     def test_request(self):
         result, response = self.node.request(
             self.service_name, self.request, Int32, Int32, self.timeout
@@ -49,6 +50,8 @@ class RequesterTEST(unittest.TestCase):
         self.assertTrue(result)
         self.assertEqual(response.data, self.request.data)
 
+    # Checks that the node is unable to create a service request if the types
+    # of the request and response are wrong.
     def test_wrong_type(self):
         result, response = self.node.request(
             self.service_name, self.request, StringMsg, Int32, self.timeout
@@ -68,13 +71,16 @@ class RequesterTEST(unittest.TestCase):
         self.assertFalse(result)
         self.assertNotEqual(response.data, self.request.data)
 
+    # Checks that the node is able to retrieve the list of services.
     def test_service_list(self):
         services = self.node.service_list()
         self.assertTrue(services)
         self.assertEqual(len(services), 1)
 
+    # Checks that the node is able to retrieve the information of a service.
     def test_service_info(self):
         service_info_list = self.node.service_info('/service_no_responser')
         self.assertEqual(len(service_info_list), 0)
-        service_info_list = self.node.topic_info(self.service_name)
-        self.assertEqual(len(service_info_list), 2)
+        service_info_list = self.node.service_info(self.service_name)
+        self.assertEqual(service_info_list[0].req_type_name, 'gz.msgs.Int32')
+        self.assertEqual(service_info_list[0].rep_type_name, 'gz.msgs.Int32')

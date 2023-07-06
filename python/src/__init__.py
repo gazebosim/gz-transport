@@ -14,7 +14,7 @@
 #
 
 from ._transport import Node as _Node
-from ._transport import AdvertiseMessageOptions, SubscribeOptions, NodeOptions
+from ._transport import *
 from typing import TypeVar, Callable
 
 # The "ProtoMsg" TypeVar represents an actual msg of a protobuf type.
@@ -59,7 +59,7 @@ class Node(_Node):
     """
 
     def advertise(
-        self, topic: str, msg_type: ProtoMsg, options=AdvertiseMessageOptions()
+        self, topic: str, msg_type: ProtoMsg, options=_transport.AdvertiseMessageOptions()
     ):
         """
         Advertises a topic for publishing messages of a specific type.
@@ -84,7 +84,7 @@ class Node(_Node):
         msg_type: ProtoMsg,
         topic: str,
         callback: Callable,
-        options=SubscribeOptions(),
+        options=_transport.SubscribeOptions(),
     ):
         """
         Subscribes to a topic to receive messages of a specific type and
@@ -102,7 +102,7 @@ class Node(_Node):
 
         """
 
-        def cb_deserialize(proto_msg, msg_size, msg_info):
+        def cb_deserialize(proto_msg, msg_info):
             deserialized_msg = msg_type()
             deserialized_msg.ParseFromString(proto_msg)
             callback(deserialized_msg)
