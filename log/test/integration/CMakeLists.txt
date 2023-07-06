@@ -10,6 +10,7 @@ gz_build_tests(
   LIB_DEPS
     ${PROJECT_LIBRARY_TARGET_NAME}-log
     ${EXTRA_TEST_LIB_DEPS}
+    gz_msgs_gen
   INCLUDE_DIRS
     ${CMAKE_BINARY_DIR}/test/
 )
@@ -52,6 +53,7 @@ foreach(source_file ${aux})
       ${log_lib_target}
       gtest
       ${EXTRA_TEST_LIB_DEPS}
+      gz_msgs_gen
   )
 
   if(UNIX)

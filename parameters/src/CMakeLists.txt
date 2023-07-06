@@ -8,13 +8,15 @@ gz_add_component(
 
 target_link_libraries(${param_lib_target}
   PUBLIC
-    gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER})
+    gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
+  PRIVATE
+    gz_msgs_gen)
 
 # Unit tests
 gz_build_tests(
   TYPE "UNIT"
   SOURCES ${gtest_sources}
-  LIB_DEPS ${param_lib_target} ${EXTRA_TEST_LIB_DEPS}
+  LIB_DEPS ${param_lib_target} ${EXTRA_TEST_LIB_DEPS} gz_msgs_gen
 )
 
 if(NOT WIN32)
