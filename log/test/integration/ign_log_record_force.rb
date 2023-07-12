@@ -31,6 +31,8 @@ else
   cmd_running = false
 end
 
+sleep(2)
+
 stdout = stdout.read
 stderr = stderr.read
 
