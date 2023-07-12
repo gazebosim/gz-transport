@@ -56,8 +56,8 @@ message(STATUS "\n\n-- ====== Finding Dependencies ======")
 #--------------------------------------
 # Find Protobuf
 gz_find_package(GzProtobuf
-                 REQUIRED
-                 PRETTY Protobuf)
+                REQUIRED
+                PRETTY Protobuf)
 
 #--------------------------------------
 # Find ZeroMQ
