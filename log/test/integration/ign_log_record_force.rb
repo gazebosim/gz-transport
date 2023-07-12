@@ -19,6 +19,8 @@ require 'open3'
 testfile = 'ign_log_record_force.tlog'
 File.write(testfile, 'not empty file')
 
+sleep(2)
+
 _, stdout, stderr, wait_thr =
   Open3.popen3("ign log record --force --file #{testfile}")
 
@@ -30,8 +32,6 @@ if wait_thr.alive?
 else
   cmd_running = false
 end
-
-sleep(2)
 
 stdout = stdout.read
 stderr = stderr.read
