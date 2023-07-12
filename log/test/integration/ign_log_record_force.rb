@@ -19,7 +19,7 @@ require 'open3'
 testfile = 'ign_log_record_force.tlog'
 File.write(testfile, 'not empty file')
 
-sleep(2)
+exit 3 unless File.exists?(testfile)
 
 _, stdout, stderr, wait_thr =
   Open3.popen3("ign log record --force --file #{testfile}")
