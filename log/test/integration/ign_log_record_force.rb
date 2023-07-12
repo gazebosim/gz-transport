@@ -19,15 +19,10 @@ require 'open3'
 testfile = 'ign_log_record_force.tlog'
 File.write(testfile, 'not empty file')
 
-exit 3 unless File.exists?(testfile)
-puts '-----File exists after write-----'
-
 _, stdout, stderr, wait_thr =
   Open3.popen3("ign log record --force --file #{testfile}")
 
 sleep(2)
-exit 3 unless File.exists?(testfile)
-puts '-----File exists after popebn3-----'
 
 cmd_running = true
 if wait_thr.alive?
@@ -35,9 +30,6 @@ if wait_thr.alive?
 else
   cmd_running = false
 end
-
-exit 3 unless File.exists?(testfile)
-puts '-----File exists after killing process-----'
 
 stdout = stdout.read
 stderr = stderr.read
