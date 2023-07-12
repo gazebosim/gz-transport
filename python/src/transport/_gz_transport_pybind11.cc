@@ -96,9 +96,9 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           &NodeOptions::AddTopicRemap,
           py::arg("from_topic"),
           py::arg("to_topic"),
-          "Add a new topic remapping.If a topic is remapped, the '_fromTopic'"
-          "topic will be renamed to '_toTopic' in any of the previous functions."
-          "Is not possible to add two remaps over the same '_fromTopic'.")
+          "Add a new topic remapping. If a topic is remapped, the 'from_topic'"
+          "topic will be renamed to 'to_topic. Is not possible to add two remaps"
+          "over the same 'from_topic'.")
       .def("topic_remap",[](
           NodeOptions &self,
           const std::string &fromTopic)

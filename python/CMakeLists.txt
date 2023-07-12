@@ -39,10 +39,9 @@ function(configure_build_install_location _library_name)
 endfunction()
 
 message(STATUS "Building pybind11 interfaces")
-# The bindings require a python wrapper in order to be able to provide an API
-# similar to the one used in C++. We are creating the bindings name as the
-# following in order to avoid having to modify the import on wrapper on each
-# version of gz-transport.
+# We are creating the bindings name as the following because we 
+# created a python wrapper that does some modifications in order
+# to be able to provide an API similar to the one used in C++.
 set(BINDINGS_MODULE_NAME "_transport")
 # Split from main extension and converted to pybind11
 pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
