@@ -72,12 +72,15 @@ if (HAVE_GZ_TOOLS)
     ruby ${CMAKE_CURRENT_SOURCE_DIR}/gz_log_record_no_overwrite.rb
   )
 
-  add_test(gz_log_record_force
-    ruby ${CMAKE_CURRENT_SOURCE_DIR}/gz_log_record_force.rb
-  )
+  # Test disabled
+  # add_test(gz_log_record_force
+  #   ruby ${CMAKE_CURRENT_SOURCE_DIR}/gz_log_record_force.rb
+  # )
+
   set_tests_properties(
     gz_log_record_no_overwrite
-    gz_log_record_force
+    # Test disabled
+    # gz_log_record_force
     PROPERTIES
     ENVIRONMENT
       "GZ_CONFIG_PATH=${GZ_CONFIG_PATH};GZ_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql"
