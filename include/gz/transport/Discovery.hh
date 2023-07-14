@@ -732,16 +732,15 @@ namespace gz
           std::lock_guard<std::mutex> lock(this->mutex);
           if (!this->initialized)
           {
-            ++this->numHeartbeatsUninitialized;
-            if (this->numHeartbeatsUninitialized == 2)
+            if (this->numHeartbeatsUninitialized == 2u)
             {
-              // We consider the discovery initialized after two cycles of
-              // heartbeats sent.
+              // We consider discovery initialized after two heartbeat cycles.
               this->initialized = true;
 
               // Notify anyone waiting for the initialization phase to finish.
               this->initializedCv.notify_all();
             }
+            ++this->numHeartbeatsUninitialized;
           }
 
           this->timeNextHeartbeat = std::chrono::steady_clock::now() +
