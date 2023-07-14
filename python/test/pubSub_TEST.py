@@ -208,6 +208,7 @@ class PubSubTEST(unittest.TestCase):
         self.assertEqual(len(self.pub_node.topic_info('/statistics')[0]), 0)
         self.assertTrue(self.pub_node.enable_stats(self.vector3d_topic, True, '/statistics', 1))
         self.assertEqual(len(self.pub_node.topic_info('/statistics')[0]), 1)
+        # Currently, within process subscribers and publishers won't have statistics.
         topic_stats = self.pub_node.topic_stats(self.vector3d_topic)
         self.assertEqual(topic_stats, None)
         self.assertTrue(self.pub_node.enable_stats(self.vector3d_topic, False))

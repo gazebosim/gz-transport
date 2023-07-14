@@ -4,7 +4,7 @@ from gz.transport13 import Node, AdvertiseMessageOptions, SubscribeOptions, Node
 import unittest
 
 
-class PubSubTEST(unittest.TestCase):
+class OptionsTEST(unittest.TestCase):
     def stringmsg_cb(self, msg: StringMsg):
         _ = msg.data
 
