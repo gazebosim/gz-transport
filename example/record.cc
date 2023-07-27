@@ -15,7 +15,7 @@
  *
 */
 
-/// \brief Example of recording all ignition transport topics.
+/// \brief Example of recording all gz transport topics.
 /// This will record all topics and currently published to a file.
 /// Launch the gz-transport publisher example so this example has
 /// something to record.
