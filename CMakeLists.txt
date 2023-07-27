@@ -101,7 +101,7 @@ set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs10 REQUIRED)
+gz_find_package(gz-msgs10 REQUIRED COMPONENTS msgs)
 set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
 
 #--------------------------------------
@@ -164,6 +164,8 @@ gz_configure_build(QUIT_IF_BUILD_ERRORS
 # gz command line support
 #============================================================================
 add_subdirectory(conf)
+
+add_subdirectory(proto)
 
 #============================================================================
 # gz transport python bindings

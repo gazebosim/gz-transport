@@ -11,12 +11,13 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
     gz-msgs${GZ_MSGS_VER}::gz-msgs${GZ_MSGS_VER}
     CPPZMQ::CPPZMQ
+    gz-transport${PROJECT_VERSION_MAJOR}-msgs
   PRIVATE
     ${ZeroMQ_TARGET}
 )
 
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
-  SYSTEM PUBLIC 
+  SYSTEM PUBLIC
     $<TARGET_PROPERTY:protobuf::libprotobuf,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:CPPZMQ::CPPZMQ,INTERFACE_INCLUDE_DIRECTORIES>)
 

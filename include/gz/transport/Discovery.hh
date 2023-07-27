@@ -68,7 +68,7 @@
 #include <thread>
 #include <vector>
 
-#include <gz/msgs/Utility.hh>
+#include <gz/msgs/convert/DiscoveryType.hh>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
