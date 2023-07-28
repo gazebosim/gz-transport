@@ -543,10 +543,6 @@ int main(int argc, char **argv)
   setenv("GZ_TRANSPORT_LOG_SQL_PATH",
          GZ_TRANSPORT_LOG_SQL_PATH, 1);
 
-  // TODO(CH3): Deprecated. Remove this on tick-tock.
-  setenv("IGN_TRANSPORT_LOG_SQL_PATH",
-         GZ_TRANSPORT_LOG_SQL_PATH, 1);
-
   setenv(gz::transport::log::SchemaLocationEnvVar.c_str(),
          GZ_TRANSPORT_LOG_SQL_PATH, 1);
 

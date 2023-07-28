@@ -174,11 +174,6 @@ namespace gz
         const std::string &_msgData,
         const HandlerInfo &_handlerInfo);
 
-      /// \brief Method in charge of receiving the control updates (when a new
-      /// remote subscriber notifies its presence for example).
-      /// ToDo: Remove this function when possible.
-      public: void RecvControlUpdate();
-
       /// \brief Method in charge of receiving the service call requests.
       public: void RecvSrvRequest();
 

@@ -32,13 +32,6 @@ extern "C" {
   /// \brief A transport node.
   typedef struct GzTransportNode GzTransportNode;
 
-  // TODO(CH3): Deprecated. Remove!
-  #ifdef _WIN32
-    using IgnTransportNode = GzTransportNode;
-  #else
-    using IgnTransportNode GZ_DEPRECATED(12) = GzTransportNode;
-  #endif
-
   /// \brief Create a transport node.
   /// \param[in] _partition Optional name of the partition to use.
   /// Use nullptr to use the default value, which is specified via the
