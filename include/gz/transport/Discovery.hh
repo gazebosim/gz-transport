@@ -732,16 +732,15 @@ namespace gz
           std::lock_guard<std::mutex> lock(this->mutex);
           if (!this->initialized)
           {
-            ++this->numHeartbeatsUninitialized;
-            if (this->numHeartbeatsUninitialized == 2)
+            if (this->numHeartbeatsUninitialized == 2u)
             {
-              // We consider the discovery initialized after two cycles of
-              // heartbeats sent.
+              // We consider discovery initialized after two heartbeat cycles.
               this->initialized = true;
 
               // Notify anyone waiting for the initialization phase to finish.
               this->initializedCv.notify_all();
             }
+            ++this->numHeartbeatsUninitialized;
           }
 
           this->timeNextHeartbeat = std::chrono::steady_clock::now() +
@@ -807,7 +806,7 @@ namespace gz
         sockaddr_in clntAddr;
         socklen_t addrLen = sizeof(clntAddr);
 
-        int32_t received = recvfrom(this->sockets.at(0),
+        int64_t received = recvfrom(this->sockets.at(0),
               reinterpret_cast<raw_type *>(rcvStr),
               this->kMaxRcvStr, 0,
               reinterpret_cast<sockaddr *>(&clntAddr),
