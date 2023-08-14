@@ -37,13 +37,6 @@ NodeOptions::NodeOptions()
   {
     this->SetPartition(gzPartition);
   }
-  // TODO(CH3): Deprecated. Remove on tock.
-  else if (env("IGN_PARTITION", gzPartition))
-  {
-    std::cout << "IGN_PARTITION is deprecated and will be removed! "
-              << "Use GZ_PARTITION instead!" << std::endl;
-    this->SetPartition(gzPartition);
-  }
 }
 
 //////////////////////////////////////////////////

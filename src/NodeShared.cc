@@ -67,21 +67,7 @@ bool userPass(std::string &_user, std::string &_pass)
 
   if (!username || !password)
   {
-    username = std::getenv("IGN_TRANSPORT_USERNAME");
-    password = std::getenv("IGN_TRANSPORT_PASSWORD");
-
-    if (!username || !password)
-    {
-      return false;
-    }
-    // TODO(CH3): Deprecated. Remove on tock.
-    else
-    {
-      std::cerr << "IGN_TRANSPORT_USERNAME and IGN_TRANSPORT_PASSWORD "
-                << " are deprecated and will be removed! Use "
-                << "GZ_TRANSPORT_USERNAME and GZ_TRANSPORT_PASSWORD instead!"
-                << std::endl;
-    }
+    return false;
   }
 
   _user = username;
@@ -220,13 +206,6 @@ NodeShared::NodeShared()
   {
     this->verbose = (gzVerbose == "1");
   }
-  // TODO(CH3): Deprecated. Remove on tock.
-  else if (env("IGN_VERBOSE", gzVerbose) && !gzVerbose.empty())
-  {
-    std::cerr << "IGN_VERBOSE is deprecated and will be removed! "
-              << "Use GZ_VERBOSE instead!" << std::endl;
-    this->verbose = (gzVerbose == "1");
-  }
 
   // Set the multicast IP used for discovery.
   std::string envDiscoveryIp;
@@ -235,49 +214,14 @@ NodeShared::NodeShared()
   {
     this->discoveryIP = envDiscoveryIp;
   }
-  // TODO(CH3): Deprecated. Remove on tock.
-  else if (env("IGN_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
-           !envDiscoveryIp.empty())
-  {
-    std::cerr << "IGN_DISCOVERY_MULTICAST_IP is deprecated! "
-              << "Use GZ_DISCOVERY_MULTICAST_IP instead!" << std::endl;
-    this->discoveryIP = envDiscoveryIp;
-  }
-
 
   // Set the port used for msg discovery.
   this->msgDiscPort = this->dataPtr->NonNegativeEnvVar(
     "GZ_DISCOVERY_MSG_PORT", this->kDefaultMsgDiscPort);
 
-  // TODO(CH3): Deprecated. Remove on tock.
-  if (this->msgDiscPort == this->kDefaultMsgDiscPort)
-  {
-    this->msgDiscPort = this->dataPtr->NonNegativeEnvVar(
-      "IGN_DISCOVERY_MSG_PORT", this->kDefaultMsgDiscPort);
-
-    if (this->msgDiscPort != this->kDefaultMsgDiscPort)
-    {
-      std::cerr << "IGN_DISCOVERY_MSG_PORT is deprecated! "
-                << "Use GZ_DISCOVERY_MSG_PORT instead!" << std::endl;
-    }
-  }
-
   // Set the port used for srv discovery.
   this->srvDiscPort = this->dataPtr->NonNegativeEnvVar(
     "GZ_DISCOVERY_SRV_PORT", this->kDefaultSrvDiscPort);
-
-  // TODO(CH3): Deprecated. Remove on tock.
-  if (this->srvDiscPort == this->kDefaultSrvDiscPort)
-  {
-    this->srvDiscPort = this->dataPtr->NonNegativeEnvVar(
-      "IGN_DISCOVERY_SRV_PORT", this->kDefaultSrvDiscPort);
-    if (this->srvDiscPort != this->kDefaultSrvDiscPort)
-    {
-      std::cerr << "IGN_DISCOVERY_SRV_PORT is deprecated! "
-                << "Use GZ_DISCOVERY_SRV_PORT instead!" << std::endl;
-    }
-  }
-
 
   // Sanity check: the discovery ports should be unique.
   if (this->msgDiscPort == this->srvDiscPort)
@@ -296,13 +240,6 @@ NodeShared::NodeShared()
 
   if (env("GZ_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
   {
-    this->dataPtr->topicStatsEnabled = (gzStats == "1");
-  }
-  // TODO(CH3): Deprecated. Remove on tock.
-  else if (env("IGN_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
-  {
-    std::cerr << "IGN_TRANSPORT_TOPIC_STATISTICS is deprecated! "
-              << "Use GZ_TRANSPORT_TOPIC_STATISTICS instead!" << std::endl;
     this->dataPtr->topicStatsEnabled = (gzStats == "1");
   }
 
@@ -688,11 +625,6 @@ void NodeShared::TriggerCallbacks(
       }
     }
   }
-}
-
-//////////////////////////////////////////////////
-void NodeShared::RecvControlUpdate()
-{
 }
 
 //////////////////////////////////////////////////
@@ -1432,18 +1364,6 @@ bool NodeShared::InitializeSockets()
     int rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
       "GZ_TRANSPORT_RCVHWM", kDefaultRcvHwm);
 
-    // TODO(CH3): Deprecated. Remove on tock.
-    if (rcvQueueVal == kDefaultRcvHwm)
-    {
-      rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
-        "IGN_TRANSPORT_RCVHWM", kDefaultRcvHwm);
-      if (rcvQueueVal != kDefaultRcvHwm)
-      {
-        std::cerr << "IGN_TRANSPORT_RCVHWM is deprecated! "
-                  << "Use GZ_TRANSPORT_RCVHWM instead!" << std::endl;
-      }
-    }
-
 #ifdef GZ_CPPZMQ_POST_4_7_0
     this->dataPtr->subscriber->set(zmq::sockopt::rcvhwm, rcvQueueVal);
 #else
@@ -1454,18 +1374,6 @@ bool NodeShared::InitializeSockets()
     // Set the capacity of the buffer for sending messages.
     int sndQueueVal = this->dataPtr->NonNegativeEnvVar(
       "GZ_TRANSPORT_SNDHWM", kDefaultSndHwm);
-
-    // TODO(CH3): Deprecated. Remove on tock.
-    if (sndQueueVal == kDefaultSndHwm)
-    {
-      rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
-        "IGN_TRANSPORT_SNDHWM", kDefaultSndHwm);
-      if (sndQueueVal != kDefaultSndHwm)
-      {
-        std::cerr << "IGN_TRANSPORT_SNDHWM is deprecated! "
-                  << "Use GZ_TRANSPORT_SNDHWM instead!" << std::endl;
-      }
-    }
 
 #ifdef GZ_CPPZMQ_POST_4_7_0
     this->dataPtr->publisher->set(zmq::sockopt::sndhwm, sndQueueVal);

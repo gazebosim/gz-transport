@@ -445,20 +445,6 @@ bool Log::Open(const std::string &_file, const std::ios_base::openmode _mode)
     std::string schemaFile;
     const char *envPath = std::getenv(SchemaLocationEnvVar.c_str());
 
-    // TODO(CH3): Deprecated. Remove this on ticktock.
-    if (!(envPath))
-    {
-      envPath = std::getenv(SchemaLocationEnvVarDeprecated.c_str());
-
-      if ((envPath))
-      {
-        LWRN("Found schema using deprecated environment variable ["
-             << SchemaLocationEnvVarDeprecated.c_str()
-             << "]. Please use [" << SchemaLocationEnvVar.c_str()
-             << "] instead.");
-      }
-    }
-
     if (envPath)
     {
       schemaFile = envPath;
