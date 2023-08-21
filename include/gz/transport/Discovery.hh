@@ -634,7 +634,10 @@ namespace gz
       /// \param[out] _topics List of advertised topics.
       public: void TopicList(std::vector<std::string> &_topics)
       {
-        this->remoteSubscribers.Clear();
+        {
+          std::lock_guard<std::mutex> lock(this->mutex);
+          this->remoteSubscribers.Clear();
+        }
 
         // Request the list of subscribers.
         Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
