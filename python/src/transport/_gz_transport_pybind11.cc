@@ -282,6 +282,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           {
             auto _cb = [_callback](const char *_msgData, const size_t _size,
                            const MessageInfo &_info){
+                pybind11::gil_scoped_acquire acq;
                 return _callback(py::bytes(_msgData, _size), _info);
             };
             return _node.SubscribeRaw(_topic, _cb, _msgType, _opts);
