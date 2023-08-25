@@ -27,8 +27,10 @@ if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
   endif()
 else()
   # If not a system installation, respect local paths
-  set(GZ_PYTHON_INSTALL_PATH ${GZ_LIB_INSTALL_DIR}/python/gz)
+  set(GZ_PYTHON_INSTALL_PATH ${GZ_LIB_INSTALL_DIR}/python)
 endif()
+
+set(GZ_PYTHON_INSTALL_PATH "${GZ_PYTHON_INSTALL_PATH}/gz")
 
 # Set the build location and install location for a CPython extension
 function(configure_build_install_location _library_name)
