@@ -69,7 +69,7 @@ TEST_F(ParametersClientTest, Parameter)
     {
       std::unique_ptr<google::protobuf::Message> msg;
       EXPECT_TRUE(client.Parameter("parameter2", msg));
-      EXPECT_TRUE(msg);
+      ASSERT_NE(nullptr, msg);
       auto downcastedMsg = dynamic_cast<msgs::StringMsg *>(msg.get());
       EXPECT_EQ(downcastedMsg->data(), "");
     }
