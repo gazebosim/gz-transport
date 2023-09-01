@@ -1,5 +1,32 @@
 ## Gazebo Transport 11.X
 
+### Gazebo Transport 11.4.1 (2023-09-01)
+
+1. Fix topic/service list inconsistency
+    * [Pull request #415](https://github.com/gazebosim/gz-transport/pull/415)
+
+1. Backport Windows fix to ign-transport8
+    * [Pull request #406](https://github.com/gazebosim/gz-transport/pull/406)
+
+1. Fix unused-result warning
+    * [Pull request #408](https://github.com/gazebosim/gz-transport/pull/408)
+
+1. Fix compatibility with protobuf 22
+    * [Pull request #405](https://github.com/gazebosim/gz-transport/pull/405)
+
+1. Fix compiler warning and signedness issue
+    * [Pull request #401](https://github.com/gazebosim/gz-transport/pull/401)
+
+1. Rename COPYING to LICENSE
+    * [Pull request #392](https://github.com/gazebosim/gz-transport/pull/392)
+
+1. Infrastructure
+    * [Pull request #391](https://github.com/gazebosim/gz-transport/pull/391)
+    * [Pull request #394](https://github.com/gazebosim/gz-transport/pull/394)
+
+1. Support clang and std::filesystem
+    * [Pull request #390](https://github.com/gazebosim/gz-transport/pull/390)
+
 ### Gazebo Transport 11.4.0 (2023-03-08)
 
 1. Added Node::RequestRaw
