@@ -104,7 +104,7 @@ git clone https://github.com/gazebosim/gz-transport
 
 Configure and build
 ```
-cd gz-common
+cd gz-transport
 mkdir build
 cd build
 cmake ..
