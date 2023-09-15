@@ -14,7 +14,7 @@ simulate this configuration, and then we'll enable the relay capabilities of
 Gazebo Transport to make the communication possible.
 
 ```{.sh}
-mkdir -p ~/gz_transport_tutorial/docker/gz-transport
+mkdir -p ~/gz_transport_tutorial/docker
 cd ~/gz_transport_tutorial/docker
 ```
 

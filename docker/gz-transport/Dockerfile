@@ -1,5 +1,5 @@
-# Ubuntu 20.04
-FROM ubuntu:focal
+# Ubuntu 22.04
+FROM ubuntu:jammy
 
 ENV TZ=America/Los_Angeles
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -23,6 +23,7 @@ RUN apt-get update \
         doxygen \
         ruby-ronn \
         libsqlite3-dev \
+        python3-pybind11 \
         sudo \
         gnupg \
         lsb-release \
