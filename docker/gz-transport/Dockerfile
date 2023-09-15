@@ -23,6 +23,7 @@ RUN apt-get update \
         doxygen \
         ruby-ronn \
         libsqlite3-dev \
+        python3-pybind11 \
         sudo \
         gnupg \
         lsb-release \
