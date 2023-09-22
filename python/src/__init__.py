@@ -15,7 +15,9 @@
 
 from ._transport import Node as _Node
 from ._transport import *
+import sys
 from typing import TypeVar, Callable
+import traceback
 
 # The "ProtoMsg" TypeVar represents an actual msg of a protobuf type.
 # On the other hand, the "ProtoMsgType" TypeVar represents the protobuf type.
@@ -103,9 +105,16 @@ class Node(_Node):
         """
 
         def cb_deserialize(proto_msg, msg_info):
-            deserialized_msg = msg_type()
-            deserialized_msg.ParseFromString(proto_msg)
-            callback(deserialized_msg)
+            # The callback might throw an exception and there's nothing else to
+            # catch since this will be in its own thread. This could cause
+            # crashes when used in gz-sim python systems, so we'll catch and
+            # print a traceback here.
+            try:
+                deserialized_msg = msg_type()
+                deserialized_msg.ParseFromString(proto_msg)
+                callback(deserialized_msg)
+            except Exception as e:
+                print(traceback.format_exc(), sys.stderr)
 
         return self.subscribe_raw(
             topic, cb_deserialize, msg_type.DESCRIPTOR.full_name, options
