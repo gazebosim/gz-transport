@@ -8,6 +8,7 @@
 1. Documentation fixes
     * [Pull request #438](https://github.com/gazebosim/gz-transport/pull/438)
     * [Pull request #437](https://github.com/gazebosim/gz-transport/pull/437)
+    * [Pull request #439](https://github.com/gazebosim/gz-transport/pull/439)
 
 1. Protect remoteSubscribers with mutex.
     * [Pull request #432](https://github.com/gazebosim/gz-transport/pull/432)
@@ -31,19 +32,6 @@
 
 1. Fix topic/service list inconsistency
     * [Pull request #415](https://github.com/gazebosim/gz-transport/pull/415)
-
-1. Fix compiler warnings
-    * [Pull request #408](https://github.com/gazebosim/gz-transport/pull/408)
-    * [Pull request #401](https://github.com/gazebosim/gz-transport/pull/401)
-
-1. Fix compatibility with protobuf 22
-    * [Pull request #405](https://github.com/gazebosim/gz-transport/pull/405)
-
-1. Fix filesystem headers for tests
-    * [Pull request #402](https://github.com/gazebosim/gz-transport/pull/402)
-
-1. Fix typos
-    * [Pull request #403](https://github.com/gazebosim/gz-transport/pull/403)
 
 1. Show subscribers info when running topic info
     * [Pull request #384](https://github.com/gazebosim/gz-transport/pull/384)
