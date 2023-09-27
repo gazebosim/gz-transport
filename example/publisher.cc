@@ -15,6 +15,7 @@
  *
 */
 
+//! [complete]
 #include <atomic>
 #include <chrono>
 #include <csignal>
@@ -71,3 +72,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
+//! [complete]
