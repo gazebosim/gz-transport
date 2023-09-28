@@ -9,6 +9,7 @@
     * [Pull request #438](https://github.com/gazebosim/gz-transport/pull/438)
     * [Pull request #437](https://github.com/gazebosim/gz-transport/pull/437)
     * [Pull request #439](https://github.com/gazebosim/gz-transport/pull/439)
+    * [Pull request #441](https://github.com/gazebosim/gz-transport/pull/441)
 
 1. Protect remoteSubscribers with mutex.
     * [Pull request #432](https://github.com/gazebosim/gz-transport/pull/432)
