@@ -1,6 +1,6 @@
 ## Gazebo Transport 13.X
 
-### Gazebo Transport 13.0.0 (202X-XX-XX)
+### Gazebo Transport 13.0.0 (2023-09-29)
 
 1. Fix Docker in Harmonic
     * [Pull request #440](https://github.com/gazebosim/gz-transport/pull/440)

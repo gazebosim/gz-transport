@@ -34,7 +34,7 @@ cmake_dependent_option(USE_DIST_PACKAGES_FOR_PYTHON
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX pre2)
+gz_configure_project(VERSION_SUFFIX)
 
 #============================================================================
 # Set project-specific options
