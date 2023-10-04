@@ -38,10 +38,10 @@ def main():
         while True:
           count += 1
           vector3d_msg.x = count
-          if not (pub_stringmsg.publish(stringmsg_msg)):
+          if not pub_stringmsg.publish(stringmsg_msg):
               break
           print("Publishing 'Hello' on topic [{}]".format(stringmsg_topic))
-          if not (pub_vector3d.publish(vector3d_msg)):
+          if not pub_vector3d.publish(vector3d_msg):
               break
           print("Publishing a Vector3d on topic [{}]".format(vector3d_topic))
           time.sleep(0.1)

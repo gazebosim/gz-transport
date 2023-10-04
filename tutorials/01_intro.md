@@ -20,5 +20,5 @@ combination of custom code and [ZeroMQ] (http://zeromq.org/).
 
 ## What programming language can I use with Gazebo Transport?
 
-C++ is the native implementation and the only language that have available all library features.
-Python implementation is a wrapper around C++ methods using pybind11. It does not support all features like C++, but, contains the main features such as publication, subscription and service request.
+C++ is the native implementation and the only language that has all available library features.
+Python implementation is a wrapper around C++ methods using `pybind11`. It does not support all features like C++, but contains the main features such as publication, subscription and service request.

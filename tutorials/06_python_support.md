@@ -5,9 +5,9 @@ Previous Tutorial: \ref services
 
 ## Overview
 
-In this tutorial, we are going to show the functionalities implemented in python. This features are brought up to python by creating bindings from the C++ implementation using pybind11. It is important to note that not all of C++ features are available yet in python, on this tutorial we will go over the most relevant features we currently have on python. For more information refer to the [__init__.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/src/__init__.py) file which is a wrapper for all the bindings.
+In this tutorial, we are going to show the functionalities implemented in python. This features are brought up to python by creating bindings from the C++ implementation using pybind11. It is important to note that not all of C++ features are available yet in Python, on this tutorial we will go over the most relevant features we currently have on Python. For more information refer to the [__init__.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/src/__init__.py) file which is a wrapper for all the bindings.
 
-For this tutorial, we will create two nodes that are going to communicate via messages. One node will be a publisher that generates the information,
+For this tutorial, we will create two nodes that communicate via messages. One node will be a publisher that generates the information,
 whereas the other node will be the subscriber consuming the information. Our
 nodes will be running on different processes within the same machine.
 
@@ -31,7 +31,7 @@ folder and open it with your favorite editor:
     from gz.transport13 import Node
 ```
 
-The library `gz.transport13` contains all the Gazebo Transport elements that can be used in python. The final API we will use is contained inside the class `Node`.
+The library `gz.transport13` contains all the Gazebo Transport elements that can be used in Python. The final API we will use is contained inside the class `Node`.
 
 The lines `from gz.msgs10.stringmsg_pb2 import StringMsg` and `from gz.msgs10.vector3d_pb2 import Vector3d` includes the generated protobuf code that we are going to use
 for our messages. We are going to publish two types of messages: `StringMsg` and `Vector3d` protobuf messages.
@@ -46,7 +46,7 @@ for our messages. We are going to publish two types of messages: `StringMsg` and
 
 First of all we declare a *Node* that will offer some of the transport
 functionality. In our case, we are interested in publishing topic updates, so
-the first step is to announce our topics names and their  types. Once a topic name is
+the first step is to announce our topics names and their types. Once a topic name is
 advertised, we can start publishing periodic messages using the publishers objects.
 
 ```{.py}
@@ -102,6 +102,7 @@ Just as before, we are importing the `Node` class from the `gz.transport13` libr
     def vector3_cb(msg: Vector3d):
         print("Received Vector3: [x: {}, y: {}, z: {}]".format(msg.x, msg.y, msg.z))
 ```
+
 We need to register a function callback that will execute every time we receive
 a new topic update. The signature of the callback is always similar to the ones
 shown in this example with the only exception of the protobuf message type.
@@ -147,7 +148,7 @@ until you hit *CTRL-C*.
 
 ## Updating PYTHONPATH
 
-If you made the binary installation of Gazebo Transport, you can skip this step and go directly to the next section. Otherwise, if you built the package from source it is needed to update the PYTHONPATH in order for python to recognize the library by doing the following:
+If you made the binary installation of Gazebo Transport, you can skip this step and go directly to the next section. Otherwise, if you built the package from source it is needed to update the PYTHONPATH in order for Python to recognize the library by doing the following:
 
 ```{.sh}
 export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
@@ -200,6 +201,7 @@ You can run any of those examples by just doing the following in a terminal:
 ```{.sh}
 python3 ./data_race_without_mutex.py
 ```
+
 or
 
 ```{.sh}
@@ -248,7 +250,6 @@ In this section of code, we declare an *AdvertiseMessageOptions* object and use 
 
 Next, we advertise the topic with message throttling enabled. To do it, we pass opts
 as an argument to the *advertise()* method.
-
 
 ## Subscribe Options
 
