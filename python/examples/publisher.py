@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 
+#! [complete]
 from gz.msgs10.stringmsg_pb2 import StringMsg
 from gz.msgs10.vector3d_pb2 import Vector3d
 from gz.transport13 import Node
@@ -49,6 +50,7 @@ def main():
     except KeyboardInterrupt:
         pass
 
+#! [complete]
 
 if __name__ == "__main__":
     main()
