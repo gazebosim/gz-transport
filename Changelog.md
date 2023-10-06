@@ -1,5 +1,33 @@
 ## Gazebo Transport 12.X
 
+### Gazebo Transport 12.2.1 (2023-09-26)
+
+1. Infrastructure
+    * [Pull request #428](https://github.com/gazebosim/gz-transport/pull/428)
+    * [Pull request #427](https://github.com/gazebosim/gz-transport/pull/427)
+
+1. Fix topic/service list inconsistency
+    * [Pull request #415](https://github.com/gazebosim/gz-transport/pull/415)
+
+1. Backport Windows fix to ign-transport8
+    * [Pull request #406](https://github.com/gazebosim/gz-transport/pull/406)
+
+1. Fix unused-result warning
+    * [Pull request #408](https://github.com/gazebosim/gz-transport/pull/408)
+
+1. Fix compatibility with protobuf 22
+    * [Pull request #405](https://github.com/gazebosim/gz-transport/pull/405)
+
+1. Fix compiler warning and signedness issue
+    * [Pull request #401](https://github.com/gazebosim/gz-transport/pull/401)
+
+1. Fix filesystem headers for tests
+    * [Pull request #402](https://github.com/gazebosim/gz-transport/pull/402)
+
+1. Fix typos
+    * [Pull request #403](https://github.com/gazebosim/gz-transport/pull/403)
+
+
 ### Gazebo Transport 12.2.0 (2023-04-19)
 
 1. CI workflow: use checkout v3
