@@ -104,7 +104,7 @@ git clone https://github.com/gazebosim/gz-transport
 
 Configure and build
 ```
-cd gz-common
+cd gz-transport
 mkdir build
 cd build
 cmake ..
@@ -305,3 +305,5 @@ can run:
 ```bash
 make test
 ```
+
+*Note:* Python tests require running `sudo make install` before running `make test`.

@@ -17,66 +17,10 @@ cd ~/gz_transport_tutorial
 
 ## Publisher
 
-Download the [publisher.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/publisher.cc) file within the `gz_transport_tutorial`
+Download the [publisher.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport13/example/publisher.cc) file within the `gz_transport_tutorial`
 folder and open it with your favorite editor:
 
-```{.cpp}
-#include <atomic>
-#include <chrono>
-#include <csignal>
-#include <iostream>
-#include <string>
-#include <thread>
-#include <gz/msgs.hh>
-#include <gz/transport.hh>
-
-/// brief Flag used to break the publisher loop and terminate the program.
-static std::atomic<bool> g_terminatePub(false);
-
-//////////////////////////////////////////////////
-/// brief Function callback executed when a SIGINT or SIGTERM signals are
-/// captured. This is used to break the infinite loop that publishes messages
-/// and exit the program smoothly.
-void signal_handler(int _signal)
-{
-  if (_signal == SIGINT || _signal == SIGTERM)
-    g_terminatePub = true;
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Install a signal handler for SIGINT and SIGTERM.
-  std::signal(SIGINT,  signal_handler);
-  std::signal(SIGTERM, signal_handler);
-
-  // Create a transport node and advertise a topic.
-  gz::transport::Node node;
-  std::string topic = "/foo";
-
-  auto pub = node.Advertise<gz::msgs::StringMsg>(topic);
-  if (!pub)
-  {
-    std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
-    return -1;
-  }
-
-  // Prepare the message.
-  gz::msgs::StringMsg msg;
-  msg.set_data("HELLO");
-
-  // Publish messages at 1Hz.
-  while (!g_terminatePub)
-  {
-    if (!pub.Publish(msg))
-      break;
-    std::cout << "Publishing hello on topic [" << topic << "]" << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  }
-
-  return 0;
-}
-```
+\snippet example/publisher.cc complete
 
 ### Walkthrough
 
@@ -132,40 +76,10 @@ The method *Publish()* sends a message to all the subscribers.
 
 ## Subscriber
 
-Download the [subscriber.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/subscriber.cc)
+Download the [subscriber.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport13/example/subscriber.cc)
 file into the `gz_transport_tutorial` folder and open it with your favorite editor:
 
-```{.cpp}
-#include <iostream>
-#include <string>
-#include <gz/msgs.hh>
-#include <gz/transport.hh>
-
-//////////////////////////////////////////////////
-/// brief Function called each time a topic update is received.
-void cb(const gz::msgs::StringMsg &_msg)
-{
-  std::cout << "Msg: " << _msg.data() << std::endl << std::endl;
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  gz::transport::Node node;
-  std::string topic = "/foo";
-  // Subscribe to a topic by registering a callback.
-  if (!node.Subscribe(topic, cb))
-  {
-    std::cerr << "Error subscribing to topic [" << topic << "]" << std::endl;
-    return -1;
-  }
-
-  // Zzzzzz.
-  gz::transport::waitForShutdown();
-
-  return 0;
-}
-```
+\snippet example/subscriber.cc complete
 
 ### Walkthrough
 
@@ -212,7 +126,7 @@ until you hit *CTRL-C*. Note that this function captures the *SIGINT* and
 
 ## Building the code
 
-Download the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/CMakeLists.txt) file within the `gz_transport_tutorial` folder.
+Download the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport13/example/CMakeLists.txt) file within the `gz_transport_tutorial` folder.
 
 Once you have all your files, go ahead and create a `build/` directory within
 the `gz_transport_tutorial` directory.
@@ -359,7 +273,7 @@ between Gazebo Transport and another protocol or if you want to just print the
 content of a generic protobuf message using `DebugString()`, among other use
 cases.
 
-Download the [subscriber_generic.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/subscriber_generic.cc) file within the `gz_transport_tutorial` folder and open it with your favorite editor:
+Download the [subscriber_generic.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport13/example/subscriber_generic.cc) file within the `gz_transport_tutorial` folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <google/protobuf/message.h>
@@ -488,12 +402,12 @@ often the integration of the message generation into the build system of your
 project. Next, you can find an example of a publisher and subscriber using a
 custom Protobuf message integrated with CMake.
 
-Download the [publisher_custom_msg.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/publisher_custom_msg.cc)
-and the [subscriber_custom_msg.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/subscriber_custom_msg.cc)
+Download the [publisher_custom_msg.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport13/example/publisher_custom_msg.cc)
+and the [subscriber_custom_msg.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport13/example/subscriber_custom_msg.cc)
 files within the `gz_transport_tutorial`. Then, create a `msgs` folder and
-download the [stringmsg.proto](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/msgs/stringmsg.proto)
-and the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/msgs/CMakeLists.txt)
-files within the `msgs` folder. Finally, we'll need the main [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport12/example/CMakeLists.txt)
+download the [stringmsg.proto](https://github.com/gazebosim/gz-transport/raw/gz-transport13/example/msgs/stringmsg.proto)
+and the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport13/example/msgs/CMakeLists.txt)
+files within the `msgs` folder. Finally, we'll need the main [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport13/example/CMakeLists.txt)
 file. You should have this file from the previous examples. Otherwise,
 download and place it within the `gz_transport_tutorial` folder.
 

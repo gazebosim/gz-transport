@@ -1,8 +1,77 @@
 ## Gazebo Transport 13.X
 
-### Gazebo Transport 13.0.0 (202X-XX-XX)
+### Gazebo Transport 13.0.0 (2023-09-29)
+
+1. Fix Docker in Harmonic
+    * [Pull request #440](https://github.com/gazebosim/gz-transport/pull/440)
+
+1. Documentation fixes
+    * [Pull request #438](https://github.com/gazebosim/gz-transport/pull/438)
+    * [Pull request #437](https://github.com/gazebosim/gz-transport/pull/437)
+    * [Pull request #439](https://github.com/gazebosim/gz-transport/pull/439)
+    * [Pull request #441](https://github.com/gazebosim/gz-transport/pull/441)
+
+1. Protect remoteSubscribers with mutex.
+    * [Pull request #432](https://github.com/gazebosim/gz-transport/pull/432)
+
+1. Remove deprecations in Harmonic
+    * [Pull request #426](https://github.com/gazebosim/gz-transport/pull/426)
+
+1. ign -> gz
+    * [Pull request #424](https://github.com/gazebosim/gz-transport/pull/424)
+
+1. Infrastructure
+    * [Pull request #428](https://github.com/gazebosim/gz-transport/pull/428)
+    * [Pull request #423](https://github.com/gazebosim/gz-transport/pull/423)
+    * [Pull request #427](https://github.com/gazebosim/gz-transport/pull/427)
+
+1. Python Bindings for Publisher, Subscriber and Service Request features.
+    * [Pull request #411](https://github.com/gazebosim/gz-transport/pull/411)
+    * [Pull request #433](https://github.com/gazebosim/gz-transport/pull/433)
+    * [Pull request #431](https://github.com/gazebosim/gz-transport/pull/431)
+    * [Pull request #443](https://github.com/gazebosim/gz-transport/pull/443)
+
+1. Fix topic/service list inconsistency
+    * [Pull request #415](https://github.com/gazebosim/gz-transport/pull/415)
+
+1. Show subscribers info when running topic info
+    * [Pull request #384](https://github.com/gazebosim/gz-transport/pull/384)
+
+1. List subscribed topics when running topic list
+    * [Pull request #379](https://github.com/gazebosim/gz-transport/pull/379)
+
+1. ⬆️  Bump main to 13.0.0~pre1
+    * [Pull request #344](https://github.com/gazebosim/gz-transport/pull/344)
 
 ## Gazebo Transport 12.X
+
+### Gazebo Transport 12.2.1 (2023-09-26)
+
+1. Infrastructure
+    * [Pull request #428](https://github.com/gazebosim/gz-transport/pull/428)
+    * [Pull request #427](https://github.com/gazebosim/gz-transport/pull/427)
+
+1. Fix topic/service list inconsistency
+    * [Pull request #415](https://github.com/gazebosim/gz-transport/pull/415)
+
+1. Backport Windows fix to ign-transport8
+    * [Pull request #406](https://github.com/gazebosim/gz-transport/pull/406)
+
+1. Fix unused-result warning
+    * [Pull request #408](https://github.com/gazebosim/gz-transport/pull/408)
+
+1. Fix compatibility with protobuf 22
+    * [Pull request #405](https://github.com/gazebosim/gz-transport/pull/405)
+
+1. Fix compiler warning and signedness issue
+    * [Pull request #401](https://github.com/gazebosim/gz-transport/pull/401)
+
+1. Fix filesystem headers for tests
+    * [Pull request #402](https://github.com/gazebosim/gz-transport/pull/402)
+
+1. Fix typos
+    * [Pull request #403](https://github.com/gazebosim/gz-transport/pull/403)
+
 
 ### Gazebo Transport 12.2.0 (2023-04-19)
 
