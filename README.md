@@ -55,11 +55,11 @@ combination of custom code and ZeroMQ.
 
 # Install
 
-See the [installation tutorial](https://gazebosim.org/api/transport/13/installation.html).
+See the [installation tutorial](https://gazebosim.org/api/transport/14/installation.html).
 
 # Usage
 
-See [tutorials](https://gazebosim.org/api/transport/13/tutorials.html)
+See [tutorials](https://gazebosim.org/api/transport/14/tutorials.html)
 and the [example directory](https://github.com/gazebosim/gz-transport/blob/main/example/)
 in the source code.
 
@@ -79,7 +79,7 @@ This issue is tracked [here](https://github.com/gazebosim/gz-tools/issues/61).
 
 # Documentation
 
-Visit the [documentation page](https://gazebosim.org/api/transport/13/index.html).
+Visit the [documentation page](https://gazebosim.org/api/transport/14/index.html).
 
 # Folder Structure
 
