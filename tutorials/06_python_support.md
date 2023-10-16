@@ -156,7 +156,7 @@ export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
 
 ## Running the examples
 
-Open two new terminals and directly run the python scripts downloaded previously.
+Open two new terminals and directly run the Python scripts downloaded previously.
 
 From terminal 1:
 
@@ -193,7 +193,7 @@ Received StringMsg: [Hello]
 Received Vector3: [x: 4.0, y: 15.0, z: 20.0]
 ```
 ## Threading in Gazebo Transport
-The way Gazebo Transport is implemented, it creates several threads each time a node, publisher, subscriber, etc is created. While this allows us to have a better paralization in processes, a downside is possible race conditions that might occur if the ownership/access of variables is shared across multiple processes. Even though python have it's [GIL](https://wiki.python.org/moin/GlobalInterpreterLock), all the available features are bindings created for it's C++ implementation, in other words, downsides commented before are still an issue to be careful. We recommend to always use threading locks when working with object that are used in several places (publisher and subscribers). 
+The way Gazebo Transport is implemented, it creates several threads each time a node, publisher, subscriber, etc is created. While this allows us to have a better paralization in processes, a downside is possible race conditions that might occur if the ownership/access of variables is shared across multiple processes. Even though Python have it's [GIL](https://wiki.python.org/moin/GlobalInterpreterLock), all the available features are bindings created for it's C++ implementation, in other words, downsides commented before are still an issue to be careful. We recommend to always use threading locks when working with object that are used in several places (publisher and subscribers). 
 
 We developed a couple of examples that demonstrate this particular issue. Take a look at a publisher and subscriber (whithin the same node) that have race conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/data_race_without_mutex.py) file. The proposed solution to this issue is to use the `threading` library, you can see the same example with a mutex in the [data_race_with_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/data_race_with_mutex.py) file.
 
@@ -364,11 +364,11 @@ Here we are creating the service request to the `/echo` service, storing the res
 
 ## Service Responser
 
-Unfortunately, this feature is not available on python at the moment. However, we can use a service responser created in C++ and make a request to it from a code in python. Taking that into account, we will use the [response.cc](https://github.com/gazebosim/gz-transport/blob/gz-transport13/example/responser.cc) file as the service responser.
+Unfortunately, this feature is not available on Python at the moment. However, we can use a service responser created in C++ and make a request to it from a code in Python. Taking that into account, we will use the [response.cc](https://github.com/gazebosim/gz-transport/blob/gz-transport13/example/responser.cc) file as the service responser.
 
 ## Running the examples
 
-Open a new terminal and directly run the python script downloaded previously. It is expected that the service responser is running in another terminal for this, you can refer to the previous tutorial \ref services.
+Open a new terminal and directly run the Python script downloaded previously. It is expected that the service responser is running in another terminal for this, you can refer to the previous tutorial \ref services.
 
 From terminal 1:
 
