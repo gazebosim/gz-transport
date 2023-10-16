@@ -66,7 +66,7 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo apt-get update \
  && sudo apt-get install -y \
     libgz-cmake4-dev \
-    libgz-math7-dev \
+    libgz-math8-dev \
     libgz-msgs11-dev \
     libgz-utils3-cli-dev \
  && sudo apt-get clean
