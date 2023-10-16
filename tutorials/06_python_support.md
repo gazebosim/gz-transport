@@ -5,7 +5,7 @@ Previous Tutorial: \ref services
 
 ## Overview
 
-In this tutorial, we are going to show the functionalities implemented in python. This features are brought up to python by creating bindings from the C++ implementation using pybind11. It is important to note that not all of C++ features are available yet in Python, on this tutorial we will go over the most relevant features we currently have on Python. For more information refer to the [__init__.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/src/__init__.py) file which is a wrapper for all the bindings.
+In this tutorial, we are going to show the functionalities implemented in Python. This features are brought up by creating bindings from the C++ implementation using pybind11. It is important to note that not all of C++ features are available yet, on this tutorial we will go over the most relevant features. For more information refer to the [__init__.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/src/__init__.py) file which is a wrapper for all the bindings.
 
 For this tutorial, we will create two nodes that communicate via messages. One node will be a publisher that generates the information,
 whereas the other node will be the subscriber consuming the information. Our
