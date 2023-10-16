@@ -1,6 +1,6 @@
-libgz-cmake3-dev
+libgz-cmake4-dev
 libgz-math7-dev
-libgz-msgs10-dev
+libgz-msgs11-dev
 libgz-tools2-dev
 libgz-utils2-cli-dev
 libprotobuf-dev
@@ -14,5 +14,5 @@ python3-distutils
 python3-psutil
 python3-pybind11
 python3-pytest
-python3-gz-msgs10
+python3-gz-msgs11
 uuid-dev

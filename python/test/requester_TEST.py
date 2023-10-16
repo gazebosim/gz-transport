@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 
-from gz.msgs10.int32_pb2 import Int32
-from gz.msgs10.stringmsg_pb2 import StringMsg
+from gz.msgs11.int32_pb2 import Int32
+from gz.msgs11.stringmsg_pb2 import StringMsg
 from gz.transport14 import Node
 
 import os
