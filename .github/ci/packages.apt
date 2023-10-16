@@ -2,7 +2,7 @@ libgz-cmake4-dev
 libgz-math7-dev
 libgz-msgs11-dev
 libgz-tools2-dev
-libgz-utils2-cli-dev
+libgz-utils3-cli-dev
 libprotobuf-dev
 libprotoc-dev
 libsqlite3-dev

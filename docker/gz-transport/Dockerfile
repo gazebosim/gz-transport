@@ -68,7 +68,7 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
     libgz-cmake4-dev \
     libgz-math7-dev \
     libgz-msgs11-dev \
-    libgz-utils2-cli-dev \
+    libgz-utils3-cli-dev \
  && sudo apt-get clean
 
 # Gazebo transport
