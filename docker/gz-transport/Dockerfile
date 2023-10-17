@@ -65,10 +65,10 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo /bin/sh -c 'wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -' \
  && sudo apt-get update \
  && sudo apt-get install -y \
-    libgz-cmake3-dev \
-    libgz-math7-dev \
-    libgz-msgs10-dev \
-    libgz-utils2-cli-dev \
+    libgz-cmake4-dev \
+    libgz-math8-dev \
+    libgz-msgs11-dev \
+    libgz-utils3-cli-dev \
  && sudo apt-get clean
 
 # Gazebo transport
