@@ -5,11 +5,17 @@ Previous Tutorial: \ref services
 
 ## Overview
 
-In this tutorial, we are going to show the functionalities implemented in Python. This features are brought up by creating bindings from the C++ implementation using pybind11. It is important to note that not all of C++ features are available yet, on this tutorial we will go over the most relevant features. For more information refer to the [__init__.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/src/__init__.py) file which is a wrapper for all the bindings.
+In this tutorial, we are going to show the functionalities implemented in Python.
+These features are brought up by creating bindings from the C++ implementation 
+using pybind11. It is important to note that not all of C++ features are available
+yet, on this tutorial we will go over the most relevant features. For more information,
+refer to the [__init__.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/src/__init__.py)
+file which is a wrapper for all the bindings.
 
-For this tutorial, we will create two nodes that communicate via messages. One node will be a publisher that generates the information,
-whereas the other node will be the subscriber consuming the information. Our
-nodes will be running on different processes within the same machine.
+For this tutorial, we will create two nodes that communicate via messages. One node
+will be a publisher that generates the information, whereas the other node will be 
+the subscriber consuming the information. Our nodes will be running on different 
+processes within the same machine.
 
 ```{.sh}
 mkdir ~/gz_transport_tutorial
@@ -31,10 +37,13 @@ folder and open it with your favorite editor:
     from gz.transport13 import Node
 ```
 
-The library `gz.transport13` contains all the Gazebo Transport elements that can be used in Python. The final API we will use is contained inside the class `Node`.
+The library `gz.transport13` contains all the Gazebo Transport elements that can be 
+used in Python. The final API we will use is contained inside the class `Node`.
 
-The lines `from gz.msgs10.stringmsg_pb2 import StringMsg` and `from gz.msgs10.vector3d_pb2 import Vector3d` includes the generated protobuf code that we are going to use
-for our messages. We are going to publish two types of messages: `StringMsg` and `Vector3d` protobuf messages.
+The lines `from gz.msgs10.stringmsg_pb2 import StringMsg` and `from gz.msgs10.vector3d_pb2 import Vector3d`
+includes the generated protobuf code that we are going to use for our messages.
+We are going to publish two types of messages: `StringMsg` and `Vector3d` protobuf
+messages.
 
 ```{.py}
     node = Node()
@@ -46,8 +55,8 @@ for our messages. We are going to publish two types of messages: `StringMsg` and
 
 First of all we declare a *Node* that will offer some of the transport
 functionality. In our case, we are interested in publishing topic updates, so
-the first step is to announce our topics names and their types. Once a topic name is
-advertised, we can start publishing periodic messages using the publishers objects.
+the first step is to announce our topics names and their types. Once a topic name
+is advertised, we can start publishing periodic messages using the publishers objects.
 
 ```{.py}
     vector3d_msg = Vector3d()
@@ -75,8 +84,8 @@ advertised, we can start publishing periodic messages using the publishers objec
 ```
 
 In this section of the code we create the protobuf messages and fill them with
-content. Next, we iterate in a loop that publishes one message every 100ms to each topic.
-The method *publish()* sends a message to all the subscribers.
+content. Next, we iterate in a loop that publishes one message every 100ms to 
+each topic. The method *publish()* sends a message to all the subscribers.
 
 ## Subscriber
 
@@ -93,7 +102,8 @@ file into the `gz_transport_tutorial` folder and open it with your favorite edit
     from gz.transport13 import Node
 ```
 
-Just as before, we are importing the `Node` class from the `gz.transport13` library and the generated code for the `StringMsg` and `Vector3d` protobuf messages.
+Just as before, we are importing the `Node` class from the `gz.transport13` library 
+and the generated code for the `StringMsg` and `Vector3d` protobuf messages.
 
 ```{.py}
     def stringmsg_cb(msg: StringMsg):
@@ -108,7 +118,8 @@ a new topic update. The signature of the callback is always similar to the ones
 shown in this example with the only exception of the protobuf message type.
 You should create a function callback with the appropriate protobuf type
 depending on the type of the topic advertised. In our case, we know that topic
-`/example_stringmsg_topic` will contain a Protobuf `StringMsg` type and topic `/example_vector3d_topic` a `Vector3d` type.
+`/example_stringmsg_topic` will contain a Protobuf `StringMsg` type and topic 
+`/example_vector3d_topic` a `Vector3d` type.
 
 ```{.py}
     # create a transport node
@@ -132,7 +143,8 @@ depending on the type of the topic advertised. In our case, we know that topic
 ```
 
 After the node creation, the method `subscribe()` allows you to subscribe to a
-given topic by specifying the message type, the topic name and a subscription callback function.
+given topic by specifying the message type, the topic name and a subscription 
+callback function.
 
 ```{.py}
     # wait for shutdown
@@ -143,15 +155,24 @@ given topic by specifying the message type, the topic name and a subscription ca
       pass
 ```
 
-If you don't have any other tasks to do besides waiting for incoming messages, we create an infinite loop that checks for messages each 1ms that will block your current thread
-until you hit *CTRL-C*.
+If you don't have any other tasks to do besides waiting for incoming messages,
+we create an infinite loop that checks for messages each 1ms that will block
+your current thread until you hit *CTRL-C*.
 
 ## Updating PYTHONPATH
 
-If you made the binary installation of Gazebo Transport, you can skip this step and go directly to the next section. Otherwise, if you built the package from source it is needed to update the PYTHONPATH in order for Python to recognize the library by doing the following:
+If you made the binary installation of Gazebo Transport, you can skip this step
+and go directly to the next section. Otherwise, if you built the package from 
+source it is needed to update the PYTHONPATH in order for Python to recognize 
+the library by doing the following:
 
+1. If you builded from source using `colcon`:
 ```{.sh}
 export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
+```
+2. If you builded from source using `cmake`:
+```{.sh}
+export PYTHONPATH=$PYTHONPATH:<path_install_prefix>/lib/python
 ```
 
 ## Running the examples
@@ -193,9 +214,21 @@ Received StringMsg: [Hello]
 Received Vector3: [x: 4.0, y: 15.0, z: 20.0]
 ```
 ## Threading in Gazebo Transport
-The way Gazebo Transport is implemented, it creates several threads each time a node, publisher, subscriber, etc is created. While this allows us to have a better paralization in processes, a downside is possible race conditions that might occur if the ownership/access of variables is shared across multiple processes. Even though Python have it's [GIL](https://wiki.python.org/moin/GlobalInterpreterLock), all the available features are bindings created for it's C++ implementation, in other words, downsides commented before are still an issue to be careful. We recommend to always use threading locks when working with object that are used in several places (publisher and subscribers). 
+The way Gazebo Transport is implemented, it creates several threads each time
+a node, publisher, subscriber, etc is created. While this allows us to have a
+better parallelization in processes, a downside is possible race conditions that 
+might occur if the ownership/access of variables is shared across multiple 
+threads. Even though Python has its [GIL](https://wiki.python.org/moin/GlobalInterpreterLock),
+all the available features are bindings created for its C++ implementation, in
+other words, the downsides mentioned before are still an issue to be careful about. We
+recommend to always use threading locks when working with object that are used
+in several places (publisher and subscribers). 
 
-We developed a couple of examples that demonstrate this particular issue. Take a look at a publisher and subscriber (whithin the same node) that have race conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/data_race_without_mutex.py) file. The proposed solution to this issue is to use the `threading` library, you can see the same example with a mutex in the [data_race_with_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/data_race_with_mutex.py) file.
+We developed a couple of examples that demonstrate this particular issue. Take
+a look at a publisher and subscriber (whithin the same node) that have race
+conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/data_race_without_mutex.py) file. The proposed solution to this
+issue is to use the `threading` library, you can see the same example with a mutex
+in the [data_race_with_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/data_race_with_mutex.py) file.
 
 You can run any of those examples by just doing the following in a terminal:
 ```{.sh}
@@ -212,7 +245,7 @@ python3 ./data_race_with_mutex.py
 
 We can specify some options before we publish the messages. One such option is
 to specify the number of messages published per topic per second. It is optional
-to use but it can be handy in situations like when we want to control the rate
+to use but it can be handy in situations where we want to control the rate
 of messages published per topic.
 
 We can declare the throttling option using the following code :
@@ -242,7 +275,9 @@ We can declare the throttling option using the following code :
     opts.msgs_per_sec = 1
 ```
 
-In this section of code, we declare an *AdvertiseMessageOptions* object and use it to set the publishing rate (the member `msgs_per_sec`), In our case, the rate specified is 1 msg/sec.
+In this section of code, we declare an *AdvertiseMessageOptions* object and use
+it to set the publishing rate (the member `msgs_per_sec`), In our case, the rate
+specified is 1 msg/sec.
 
 ```{.py}
     pub = node.advertise(topic_name, StringMsg, opts);
@@ -283,7 +318,9 @@ We can declare the throttling option using the following code :
     node.subscribe(StringMsg, topic_name, stringmsg_cb, opts)
 ```
 
-In this section of code, we create a *SubscribeOptions* object and use it set message rate (the member `msgs_per_sec`). In our case, the message rate specified is 1 msg/sec. Then, we subscribe to the topic
+In this section of code, we create a *SubscribeOptions* object and use it to set
+message rate (the member `msgs_per_sec`). In our case, the message rate specified
+is 1 msg/sec. Then, we subscribe to the topic
 using the *subscribe()* method with opts passed as an argument to it.
 
 ## Topic remapping
@@ -342,7 +379,8 @@ file into the `gz_transport_tutorial` folder and open it with your favorite edit
     from gz.transport13 import Node
 ```
 
-Just as before, we are importing the `Node` class from the `gz.transport13` library and the generated code for the `StringMsg` protobuf message.
+Just as before, we are importing the `Node` class from the `gz.transport13`
+library and the generated code for the `StringMsg` protobuf message.
 
 ```{.py}
     node = Node()
@@ -353,22 +391,30 @@ Just as before, we are importing the `Node` class from the `gz.transport13` libr
     timeout = 5000
 ```
 
-On these lines we are creating our *Node* object which will be used to create the service request and defining all the relevant variables in order to create a request, the service name, the timeout of the request, the request and response data types.
+On these lines we are creating our *Node* object which will be used to create
+the service request and defining all the relevant variables in order to create
+a request, the service name, the timeout of the request, the request and response
+data types.
 
 ```{.py}
     result, response = node.request(service_name, request, StringMsg, StringMsg, timeout)
     print("Result:", result, "\nResponse:", response.data)
 ```
 
-Here we are creating the service request to the `/echo` service, storing the result and response of the request in some variables and printing them out.
+Here we are creating the service request to the `/echo` service, storing the
+result and response of the request in some variables and printing them out.
 
 ## Service Responser
 
-Unfortunately, this feature is not available on Python at the moment. However, we can use a service responser created in C++ and make a request to it from a code in Python. Taking that into account, we will use the [response.cc](https://github.com/gazebosim/gz-transport/blob/gz-transport13/example/responser.cc) file as the service responser.
+Unfortunately, this feature is not available on Python at the moment. However,
+we can use a service responser created in C++ and make a request to it from a
+code in Python. Taking that into account, we will use the [response.cc](https://github.com/gazebosim/gz-transport/blob/gz-transport13/example/responser.cc) file as the service responser.
 
 ## Running the examples
 
-Open a new terminal and directly run the Python script downloaded previously. It is expected that the service responser is running in another terminal for this, you can refer to the previous tutorial \ref services.
+Open a new terminal and directly run the Python script downloaded previously.
+It is expected that the service responser is running in another terminal for
+this, you can refer to the previous tutorial \ref services.
 
 From terminal 1:
 
