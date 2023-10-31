@@ -27,20 +27,10 @@
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
-#include "test_config.hh"
 
-// Temporarily introduce a "DISABLED_ON_LINUX" macro.
-// It currently does not exist upstream.
-// This can be removed when it is in upstream gz-utils
-// or the discovery WrongGzIp test passes on linux
-#include <gz/utils/detail/ExtraTestMacros.hh>
-#if defined __linux__
-  #define GZ_UTILS_TEST_DISABLED_ON_LINUX(TestName) \
-      DETAIL_GZ_UTILS_ADD_DISABLED_PREFIX(TestName)
-#else
-  #define GZ_UTILS_TEST_DISABLED_ON_LINUX(TestName) \
-      TestName
-#endif  // defined __linux__
+#include "gz/utils/ExtraTestMacros.hh"
+
+#include "test_config.hh"
 
 using namespace gz;
 using namespace transport;
@@ -540,16 +530,9 @@ TEST(DiscoveryTest, TestActivity)
   discovery1.TestActivity(proc2Uuid, false);
 }
 
-/// Logic to disable the following test via Linux
-#if defined __linux__
-  #define TEST_NAME DISABLED_WrongIgnIp
-#else
-  #define TEST_NAME WrongIgnIp
-#endif  // defined __linux__
-
 //////////////////////////////////////////////////
 /// \brief Check that a wrong GZ_IP value makes HostAddr() to return 127.0.0.1
-TEST(DiscoveryTest, TEST_NAME)
+TEST(DiscoveryTest, GZ_UTILS_TEST_DISABLED_ON_LINUX(WrongIgnIp))
 {
   // Save the current value of GZ_IP environment variable.
   std::string gzIp;
