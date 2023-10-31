@@ -21,6 +21,10 @@
 
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Node.hh"
+
+#include <gz/utils/Environment.hh>
+#include <gz/utils/Subprocess.hh>
+
 #include "gtest/gtest.h"
 #include "test_config.hh"
 
@@ -30,18 +34,16 @@ static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int data = 5;
 
+static constexpr const char* kScopedTopicSubscriberExe =
+  SCOPED_TOPIC_SUBSCRIBER_EXE;
+
 //////////////////////////////////////////////////
 /// \brief Two different nodes, each one running in a different process. The
 /// publisher advertises the topic as "process". This test checks that the topic
 /// is not seen by the other node running in a different process.
 TEST(ScopedTopicTest, ProcessTest)
 {
-  std::string subscriber_path = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR,
-     "INTEGRATION_scopedTopicSubscriber_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(subscriber_path.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kScopedTopicSubscriberExe, partition});
 
   msgs::Int32 msg;
   msg.set_data(data);
@@ -56,8 +58,6 @@ TEST(ScopedTopicTest, ProcessTest)
   EXPECT_TRUE(pub.Publish(msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(pub.Publish(msg));
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
   partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("GZ_PARTITION", partition.c_str(), 1);
+  gz::utils::setenv("GZ_PARTITION", partition);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -21,9 +21,13 @@
 #include <gz/transport/log/Playback.hh>
 #include <gz/transport/log/Recorder.hh>
 #include <gz/transport/Node.hh>
+
+#include <gz/utils/Environment.hh>
 #include <gz/utils/ExtraTestMacros.hh>
+#include <gz/utils/Subprocess.hh>
 
 #include "ChirpParams.hh"
+#include "test_config.hh"
 
 static std::string partition;
 
@@ -123,11 +127,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLog))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
     gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -224,11 +228,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
       gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -291,11 +295,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(RemoveTopic))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
       gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -402,11 +406,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogMoveInstances))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
       gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -469,11 +473,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
     gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -591,11 +595,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayStep))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
     gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -707,11 +711,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
     gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -800,17 +804,17 @@ int main(int argc, char **argv)
   partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("GZ_PARTITION", partition.c_str(), 1);
+  gz::utils::setenv("GZ_PARTITION", partition);
 
-  setenv("GZ_TRANSPORT_LOG_SQL_PATH",
-         GZ_TRANSPORT_LOG_SQL_PATH, 1);
+  gz::utils::setenv("GZ_TRANSPORT_LOG_SQL_PATH",
+                    GZ_TRANSPORT_LOG_SQL_PATH);
 
   // TODO(CH3): Deprecated. Remove this on tick-tock.
-  setenv("IGN_TRANSPORT_LOG_SQL_PATH",
-         GZ_TRANSPORT_LOG_SQL_PATH, 1);
+  gz::utils::setenv("IGN_TRANSPORT_LOG_SQL_PATH",
+                    GZ_TRANSPORT_LOG_SQL_PATH);
 
-  setenv(gz::transport::log::SchemaLocationEnvVar.c_str(),
-         GZ_TRANSPORT_LOG_SQL_PATH, 1);
+  gz::utils::setenv(gz::transport::log::SchemaLocationEnvVar,
+                    GZ_TRANSPORT_LOG_SQL_PATH);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

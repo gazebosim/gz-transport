@@ -15,32 +15,13 @@
  *
 */
 
-#ifndef GZ_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
-#define GZ_TRANSPORT_LOG_TEST_INTEGRATION_CHIRPPARAMS_HH_
+#include "ChirpParams.hh"
 
-#include <string>
-#include <vector>
 
-#include <gz/msgs/int32.pb.h>
-#include <gz/transport/Node.hh>
-#include <gz/utils/Subprocess.hh>
+static constexpr const char* kTopicChirpExe = TOPIC_CHIRP_EXE;
 
 namespace gz::transport::log::test
 {
-  /// \brief Parameter used to determine how long the topicChirp_aux
-  /// program will wait between emitting message chirps from its topic.
-  /// Value is in milliseconds.
-  const int DelayBetweenChirps_ms = 1;
-
-  /// \brief Parameter used to determine how long the topicChirp_aux
-  /// program will wait (after it advertises) before it begins publishing
-  /// its message chirps. Value is in milliseconds.
-  const int DelayBeforePublishing_ms = 1000;
-
-  /// \brief This is the message type that will be used by the chirping
-  /// topics.
-  using ChirpMsgType = gz::msgs::Int32;
-
   //////////////////////////////////////////////////
   /// \brief Similar to testing::forkAndRun(), except this function
   /// specifically calls the INTEGRATION_topicChirp_aux process and passes
@@ -55,7 +36,22 @@ namespace gz::transport::log::test
   gz::utils::Subprocess BeginChirps(
       const std::vector<std::string> &_topics,
       const int _chirps,
-      const std::string &_partitionName);
-}  // namespace gz::transport::log::test
+      const std::string &_partitionName)
+  {
+    // Argument list:
+    // [0]: Executable name
+    // [1]: Partition name
+    // [2]: Number of chirps
+    // [3]-[N]: Each topic name
+    // [N+1]: Null terminator, required by execv
+    const std::size_t numArgs = 3 + _topics.size() + 1;
 
-#endif
+    std::vector<std::string> strArgs;
+    strArgs.reserve(numArgs-1);
+    strArgs.push_back(kTopicChirpExe);
+    strArgs.push_back(_partitionName);
+    strArgs.push_back(std::to_string(_chirps));
+    strArgs.insert(strArgs.end(), _topics.begin(), _topics.end());
+    return gz::utils::Subprocess(strArgs);
+  }
+}  // namespace gz::transport::log::test

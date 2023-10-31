@@ -22,6 +22,10 @@
 
 #include "gz/transport/Node.hh"
 #include "gz/transport/TopicUtils.hh"
+
+#include <gz/utils/Environment.hh>
+#include <gz/utils/Subprocess.hh>
+
 #include "gtest/gtest.h"
 #include "test_config.hh"
 
@@ -33,6 +37,9 @@ static bool g_wrongResponseExecuted;
 static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int g_counter = 0;
+
+static constexpr const char * kTwoProcsSrvCallWithoutOutputReplierExe =
+  TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_EXE;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -51,12 +58,8 @@ TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 {
   msgs::Vector3d wrongReq;
 
-  std::string responser_path = testing::portablePathUnion(
-    GZ_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    g_partition.c_str());
+  auto pi = gz::utils::Subprocess(
+      {kTwoProcsSrvCallWithoutOutputReplierExe, g_partition});
 
   wrongReq.set_x(1);
   wrongReq.set_y(2);
@@ -72,9 +75,6 @@ TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
   EXPECT_FALSE(g_responseExecuted);
 
   reset();
-
-  // Wait for the child process to return.
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -83,12 +83,8 @@ TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 /// getting the list of available services.
 TEST(twoProcSrvCallWithoutOutput, ServiceList)
 {
-  std::string publisherPath = testing::portablePathUnion(
-    GZ_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    g_partition.c_str());
+  auto pi = gz::utils::Subprocess(
+      {kTwoProcsSrvCallWithoutOutputReplierExe, g_partition});
 
   reset();
 
@@ -124,8 +120,6 @@ TEST(twoProcSrvCallWithoutOutput, ServiceList)
   EXPECT_LE(elapsed2, elapsed1);
 
   reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -134,12 +128,8 @@ TEST(twoProcSrvCallWithoutOutput, ServiceList)
 /// getting information about the service.
 TEST(twoProcSrvCallWithoutOutput, ServiceInfo)
 {
-  std::string publisherPath = testing::portablePathUnion(
-    GZ_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcsSrvCallWithoutOutputReplier_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    g_partition.c_str());
+  auto pi = gz::utils::Subprocess(
+      {kTwoProcsSrvCallWithoutOutputReplierExe, g_partition});
 
   reset();
 
@@ -160,8 +150,6 @@ TEST(twoProcSrvCallWithoutOutput, ServiceInfo)
   EXPECT_EQ(publishers.front().ReqTypeName(), "gz.msgs.Int32");
 
   reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -171,10 +159,10 @@ int main(int argc, char **argv)
   g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("GZ_PARTITION", g_partition.c_str(), 1);
+  gz::utils::setenv("GZ_PARTITION", g_partition);
 
   // Enable verbose mode.
-  // setenv("GZ_VERBOSE", "1", 1);
+  // gz::utils::setenv("GZ_VERBOSE", "1");
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

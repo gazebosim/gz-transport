@@ -21,6 +21,9 @@
 #include <string>
 
 #include "gz/transport/Node.hh"
+
+#include <gz/utils/Environment.hh>
+
 #include "gtest/gtest.h"
 #include "test_config.hh"
 
@@ -62,7 +65,7 @@ int main(int argc, char **argv)
   }
 
   // Set the partition name for this test.
-  setenv("GZ_PARTITION", argv[1], 1);
+  gz::utils::setenv("GZ_PARTITION", argv[1]);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
