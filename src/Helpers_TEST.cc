@@ -16,6 +16,9 @@
 */
 
 #include "gz/transport/Helpers.hh"
+
+#include <gz/utils/Environment.hh>
+
 #include "test_config.hh"
 #include "gtest/gtest.h"
 
@@ -33,7 +36,7 @@ TEST(HelpersTest, env)
   EXPECT_FALSE(transport::env(name, value));
 
   // Create a random environment variable and give it its name as value.
-  setenv(name.c_str(), name.c_str(), 1);
+  ASSERT_TRUE(gz::utils::setenv(name, name));
 
   // Check that we find the environment variable and the value is correct.
   EXPECT_TRUE(transport::env(name, value));

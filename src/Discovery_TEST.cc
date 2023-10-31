@@ -28,6 +28,7 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
+#include "gz/utils/Environment.hh"
 #include "gz/utils/ExtraTestMacros.hh"
 
 #include "test_config.hh"
@@ -536,18 +537,18 @@ TEST(DiscoveryTest, GZ_UTILS_TEST_DISABLED_ON_LINUX(WrongIgnIp))
 {
   // Save the current value of GZ_IP environment variable.
   std::string gzIp;
-  env("GZ_IP", gzIp);
+  gz::utils::env("GZ_IP", gzIp);
 
   // Incorrect value for GZ_IP
-  setenv("GZ_IP", "127.0.0.0", 1);
+  ASSERT_TRUE(gz::utils::setenv("GZ_IP", "127.0.0.0"));
 
   transport::Discovery<MessagePublisher> discovery1(pUuid1, g_ip, g_msgPort);
   EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
 
   // Unset GZ_IP.
-  unsetenv("GZ_IP");
+  ASSERT_TRUE(gz::utils::unsetenv("GZ_IP"));
 
   // Restore GZ_IP.
   if (!gzIp.empty())
-    setenv("GZ_IP", gzIp.c_str(), 1);
+    gz::utils::setenv("GZ_IP", gzIp);
 }
