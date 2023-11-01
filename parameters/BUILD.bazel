@@ -43,11 +43,11 @@ cc_library(
     srcs = sources + private_headers,
     hdrs = public_headers,
     includes = ["include"],
+    visibility = GZ_VISIBILITY,
     deps = [
         GZ_ROOT + "transport",
         "@sqlite3",
     ],
-    visibility = GZ_VISIBILITY,
 )
 
 test_sources = glob(
