@@ -60,16 +60,42 @@ void topicCB(const msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
-std::string custom_exec_str(const std::vector<std::string> &_args)
+struct ProcessOutput
+{
+  int code {-1};
+  std::string cout;
+  std::string cerr;
+};
+
+//////////////////////////////////////////////////
+ProcessOutput custom_exec_str(const std::vector<std::string> &_args)
 {
   auto fullArgs = std::vector<std::string>{kGzExe};
   std::copy(std::begin(_args), std::end(_args), std::back_inserter(fullArgs));
-  fullArgs.push_back("--force-version");
-  fullArgs.push_back(kGzVersion);
+  fullArgs.emplace_back("--force-version");
+  fullArgs.emplace_back(kGzVersion);
   auto proc = gz::utils::Subprocess(fullArgs);
-  proc.Join();
+  auto return_code = proc.Join();
+  return {return_code, proc.Stdout(), proc.Stderr()};
+}
 
-  return proc.Stdout();
+//////////////////////////////////////////////////
+std::optional<ProcessOutput>
+exec_with_retry(const std::vector<std::string> &_args,
+                const std::function<bool(ProcessOutput)> &_condition)
+{
+  bool success = false;
+  int retries = 0;
+
+  while (!success && retries++ < 10)
+  {
+    auto output = custom_exec_str(_args);
+    success = _condition(output);
+    if (success)
+      return output;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+  return {};
 }
 
 //////////////////////////////////////////////////
@@ -78,19 +104,12 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
   auto proc = gz::utils::Subprocess({kTwoProcsPublisherExe, g_partition});
 
-  unsigned int retries = 0u;
-  bool topicFound = false;
-  std::string output;
+  auto output = exec_with_retry({"topic", "-l"},
+    [](auto output){
+      return output.cout == "/foo\n";
+    });
 
-  while (!topicFound && retries++ < 10u)
-  {
-    output = custom_exec_str({"topic", "-l"});
-    topicFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    break;
-  }
-
-  EXPECT_TRUE(topicFound);
+  EXPECT_TRUE(output);
 }
 
 //////////////////////////////////////////////////
@@ -100,21 +119,16 @@ TEST(gzTest, TopicInfo)
   // Launch a new publisher process that advertises a topic.
   auto proc = gz::utils::Subprocess({kTwoProcsPublisherExe, g_partition});
 
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
+  auto output = exec_with_retry({"topic", "-t", "/foo", "-i"},
+    [](auto output){
+      return output.cout.size() > 50u;
+    });
 
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str({"topic", "-t", "/foo", "-i"});
-    infoFound = output.size() > 50u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
 
-  EXPECT_TRUE(infoFound) << "OUTPUT["
-    << output << "] Size[" << output.size()
+  ASSERT_TRUE(output) << "OUTPUT["
+    << output->cout << "] Size[" << output->cout.size()
     << "]. Expected Size=50" << std::endl;
-  EXPECT_TRUE(output.find("gz.msgs.Vector3d") != std::string::npos);
+  EXPECT_TRUE(output->cout.find("gz.msgs.Vector3d") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -125,17 +139,12 @@ TEST(gzTest, ServiceList)
   // Launch a new responser process that advertises a service.
   auto proc = gz::utils::Subprocess({kTwoProcsSrvCallReplierExe, g_partition});
 
-  unsigned int retries = 0u;
-  bool serviceFound = false;
+  auto output = exec_with_retry({"service", "-l"},
+    [](auto output){
+      return output.cout == "/foo\n";
+    });
 
-  while (!serviceFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str({"service", "-l"});
-    serviceFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(serviceFound);
+  EXPECT_TRUE(output);
 }
 
 //////////////////////////////////////////////////
@@ -145,19 +154,13 @@ TEST(gzTest, ServiceInfo)
   // Launch a new responser process that advertises a service.
   auto proc = gz::utils::Subprocess({kTwoProcsSrvCallReplierExe, g_partition});
 
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
+  auto output = exec_with_retry({"service", "-s", "/foo", "-i"},
+    [](auto output){
+      return output.cout.size() > 50u;
+    });
 
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str({"service", "-s", "/foo", "-i"});
-    infoFound = output.size() > 50u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("gz.msgs.Int32") != std::string::npos);
+  ASSERT_TRUE(output);
+  EXPECT_TRUE(output->cout.find("gz.msgs.Int32") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -175,17 +178,12 @@ TEST(gzTest, TopicListSameProc)
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
-  unsigned int retries = 0u;
-  bool topicFound = false;
+  auto output = exec_with_retry({"topic", "-l"},
+    [](auto output){
+      return output.cout == "/foo\n";
+    });
 
-  while (!topicFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str({"topic", "-l"});
-    topicFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(topicFound);
+  EXPECT_TRUE(output);
 }
 
 //////////////////////////////////////////////////
@@ -203,19 +201,13 @@ TEST(gzTest, TopicInfoSameProc)
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
+  auto output = exec_with_retry({"topic", "-t", "/foo", "-i"},
+    [](auto output){
+      return output.cout.size() > 50u;
+    });
 
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str({"topic", "-t", "/foo", "-i"});
-    infoFound = output.size() > 50u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("gz.msgs.Vector3d") != std::string::npos);
+  ASSERT_TRUE(output);
+  EXPECT_TRUE(output->cout.find("gz.msgs.Vector3d") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -225,17 +217,12 @@ TEST(gzTest, ServiceListSameProc)
   transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
-  unsigned int retries = 0u;
-  bool serviceFound = false;
+  auto output = exec_with_retry({"service", "-l"},
+    [](auto output){
+      return output.cout == "/foo\n";
+    });
 
-  while (!serviceFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str({"service", "-l"});
-    serviceFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(serviceFound);
+  EXPECT_TRUE(output);
 }
 
 //////////////////////////////////////////////////
@@ -245,21 +232,14 @@ TEST(gzTest, ServiceInfoSameProc)
   transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
+  auto output = exec_with_retry({"service", "-s", "/foo", "-i"},
+    [](auto output){
+      return output.cout.size() > 50u;
+    });
 
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str({"service", "-s", "/foo", "-i"});
-    infoFound = output.size() > 50u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("gz.msgs.Int32") != std::string::npos);
+  ASSERT_TRUE(output);
+  EXPECT_TRUE(output->cout.find("gz.msgs.Int32") != std::string::npos);
 }
-
 
 //////////////////////////////////////////////////
 /// \brief Check 'gz topic -p' to send a message.
@@ -269,47 +249,45 @@ TEST(gzTest, TopicPublish)
   g_topicCBStr = "bad_value";
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
-  std::string output;
-
   unsigned int retries = 0;
-  while (g_topicCBStr != "good_value" && retries++ < 200u)
+  while (retries++ < 100u)
   {
-    // Send on alternating retries
-    if (retries % 2)
-    {
-      output = custom_exec_str({"topic",
-          "-t", "/bar",
-          "-m", "gz_msgs.StringMsg",
-          "-p", R"('data: "good_value"')"});
-      EXPECT_TRUE(output.empty()) << output;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    auto output = custom_exec_str({"topic",
+        "-t", "/bar",
+        "-m", "gz.msgs.StringMsg",
+        "-p", "data: \"good_value\""});
+
+    EXPECT_TRUE(output.cout.empty());
+    EXPECT_TRUE(output.cerr.empty());
+    if (g_topicCBStr == "good_value")
+      break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(60));
   }
   EXPECT_EQ(g_topicCBStr, "good_value");
 
   // Try to publish a message not included in Gazebo Messages.
   std::string error = "Unable to create message of type";
-  output = custom_exec_str({"topic",
+  auto output = custom_exec_str({"topic",
     "-t", "/bar",
-    "-m", "gz_msgs.__bad_msg_type",
-    "-p", R"('data:"good_value"')"});
-  EXPECT_EQ(output.compare(0, error.size(), error), 0);
+    "-m", "gz.msgs.__bad_msg_type",
+    "-p", R"(data: "good_value")"});
+  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0);
 
   // Try to publish using an incorrect topic name.
   error = "Topic [/] is not valid";
   output = custom_exec_str({"topic",
       "-t", "/",
-      "-m", "gz_msgs.StringMsg",
-      "-p", R"('data: "good_value"')"});
-  EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
+      "-m", "gz.msgs.StringMsg",
+      "-p", R"(data: "good_value")"});
+  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0);
 
   // Try to publish using an incorrect number of arguments.
   error = "The following argument was not expected: wrong_topic";
   output = custom_exec_str({"topic",
       "-t", "/", "wrong_topic",
-      "-m", "gz_msgs.StringMsg",
-      "-p", R"('data: "good_value"')"});
-  EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
+      "-m", "gz.msgs.StringMsg",
+      "-p", R"(data: "good_value")"});
+  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0);
 }
 
 //////////////////////////////////////////////////
@@ -327,13 +305,13 @@ TEST(gzTest, ServiceRequest)
   msg.set_data(10);
 
   // Check the 'gz service -r' command.
-  std::string output = custom_exec_str({"service",
+  auto output = custom_exec_str({"service",
     "-s", service,
     "--reqtype", "gz_msgs.Int32",
     "--reptype", "gz_msgs.Int32",
     "--timeout",  "1000",
-    "--req", "'data: " + value + "'"});
-  ASSERT_EQ(output, "data: " + value + "\n\n");
+    "--req", "data: " + value});
+  ASSERT_EQ(output.cout, "data: " + value + "\n\n");
 }
 
 //////////////////////////////////////////////////
@@ -343,12 +321,12 @@ TEST(gzTest, TopicEcho)
   // Launch a new publisher process that advertises a topic.
   auto proc = gz::utils::Subprocess({kTwoProcsPublisherExe, g_partition});
 
-  std::string output = custom_exec_str(
+  auto output = custom_exec_str(
     {"topic", "-e", "-t", "/foo", "-d", "1.5"});
 
-  EXPECT_TRUE(output.find("x: 1") != std::string::npos);
-  EXPECT_TRUE(output.find("y: 2") != std::string::npos);
-  EXPECT_TRUE(output.find("z: 3") != std::string::npos);
+  EXPECT_TRUE(output.cout.find("x: 1") != std::string::npos);
+  EXPECT_TRUE(output.cout.find("y: 2") != std::string::npos);
+  EXPECT_TRUE(output.cout.find("z: 3") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -359,31 +337,30 @@ TEST(gzTest, TopicEchoNum)
   // Launch a new publisher process that advertises a topic.
   auto proc = gz::utils::Subprocess({kTwoProcsPublisherExe, g_partition});
 
-  std::string output = custom_exec_str(
+  auto output = custom_exec_str(
     {"topic", "-e", "-t", "/foo", "-n", "2"});
 
-  size_t pos = output.find("x: 1");
+  size_t pos = output.cout.find("x: 1");
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("x: 1", pos + 4);
+  pos = output.cout.find("x: 1", pos + 4);
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("x: 1", pos + 4);
+  pos = output.cout.find("x: 1", pos + 4);
   EXPECT_TRUE(pos == std::string::npos);
 
-  pos = output.find("y: 2");
+  pos = output.cout.find("y: 2");
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("y: 2", pos + 4);
+  pos = output.cout.find("y: 2", pos + 4);
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("y: 2", pos + 4);
+  pos = output.cout.find("y: 2", pos + 4);
   EXPECT_TRUE(pos == std::string::npos);
 
-  pos = output.find("z: 3");
+  pos = output.cout.find("z: 3");
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("z: 3", pos + 4);
+  pos = output.cout.find("z: 3", pos + 4);
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("z: 3", pos + 4);
+  pos = output.cout.find("z: 3", pos + 4);
   EXPECT_TRUE(pos == std::string::npos);
 }
-
 
 /// Main
 int main(int argc, char **argv)
