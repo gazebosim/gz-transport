@@ -40,7 +40,8 @@ namespace
 {
 constexpr const char * kGzExe = GZ_EXE;
 constexpr const char * kTwoProcsPublisherExe = TWO_PROCS_PUBLISHER_EXE;
-constexpr const char * kTwoProcsSrvCallReplierExe = TWO_PROCS_SRV_CALL_REPLIER_EXE;
+constexpr const char * kTwoProcsSrvCallReplierExe =
+  TWO_PROCS_SRV_CALL_REPLIER_EXE;
 constexpr const char * kGzVersion = GZ_VERSION_FULL;
 }  // namespace
 

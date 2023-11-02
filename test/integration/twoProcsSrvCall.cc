@@ -40,7 +40,8 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 static int data = 5;
 static int counter = 0;
 
-static constexpr const char *kTwoProcsSrvCallReplierExe = TWO_PROCS_SRV_CALL_REPLIER_EXE;
+static constexpr const char *kTwoProcsSrvCallReplierExe =
+  TWO_PROCS_SRV_CALL_REPLIER_EXE;
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
