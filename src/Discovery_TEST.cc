@@ -533,7 +533,7 @@ TEST(DiscoveryTest, TestActivity)
 
 //////////////////////////////////////////////////
 /// \brief Check that a wrong GZ_IP value makes HostAddr() to return 127.0.0.1
-TEST(DiscoveryTest, GZ_UTILS_TEST_DISABLED_ON_LINUX(WrongIgnIp))
+TEST(DiscoveryTest, GZ_UTILS_TEST_DISABLED_ON_LINUX(WrongGzIp))
 {
   // Save the current value of GZ_IP environment variable.
   std::string gzIp;
