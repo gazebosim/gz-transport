@@ -378,11 +378,7 @@ int main(int argc, char **argv)
   gz::utils::env("LD_LIBRARY_PATH", value);
   // Add the directory where Gazebo Transport has been built.
   value = std::string(GZ_TEST_LIBRARY_PATH) + ":" + value;
-  std::cout << value << std::endl;
-  if (!gz::utils::setenv("LD_LIBRARY_PATH", value))
-  {
-    std::cerr << "Failed to set LD_LIBRARY_PATH" << std::endl;
-  }
+  gz::utils::setenv("LD_LIBRARY_PATH", value);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
