@@ -20,9 +20,12 @@
 #include <chrono>
 #include <string>
 
-#include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
 #include "gz/transport/TransportTypes.hh"
+
+#include <gz/utils/Environment.hh>
+
+#include "gtest/gtest.h"
 #include "test_config.hh"
 
 using namespace gz;
@@ -542,8 +545,8 @@ int main(int argc, char **argv)
   g_FQNPartition = std::string("/") + partition;
 
   // Set the partition name for this process.
-  setenv("GZ_PARTITION", partition.c_str(), 1);
-  setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1", 1);
+  gz::utils::setenv("GZ_PARTITION", partition);
+  gz::utils::setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1");
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -30,21 +30,8 @@
   DETAIL_GZ_TRANSPORT_TEST_DIR
 #endif
 
-#ifndef __APPLE__
-  #if (!(defined(__clang__) || __unix__) || \
-      (defined(__clang__) && __cplusplus >= 201703L) || \
-      (__unix__ && __GNUC__ >= 8))
-    #define GZ_HAVE_FILESYSTEM
-  #endif
-
-  #ifdef GZ_HAVE_FILESYSTEM
-    #include <filesystem>
-  #else
-    #include <experimental/filesystem>
-  #endif
-#endif
-
 #include <climits>
+#include <filesystem>
 #include <iostream>
 #include <random>
 #include <string>
@@ -60,37 +47,6 @@
 
 #include "gz/transport/Helpers.hh"
 
-#if (_MSC_VER >= 1400) // Visual Studio 2005
-  #include <sstream>
-
-  /// \brief setenv/unstenv are not present in Windows. Define them to make
-  /// the code portable.
-  /// \param[in] _name Variable name.
-  /// \param[in] _value Value.
-  /// \param[in] _rewrite If 'name' does exist in the environment, then its
-  /// value is changed to 'value' if 'rewrite' is nonzero. If overwrite is
-  /// zero, then the value of 'name' is not changed.
-  /// /return 0 on success or -1 on error.
-  int setenv(const char *_name, const char *_value, int /*_rewrite*/)
-  {
-    std::stringstream sstr;
-    std::string name = _name;
-    std::string value = _value;
-    sstr << name << '=' << value;
-    return _putenv(sstr.str().c_str());
-  }
-
-  /// \brief Deletes an environment variable.
-  /// \param[in] _name Variable name.
-  void unsetenv(const char *_name)
-  {
-    std::stringstream sstr;
-    std::string name = _name;
-    sstr << name << '=';
-    _putenv(sstr.str().c_str());
-  }
-#endif
-
 namespace testing
 {
   /// \brief Join _str1 and _str2 considering both as storing system paths.
@@ -100,17 +56,7 @@ namespace testing
   std::string portablePathUnion(const std::string &_str1,
                                 const std::string &_str2)
   {
-#ifdef __APPLE__
-    // Ugly as hell but trying to avoid boost::filesystem
-    return _str1 + "/" + _str2;
-#else
-    #ifdef GZ_HAVE_FILESYSTEM
-      using namespace std::filesystem;
-    #else
-      using namespace std::experimental::filesystem;
-    #endif
-    return (path(_str1) / path(_str2)).string();
-#endif
+    return (std::filesystem::path(_str1) / std::filesystem::path(_str2)).string();
   }
 
 #ifdef _WIN32
@@ -248,6 +194,6 @@ namespace testing
 
     return std::to_string(d(randGenerator));
   }
-}
+}  // namespace testing
 
 #endif  // header guard
