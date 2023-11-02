@@ -20,8 +20,11 @@
 #include <string>
 #include <thread>
 
-#include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
+
+#include <gz/utils/Environment.hh>
+
+#include "gtest/gtest.h"
 #include "test_config.hh"
 
 using namespace gz;
@@ -61,7 +64,7 @@ int main(int argc, char **argv)
   }
 
   // Set the partition name for this test.
-  setenv("GZ_PARTITION", argv[1], 1);
+  gz::utils::setenv("GZ_PARTITION", argv[1]);
 
   advertiseAndPublish();
 }

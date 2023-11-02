@@ -24,6 +24,8 @@
 #include <gz/transport/log/Log.hh>
 #include <gz/transport/log/Recorder.hh>
 #include <gz/transport/Node.hh>
+
+#include <gz/utils/Environment.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "ChirpParams.hh"
@@ -538,13 +540,13 @@ int main(int argc, char **argv)
   partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("GZ_PARTITION", partition.c_str(), 1);
+  gz::utils::setenv("GZ_PARTITION", partition);
 
-  setenv("GZ_TRANSPORT_LOG_SQL_PATH",
-         GZ_TRANSPORT_LOG_SQL_PATH, 1);
+  gz::utils::setenv("GZ_TRANSPORT_LOG_SQL_PATH",
+                    GZ_TRANSPORT_LOG_SQL_PATH);
 
-  setenv(gz::transport::log::SchemaLocationEnvVar.c_str(),
-         GZ_TRANSPORT_LOG_SQL_PATH, 1);
+  gz::utils::setenv(gz::transport::log::SchemaLocationEnvVar,
+                    GZ_TRANSPORT_LOG_SQL_PATH);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
