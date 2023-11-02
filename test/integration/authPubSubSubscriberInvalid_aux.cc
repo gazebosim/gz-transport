@@ -30,6 +30,9 @@
 #endif
 
 #include "gz/transport/Node.hh"
+
+#include <gz/utils/Environment.hh>
+
 #include "gtest/gtest.h"
 #include "test_config.hh"
 
@@ -81,13 +84,13 @@ int main(int argc, char **argv)
   }
 
   // Set the partition name for this test.
-  setenv("GZ_PARTITION", argv[1], 1);
+  gz::utils::setenv("GZ_PARTITION", argv[1]);
 
   // Set the username for this test.
-  setenv("GZ_TRANSPORT_USERNAME", argv[2], 1);
+  gz::utils::setenv("GZ_TRANSPORT_USERNAME", argv[2]);
 
   // Set the password for this test.
-  setenv("GZ_TRANSPORT_PASSWORD", argv[3], 1);
+  gz::utils::setenv("GZ_TRANSPORT_PASSWORD", argv[3]);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
