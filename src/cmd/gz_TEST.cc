@@ -22,6 +22,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+
+#include <gz/utils/Environment.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gtest/gtest.h"
@@ -536,7 +538,7 @@ int main(int argc, char **argv)
   g_partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("GZ_PARTITION", g_partition.c_str(), 1);
+  gz::utils::setenv("GZ_PARTITION", g_partition);
 
   // Make sure that we load the library recently built and not the one installed
   // in your system.
@@ -545,7 +547,7 @@ int main(int argc, char **argv)
   transport::env("LD_LIBRARY_PATH", value);
   // Add the directory where Gazebo Transport has been built.
   value = std::string(GZ_TEST_LIBRARY_PATH) + ":" + value;
-  setenv("LD_LIBRARY_PATH", value.c_str(), 1);
+  gz::utils::setenv("LD_LIBRARY_PATH", value);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

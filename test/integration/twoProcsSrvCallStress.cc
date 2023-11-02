@@ -21,6 +21,9 @@
 #include <string>
 
 #include "gz/transport/Node.hh"
+
+#include <gz/utils/Environment.hh>
+
 #include "gtest/gtest.h"
 #include "test_config.hh"
 
@@ -68,7 +71,7 @@ int main(int argc, char **argv)
   partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("GZ_PARTITION", partition.c_str(), 1);
+  gz::utils::setenv("GZ_PARTITION", partition);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

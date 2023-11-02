@@ -29,6 +29,9 @@
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
 #include "gz/transport/TransportTypes.hh"
+
+#include <gz/utils/Environment.hh>
+
 #include "test_config.hh"
 
 using namespace gz;
@@ -40,8 +43,8 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 TEST(authPubSub, InvalidAuth)
 {
   // Setup the username and password for this test
-  setenv("GZ_TRANSPORT_USERNAME", "admin", 1);
-  setenv("GZ_TRANSPORT_PASSWORD", "test", 1);
+  ASSERT_TRUE(gz::utils::setenv("GZ_TRANSPORT_USERNAME", "admin"));
+  ASSERT_TRUE(gz::utils::setenv("GZ_TRANSPORT_PASSWORD", "test"));
 
   transport::Node node;
   auto pub = node.Advertise<msgs::Int32>(g_topic);
@@ -86,7 +89,7 @@ int main(int argc, char **argv)
   partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("GZ_PARTITION", partition.c_str(), 1);
+  gz::utils::setenv("GZ_PARTITION", partition);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

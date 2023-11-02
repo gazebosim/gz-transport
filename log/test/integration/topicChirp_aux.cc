@@ -22,6 +22,8 @@
 
 #include <gz/transport/Node.hh>
 
+#include <gz/utils/Environment.hh>
+
 #include "ChirpParams.hh"
 
 //////////////////////////////////////////////////
@@ -90,7 +92,7 @@ int main(int argc, char **argv)
     return -2;
   }
 
-  setenv("GZ_PARTITION", argv[1], 1);
+  gz::utils::setenv("GZ_PARTITION", argv[1]);
 
   const int chirps = atoi(argv[2]);
 
