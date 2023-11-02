@@ -198,9 +198,11 @@ namespace gz
 #endif
       };
 
+      public: Node();
+
       /// \brief Constructor.
       /// \param[in] _options Node options.
-      public: explicit Node(const NodeOptions &_options = NodeOptions());
+      public: explicit Node(const NodeOptions &_options);
 
       /// \brief Destructor.
       public: virtual ~Node();

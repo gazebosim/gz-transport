@@ -515,6 +515,12 @@ Node::Node(const NodeOptions &_options)
 }
 
 //////////////////////////////////////////////////
+Node::Node():
+  Node(gz::transport::NodeOptions())
+{
+}
+
+//////////////////////////////////////////////////
 Node::~Node()
 {
   // Unsubscribe from all the topics.
