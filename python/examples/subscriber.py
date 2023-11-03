@@ -13,9 +13,9 @@
 # limitations under the License.
 #
 
+#! [complete]
 from gz.msgs10.stringmsg_pb2 import StringMsg
 from gz.msgs10.vector3d_pb2 import Vector3d
-from gz.transport13 import SubscribeOptions
 from gz.transport13 import Node
 
 import time
@@ -55,6 +55,8 @@ def main():
     except KeyboardInterrupt:
       pass
     print("Done")
+
+#! [complete]
 
 if __name__ == "__main__":
     main()
