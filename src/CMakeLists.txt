@@ -41,6 +41,8 @@ foreach(test ${test_list})
   target_compile_definitions(${test} PRIVATE
     "GZ_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\"")
 
+  set_property(TEST ${test} PROPERTY ENVIRONMENT "GZ_VERBOSE=1")
+
 endforeach()
 
 if(MSVC)
