@@ -42,12 +42,14 @@ static bool cbVectorExecuted = false;
 static bool cbRawExecuted = false;
 static int counter = 0;
 
-static constexpr const char* kFastPubExe = FAST_PUB_EXE;
-static constexpr const char* kPubExe = PUB_EXE;
-static constexpr const char* kPubThrottledExe = PUB_THROTTLED_EXE;
-static constexpr const char* kTwoProcsPublisherExe = TWO_PROCS_PUBLISHER_EXE;
-static constexpr const char* kTwoProcsPubSubSubscriberExe =
+namespace {
+constexpr const char* kFastPubExe = FAST_PUB_EXE;
+constexpr const char* kPubExe = PUB_EXE;
+constexpr const char* kPubThrottledExe = PUB_THROTTLED_EXE;
+constexpr const char* kTwoProcsPublisherExe = TWO_PROCS_PUBLISHER_EXE;
+constexpr const char* kTwoProcsPubSubSubscriberExe =
   TWO_PROCS_PUB_SUB_SUBSCRIBER_EXE;
+}  // namespace
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.

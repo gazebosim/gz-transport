@@ -42,6 +42,36 @@ static constexpr const char * kTwoProcsSrvCallWithoutOutputReplierExe =
   TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_EXE;
 
 //////////////////////////////////////////////////
+class twoProcSrvCallWithoutOutput: public testing::Test {
+ protected:
+  void SetUp() override {
+    gz::utils::env("GZ_PARTITION", this->prevPartition);
+
+    // Get a random partition name.
+    this->partition = testing::getRandomNumber();
+
+    // Set the partition name for this process.
+    gz::utils::setenv("GZ_PARTITION", this->partition);
+
+    this->pi = std::make_unique<gz::utils::Subprocess>(
+      std::vector<std::string>({
+        kTwoProcsSrvCallWithoutOutputReplierExe, this->partition}));
+  }
+
+  void TearDown() override {
+    gz::utils::setenv("GZ_PARTITION", this->prevPartition);
+
+    this->pi->Terminate();
+    this->pi->Join();
+  }
+
+ private:
+  std::string prevPartition;
+  std::string partition;
+  std::unique_ptr<gz::utils::Subprocess> pi;
+};
+
+//////////////////////////////////////////////////
 /// \brief Initialize some global variables.
 void reset()
 {
@@ -54,12 +84,9 @@ void reset()
 /// \brief This test spawns a service that doesn't wait for ouput parameters.
 /// The requester uses a wrong type for the request argument. The test should
 /// verify that the service call does not succeed.
-TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
+TEST_F(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 {
   msgs::Vector3d wrongReq;
-
-  auto pi = gz::utils::Subprocess(
-      {kTwoProcsSrvCallWithoutOutputReplierExe, g_partition});
 
   wrongReq.set_x(1);
   wrongReq.set_y(2);
@@ -81,11 +108,8 @@ TEST(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 /// \brief This test spawns two nodes on different processes. One of the nodes
 /// advertises a service without output and the other uses ServiceList() for
 /// getting the list of available services.
-TEST(twoProcSrvCallWithoutOutput, ServiceList)
+TEST_F(twoProcSrvCallWithoutOutput, ServiceList)
 {
-  auto pi = gz::utils::Subprocess(
-      {kTwoProcsSrvCallWithoutOutputReplierExe, g_partition});
-
   reset();
 
   transport::Node node;
@@ -126,11 +150,8 @@ TEST(twoProcSrvCallWithoutOutput, ServiceList)
 /// \brief This test spawns two nodes on different processes. One of the nodes
 /// advertises a service without output and the other uses ServiceInfo() for
 /// getting information about the service.
-TEST(twoProcSrvCallWithoutOutput, ServiceInfo)
+TEST_F(twoProcSrvCallWithoutOutput, ServiceInfo)
 {
-  auto pi = gz::utils::Subprocess(
-      {kTwoProcsSrvCallWithoutOutputReplierExe, g_partition});
-
   reset();
 
   transport::Node node;
@@ -150,20 +171,4 @@ TEST(twoProcSrvCallWithoutOutput, ServiceInfo)
   EXPECT_EQ(publishers.front().ReqTypeName(), "gz.msgs.Int32");
 
   reset();
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Get a random partition name.
-  g_partition = testing::getRandomNumber();
-
-  // Set the partition name for this process.
-  gz::utils::setenv("GZ_PARTITION", g_partition);
-
-  // Enable verbose mode.
-  // gz::utils::setenv("GZ_VERBOSE", "1");
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

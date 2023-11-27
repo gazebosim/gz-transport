@@ -44,6 +44,36 @@ static constexpr const char * kTwoProcsSrvCallWithoutInputReplierExe =
   TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_EXE;
 
 //////////////////////////////////////////////////
+class twoProcSrvCallWithoutInput: public testing::Test {
+ protected:
+  void SetUp() override {
+    gz::utils::env("GZ_PARTITION", this->prevPartition);
+
+    // Get a random partition name.
+    this->partition = testing::getRandomNumber();
+
+    // Set the partition name for this process.
+    gz::utils::setenv("GZ_PARTITION", this->partition);
+
+    this->pi = std::make_unique<gz::utils::Subprocess>(
+      std::vector<std::string>({
+        kTwoProcsSrvCallWithoutInputReplierExe, this->partition}));
+  }
+
+  void TearDown() override {
+    gz::utils::setenv("GZ_PARTITION", this->prevPartition);
+
+    this->pi->Terminate();
+    this->pi->Join();
+  }
+
+ private:
+  std::string prevPartition;
+  std::string partition;
+  std::unique_ptr<gz::utils::Subprocess> pi;
+};
+
+//////////////////////////////////////////////////
 /// \brief Initialize some global variables.
 void reset()
 {
@@ -74,11 +104,8 @@ void wrongResponse(const msgs::Vector3d &/*_rep*/, bool /*_result*/)
 /// \brief Two different nodes running in two different processes. One node
 /// advertises a service without input and the other requests a few service
 /// calls.
-TEST(twoProcSrvCallWithoutInput, SrvTwoProcs)
+TEST_F(twoProcSrvCallWithoutInput, SrvTwoProcs)
 {
-  auto pi = gz::utils::Subprocess(
-      {kTwoProcsSrvCallWithoutInputReplierExe, g_partition});
-
   reset();
 
   transport::Node node;
@@ -118,14 +145,11 @@ TEST(twoProcSrvCallWithoutInput, SrvTwoProcs)
 /// \brief This test spawns a service that doesn't accept input parameters. The
 /// service requester uses a wrong type for the response argument. The test
 /// should verify that the service call does not succeed.
-TEST(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
+TEST_F(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 {
   msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
-
-  auto pi = gz::utils::Subprocess(
-      {kTwoProcsSrvCallWithoutInputReplierExe, g_partition});
 
   reset();
 
@@ -147,15 +171,12 @@ TEST(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 /// service requesters use incorrect types in some of the requests. The test
 /// should verify that a response is received only when the appropriate types
 /// are used.
-TEST(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
+TEST_F(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
 {
   msgs::Int32 goodRep;
   msgs::Vector3d badRep;
   bool result;
   unsigned int timeout = 2000;
-
-  auto pi = gz::utils::Subprocess(
-      {kTwoProcsSrvCallWithoutInputReplierExe, g_partition});
 
   reset();
 
@@ -184,11 +205,8 @@ TEST(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
 /// \brief This test spawns two nodes on different processes. One of the nodes
 /// advertises a service without input and the other uses ServiceList() for
 /// getting the list of available services.
-TEST(twoProcSrvCallWithoutInput, ServiceList)
+TEST_F(twoProcSrvCallWithoutInput, ServiceList)
 {
-  auto pi = gz::utils::Subprocess(
-      {kTwoProcsSrvCallWithoutInputReplierExe, g_partition});
-
   reset();
 
   transport::Node node;
@@ -229,11 +247,8 @@ TEST(twoProcSrvCallWithoutInput, ServiceList)
 /// \brief This test spawns two nodes on different processes. One of the nodes
 /// advertises a service without input and the other uses ServiceInfo() for
 /// getting information about the service.
-TEST(twoProcSrvCallWithoutInput, ServiceInfo)
+TEST_F(twoProcSrvCallWithoutInput, ServiceInfo)
 {
-  auto pi = gz::utils::Subprocess(
-      {kTwoProcsSrvCallWithoutInputReplierExe, g_partition});
-
   reset();
 
   transport::Node node;
@@ -254,20 +269,4 @@ TEST(twoProcSrvCallWithoutInput, ServiceInfo)
   EXPECT_EQ(publishers.front().RepTypeName(), "gz.msgs.Int32");
 
   reset();
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Get a random partition name.
-  g_partition = testing::getRandomNumber();
-
-  // Set the partition name for this process.
-  gz::utils::setenv("GZ_PARTITION", g_partition);
-
-  // Enable verbose mode.
-  // gz::utils::setenv("GZ_VERBOSE", "1");
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
