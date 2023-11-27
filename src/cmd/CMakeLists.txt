@@ -8,6 +8,10 @@ if (MSVC)
   list(REMOVE_ITEM gtest_sources gz_TEST.cc)
 endif()
 
+if (NOT HAVE_GZ_TOOLS)
+  list(REMOVE_ITEM gtest_sources gz_TEST.cc)
+endif()
+
 # Make a small static lib of command line functions
 add_library(gz STATIC gz.cc)
 target_link_libraries(gz
@@ -50,7 +54,6 @@ foreach(test ${test_list})
     "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\""
     "TWO_PROCS_PUBLISHER_EXE=\"$<TARGET_FILE:twoProcsPublisher_aux>\""
     "TWO_PROCS_SRV_CALL_REPLIER_EXE=\"$<TARGET_FILE:twoProcsSrvCallReplier_aux>\""
-    "DETAIL_GZ_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:UNIT_gz_TEST>\""
     "GZ_EXE=\"${HAVE_GZ_TOOLS}\""
     )
 

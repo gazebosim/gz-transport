@@ -22,14 +22,6 @@
 #define GZ_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
 #define GZ_VERSION_FULL "@PROJECT_VERSION_FULL@"
 
-#ifdef DETAIL_GZ_TRANSPORT_TEST_DIR
-// The DETAIL_GZ_TRANSPORT_TEST_DIR macro is defined using generator
-// expressions in CMakeLists.txt files. See test/integration/CMakeLists.txt for
-// an example.
-#define GZ_TRANSPORT_TEST_DIR \
-  DETAIL_GZ_TRANSPORT_TEST_DIR
-#endif
-
 #include <climits>
 #include <filesystem>
 #include <iostream>
