@@ -106,8 +106,8 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
   auto proc = gz::utils::Subprocess({kTwoProcsPublisherExe, g_partition});
 
   auto output = exec_with_retry({"topic", "-l"},
-    [](auto output){
-      return output.cout == "/foo\n";
+    [](auto proc){
+      return proc.cout == "/foo\n";
     });
 
   EXPECT_TRUE(output);
@@ -121,8 +121,8 @@ TEST(gzTest, TopicInfo)
   auto proc = gz::utils::Subprocess({kTwoProcsPublisherExe, g_partition});
 
   auto output = exec_with_retry({"topic", "-t", "/foo", "-i"},
-    [](auto output){
-      return output.cout.size() > 50u;
+    [](auto proc){
+      return proc.cout.size() > 50u;
     });
 
 
@@ -141,8 +141,8 @@ TEST(gzTest, ServiceList)
   auto proc = gz::utils::Subprocess({kTwoProcsSrvCallReplierExe, g_partition});
 
   auto output = exec_with_retry({"service", "-l"},
-    [](auto output){
-      return output.cout == "/foo\n";
+    [](auto proc){
+      return proc.cout == "/foo\n";
     });
 
   EXPECT_TRUE(output);
@@ -156,8 +156,8 @@ TEST(gzTest, ServiceInfo)
   auto proc = gz::utils::Subprocess({kTwoProcsSrvCallReplierExe, g_partition});
 
   auto output = exec_with_retry({"service", "-s", "/foo", "-i"},
-    [](auto output){
-      return output.cout.size() > 50u;
+    [](auto proc){
+      return proc.cout.size() > 50u;
     });
 
   ASSERT_TRUE(output);
@@ -180,8 +180,8 @@ TEST(gzTest, TopicListSameProc)
   EXPECT_TRUE(pub.Publish(msg));
 
   auto output = exec_with_retry({"topic", "-l"},
-    [](auto output){
-      return output.cout == "/foo\n";
+    [](auto proc){
+      return proc.cout == "/foo\n";
     });
 
   EXPECT_TRUE(output);
@@ -203,8 +203,8 @@ TEST(gzTest, TopicInfoSameProc)
   EXPECT_TRUE(pub.Publish(msg));
 
   auto output = exec_with_retry({"topic", "-t", "/foo", "-i"},
-    [](auto output){
-      return output.cout.size() > 50u;
+    [](auto proc){
+      return proc.cout.size() > 50u;
     });
 
   ASSERT_TRUE(output);
@@ -219,8 +219,8 @@ TEST(gzTest, ServiceListSameProc)
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   auto output = exec_with_retry({"service", "-l"},
-    [](auto output){
-      return output.cout == "/foo\n";
+    [](auto proc){
+      return proc.cout == "/foo\n";
     });
 
   EXPECT_TRUE(output);
@@ -234,8 +234,8 @@ TEST(gzTest, ServiceInfoSameProc)
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
   auto output = exec_with_retry({"service", "-s", "/foo", "-i"},
-    [](auto output){
-      return output.cout.size() > 50u;
+    [](auto proc){
+      return proc.cout.size() > 50u;
     });
 
   ASSERT_TRUE(output);
