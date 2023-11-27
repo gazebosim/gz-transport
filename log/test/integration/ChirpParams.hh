@@ -46,10 +46,11 @@ namespace gz::transport::log::test
   /// specifically calls the INTEGRATION_topicChirp_aux process and passes
   /// it arguments to determine how it should chirp out messages over its
   /// topics.
-  /// \param _topics A list of topic names to chirp on
-  /// \param _chirps The number of messages to chirp out. Each message
+  /// \param[in] _topics A list of topic names to chirp on
+  /// \param[in] _chirps The number of messages to chirp out. Each message
   /// will count up starting from the value 1 and ending with the value
   /// _chirps.
+  /// \param[in] _paritionName Gz transport partition to use for the test
   /// \return A handle to the process. This can be used with
   /// testing::waitAndCleanupFork().
   gz::utils::Subprocess BeginChirps(

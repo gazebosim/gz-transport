@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2023 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,13 @@
 
 #include "ChirpParams.hh"
 
+#include <string>
+#include <vector>
 
 static constexpr const char* kTopicChirpExe = TOPIC_CHIRP_EXE;
 
 namespace gz::transport::log::test
 {
-  //////////////////////////////////////////////////
-  /// \brief Similar to testing::forkAndRun(), except this function
-  /// specifically calls the INTEGRATION_topicChirp_aux process and passes
-  /// it arguments to determine how it should chirp out messages over its
-  /// topics.
-  /// \param _topics A list of topic names to chirp on
-  /// \param _chirps The number of messages to chirp out. Each message
-  /// will count up starting from the value 1 and ending with the value
-  /// _chirps.
-  /// \return A handle to the process. This can be used with
-  /// testing::waitAndCleanupFork().
   gz::utils::Subprocess BeginChirps(
       const std::vector<std::string> &_topics,
       const int _chirps,
