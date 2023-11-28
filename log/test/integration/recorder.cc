@@ -28,6 +28,8 @@
 #include <gz/utils/Environment.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "test_config.hh"
+
 #include "ChirpParams.hh"
 
 static std::string partition;
@@ -96,11 +98,11 @@ TEST(recorder,
   EXPECT_EQ(logName, recorder.Filename());
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
       gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -160,7 +162,7 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
   const int numChirps = static_cast<int>(
         std::ceil(secondsToChirpFor * 1000.0/static_cast<double>(delay_ms)));
 
-  testing::forkHandlerType chirper =
+  auto chirper =
       gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   const int waitBeforeSubscribing_ms =
@@ -182,7 +184,7 @@ TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
             gz::transport::log::RecorderError::SUCCESS);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -233,11 +235,11 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
             gz::transport::log::RecorderError::SUCCESS);
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
       gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));

@@ -24,8 +24,10 @@
 
 #include <gz/utils/Environment.hh>
 #include <gz/utils/ExtraTestMacros.hh>
+#include <gz/utils/Subprocess.hh>
 
 #include "ChirpParams.hh"
+#include "test_config.hh"
 
 static std::string partition;
 
@@ -125,11 +127,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLog))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
     gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -226,11 +228,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
       gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -293,11 +295,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(RemoveTopic))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
       gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -404,11 +406,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogMoveInstances))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
       gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -471,11 +473,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
     gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -593,11 +595,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayStep))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
     gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -709,11 +711,11 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
     recorder.Start(logName));
 
   const int numChirps = 100;
-  testing::forkHandlerType chirper =
+  auto chirper =
     gz::transport::log::test::BeginChirps(topics, numChirps, partition);
 
   // Wait for the chirping to finish
-  testing::waitAndCleanupFork(chirper);
+  chirper.Join();
 
   // Wait to make sure our callbacks are done processing the incoming messages
   std::this_thread::sleep_for(std::chrono::seconds(1));

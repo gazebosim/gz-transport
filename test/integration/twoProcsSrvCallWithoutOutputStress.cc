@@ -23,6 +23,7 @@
 #include "gz/transport/Node.hh"
 
 #include <gz/utils/Environment.hh>
+#include <gz/utils/Subprocess.hh>
 
 #include "gtest/gtest.h"
 #include "test_config.hh"
@@ -32,15 +33,14 @@ using namespace gz;
 static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 
+static constexpr const char* kTwoProcsSrvCallWithoutOutputReplierInc =
+  TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE;
+
 //////////////////////////////////////////////////
 TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
 {
-  std::string responser_path = testing::portablePathUnion(
-    GZ_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcsSrvCallWithoutOutputReplierInc_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    g_partition.c_str());
+  auto pi = gz::utils::Subprocess(
+      {kTwoProcsSrvCallWithoutOutputReplierInc, g_partition});
 
   msgs::Int32 req;
   transport::Node node;
@@ -52,9 +52,6 @@ TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
     req.set_data(i);
     ASSERT_TRUE(node.Request(g_topic, req));
   }
-
-  // Need to kill the responser node running on an external process.
-  testing::killFork(pi);
 }
 
 //////////////////////////////////////////////////

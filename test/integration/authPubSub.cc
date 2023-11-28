@@ -31,6 +31,7 @@
 #include "gz/transport/TransportTypes.hh"
 
 #include <gz/utils/Environment.hh>
+#include <gz/utils/Subprocess.hh>
 
 #include "test_config.hh"
 
@@ -38,6 +39,9 @@ using namespace gz;
 
 static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
+
+static constexpr const char * kAuthPubSubSubscriberInvalid =
+  AUTH_PUB_SUB_SUBSCRIBER_INVALID_EXE;
 
 //////////////////////////////////////////////////
 TEST(authPubSub, InvalidAuth)
@@ -53,13 +57,8 @@ TEST(authPubSub, InvalidAuth)
   // No subscribers yet.
   EXPECT_FALSE(pub.HasConnections());
 
-  std::string subscriberPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR,
-     "INTEGRATION_authPubSubSubscriberInvalid_aux");
-
-  // Start the subscriber in another process with incorrect credentials.
-  testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
-    partition.c_str(), "bad", "invalid");
+  auto pi = gz::utils::Subprocess(
+      {kAuthPubSubSubscriberInvalid, partition, "bad", "invalid"});
 
   msgs::Int32 msg;
   msg.set_data(1);
@@ -77,9 +76,6 @@ TEST(authPubSub, InvalidAuth)
     EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
-
-  // The other process should exit without receiving any of the messages.
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////

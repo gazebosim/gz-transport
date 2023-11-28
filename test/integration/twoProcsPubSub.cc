@@ -24,6 +24,7 @@
 #include "gz/transport/TransportTypes.hh"
 
 #include <gz/utils/Environment.hh>
+#include <gz/utils/Subprocess.hh>
 
 #include "gtest/gtest.h"
 #include "test_config.hh"
@@ -40,6 +41,15 @@ static bool genericCbExecuted = false;
 static bool cbVectorExecuted = false;
 static bool cbRawExecuted = false;
 static int counter = 0;
+
+namespace {
+constexpr const char* kFastPubExe = FAST_PUB_EXE;
+constexpr const char* kPubExe = PUB_EXE;
+constexpr const char* kPubThrottledExe = PUB_THROTTLED_EXE;
+constexpr const char* kTwoProcsPublisherExe = TWO_PROCS_PUBLISHER_EXE;
+constexpr const char* kTwoProcsPubSubSubscriberExe =
+  TWO_PROCS_PUB_SUB_SUBSCRIBER_EXE;
+}  // namespace
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -112,12 +122,7 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
   // No subscribers yet.
   EXPECT_FALSE(pub.HasConnections());
 
-  std::string subscriberPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcsPubSubSubscriber_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kTwoProcsPubSubSubscriberExe, partition});
 
   msgs::Vector3d msg;
   msg.set_x(1.0);
@@ -135,8 +140,6 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
     EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -151,12 +154,7 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
   // No subscribers yet.
   EXPECT_FALSE(pub.HasConnections());
 
-  std::string subscriberPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcsPubSubSubscriber_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kTwoProcsPubSubSubscriberExe, partition});
 
   msgs::Vector3d msg;
   msg.set_x(1.0);
@@ -177,8 +175,6 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
     EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -186,12 +182,7 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 /// the advertised types.
 TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 {
-  std::string publisherPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcsPublisher_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
 
   reset();
 
@@ -205,20 +196,13 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
   EXPECT_FALSE(cbExecuted);
 
   reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
 /// \brief Same as above, but using a raw subscription.
 TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 {
-  std::string publisherPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcsPublisher_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
 
   reset();
 
@@ -233,8 +217,6 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
   EXPECT_FALSE(cbRawExecuted);
 
   reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -245,12 +227,7 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 /// (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
-  std::string publisherPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcsPublisher_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
 
   reset();
 
@@ -266,15 +243,12 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
-
   // Check that the message was not received.
   EXPECT_FALSE(cbExecuted);
   EXPECT_TRUE(cbVectorExecuted);
   EXPECT_TRUE(genericCbExecuted);
 
   reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -285,12 +259,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 /// callbacks are executed (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 {
-  std::string publisherPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcsPublisher_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
 
   reset();
 
@@ -337,8 +306,6 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
   EXPECT_TRUE(genericRawCbExecuted);
 
   reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -348,18 +315,13 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 /// the prompt termination of the publisher.
 TEST(twoProcPubSub, FastPublisher)
 {
-  std::string publisherPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_fastPub_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kFastPubExe, partition});
 
   reset();
 
   transport::Node node;
 
   EXPECT_TRUE(node.Subscribe(g_topic, cbVector));
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -368,11 +330,7 @@ TEST(twoProcPubSub, FastPublisher)
 /// by the subscriber.
 TEST(twoProcPubSub, SubThrottled)
 {
-  std::string publisherPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_pub_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kPubExe, partition});
 
   reset();
 
@@ -390,8 +348,6 @@ TEST(twoProcPubSub, SubThrottled)
   EXPECT_LT(counter, 5);
 
   reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -399,11 +355,7 @@ TEST(twoProcPubSub, SubThrottled)
 /// processes. The publisher publishes at a throttled frequency.
 TEST(twoProcPubSub, PubThrottled)
 {
-  std::string publisherPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_pub_aux_throttled");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kPubThrottledExe, partition});
 
   reset();
 
@@ -419,8 +371,6 @@ TEST(twoProcPubSub, PubThrottled)
   EXPECT_LT(counter, 5);
 
   reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -428,12 +378,7 @@ TEST(twoProcPubSub, PubThrottled)
 /// using a callback that accepts message information.
 TEST(twoProcPubSub, PubSubMessageInfo)
 {
-  std::string publisherPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
-
+  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
   reset();
 
   transport::Node node;
@@ -446,8 +391,6 @@ TEST(twoProcPubSub, PubSubMessageInfo)
   EXPECT_FALSE(cbInfoExecuted);
 
   reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -456,11 +399,7 @@ TEST(twoProcPubSub, PubSubMessageInfo)
 /// available topics.
 TEST(twoProcPubSub, TopicList)
 {
-  std::string publisherPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
 
   reset();
 
@@ -497,8 +436,6 @@ TEST(twoProcPubSub, TopicList)
   EXPECT_LT(elapsed2, 2);
 
   reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -507,11 +444,7 @@ TEST(twoProcPubSub, TopicList)
 /// about the topic.
 TEST(twoProcPubSub, TopicInfo)
 {
-  std::string publisherPath = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPublisher_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(publisherPath.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
 
   reset();
 
@@ -532,8 +465,6 @@ TEST(twoProcPubSub, TopicInfo)
   EXPECT_EQ(publishers.front().MsgTypeName(), "gz.msgs.Vector3d");
 
   reset();
-
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
