@@ -42,7 +42,6 @@ class Cmd
     conf_version = LIBRARY_VERSION
     exe_version = `#{exe_name} --version`.strip
 
-
     # Sanity check: Verify that the version of the yaml file matches the version
     # of the library that we are using.
     unless exe_version.eql? conf_version

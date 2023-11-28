@@ -18,7 +18,9 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "gz/transport/Node.hh"
 #include "gz/transport/TopicUtils.hh"
