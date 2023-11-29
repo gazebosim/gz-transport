@@ -8,6 +8,10 @@ if (MSVC)
   list(REMOVE_ITEM gtest_sources gz_TEST.cc)
 endif()
 
+if (NOT HAVE_GZ_TOOLS)
+  list(REMOVE_ITEM gtest_sources gz_TEST.cc)
+endif()
+
 # Make a small static lib of command line functions
 add_library(gz STATIC gz.cc)
 target_link_libraries(gz
@@ -40,15 +44,18 @@ gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 
 foreach(test ${test_list})
-  target_link_libraries(${test} gz)
+  target_link_libraries(${test} gz gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER})
 
   # Inform each test of its output directory so it knows where to call the
   # auxiliary files from. Using a generator expression here is useful for
   # multi-configuration generators, like Visual Studio.
   target_compile_definitions(${test} PRIVATE
-    "DETAIL_GZ_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\""
     "GZ_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\""
-    "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"")
+    "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\""
+    "TWO_PROCS_PUBLISHER_EXE=\"$<TARGET_FILE:twoProcsPublisher_aux>\""
+    "TWO_PROCS_SRV_CALL_REPLIER_EXE=\"$<TARGET_FILE:twoProcsSrvCallReplier_aux>\""
+    "GZ_EXE=\"${HAVE_GZ_TOOLS}\""
+    )
 
 endforeach()
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include "gtest/gtest.h"
 
 #include <chrono>
 #include <cstdlib>
@@ -21,7 +22,6 @@
 #include <string>
 #include <thread>
 
-#include "gtest/gtest.h"
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Discovery.hh"
 #include "gz/transport/Publisher.hh"
@@ -29,6 +29,9 @@
 #include "gz/transport/Uuid.hh"
 
 #include "test_utils.hh"
+#include "gz/utils/Environment.hh"
+#include "gz/utils/ExtraTestMacros.hh"
+
 
 using namespace gz;
 using namespace transport;
@@ -528,31 +531,24 @@ TEST(DiscoveryTest, TestActivity)
   discovery1.TestActivity(proc2Uuid, false);
 }
 
-/// Logic to disable the following test via Linux
-#if defined __linux__
-  #define TEST_NAME DISABLED_WrongIgnIp
-#else
-  #define TEST_NAME WrongIgnIp
-#endif  // defined __linux__
-
 //////////////////////////////////////////////////
 /// \brief Check that a wrong GZ_IP value makes HostAddr() to return 127.0.0.1
-TEST(DiscoveryTest, TEST_NAME)
+TEST(DiscoveryTest, GZ_UTILS_TEST_DISABLED_ON_LINUX(WrongGzIp))
 {
   // Save the current value of GZ_IP environment variable.
   std::string gzIp;
-  env("GZ_IP", gzIp);
+  gz::utils::env("GZ_IP", gzIp);
 
   // Incorrect value for GZ_IP
-  setenv("GZ_IP", "127.0.0.0", 1);
+  ASSERT_TRUE(gz::utils::setenv("GZ_IP", "127.0.0.0"));
 
   transport::Discovery<MessagePublisher> discovery1(pUuid1, g_ip, g_msgPort);
   EXPECT_EQ(discovery1.HostAddr(), "127.0.0.1");
 
   // Unset GZ_IP.
-  unsetenv("GZ_IP");
+  ASSERT_TRUE(gz::utils::unsetenv("GZ_IP"));
 
   // Restore GZ_IP.
   if (!gzIp.empty())
-    setenv("GZ_IP", gzIp.c_str(), 1);
+    gz::utils::setenv("GZ_IP", gzIp);
 }

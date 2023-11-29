@@ -21,6 +21,10 @@
 #include <string>
 
 #include "gz/transport/Node.hh"
+
+#include <gz/utils/Environment.hh>
+#include <gz/utils/Subprocess.hh>
+
 #include "gtest/gtest.h"
 #include "test_config.hh"
 
@@ -30,6 +34,9 @@ static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int data = 5;
 
+static constexpr const char * kTwoProcsSrvCallReplierExe =
+  TWO_PROCS_SRV_CALL_REPLIER_EXE;
+
 //////////////////////////////////////////////////
 /// \brief This test spawns a service responser and a service requester. The
 /// synchronous requester uses a wrong service's name. The test should verify
@@ -37,12 +44,7 @@ static int data = 5;
 /// the timeout.
 TEST(twoProcSrvCallSync1, SrvTwoProcs)
 {
-  std::string responser_path = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcsSrvCallReplier_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    partition.c_str());
+  auto pi = gz::utils::Subprocess({kTwoProcsSrvCallReplierExe, partition});
 
   int64_t timeout = 500;
   msgs::Int32 req;
@@ -71,9 +73,6 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
   // Check if the elapsed time was close to the timeout.
   auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
   EXPECT_LT(diff, 200);
-
-  // Wait for the child process to return.
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -83,10 +82,10 @@ int main(int argc, char **argv)
   partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("GZ_PARTITION", partition.c_str(), 1);
+  gz::utils::setenv("GZ_PARTITION", partition);
 
   // Enable verbose mode.
-  setenv("GZ_VERBOSE", "1", 1);
+  gz::utils::setenv("GZ_VERBOSE", "1");
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

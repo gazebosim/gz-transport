@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+#include "gtest/gtest.h"
+
 #include <gz/msgs/int32.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/vector3d.pb.h>
@@ -26,14 +28,10 @@
 #include <string>
 #include <thread>
 
-#include "gtest/gtest.h"
-#include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/MessageInfo.hh"
-#include "gz/transport/Node.hh"
-#include "gz/transport/NodeOptions.hh"
-#include "gz/transport/TopicStatistics.hh"
-#include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
+
+#include <gz/utils/Environment.hh>
 
 #include "test_utils.hh"
 
@@ -2325,10 +2323,10 @@ int main(int argc, char **argv)
   g_FQNPartition = std::string("/") + partition;
 
   // Set the partition name for this process.
-  setenv("GZ_PARTITION", partition.c_str(), 1);
+  gz::utils::setenv("GZ_PARTITION", partition);
 
   // Enable verbose mode.
-  setenv("GZ_VERBOSE", "1", 1);
+  gz::utils::setenv("GZ_VERBOSE", "1");
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

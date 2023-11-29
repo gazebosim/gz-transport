@@ -15,11 +15,14 @@
  *
 */
 
+#include "gtest/gtest.h"
+
 #include <string>
 
 #include "gz/transport/NetUtils.hh"
 #include "gz/transport/NodeOptions.hh"
-#include "gtest/gtest.h"
+
+#include <gz/utils/Environment.hh>
 
 using namespace gz;
 
@@ -29,7 +32,7 @@ TEST(NodeOptionsTest, ignPartition)
 {
   // Set GZ_PARTITION
   std::string aPartition = "customPartition";
-  setenv("GZ_PARTITION", aPartition.c_str(), 1);
+  ASSERT_TRUE(gz::utils::setenv("GZ_PARTITION", aPartition));
 
   transport::NodeOptions opts;
   EXPECT_EQ(opts.Partition(), aPartition);
@@ -52,7 +55,7 @@ TEST(NodeOptionsTest, ignPartition)
 TEST(NodeOptionsTest, accessors)
 {
   // Check the default values.
-  unsetenv("GZ_PARTITION");
+  gz::utils::unsetenv("GZ_PARTITION");
   transport::NodeOptions opts;
   EXPECT_TRUE(opts.NameSpace().empty());
   auto defaultPartition = transport::hostname() + ":" + transport::username();
