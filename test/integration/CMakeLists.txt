@@ -46,7 +46,7 @@ set(auxiliary_files
 
 # Build the auxiliary files.
 foreach(AUX_EXECUTABLE ${auxiliary_files})
-  gz_add_executable(${AUX_EXECUTABLE} ${AUX_EXECUTABLE}.cc)
+  gz_add_executable(${AUX_EXECUTABLE} aux/${AUX_EXECUTABLE}.cc)
 
   # Link the libraries that we always need.
   target_link_libraries(${AUX_EXECUTABLE}
