@@ -42,7 +42,7 @@ void runReplier()
 {
   transport::Node node;
   EXPECT_TRUE(node.Advertise(g_topic, srvWithoutOutput));
-  std::this_thread::sleep_for(std::chrono::milliseconds(6000));
+  std::this_thread::sleep_for(std::chrono::seconds(30));
 }
 
 //////////////////////////////////////////////////
