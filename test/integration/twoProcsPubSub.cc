@@ -43,15 +43,6 @@ static bool cbVectorExecuted = false;
 static bool cbRawExecuted = false;
 static int counter = 0;
 
-namespace {
-constexpr const char* kFastPubExe = FAST_PUB_EXE;
-constexpr const char* kPubExe = PUB_EXE;
-constexpr const char* kPubThrottledExe = PUB_THROTTLED_EXE;
-constexpr const char* kTwoProcsPublisherExe = TWO_PROCS_PUBLISHER_EXE;
-constexpr const char* kTwoProcsPubSubSubscriberExe =
-  TWO_PROCS_PUB_SUB_SUBSCRIBER_EXE;
-}  // namespace
-
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
 void reset()
@@ -123,7 +114,8 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
   // No subscribers yet.
   EXPECT_FALSE(pub.HasConnections());
 
-  auto pi = gz::utils::Subprocess({kTwoProcsPubSubSubscriberExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kTwoProcsPubSubSubscriber, partition});
 
   msgs::Vector3d msg;
   msg.set_x(1.0);
@@ -155,7 +147,8 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
   // No subscribers yet.
   EXPECT_FALSE(pub.HasConnections());
 
-  auto pi = gz::utils::Subprocess({kTwoProcsPubSubSubscriberExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kTwoProcsPubSubSubscriber, partition});
 
   msgs::Vector3d msg;
   msg.set_x(1.0);
@@ -183,7 +176,8 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 /// the advertised types.
 TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 {
-  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kTwoProcsPublisher, partition});
 
   reset();
 
@@ -203,7 +197,8 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 /// \brief Same as above, but using a raw subscription.
 TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 {
-  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kTwoProcsPublisher, partition});
 
   reset();
 
@@ -228,7 +223,8 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 /// (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
-  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kTwoProcsPublisher, partition});
 
   reset();
 
@@ -260,7 +256,8 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 /// callbacks are executed (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 {
-  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kTwoProcsPublisher, partition});
 
   reset();
 
@@ -316,7 +313,8 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 /// the prompt termination of the publisher.
 TEST(twoProcPubSub, FastPublisher)
 {
-  auto pi = gz::utils::Subprocess({kFastPubExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kFastPub, partition});
 
   reset();
 
@@ -331,7 +329,8 @@ TEST(twoProcPubSub, FastPublisher)
 /// by the subscriber.
 TEST(twoProcPubSub, SubThrottled)
 {
-  auto pi = gz::utils::Subprocess({kPubExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kPub, partition});
 
   reset();
 
@@ -356,7 +355,8 @@ TEST(twoProcPubSub, SubThrottled)
 /// processes. The publisher publishes at a throttled frequency.
 TEST(twoProcPubSub, PubThrottled)
 {
-  auto pi = gz::utils::Subprocess({kPubThrottledExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kPubThrottled, partition});
 
   reset();
 
@@ -379,7 +379,8 @@ TEST(twoProcPubSub, PubThrottled)
 /// using a callback that accepts message information.
 TEST(twoProcPubSub, PubSubMessageInfo)
 {
-  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kTwoProcsPublisher, partition});
   reset();
 
   transport::Node node;
@@ -400,7 +401,8 @@ TEST(twoProcPubSub, PubSubMessageInfo)
 /// available topics.
 TEST(twoProcPubSub, TopicList)
 {
-  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kTwoProcsPublisher, partition});
 
   reset();
 
@@ -445,7 +447,8 @@ TEST(twoProcPubSub, TopicList)
 /// about the topic.
 TEST(twoProcPubSub, TopicInfo)
 {
-  auto pi = gz::utils::Subprocess({kTwoProcsPublisherExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_aux::kTwoProcsPublisher, partition});
 
   reset();
 

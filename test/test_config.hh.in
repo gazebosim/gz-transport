@@ -18,8 +18,66 @@
 #ifndef GZ_TRANSPORT_TEST_CONFIG_HH_
 #define GZ_TRANSPORT_TEST_CONFIG_HH_
 
-#define GZ_PATH "@HAVE_GZ_TOOLS@"
-#define GZ_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
-#define GZ_VERSION_FULL "@PROJECT_VERSION_FULL@"
+constexpr const char * kGzVersion = "@PROJECT_VERSION_FULL@";
+
+namespace test_aux
+{
+
+#ifdef GZ_EXE
+constexpr const char * kGzExe  = GZ_EXE;
+#endif  // GZ_EXE
+
+#ifdef AUTH_PUB_SUB_SUBSCRIBER_INVALID_EXE
+constexpr const char * kAuthPubSubSubscriberInvalid = AUTH_PUB_SUB_SUBSCRIBER_INVALID_EXE;
+#endif  // AUTH_PUB_SUB_SUBSCRIBER_INVALID_EXE
+
+#ifdef FAST_PUB_EXE
+constexpr const char * kFastPub = FAST_PUB_EXE;
+#endif  // FAST_PUB_EXE
+
+#ifdef PUB_EXE
+constexpr const char * kPub = PUB_EXE;
+#endif  // PUB_EXE
+
+#ifdef PUB_THROTTLED_EXE
+constexpr const char * kPubThrottled = PUB_THROTTLED_EXE;
+#endif  // PUB_THROTTLED_EXE
+
+#ifdef SCOPED_TOPIC_SUBSCRIBER_EXE
+constexpr const char * kScopedTopicSubscriber = SCOPED_TOPIC_SUBSCRIBER_EXE;
+#endif  // SCOPED_TOPIC_SUBSCRIBER_EXE
+
+#ifdef TWO_PROCS_PUBLISHER_EXE
+constexpr const char * kTwoProcsPublisher = TWO_PROCS_PUBLISHER_EXE;
+#endif  // TWO_PROCS_PUBLISHER_EXE
+
+#ifdef TWO_PROCS_PUB_SUB_SUBSCRIBER_EXE
+constexpr const char * kTwoProcsPubSubSubscriber = TWO_PROCS_PUB_SUB_SUBSCRIBER_EXE;
+#endif  // TWO_PROCS_PUB_SUB_SUBSCRIBER_EXE
+
+#ifdef TWO_PROCS_SRV_CALL_REPLIER_EXE
+constexpr const char * kTwoProcsSrvCallReplier = TWO_PROCS_SRV_CALL_REPLIER_EXE;
+#endif  // TWO_PROCS_SRV_CALL_REPLIER_EXE
+
+#ifdef TWO_PROCS_SRV_CALL_REPLIER_INC_EXE
+constexpr const char * kTwoProcsSrvCallReplierInc = TWO_PROCS_SRV_CALL_REPLIER_INC_EXE;
+#endif  // TWO_PROCS_SRV_CALL_REPLIER_INC_EXE
+
+#ifdef TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_EXE
+constexpr const char * kTwoProcsSrvCallWithoutInputReplier = TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_EXE;
+#endif  // TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_EXE
+
+#ifdef TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_INC_EXE
+constexpr const char * kTwoProcsSrvCallWithoutInputReplierInc = TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_INC_EXE;
+#endif  // TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_INC_EXE
+
+#ifdef TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_EXE
+constexpr const char * kTwoProcsSrvCallWithoutOutputReplier = TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_EXE;
+#endif  // TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_EXE
+
+#ifdef TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE
+constexpr const char * kTwoProcsSrvCallWithoutOutputReplierInc = TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE;
+#endif  // TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE
+}  // namespace test_aux
 
 #endif  // GZ_TRANSPORT_TEST_CONFIG_HH_

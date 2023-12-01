@@ -41,30 +41,15 @@ install(TARGETS ${service_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz
 # Build the unit tests.
 gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   TEST_LIST test_list
-  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config)
-
-foreach(test ${test_list})
-  target_link_libraries(${test} gz gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER})
-
-  # Inform each test of its output directory so it knows where to call the
-  # auxiliary files from. Using a generator expression here is useful for
-  # multi-configuration generators, like Visual Studio.
-  target_compile_definitions(${test} PRIVATE
-    "GZ_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\""
-    "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\""
-    "TWO_PROCS_PUBLISHER_EXE=\"$<TARGET_FILE:twoProcsPublisher_aux>\""
-    "TWO_PROCS_SRV_CALL_REPLIER_EXE=\"$<TARGET_FILE:twoProcsSrvCallReplier_aux>\""
-    "GZ_EXE=\"${HAVE_GZ_TOOLS}\""
-    )
-
-endforeach()
+  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config gz gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER})
 
 if (TARGET UNIT_gz_TEST)
+
   set_tests_properties(
     UNIT_gz_TEST
     PROPERTIES
     ENVIRONMENT
-      "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>"
+      "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>;LD_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\":${LD_LIBRARY_PATH}"
   )
 endif()
 

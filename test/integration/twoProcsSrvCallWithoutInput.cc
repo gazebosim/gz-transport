@@ -30,6 +30,7 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "gtest/gtest.h"
+#include "test_config.hh"
 #include "test_utils.hh"
 
 using namespace gz;
@@ -41,9 +42,6 @@ static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int g_data = 5;
 static int g_counter = 0;
-
-static constexpr const char * kTwoProcsSrvCallWithoutInputReplierExe =
-  TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_EXE;
 
 //////////////////////////////////////////////////
 class twoProcSrvCallWithoutInput: public testing::Test {
@@ -59,7 +57,7 @@ class twoProcSrvCallWithoutInput: public testing::Test {
 
     this->pi = std::make_unique<gz::utils::Subprocess>(
       std::vector<std::string>({
-        kTwoProcsSrvCallWithoutInputReplierExe, this->partition}));
+        test_aux::kTwoProcsSrvCallWithoutInputReplier, this->partition}));
   }
 
   void TearDown() override {

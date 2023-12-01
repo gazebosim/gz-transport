@@ -26,15 +26,13 @@
 #include <gz/utils/Environment.hh>
 #include <gz/utils/Subprocess.hh>
 
+#include "test_config.hh"
 #include "test_utils.hh"
 
 using namespace gz;
 
 static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
-
-static constexpr const char * kAuthPubSubSubscriberInvalid =
-  AUTH_PUB_SUB_SUBSCRIBER_INVALID_EXE;
 
 //////////////////////////////////////////////////
 TEST(authPubSub, InvalidAuth)
@@ -51,7 +49,7 @@ TEST(authPubSub, InvalidAuth)
   EXPECT_FALSE(pub.HasConnections());
 
   auto pi = gz::utils::Subprocess(
-      {kAuthPubSubSubscriberInvalid, partition, "bad", "invalid"});
+      {test_aux::kAuthPubSubSubscriberInvalid, partition, "bad", "invalid"});
 
   msgs::Int32 msg;
   msg.set_data(1);

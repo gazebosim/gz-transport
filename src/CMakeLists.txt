@@ -34,15 +34,7 @@ gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config)
 
 foreach(test ${test_list})
-
-  # Inform each test of its output directory so it knows where to call the
-  # auxiliary files from. Using a generator expression here is useful for
-  # multi-configuration generators, like Visual Studio.
-  target_compile_definitions(${test} PRIVATE
-    "GZ_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\"")
-
   set_property(TEST ${test} PROPERTY ENVIRONMENT "GZ_VERBOSE=1")
-
 endforeach()
 
 if(MSVC)

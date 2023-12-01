@@ -42,9 +42,6 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 static int data = 5;
 static int counter = 0;
 
-static constexpr const char *kTwoProcsSrvCallReplierExe =
-  TWO_PROCS_SRV_CALL_REPLIER_EXE;
-
 //////////////////////////////////////////////////
 class twoProcSrvCall: public testing::Test {
  protected:
@@ -59,7 +56,7 @@ class twoProcSrvCall: public testing::Test {
 
     this->pi = std::make_unique<gz::utils::Subprocess>(
       std::vector<std::string>({
-        kTwoProcsSrvCallReplierExe, this->partition}));
+        test_aux::kTwoProcsSrvCallReplier, this->partition}));
   }
 
   void TearDown() override {
