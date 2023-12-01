@@ -19,7 +19,7 @@
 
 #include <gz/utils/Environment.hh>
 
-#include "test_config.hh"
+#include "test_utils.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;

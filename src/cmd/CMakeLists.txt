@@ -41,7 +41,7 @@ install(TARGETS ${service_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz
 # Build the unit tests.
 gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   TEST_LIST test_list
-  LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
+  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config)
 
 foreach(test ${test_list})
   target_link_libraries(${test} gz gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER})

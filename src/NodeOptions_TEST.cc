@@ -22,7 +22,6 @@
 
 #include <gz/utils/Environment.hh>
 
-#include "test_config.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;

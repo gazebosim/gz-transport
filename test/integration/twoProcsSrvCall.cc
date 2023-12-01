@@ -31,6 +31,7 @@
 
 #include "gtest/gtest.h"
 #include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 

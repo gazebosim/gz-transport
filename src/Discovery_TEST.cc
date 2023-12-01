@@ -31,7 +31,7 @@
 #include "gz/utils/Environment.hh"
 #include "gz/utils/ExtraTestMacros.hh"
 
-#include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 using namespace transport;

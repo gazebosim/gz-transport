@@ -26,7 +26,7 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "gtest/gtest.h"
-#include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 
