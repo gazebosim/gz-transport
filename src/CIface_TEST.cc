@@ -20,8 +20,11 @@
 
 #include "gz/transport/CIface.h"
 
-#include "test_utils.hh"
 #include <gz/utils/Environment.hh>
+
+#include "test_utils.hh"
+
+using CIfaceTest = testing::PartitionedTransportTest;
 
 static int count;
 
@@ -58,7 +61,7 @@ void cbNonConst(char *_data, size_t _size, char *_msgType, void *_userData)
 }
 
 //////////////////////////////////////////////////
-TEST(CIfaceTest, PubSub)
+TEST_F(CIfaceTest, PubSub)
 {
   count = 0;
   GzTransportNode *node = gzTransportNodeCreate(nullptr);
@@ -114,7 +117,7 @@ TEST(CIfaceTest, PubSub)
 }
 
 //////////////////////////////////////////////////
-TEST(CIfaceTest, PubSubPartitions)
+TEST_F(CIfaceTest, PubSubPartitions)
 {
   count = 0;
   GzTransportNode *node = gzTransportNodeCreate(nullptr);
@@ -174,20 +177,4 @@ TEST(CIfaceTest, PubSubPartitions)
   EXPECT_EQ(nullptr, node);
   gzTransportNodeDestroy(&nodeBar);
   EXPECT_EQ(nullptr, nodeBar);
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Get a random partition name.
-  std::string partition = testing::getRandomNumber();
-
-  // Set the partition name for this process.
-  gz::utils::setenv("GZ_PARTITION", partition);
-
-  // Enable verbose mode.
-  // gz::utils::setenv("GZ_VERBOSE", "1");
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

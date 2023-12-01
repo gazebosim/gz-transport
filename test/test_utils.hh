@@ -45,8 +45,15 @@ namespace testing
     return std::to_string(d(randGenerator));
   }
 
+  /// \brief Test fixture for creating a transport test in a new partition
+  ///
+  /// Each unit test instance will create a random partition and set the
+  /// appropriate environment variables.
+  /// This fixture will additionally terminate a process spawned with
+  /// the SpawnSubprocess helper function
   class PartitionedTransportTest: public ::testing::Test
   {
+    /// \brief Set up the test fixture
     protected: void SetUp() override {
       gz::utils::env("GZ_PARTITION", this->prevPartition);
 
@@ -57,6 +64,7 @@ namespace testing
       gz::utils::setenv("GZ_PARTITION", this->partition);
     }
 
+    /// \brief Clean up the test fixture
     protected: void TearDown() override {
       gz::utils::setenv("GZ_PARTITION", this->prevPartition);
 
@@ -67,10 +75,19 @@ namespace testing
       }
     }
 
-    protected: [[nodiscard]] std::string Paritition() const {
+    /// \brief Get the randomly generated partition for this test
+    /// \return string value of the partition
+    protected: [[nodiscard]] std::string Partition() const {
       return this->partition;
     }
 
+    /// \brief Spawn a subprocess that will be terminated when the test fixture
+    /// is torn down.  By default, the subprocess will inherit the environment
+    /// of the test fixture. The _overrideEnv argument can be used to replace
+    /// environment variable values.
+    ///
+    /// \param[in] _commandLine command line arguments
+    /// \param[in] _overrideEnv environment variables to override
     protected: void SpawnSubprocess(
       const std::vector<std::string> &_commandLine,
       const gz::utils::EnvironmentMap &_overrideEnv={})
