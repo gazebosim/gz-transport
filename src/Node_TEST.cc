@@ -29,6 +29,7 @@
 #include <thread>
 
 #include "gz/transport/MessageInfo.hh"
+#include "gz/transport/Node.hh"
 #include "gz/transport/TransportTypes.hh"
 
 #include <gz/utils/Environment.hh>
