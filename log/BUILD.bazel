@@ -73,6 +73,7 @@ test_sources = glob(
     ],
     defines = [
         'GZ_TRANSPORT_LOG_TEST_PATH=\\"transport/log/test\\"',
+        'CORRUPT_DB_TEST_PATH=\\"transport/log/test/data/state.tlog\\"',
     ],
     env = {
         "GZ_BAZEL": "1",
