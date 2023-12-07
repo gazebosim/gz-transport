@@ -63,7 +63,7 @@ struct ProcessOutput
 //////////////////////////////////////////////////
 ProcessOutput custom_exec_str(const std::vector<std::string> &_args)
 {
-  auto fullArgs = std::vector<std::string>{test_aux::kGzExe};
+  auto fullArgs = std::vector<std::string>{test_executables::kGzExe};
   std::copy(std::begin(_args), std::end(_args), std::back_inserter(fullArgs));
   fullArgs.emplace_back("--force-version");
   fullArgs.emplace_back(kGzVersion);
@@ -96,7 +96,7 @@ exec_with_retry(const std::vector<std::string> &_args,
 TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
   auto proc = gz::utils::Subprocess({
-    test_aux::kTwoProcsPublisher, g_partition});
+    test_executables::kTwoProcsPublisher, g_partition});
 
   auto output = exec_with_retry({"topic", "-l"},
     [](auto procOut){
@@ -112,7 +112,7 @@ TEST(gzTest, TopicInfo)
 {
   // Launch a new publisher process that advertises a topic.
   auto proc = gz::utils::Subprocess({
-    test_aux::kTwoProcsPublisher, g_partition});
+    test_executables::kTwoProcsPublisher, g_partition});
 
   auto output = exec_with_retry({"topic", "-t", "/foo", "-i"},
     [](auto procOut){
@@ -133,7 +133,7 @@ TEST(gzTest, ServiceList)
 {
   // Launch a new responser process that advertises a service.
   auto proc = gz::utils::Subprocess({
-    test_aux::kTwoProcsSrvCallReplier, g_partition});
+    test_executables::kTwoProcsSrvCallReplier, g_partition});
 
   auto output = exec_with_retry({"service", "-l"},
     [](auto procOut){
@@ -149,7 +149,7 @@ TEST(gzTest, ServiceInfo)
 {
   // Launch a new responser process that advertises a service.
   auto proc = gz::utils::Subprocess(
-    {test_aux::kTwoProcsSrvCallReplier, g_partition});
+    {test_executables::kTwoProcsSrvCallReplier, g_partition});
 
   auto output = exec_with_retry({"service", "-s", "/foo", "-i"},
     [](auto procOut){
@@ -317,7 +317,7 @@ TEST(gzTest, TopicEcho)
 {
   // Launch a new publisher process that advertises a topic.
   auto proc = gz::utils::Subprocess(
-    {test_aux::kTwoProcsPublisher, g_partition});
+    {test_executables::kTwoProcsPublisher, g_partition});
 
   auto output = custom_exec_str(
     {"topic", "-e", "-t", "/foo", "-d", "1.5"});
@@ -334,7 +334,7 @@ TEST(gzTest, TopicEchoNum)
 {
   // Launch a new publisher process that advertises a topic.
   auto proc = gz::utils::Subprocess(
-    {test_aux::kTwoProcsPublisher, g_partition});
+    {test_executables::kTwoProcsPublisher, g_partition});
 
   auto output = custom_exec_str(
     {"topic", "-e", "-t", "/foo", "-n", "2"});

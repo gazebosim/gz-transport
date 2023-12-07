@@ -39,7 +39,7 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 TEST(twoProcSrvCallWithoutInput, ThousandCalls)
 {
   auto pi = gz::utils::Subprocess(
-      {test_aux::kTwoProcsSrvCallWithoutInputReplierInc, g_partition});
+      {test_executables::kTwoProcsSrvCallWithoutInputReplierInc, g_partition});
 
   msgs::Int32 response;
   bool result;

@@ -43,7 +43,7 @@ static int data = 5;
 TEST(ScopedTopicTest, ProcessTest)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kScopedTopicSubscriber, partition});
+    {test_executables::kScopedTopicSubscriber, partition});
 
   msgs::Int32 msg;
   msg.set_data(data);

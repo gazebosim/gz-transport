@@ -57,7 +57,8 @@ class twoProcSrvCallWithoutInput: public testing::Test {
 
     this->pi = std::make_unique<gz::utils::Subprocess>(
       std::vector<std::string>({
-        test_aux::kTwoProcsSrvCallWithoutInputReplier, this->partition}));
+        test_executables::kTwoProcsSrvCallWithoutInputReplier,
+        this->partition}));
   }
 
   void TearDown() override {

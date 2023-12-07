@@ -115,7 +115,7 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
   EXPECT_FALSE(pub.HasConnections());
 
   auto pi = gz::utils::Subprocess(
-    {test_aux::kTwoProcsPubSubSubscriber, partition});
+    {test_executables::kTwoProcsPubSubSubscriber, partition});
 
   msgs::Vector3d msg;
   msg.set_x(1.0);
@@ -148,7 +148,7 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
   EXPECT_FALSE(pub.HasConnections());
 
   auto pi = gz::utils::Subprocess(
-    {test_aux::kTwoProcsPubSubSubscriber, partition});
+    {test_executables::kTwoProcsPubSubSubscriber, partition});
 
   msgs::Vector3d msg;
   msg.set_x(1.0);
@@ -177,7 +177,7 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kTwoProcsPublisher, partition});
+    {test_executables::kTwoProcsPublisher, partition});
 
   reset();
 
@@ -198,7 +198,7 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kTwoProcsPublisher, partition});
+    {test_executables::kTwoProcsPublisher, partition});
 
   reset();
 
@@ -224,7 +224,7 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kTwoProcsPublisher, partition});
+    {test_executables::kTwoProcsPublisher, partition});
 
   reset();
 
@@ -257,7 +257,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kTwoProcsPublisher, partition});
+    {test_executables::kTwoProcsPublisher, partition});
 
   reset();
 
@@ -314,7 +314,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 TEST(twoProcPubSub, FastPublisher)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kFastPub, partition});
+    {test_executables::kFastPub, partition});
 
   reset();
 
@@ -330,7 +330,7 @@ TEST(twoProcPubSub, FastPublisher)
 TEST(twoProcPubSub, SubThrottled)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kPub, partition});
+    {test_executables::kPub, partition});
 
   reset();
 
@@ -356,7 +356,7 @@ TEST(twoProcPubSub, SubThrottled)
 TEST(twoProcPubSub, PubThrottled)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kPubThrottled, partition});
+    {test_executables::kPubThrottled, partition});
 
   reset();
 
@@ -380,7 +380,7 @@ TEST(twoProcPubSub, PubThrottled)
 TEST(twoProcPubSub, PubSubMessageInfo)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kTwoProcsPublisher, partition});
+    {test_executables::kTwoProcsPublisher, partition});
   reset();
 
   transport::Node node;
@@ -402,7 +402,7 @@ TEST(twoProcPubSub, PubSubMessageInfo)
 TEST(twoProcPubSub, TopicList)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kTwoProcsPublisher, partition});
+    {test_executables::kTwoProcsPublisher, partition});
 
   reset();
 
@@ -448,7 +448,7 @@ TEST(twoProcPubSub, TopicList)
 TEST(twoProcPubSub, TopicInfo)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kTwoProcsPublisher, partition});
+    {test_executables::kTwoProcsPublisher, partition});
 
   reset();
 

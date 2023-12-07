@@ -49,7 +49,8 @@ TEST(authPubSub, InvalidAuth)
   EXPECT_FALSE(pub.HasConnections());
 
   auto pi = gz::utils::Subprocess(
-      {test_aux::kAuthPubSubSubscriberInvalid, partition, "bad", "invalid"});
+      {test_executables::kAuthPubSubSubscriberInvalid,
+      partition, "bad", "invalid"});
 
   msgs::Int32 msg;
   msg.set_data(1);

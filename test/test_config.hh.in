@@ -20,7 +20,7 @@
 
 constexpr const char * kGzVersion = "@PROJECT_VERSION_FULL@";
 
-namespace test_aux
+namespace test_executables
 {
 
 #ifdef GZ_EXE
@@ -78,6 +78,6 @@ constexpr const char * kTwoProcsSrvCallWithoutOutputReplier = TWO_PROCS_SRV_CALL
 #ifdef TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE
 constexpr const char * kTwoProcsSrvCallWithoutOutputReplierInc = TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE;
 #endif  // TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE
-}  // namespace test_aux
+}  // namespace test_executables
 
 #endif  // GZ_TRANSPORT_TEST_CONFIG_HH_

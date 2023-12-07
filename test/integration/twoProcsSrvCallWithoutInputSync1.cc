@@ -43,7 +43,7 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 {
   auto pi = gz::utils::Subprocess(
-      {test_aux::kTwoProcsSrvCallWithoutInputReplier, g_partition});
+      {test_executables::kTwoProcsSrvCallWithoutInputReplier, g_partition});
 
   int64_t timeout = 500;
   msgs::Int32 rep;

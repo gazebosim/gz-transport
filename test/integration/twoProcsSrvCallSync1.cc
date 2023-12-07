@@ -44,7 +44,7 @@ static int data = 5;
 TEST(twoProcSrvCallSync1, SrvTwoProcs)
 {
   auto pi = gz::utils::Subprocess(
-    {test_aux::kTwoProcsSrvCallReplier, partition});
+    {test_executables::kTwoProcsSrvCallReplier, partition});
 
   int64_t timeout = 500;
   msgs::Int32 req;
