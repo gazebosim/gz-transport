@@ -20,6 +20,7 @@ gz_build_tests(
     ChirpParams
     ${PROJECT_LIBRARY_TARGET_NAME}-log
     ${EXTRA_TEST_LIB_DEPS}
+    test_config
   INCLUDE_DIRS
     ${CMAKE_BINARY_DIR}/test/
 )

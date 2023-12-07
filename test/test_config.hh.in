@@ -22,4 +22,6 @@
 #define GZ_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
 #define GZ_VERSION_FULL "@PROJECT_VERSION_FULL@"
 
+#include "test_utils.hh"
+
 #endif  // GZ_TRANSPORT_TEST_CONFIG_HH_

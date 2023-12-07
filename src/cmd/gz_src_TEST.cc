@@ -28,6 +28,8 @@
 
 #include <gz/utils/Environment.hh>
 
+#include "test_utils.hh"
+
 using namespace gz;
 
 // Global constants.
