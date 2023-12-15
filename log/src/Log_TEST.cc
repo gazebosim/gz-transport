@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include "gtest/gtest.h"
 
 #include <chrono>
 #include <ios>
@@ -21,8 +22,8 @@
 #include <unordered_set>
 
 #include "gz/transport/log/Log.hh"
-#include "test_config.hh"
-#include "gtest/gtest.h"
+
+#include "test_utils.hh"
 
 using namespace gz;
 using namespace gz::transport;

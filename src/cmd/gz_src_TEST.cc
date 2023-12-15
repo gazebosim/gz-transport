@@ -14,12 +14,14 @@
  * limitations under the License.
  *
 */
+#include "gtest/gtest.h"
+
+#include <gz/msgs/int32.pb.h>
 
 #include <future>
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <gz/msgs/int32.pb.h>
 
 #include "gz.hh"
 #include "gz/transport/Node.hh"
@@ -27,7 +29,6 @@
 #include <gz/utils/Environment.hh>
 
 #include "test_utils.hh"
-#include "gtest/gtest.h"
 
 using namespace gz;
 

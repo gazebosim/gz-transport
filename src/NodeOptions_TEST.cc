@@ -15,14 +15,14 @@
  *
 */
 
+#include "gtest/gtest.h"
+
 #include <string>
 
 #include "gz/transport/NetUtils.hh"
 #include "gz/transport/NodeOptions.hh"
 
 #include <gz/utils/Environment.hh>
-
-#include "gtest/gtest.h"
 
 using namespace gz;
 

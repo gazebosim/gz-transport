@@ -54,5 +54,6 @@ foreach(AUX_EXECUTABLE ${auxiliary_files})
       ${PROJECT_LIBRARY_TARGET_NAME}
       gtest
       ${EXTRA_TEST_LIB_DEPS}
+      test_config
   )
 endforeach(AUX_EXECUTABLE)

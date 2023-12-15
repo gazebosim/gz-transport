@@ -14,14 +14,14 @@
  * limitations under the License.
  *
 */
+#include "gtest/gtest.h"
+
 #include <gz/msgs/stringmsg.pb.h>
 
 #include "gz/transport/CIface.h"
 
-#include <gz/utils/Environment.hh>
-
-#include "gtest/gtest.h"
 #include "test_utils.hh"
+#include <gz/utils/Environment.hh>
 
 static int count;
 
