@@ -15,12 +15,13 @@
  *
 */
 
-#include <test_config.hh>
-
 #include <chrono>
 #include <iostream>
 
+#include <gz/msgs/int32.pb.h>
 #include <gz/transport/Node.hh>
+
+#include <gz/utils/Environment.hh>
 
 #include "ChirpParams.hh"
 
@@ -38,13 +39,11 @@ void chirp(const std::vector<std::string> &_topicNames,
 
   gz::transport::Node node;
 
-  using MsgType = gz::transport::log::test::ChirpMsgType;
-
   std::vector<gz::transport::Node::Publisher> publishers;
 
   for (const std::string &topic : _topicNames)
   {
-    publishers.push_back(node.Advertise<MsgType>(topic));
+    publishers.push_back(node.Advertise<gz::msgs::Int32>(topic));
   }
 
   std::this_thread::sleep_for(
@@ -90,7 +89,7 @@ int main(int argc, char **argv)
     return -2;
   }
 
-  setenv("GZ_PARTITION", argv[1], 1);
+  gz::utils::setenv("GZ_PARTITION", argv[1]);
 
   const int chirps = atoi(argv[2]);
 

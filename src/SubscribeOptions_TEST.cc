@@ -17,7 +17,6 @@
 
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/SubscribeOptions.hh"
-#include "test_config.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;

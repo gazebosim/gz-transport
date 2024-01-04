@@ -14,11 +14,14 @@
  * limitations under the License.
  *
 */
+#include "gtest/gtest.h"
+
 #include <gz/msgs/stringmsg.pb.h>
 
-#include "gtest/gtest.h"
 #include "gz/transport/CIface.h"
-#include "test_config.hh"
+
+#include "test_utils.hh"
+#include <gz/utils/Environment.hh>
 
 static int count;
 
@@ -180,10 +183,10 @@ int main(int argc, char **argv)
   std::string partition = testing::getRandomNumber();
 
   // Set the partition name for this process.
-  setenv("GZ_PARTITION", partition.c_str(), 1);
+  gz::utils::setenv("GZ_PARTITION", partition);
 
   // Enable verbose mode.
-  // setenv("GZ_VERBOSE", "1", 1);
+  // gz::utils::setenv("GZ_VERBOSE", "1");
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

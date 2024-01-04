@@ -16,7 +16,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
 )
 
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
-  SYSTEM PUBLIC 
+  SYSTEM PUBLIC
     $<TARGET_PROPERTY:protobuf::libprotobuf,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:CPPZMQ::CPPZMQ,INTERFACE_INCLUDE_DIRECTORIES>)
 
@@ -31,7 +31,7 @@ endif()
 # Build the unit tests.
 gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   TEST_LIST test_list
-  LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
+  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config)
 
 foreach(test ${test_list})
 
@@ -39,8 +39,9 @@ foreach(test ${test_list})
   # auxiliary files from. Using a generator expression here is useful for
   # multi-configuration generators, like Visual Studio.
   target_compile_definitions(${test} PRIVATE
-    "DETAIL_GZ_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\""
     "GZ_TEST_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\"")
+
+  set_property(TEST ${test} PROPERTY ENVIRONMENT "GZ_VERBOSE=1")
 
 endforeach()
 
