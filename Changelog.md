@@ -1,5 +1,37 @@
 ## Ignition Transport 8
 
+### Gazebo Transport 8.5.0 (2024-01-05)
+
+1. Update github action workflows
+    * [Pull request #460](https://github.com/gazebosim/gz-transport/pull/460)
+
+1. Adds the subcommands for the log command
+    * [Pull request #451](https://github.com/gazebosim/gz-transport/pull/451)
+
+1. Fix topic/service list inconsistency
+    * [Pull request #415](https://github.com/gazebosim/gz-transport/pull/415)
+
+1. Backport Windows fix to ign-transport8
+    * [Pull request #406](https://github.com/gazebosim/gz-transport/pull/406)
+
+1. Fix compatibility with protobuf 22
+    * [Pull request #405](https://github.com/gazebosim/gz-transport/pull/405)
+
+1. Fix compiler warning and signedness issue
+    * [Pull request #401](https://github.com/gazebosim/gz-transport/pull/401)
+
+1. Rename COPYING to LICENSE
+    * [Pull request #392](https://github.com/gazebosim/gz-transport/pull/392)
+
+1. CI workflow: use checkout v3
+    * [Pull request #391](https://github.com/gazebosim/gz-transport/pull/391)
+
+1. Support clang and std::filesystem
+    * [Pull request #390](https://github.com/gazebosim/gz-transport/pull/390)
+
+1. Pass std::function by value to Node::Subscribe
+    * [Pull request #382](https://github.com/gazebosim/gz-transport/pull/382)
+
 ### Gazebo Transport 8.4.0 (2022-11-17)
 
 1. ign -> gz : Remove redundant namespace references.
