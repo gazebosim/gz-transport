@@ -39,7 +39,7 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
 {
   auto pi = gz::utils::Subprocess(
-      {test_executables::kTwoProcsSrvCallWithoutOutputReplier, g_partition});
+      {test_executables::kTwoProcsSrvCallWithoutOutputReplierInc, g_partition});
 
   msgs::Int32 req;
   transport::Node node;
@@ -50,7 +50,6 @@ TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
   {
     req.set_data(i);
     ASSERT_TRUE(node.Request(g_topic, req));
-    std::cout << "req done" << std::endl;
   }
 }
 
