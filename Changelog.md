@@ -4,6 +4,8 @@
 
 1. Update github action workflows
     * [Pull request #460](https://github.com/gazebosim/gz-transport/pull/460)
+    * [Pull request #391](https://github.com/gazebosim/gz-transport/pull/391)
+    * [Pull request #392](https://github.com/gazebosim/gz-transport/pull/392)
 
 1. Adds the subcommands for the log command
     * [Pull request #451](https://github.com/gazebosim/gz-transport/pull/451)
@@ -19,12 +21,6 @@
 
 1. Fix compiler warning and signedness issue
     * [Pull request #401](https://github.com/gazebosim/gz-transport/pull/401)
-
-1. Rename COPYING to LICENSE
-    * [Pull request #392](https://github.com/gazebosim/gz-transport/pull/392)
-
-1. CI workflow: use checkout v3
-    * [Pull request #391](https://github.com/gazebosim/gz-transport/pull/391)
 
 1. Support clang and std::filesystem
     * [Pull request #390](https://github.com/gazebosim/gz-transport/pull/390)
