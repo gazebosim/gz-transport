@@ -20,6 +20,34 @@
 # This is a per-library function definition, used in conjunction with the
 # top-level entry point in ign-tools.
 
+GZ_LOG_SUBCOMMANDS="
+record
+playback
+"
+
+GZ_LOG_COMPLETION_LIST="
+  -h --help
+  -v --verbose
+"
+
+GZ_PLAYBACK_COMPLETION_LIST="
+  -h --help
+  -v --verbose
+  --file
+  --pattern
+  --remap
+  --wait
+  -f
+"
+
+GZ_RECORD_COMPLETION_LIST="
+  -h --help
+  -v --verbose
+  --file
+  --force
+  --pattern
+"
+
 GZ_SERVICE_COMPLETION_LIST="
   -h --help
   -v --version
@@ -47,11 +75,10 @@ GZ_TOPIC_COMPLETION_LIST="
   --json-output
 "
 
-function _gz_service
-{
+function __get_comp_from_list {
   if [[ ${COMP_WORDS[COMP_CWORD]} == -* ]]; then
     # Specify options (-*) word list for this subcommand
-    COMPREPLY=($(compgen -W "$GZ_SERVICE_COMPLETION_LIST" \
+    COMPREPLY=($(compgen -W "$@" \
       -- "${COMP_WORDS[COMP_CWORD]}" ))
     return
   else
@@ -62,6 +89,67 @@ function _gz_service
     return
   fi
 }
+
+function _gz_log_playback
+{
+  __get_comp_from_list "$GZ_PLAYBACK_COMPLETION_LIST"
+}
+
+function _gz_log_record
+{
+  __get_comp_from_list "$GZ_RECORD_COMPLETION_LIST"
+}
+
+function _gz_service
+{
+  __get_comp_from_list "$GZ_SERVICE_COMPLETION_LIST"
+}
+
+function _gz_topic
+{
+  __get_comp_from_list "$GZ_TOPIC_COMPLETION_LIST"
+}
+
+# This searches the current list of typed words for one of the subcommands
+# listed in GZ_LOG_SUBCOMMANDS. This should work for most cases, but may fail
+# if a word that looks like a subcommand is used as an argument to a flag.
+function __get_subcommand
+{
+  local known_subcmd
+  local subcmd
+  for ((i=2; $i<=$COMP_CWORD; i++)); do
+    for subcmd in $GZ_LOG_SUBCOMMANDS; do
+      if [[ "${COMP_WORDS[i]}" == "$subcmd" ]]; then
+        known_subcmd="$subcmd"
+      fi
+    done
+  done
+  echo "$known_subcmd"
+}
+
+function _gz_log
+{
+  if [[ $COMP_CWORD > 2 ]]; then
+    local known_subcmd=$(__get_subcommand)
+    if [[ ! -z $known_subcmd ]]; then
+      local subcmd_func="_gz_log_$known_subcmd"
+      if [[ "$(type -t $subcmd_func)" == 'function' ]]; then
+        $subcmd_func
+        return
+      fi
+    fi
+  fi
+
+  # If a subcommand is not found, assume we're still completing the subcommands
+  # or flags for `log`.
+  if [[ ${COMP_WORDS[COMP_CWORD]} == -* ]]; then
+    COMPREPLY=($(compgen -W "$GZ_LOG_COMPLETION_LIST" \
+      -- "${COMP_WORDS[COMP_CWORD]}" ))
+  else
+    COMPREPLY=($(compgen -W "${GZ_LOG_SUBCOMMANDS}" -- ${cur}))
+  fi
+}
+
 
 function _gz_service_flags
 {
@@ -70,21 +158,6 @@ function _gz_service_flags
   done
 }
 
-function _gz_topic
-{
-  if [[ ${COMP_WORDS[COMP_CWORD]} == -* ]]; then
-    # Specify options (-*) word list for this subcommand
-    COMPREPLY=($(compgen -W "$GZ_TOPIC_COMPLETION_LIST" \
-      -- "${COMP_WORDS[COMP_CWORD]}" ))
-    return
-  else
-    # Just use bash default auto-complete, because we never have two
-    # subcommands in the same line. If that is ever needed, change here to
-    # detect subsequent subcommands
-    COMPREPLY=($(compgen -o default -- "${COMP_WORDS[COMP_CWORD]}"))
-    return
-  fi
-}
 
 function _gz_topic_flags
 {
