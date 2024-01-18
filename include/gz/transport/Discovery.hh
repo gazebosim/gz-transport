@@ -317,7 +317,8 @@ namespace gz
             return false;
         }
 
-        this->connectionCb(_publisher);
+        if (this->connectionCb)
+          this->connectionCb(_publisher);
 
         // Only advertise a message outside this process if the scope
         // is not 'Process'
