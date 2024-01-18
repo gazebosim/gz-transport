@@ -317,6 +317,8 @@ namespace gz
             return false;
         }
 
+        this->connectionCb(_publisher);
+
         // Only advertise a message outside this process if the scope
         // is not 'Process'
         if (_publisher.Options().Scope() != Scope_t::PROCESS)

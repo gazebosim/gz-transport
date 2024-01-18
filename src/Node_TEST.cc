@@ -433,6 +433,23 @@ class MyTestClass
     EXPECT_FALSE(this->callbackSrvExecuted);
   }
 
+  /// \brief Advertise and request a service without waiting for response.
+  public: void TestServiceCallRequestingBeforeAdvertising()
+  {
+    msgs::Int32 req;
+    req.set_data(data);
+
+    this->Reset();
+
+    // Request a valid service using a member function callback.
+    this->node.Request(g_topic, req, &MyTestClass::EchoResponse, this);
+
+    // Advertise and request a valid service.
+    EXPECT_TRUE(this->node.Advertise(g_topic, &MyTestClass::Echo, this));
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    EXPECT_TRUE(this->responseExecuted);
+  }
+
   public: void Reset()
   {
     this->callbackExecuted = false;
@@ -1152,6 +1169,14 @@ TEST(NodeTest, ClassMemberCallbackServiceWithoutInput)
 {
   MyTestClass client;
   client.TestServiceCallWithoutInput();
+}
+
+//////////////////////////////////////////////////
+/// \brief Make an asynchronous service call, and then, advertise the service.
+TEST(NodeTest, ClassMemberRequestServiceBeforeAdvertise)
+{
+  MyTestClass client;
+  client.TestServiceCallRequestingBeforeAdvertising();
 }
 
 //////////////////////////////////////////////////
