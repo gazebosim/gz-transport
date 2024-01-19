@@ -260,8 +260,58 @@ extern "C" void cmdServiceReq(const char *_service,
     else
       std::cout << "Service call failed" << std::endl;
   }
-  else
+  else if (_timeout > 100)
     std::cerr << "Service call timed out" << std::endl;
+}
+
+//////////////////////////////////////////////////
+extern "C" void cmdServiceReqOneway(const char *_service, const char *_reqType,
+  const char *_reqData)
+{
+  if (!_service)
+  {
+    std::cerr << "Service name is null\n";
+    return;
+  }
+
+  if (!_reqType)
+  {
+    std::cerr << "Request type is null\n";
+    return;
+  }
+
+  if (!_reqData)
+  {
+    std::cerr << "Request data is null\n";
+    return;
+  }
+
+  // Create the request, and populate the field with _reqData
+  auto req = msgs::Factory::New(_reqType, _reqData);
+  if (!req)
+  {
+    std::cerr << "Unable to create request of type[" << _reqType << "] "
+              << "with data[" << _reqData << "].\n";
+    return;
+  }
+
+  // Create the response.
+  auto rep = msgs::Factory::New("gz.msgs.Empty");
+  if (!rep)
+  {
+    std::cerr << "Unable to create response of type[gz.msgs.Empty].\n";
+    return;
+  }
+
+  // Create the node.
+  Node node;
+  bool result;
+  int timeout = 1000;
+
+  // Request the service.
+  bool executed = node.Request(_service, *req, timeout, *rep, result);
+  if (!executed && timeout > 1000)
+    std::cerr << "Service call failed" << std::endl;
 }
 
 //////////////////////////////////////////////////

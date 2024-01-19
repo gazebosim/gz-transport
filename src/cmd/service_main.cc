@@ -30,6 +30,7 @@ enum class ServiceCommand
   kServiceList,
   kServiceInfo,
   kServiceReq,
+  kServiceReqOneway,
 };
 
 //////////////////////////////////////////////////
@@ -71,6 +72,10 @@ void runServiceCommand(const ServiceOptions &_opt)
       cmdServiceReq(_opt.service.c_str(),
           _opt.reqType.c_str(), _opt.repType.c_str(),
           _opt.timeout, _opt.reqData.c_str());
+      break;
+    case ServiceCommand::kServiceReqOneway:
+      cmdServiceReqOneway(_opt.service.c_str(),
+          _opt.reqType.c_str(), _opt.reqData.c_str());
       break;
     case ServiceCommand::kNone:
     default:
@@ -126,6 +131,22 @@ the same used by Protobuf DebugString(). E.g.:
     ->needs(reqTypeOpt)
     ->needs(repTypeOpt)
     ->needs(timeoutOpt);
+
+  command->add_option_function<std::string>("-o,--req-oneway",
+      [opt](const std::string &_reqData){
+        opt->command = ServiceCommand::kServiceReqOneway;
+        opt->reqData = _reqData;
+      },
+R"(Request a service.
+TEXT is the input data.
+The format expected is
+the same used by Protobuf DebugString(). E.g.:
+  gz service -s /echo \
+    --reqtype gz.msgs.StringMsg \
+    --req-oneway 'data: "Hello"'
+)")
+    ->needs(serviceOpt)
+    ->needs(reqTypeOpt);
 
   _app.callback([opt](){runServiceCommand(*opt); });
 }
