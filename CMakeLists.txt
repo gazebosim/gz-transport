@@ -53,6 +53,24 @@ endif()
 message(STATUS "\n\n-- ====== Finding Dependencies ======")
 
 #--------------------------------------
+# Python interfaces
+if (SKIP_PYBIND11)
+  message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
+else()
+  set(PYBIND11_PYTHON_VERSION 3)
+  find_package(pybind11 2.4 QUIET)
+
+  if (${pybind11_FOUND})
+    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+    find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
+  else()
+    GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+    message (STATUS "Searching for pybind11 - not found.")
+  endif()
+endif()
+
+
+#--------------------------------------
 # Find Protobuf
 gz_find_package(GzProtobuf
                 REQUIRED
@@ -131,24 +149,6 @@ gz_find_package(SQLite3
 #============================================================================
 # Configure the build
 #============================================================================
-
-########################################
-# Python interfaces
-if (SKIP_PYBIND11)
-  message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
-else()
-  set(PYBIND11_PYTHON_VERSION 3)
-  find_package(pybind11 2.4 QUIET)
-
-  if (${pybind11_FOUND})
-    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-    find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
-  else()
-    GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-    message (STATUS "Searching for pybind11 - not found.")
-  endif()
-endif()
-
 gz_configure_build(QUIT_IF_BUILD_ERRORS
   COMPONENTS log parameters)
 
