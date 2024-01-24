@@ -22,7 +22,6 @@ option(SKIP_PYBIND11
 
 # Python interfaces vars
 include(CMakeDependentOption)
-include(GzPython)
 cmake_dependent_option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
       "Install python modules in standard system paths in the system"
       OFF "NOT SKIP_PYBIND11" OFF)
@@ -135,25 +134,18 @@ gz_find_package(SQLite3
 
 ########################################
 # Python interfaces
-if (NOT PYTHON3_FOUND)
-  GZ_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
-  message (STATUS "Searching for Python - not found.")
+if (SKIP_PYBIND11)
+  message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
 else()
-  message (STATUS "Searching for Python - found version ${Python3_VERSION}.")
+  set(PYBIND11_PYTHON_VERSION 3)
+  find_package(pybind11 2.4 QUIET)
 
-  if (SKIP_PYBIND11)
-    message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
+  if (${pybind11_FOUND})
+    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+    find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
   else()
-    set(PYBIND11_PYTHON_VERSION 3)
-    find_package(pybind11 2.4 QUIET)
-
-    if (${pybind11_FOUND})
-      find_package(Python3 ${GZ_PYTHON_VERSION} REQUIRED COMPONENTS Development)
-      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-    else()
-      GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-      message (STATUS "Searching for pybind11 - not found.")
-    endif()
+    GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+    message (STATUS "Searching for pybind11 - not found.")
   endif()
 endif()
 
