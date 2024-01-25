@@ -26,21 +26,20 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "gtest/gtest.h"
+
 #include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 
-static constexpr const char * kTwoProcsSrvCallWithoutInputReplierIncExe =
-  TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_INC_EXE;
-
 //////////////////////////////////////////////////
 TEST(twoProcSrvCallWithoutInput, ThousandCalls)
 {
   auto pi = gz::utils::Subprocess(
-      {kTwoProcsSrvCallWithoutInputReplierIncExe, g_partition});
+      {test_executables::kTwoProcsSrvCallWithoutInputReplierInc, g_partition});
 
   msgs::Int32 response;
   bool result;

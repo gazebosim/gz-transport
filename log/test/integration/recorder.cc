@@ -28,7 +28,7 @@
 #include <gz/utils/Environment.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
-#include "test_config.hh"
+#include "test_utils.hh"
 
 #include "ChirpParams.hh"
 

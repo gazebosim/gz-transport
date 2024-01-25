@@ -17,14 +17,7 @@
 
 #include <chrono>
 #include <string>
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
 #include <gz/msgs/int32.pb.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
@@ -34,14 +27,12 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 
 static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
-
-static constexpr const char * kAuthPubSubSubscriberInvalid =
-  AUTH_PUB_SUB_SUBSCRIBER_INVALID_EXE;
 
 //////////////////////////////////////////////////
 TEST(authPubSub, InvalidAuth)
@@ -58,7 +49,8 @@ TEST(authPubSub, InvalidAuth)
   EXPECT_FALSE(pub.HasConnections());
 
   auto pi = gz::utils::Subprocess(
-      {kAuthPubSubSubscriberInvalid, partition, "bad", "invalid"});
+      {test_executables::kAuthPubSubSubscriberInvalid,
+      partition, "bad", "invalid"});
 
   msgs::Int32 msg;
   msg.set_data(1);

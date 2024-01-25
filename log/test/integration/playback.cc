@@ -27,7 +27,8 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "ChirpParams.hh"
-#include "test_config.hh"
+
+#include "test_utils.hh"
 
 static std::string partition;
 

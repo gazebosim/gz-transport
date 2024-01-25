@@ -57,15 +57,15 @@ foreach(test ${test_list})
     "TWO_PROCS_SRV_CALL_REPLIER_EXE=\"$<TARGET_FILE:twoProcsSrvCallReplier_aux>\""
     "GZ_EXE=\"${HAVE_GZ_TOOLS}\""
     )
-
 endforeach()
 
 if (TARGET UNIT_gz_TEST)
+
   set_tests_properties(
     UNIT_gz_TEST
     PROPERTIES
     ENVIRONMENT
-      "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>"
+      "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>;LD_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\":${LD_LIBRARY_PATH}"
   )
 endif()
 

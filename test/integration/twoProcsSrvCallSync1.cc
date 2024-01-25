@@ -26,16 +26,15 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "gtest/gtest.h"
+
 #include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 
 static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int data = 5;
-
-static constexpr const char * kTwoProcsSrvCallReplierExe =
-  TWO_PROCS_SRV_CALL_REPLIER_EXE;
 
 //////////////////////////////////////////////////
 /// \brief This test spawns a service responser and a service requester. The
@@ -44,7 +43,8 @@ static constexpr const char * kTwoProcsSrvCallReplierExe =
 /// the timeout.
 TEST(twoProcSrvCallSync1, SrvTwoProcs)
 {
-  auto pi = gz::utils::Subprocess({kTwoProcsSrvCallReplierExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_executables::kTwoProcsSrvCallReplier, partition});
 
   int64_t timeout = 500;
   msgs::Int32 req;

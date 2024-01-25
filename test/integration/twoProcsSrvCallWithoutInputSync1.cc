@@ -26,15 +26,14 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "gtest/gtest.h"
+
 #include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
-
-static constexpr const char * kTwoProcsSrvCallWithoutInputReplierExe =
-  TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_EXE;
 
 //////////////////////////////////////////////////
 /// \brief This test spawns a service that doesn't accept input parameters. The
@@ -44,7 +43,7 @@ static constexpr const char * kTwoProcsSrvCallWithoutInputReplierExe =
 TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 {
   auto pi = gz::utils::Subprocess(
-      {kTwoProcsSrvCallWithoutInputReplierExe, g_partition});
+      {test_executables::kTwoProcsSrvCallWithoutInputReplier, g_partition});
 
   int64_t timeout = 500;
   msgs::Int32 rep;

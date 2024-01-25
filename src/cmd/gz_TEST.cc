@@ -31,20 +31,12 @@
 #include "gz/transport/Node.hh"
 
 #include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topicCBStr; // NOLINT(*)
-
-namespace
-{
-constexpr const char * kGzExe = GZ_EXE;
-constexpr const char * kTwoProcsPublisherExe = TWO_PROCS_PUBLISHER_EXE;
-constexpr const char * kTwoProcsSrvCallReplierExe =
-  TWO_PROCS_SRV_CALL_REPLIER_EXE;
-constexpr const char * kGzVersion = GZ_VERSION_FULL;
-}  // namespace
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
@@ -72,7 +64,7 @@ struct ProcessOutput
 //////////////////////////////////////////////////
 ProcessOutput custom_exec_str(const std::vector<std::string> &_args)
 {
-  auto fullArgs = std::vector<std::string>{kGzExe};
+  auto fullArgs = std::vector<std::string>{test_executables::kGzExe};
   std::copy(std::begin(_args), std::end(_args), std::back_inserter(fullArgs));
   fullArgs.emplace_back("--force-version");
   fullArgs.emplace_back(kGzVersion);
@@ -104,7 +96,8 @@ exec_with_retry(const std::vector<std::string> &_args,
 /// \brief Check 'gz topic -l' running the advertiser on a different process.
 TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
-  auto proc = gz::utils::Subprocess({kTwoProcsPublisherExe, g_partition});
+  auto proc = gz::utils::Subprocess({
+    test_executables::kTwoProcsPublisher, g_partition});
 
   auto output = exec_with_retry({"topic", "-l"},
     [](auto procOut){
@@ -119,7 +112,8 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 TEST(gzTest, TopicInfo)
 {
   // Launch a new publisher process that advertises a topic.
-  auto proc = gz::utils::Subprocess({kTwoProcsPublisherExe, g_partition});
+  auto proc = gz::utils::Subprocess({
+    test_executables::kTwoProcsPublisher, g_partition});
 
   auto output = exec_with_retry({"topic", "-t", "/foo", "-i"},
     [](auto procOut){
@@ -139,7 +133,8 @@ TEST(gzTest, TopicInfo)
 TEST(gzTest, ServiceList)
 {
   // Launch a new responser process that advertises a service.
-  auto proc = gz::utils::Subprocess({kTwoProcsSrvCallReplierExe, g_partition});
+  auto proc = gz::utils::Subprocess({
+    test_executables::kTwoProcsSrvCallReplier, g_partition});
 
   auto output = exec_with_retry({"service", "-l"},
     [](auto procOut){
@@ -154,7 +149,8 @@ TEST(gzTest, ServiceList)
 TEST(gzTest, ServiceInfo)
 {
   // Launch a new responser process that advertises a service.
-  auto proc = gz::utils::Subprocess({kTwoProcsSrvCallReplierExe, g_partition});
+  auto proc = gz::utils::Subprocess(
+    {test_executables::kTwoProcsSrvCallReplier, g_partition});
 
   auto output = exec_with_retry({"service", "-s", "/foo", "-i"},
     [](auto procOut){
@@ -321,7 +317,8 @@ TEST(gzTest, ServiceRequest)
 TEST(gzTest, TopicEcho)
 {
   // Launch a new publisher process that advertises a topic.
-  auto proc = gz::utils::Subprocess({kTwoProcsPublisherExe, g_partition});
+  auto proc = gz::utils::Subprocess(
+    {test_executables::kTwoProcsPublisher, g_partition});
 
   auto output = custom_exec_str(
     {"topic", "-e", "-t", "/foo", "-d", "1.5"});
@@ -337,7 +334,8 @@ TEST(gzTest, TopicEcho)
 TEST(gzTest, TopicEchoNum)
 {
   // Launch a new publisher process that advertises a topic.
-  auto proc = gz::utils::Subprocess({kTwoProcsPublisherExe, g_partition});
+  auto proc = gz::utils::Subprocess(
+    {test_executables::kTwoProcsPublisher, g_partition});
 
   auto output = custom_exec_str(
     {"topic", "-e", "-t", "/foo", "-n", "2"});
@@ -372,15 +370,6 @@ int main(int argc, char **argv)
 
   // Set the partition name for this process.
   gz::utils::setenv("GZ_PARTITION", g_partition);
-
-  // Make sure that we load the library recently built and not the one installed
-  // in your system.
-  // Save the current value of LD_LIBRARY_PATH.
-  std::string value;
-  gz::utils::env("LD_LIBRARY_PATH", value);
-  // Add the directory where Gazebo Transport has been built.
-  value = std::string(GZ_TEST_LIBRARY_PATH) + ":" + value;
-  gz::utils::setenv("LD_LIBRARY_PATH", value);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

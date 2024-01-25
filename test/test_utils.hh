@@ -40,4 +40,3 @@ namespace testing
 }  // namespace testing
 
 #endif  // GZ_TRANSPORT_TEST_UTILS_HH_
-

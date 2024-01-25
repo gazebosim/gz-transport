@@ -26,7 +26,9 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "gtest/gtest.h"
+
 #include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 
@@ -34,16 +36,14 @@ static std::string partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int data = 5;
 
-static constexpr const char* kScopedTopicSubscriberExe =
-  SCOPED_TOPIC_SUBSCRIBER_EXE;
-
 //////////////////////////////////////////////////
 /// \brief Two different nodes, each one running in a different process. The
 /// publisher advertises the topic as "process". This test checks that the topic
 /// is not seen by the other node running in a different process.
 TEST(ScopedTopicTest, ProcessTest)
 {
-  auto pi = gz::utils::Subprocess({kScopedTopicSubscriberExe, partition});
+  auto pi = gz::utils::Subprocess(
+    {test_executables::kScopedTopicSubscriber, partition});
 
   msgs::Int32 msg;
   msg.set_data(data);

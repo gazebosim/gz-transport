@@ -31,6 +31,7 @@
 
 #include "gtest/gtest.h"
 #include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 
@@ -40,9 +41,6 @@ static bool wrongResponseExecuted;
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int data = 5;
 static int counter = 0;
-
-static constexpr const char *kTwoProcsSrvCallReplierExe =
-  TWO_PROCS_SRV_CALL_REPLIER_EXE;
 
 //////////////////////////////////////////////////
 class twoProcSrvCall: public testing::Test {
@@ -58,7 +56,7 @@ class twoProcSrvCall: public testing::Test {
 
     this->pi = std::make_unique<gz::utils::Subprocess>(
       std::vector<std::string>({
-        kTwoProcsSrvCallReplierExe, this->partition}));
+        test_executables::kTwoProcsSrvCallReplier, this->partition}));
   }
 
   void TearDown() override {
