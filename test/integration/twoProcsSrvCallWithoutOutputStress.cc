@@ -39,7 +39,8 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 //////////////////////////////////////////////////
 TEST_F(twoProcSrvCallWithoutOuput, ThousandCalls)
 {
-  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutOutputReplierInc});
+  this->SpawnSubprocess({
+    test_executables::kTwoProcsSrvCallWithoutOutputReplierInc});
 
   msgs::Int32 req;
   transport::Node node;

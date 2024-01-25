@@ -78,7 +78,8 @@ void wrongResponse(const msgs::Vector3d &/*_rep*/, bool /*_result*/)
 /// calls.
 TEST_F(twoProcSrvCallWithoutInput, SrvTwoProcs)
 {
-  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutInputReplier});
+  this->SpawnSubprocess({
+    test_executables::kTwoProcsSrvCallWithoutInputReplier});
   reset();
 
   transport::Node node;
@@ -120,7 +121,8 @@ TEST_F(twoProcSrvCallWithoutInput, SrvTwoProcs)
 /// should verify that the service call does not succeed.
 TEST_F(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 {
-  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutInputReplier});
+  this->SpawnSubprocess({
+    test_executables::kTwoProcsSrvCallWithoutInputReplier});
   msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
@@ -147,7 +149,8 @@ TEST_F(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 /// are used.
 TEST_F(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
 {
-  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutInputReplier});
+  this->SpawnSubprocess({
+    test_executables::kTwoProcsSrvCallWithoutInputReplier});
   msgs::Int32 goodRep;
   msgs::Vector3d badRep;
   bool result;
@@ -182,7 +185,8 @@ TEST_F(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
 /// getting the list of available services.
 TEST_F(twoProcSrvCallWithoutInput, ServiceList)
 {
-  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutInputReplier});
+  this->SpawnSubprocess({
+    test_executables::kTwoProcsSrvCallWithoutInputReplier});
   reset();
 
   transport::Node node;
@@ -225,7 +229,8 @@ TEST_F(twoProcSrvCallWithoutInput, ServiceList)
 /// getting information about the service.
 TEST_F(twoProcSrvCallWithoutInput, ServiceInfo)
 {
-  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutInputReplier});
+  this->SpawnSubprocess({
+    test_executables::kTwoProcsSrvCallWithoutInputReplier});
   reset();
 
   transport::Node node;

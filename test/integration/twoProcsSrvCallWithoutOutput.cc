@@ -58,7 +58,8 @@ void reset()
 /// verify that the service call does not succeed.
 TEST_F(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 {
-  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutOutputReplier});
+  this->SpawnSubprocess({
+    test_executables::kTwoProcsSrvCallWithoutOutputReplier});
   msgs::Vector3d wrongReq;
 
   wrongReq.set_x(1);

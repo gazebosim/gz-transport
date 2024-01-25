@@ -43,7 +43,8 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 /// the timeout.
 TEST_F(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 {
-  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutInputReplier});
+  this->SpawnSubprocess({
+    test_executables::kTwoProcsSrvCallWithoutInputReplier});
 
   int64_t timeout = 500;
   msgs::Int32 rep;
