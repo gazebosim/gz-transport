@@ -25,7 +25,6 @@
 #include <gz/utils/Environment.hh>
 
 #include "gtest/gtest.h"
-#include "test_config.hh"
 
 using namespace gz;
 
@@ -58,15 +57,6 @@ TEST(twoProcSrvCallWithoutOuputReplierAux, SrvProcReplier)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  if (argc != 2)
-  {
-    std::cerr << "Partition name has not be passed as argument" << std::endl;
-    return -1;
-  }
-
-  // Set the partition name for this test.
-  gz::utils::setenv("GZ_PARTITION", argv[1]);
-
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

@@ -30,49 +30,20 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "gtest/gtest.h"
-#include "test_config.hh"
+
 #include "test_utils.hh"
+#include "test_config.hh"
 
 using namespace gz;
+
+using twoProcSrvCallWithoutInput = testing::PartitionedTransportTest;
 
 static bool g_responseExecuted;
 static bool g_wrongResponseExecuted;
 
-static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int g_data = 5;
 static int g_counter = 0;
-
-//////////////////////////////////////////////////
-class twoProcSrvCallWithoutInput: public testing::Test {
- protected:
-  void SetUp() override {
-    gz::utils::env("GZ_PARTITION", this->prevPartition);
-
-    // Get a random partition name.
-    this->partition = testing::getRandomNumber();
-
-    // Set the partition name for this process.
-    gz::utils::setenv("GZ_PARTITION", this->partition);
-
-    this->pi = std::make_unique<gz::utils::Subprocess>(
-      std::vector<std::string>({
-        test_executables::kTwoProcsSrvCallWithoutInputReplier,
-        this->partition}));
-  }
-
-  void TearDown() override {
-    gz::utils::setenv("GZ_PARTITION", this->prevPartition);
-
-    this->pi->Terminate();
-    this->pi->Join();
-  }
-
- private:
-  std::string prevPartition;
-  std::string partition;
-  std::unique_ptr<gz::utils::Subprocess> pi;
-};
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -107,6 +78,7 @@ void wrongResponse(const msgs::Vector3d &/*_rep*/, bool /*_result*/)
 /// calls.
 TEST_F(twoProcSrvCallWithoutInput, SrvTwoProcs)
 {
+  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutInputReplier});
   reset();
 
   transport::Node node;
@@ -148,6 +120,7 @@ TEST_F(twoProcSrvCallWithoutInput, SrvTwoProcs)
 /// should verify that the service call does not succeed.
 TEST_F(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 {
+  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutInputReplier});
   msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
@@ -174,6 +147,7 @@ TEST_F(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 /// are used.
 TEST_F(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
 {
+  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutInputReplier});
   msgs::Int32 goodRep;
   msgs::Vector3d badRep;
   bool result;
@@ -208,6 +182,7 @@ TEST_F(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
 /// getting the list of available services.
 TEST_F(twoProcSrvCallWithoutInput, ServiceList)
 {
+  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutInputReplier});
   reset();
 
   transport::Node node;
@@ -250,6 +225,7 @@ TEST_F(twoProcSrvCallWithoutInput, ServiceList)
 /// getting information about the service.
 TEST_F(twoProcSrvCallWithoutInput, ServiceInfo)
 {
+  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutInputReplier});
   reset();
 
   transport::Node node;

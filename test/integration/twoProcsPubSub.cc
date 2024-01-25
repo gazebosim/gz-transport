@@ -32,7 +32,8 @@
 
 using namespace gz;
 
-static std::string partition;  // NOLINT(*)
+using twoProcPubSub = testing::PartitionedTransportTest;
+
 static std::string g_FQNPartition;  // NOLINT(*)
 static const std::string g_topic = "/foo";  // NOLINT(*)
 static std::string data = "bar";  // NOLINT(*)
@@ -105,7 +106,7 @@ void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
 /// subscriber process there are two nodes. Both should receive the message.
 /// After some time one of them unsubscribe. After that check that only one
 /// node receives the message.
-TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
+TEST_F(twoProcPubSub, PubSubTwoProcsThreeNodes)
 {
   transport::Node node;
   auto pub = node.Advertise<msgs::Vector3d>(g_topic);
@@ -114,8 +115,7 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
   // No subscribers yet.
   EXPECT_FALSE(pub.HasConnections());
 
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsPubSubSubscriber, partition});
+  this->SpawnSubprocess({test_executables::kTwoProcsPubSubSubscriber});
 
   msgs::Vector3d msg;
   msg.set_x(1.0);
@@ -138,7 +138,7 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 //////////////////////////////////////////////////
 /// \brief This is the same as the last test, but we use PublishRaw(~) instead
 /// of Publish(~).
-TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
+TEST_F(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 {
   transport::Node node;
   auto pub = node.Advertise<msgs::Vector3d>(g_topic);
@@ -147,8 +147,7 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
   // No subscribers yet.
   EXPECT_FALSE(pub.HasConnections());
 
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsPubSubSubscriber, partition});
+  this->SpawnSubprocess({test_executables::kTwoProcsPubSubSubscriber});
 
   msgs::Vector3d msg;
   msg.set_x(1.0);
@@ -174,10 +173,9 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 //////////////////////////////////////////////////
 /// \brief Check that a message is not received if the callback does not use
 /// the advertised types.
-TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
+TEST_F(twoProcPubSub, PubSubWrongTypesOnSubscription)
 {
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsPublisher, partition});
+  this->SpawnSubprocess({test_executables::kTwoProcsPublisher});
 
   reset();
 
@@ -195,10 +193,9 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 
 //////////////////////////////////////////////////
 /// \brief Same as above, but using a raw subscription.
-TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
+TEST_F(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 {
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsPublisher, partition});
+  this->SpawnSubprocess({test_executables::kTwoProcsPublisher});
 
   reset();
 
@@ -221,10 +218,9 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 /// advertised type). The second subscriber uses the correct callback. The third
 /// uses a generic callback. Check that only two of the callbacks are executed
 /// (correct and generic).
-TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
+TEST_F(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsPublisher, partition});
+  this->SpawnSubprocess({test_executables::kTwoProcsPublisher});
 
   reset();
 
@@ -254,10 +250,9 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 /// match the advertised type). The second subscriber requests the correct type.
 /// The third accepts the generic (default) type. Check that only two of the
 /// callbacks are executed (correct and generic).
-TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
+TEST_F(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 {
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsPublisher, partition});
+  this->SpawnSubprocess({test_executables::kTwoProcsPublisher});
 
   reset();
 
@@ -311,10 +306,9 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 /// subscribes to a topic and the other advertises, publishes a message and
 /// terminates. This test checks that the subscriber doesn't get affected by
 /// the prompt termination of the publisher.
-TEST(twoProcPubSub, FastPublisher)
+TEST_F(twoProcPubSub, FastPublisher)
 {
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kFastPub, partition});
+  this->SpawnSubprocess({test_executables::kFastPub});
 
   reset();
 
@@ -327,10 +321,9 @@ TEST(twoProcPubSub, FastPublisher)
 /// \brief This test creates one publisher and one subscriber on different
 /// processes. The publisher publishes at higher frequency than the rate set
 /// by the subscriber.
-TEST(twoProcPubSub, SubThrottled)
+TEST_F(twoProcPubSub, SubThrottled)
 {
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kPub, partition});
+  this->SpawnSubprocess({test_executables::kPub});
 
   reset();
 
@@ -353,10 +346,9 @@ TEST(twoProcPubSub, SubThrottled)
 //////////////////////////////////////////////////
 /// \brief This test creates one publisher and one subscriber on different
 /// processes. The publisher publishes at a throttled frequency.
-TEST(twoProcPubSub, PubThrottled)
+TEST_F(twoProcPubSub, PubThrottled)
 {
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kPubThrottled, partition});
+  this->SpawnSubprocess({test_executables::kPubThrottled});
 
   reset();
 
@@ -377,10 +369,9 @@ TEST(twoProcPubSub, PubThrottled)
 //////////////////////////////////////////////////
 /// \brief Check that a message is received after Advertise->Subscribe->Publish
 /// using a callback that accepts message information.
-TEST(twoProcPubSub, PubSubMessageInfo)
+TEST_F(twoProcPubSub, PubSubMessageInfo)
 {
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsPublisher, partition});
+  this->SpawnSubprocess({test_executables::kTwoProcsPublisher});
   reset();
 
   transport::Node node;
@@ -399,10 +390,9 @@ TEST(twoProcPubSub, PubSubMessageInfo)
 /// \brief This test spawns two nodes on different processes. One of the nodes
 /// advertises a topic and the other uses TopicList() for getting the list of
 /// available topics.
-TEST(twoProcPubSub, TopicList)
+TEST_F(twoProcPubSub, TopicList)
 {
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsPublisher, partition});
+  this->SpawnSubprocess({test_executables::kTwoProcsPublisher});
 
   reset();
 
@@ -445,10 +435,9 @@ TEST(twoProcPubSub, TopicList)
 /// \brief This test spawns two nodes on different processes. One of the nodes
 /// advertises a topic and the other uses TopicInfo() for getting information
 /// about the topic.
-TEST(twoProcPubSub, TopicInfo)
+TEST_F(twoProcPubSub, TopicInfo)
 {
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsPublisher, partition});
+  this->SpawnSubprocess({test_executables::kTwoProcsPublisher});
 
   reset();
 
@@ -470,19 +459,4 @@ TEST(twoProcPubSub, TopicInfo)
   EXPECT_EQ(publishers.front().MsgTypeName(), "gz.msgs.Vector3d");
 
   reset();
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Get a random partition name.
-  partition = testing::getRandomNumber();
-  g_FQNPartition = std::string("/") + partition;
-
-  // Set the partition name for this process.
-  gz::utils::setenv("GZ_PARTITION", partition);
-  gz::utils::setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1");
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

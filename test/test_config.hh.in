@@ -26,7 +26,6 @@ constexpr const char* kTransportBashCompletion = TRANSPORT_BASH_COMPLETION_SH;
 
 namespace test_executables
 {
-
 #ifdef GZ_EXE
 constexpr const char * kGzExe  = GZ_EXE;
 #endif  // GZ_EXE

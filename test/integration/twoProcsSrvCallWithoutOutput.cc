@@ -35,43 +35,13 @@
 
 using namespace gz;
 
+using twoProcSrvCallWithoutOutput = testing::PartitionedTransportTest;
+
 static bool g_responseExecuted;
 static bool g_wrongResponseExecuted;
 
-static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int g_counter = 0;
-
-//////////////////////////////////////////////////
-class twoProcSrvCallWithoutOutput: public testing::Test {
- protected:
-  void SetUp() override {
-    gz::utils::env("GZ_PARTITION", this->prevPartition);
-
-    // Get a random partition name.
-    this->partition = testing::getRandomNumber();
-
-    // Set the partition name for this process.
-    gz::utils::setenv("GZ_PARTITION", this->partition);
-
-    this->pi = std::make_unique<gz::utils::Subprocess>(
-      std::vector<std::string>({
-        test_executables::kTwoProcsSrvCallWithoutOutputReplier,
-        this->partition}));
-  }
-
-  void TearDown() override {
-    gz::utils::setenv("GZ_PARTITION", this->prevPartition);
-
-    this->pi->Terminate();
-    this->pi->Join();
-  }
-
- private:
-  std::string prevPartition;
-  std::string partition;
-  std::unique_ptr<gz::utils::Subprocess> pi;
-};
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -88,6 +58,7 @@ void reset()
 /// verify that the service call does not succeed.
 TEST_F(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 {
+  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutOutputReplier});
   msgs::Vector3d wrongReq;
 
   wrongReq.set_x(1);
@@ -112,6 +83,7 @@ TEST_F(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 /// getting the list of available services.
 TEST_F(twoProcSrvCallWithoutOutput, ServiceList)
 {
+  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutOutputReplier});
   reset();
 
   transport::Node node;
@@ -154,6 +126,7 @@ TEST_F(twoProcSrvCallWithoutOutput, ServiceList)
 /// getting information about the service.
 TEST_F(twoProcSrvCallWithoutOutput, ServiceInfo)
 {
+  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutOutputReplier});
   reset();
 
   transport::Node node;

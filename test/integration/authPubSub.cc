@@ -31,11 +31,12 @@
 
 using namespace gz;
 
-static std::string partition; // NOLINT(*)
+using authPubSub = testing::PartitionedTransportTest;
+
 static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
-TEST(authPubSub, InvalidAuth)
+TEST_F(authPubSub, InvalidAuth)
 {
   // Setup the username and password for this test
   ASSERT_TRUE(gz::utils::setenv("GZ_TRANSPORT_USERNAME", "admin"));
@@ -48,9 +49,10 @@ TEST(authPubSub, InvalidAuth)
   // No subscribers yet.
   EXPECT_FALSE(pub.HasConnections());
 
-  auto pi = gz::utils::Subprocess(
-      {test_executables::kAuthPubSubSubscriberInvalid,
-      partition, "bad", "invalid"});
+  this->SpawnSubprocess({test_executables::kAuthPubSubSubscriberInvalid}, {
+    {"GZ_TRANSPORT_USERNAME", "bad"},
+    {"GZ_TRANSPORT_PASSWORD", "invalid"},
+  });
 
   msgs::Int32 msg;
   msg.set_data(1);
@@ -68,17 +70,4 @@ TEST(authPubSub, InvalidAuth)
     EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Get a random partition name.
-  partition = testing::getRandomNumber();
-
-  // Set the partition name for this process.
-  gz::utils::setenv("GZ_PARTITION", partition);
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

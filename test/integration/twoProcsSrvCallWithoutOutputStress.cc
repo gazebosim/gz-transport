@@ -32,14 +32,14 @@
 
 using namespace gz;
 
-static std::string g_partition; // NOLINT(*)
+using twoProcSrvCallWithoutOuput = testing::PartitionedTransportTest;
+
 static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
-TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
+TEST_F(twoProcSrvCallWithoutOuput, ThousandCalls)
 {
-  auto pi = gz::utils::Subprocess(
-      {test_executables::kTwoProcsSrvCallWithoutOutputReplierInc, g_partition});
+  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutOutputReplierInc});
 
   msgs::Int32 req;
   transport::Node node;
@@ -51,17 +51,4 @@ TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
     req.set_data(i);
     ASSERT_TRUE(node.Request(g_topic, req));
   }
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Get a random partition name.
-  g_partition = testing::getRandomNumber();
-
-  // Set the partition name for this process.
-  gz::utils::setenv("GZ_PARTITION", g_partition);
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
