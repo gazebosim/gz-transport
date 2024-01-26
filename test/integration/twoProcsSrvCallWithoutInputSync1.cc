@@ -23,9 +23,12 @@
 #include "gz/transport/Node.hh"
 
 #include <gz/utils/Environment.hh>
+#include <gz/utils/Subprocess.hh>
 
 #include "gtest/gtest.h"
+
 #include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 
@@ -39,12 +42,8 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 /// the timeout.
 TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 {
-  std::string responser_path = testing::portablePathUnion(
-     GZ_TRANSPORT_TEST_DIR,
-     "INTEGRATION_twoProcsSrvCallWithoutInputReplier_aux");
-
-  testing::forkHandlerType pi = testing::forkAndRun(responser_path.c_str(),
-    g_partition.c_str());
+  auto pi = gz::utils::Subprocess(
+      {test_executables::kTwoProcsSrvCallWithoutInputReplier, g_partition});
 
   int64_t timeout = 500;
   msgs::Int32 rep;
@@ -69,9 +68,6 @@ TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
   // Check if the elapsed time was close to the timeout.
   auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
   EXPECT_LT(diff, 200);
-
-  // Wait for the child process to return.
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////

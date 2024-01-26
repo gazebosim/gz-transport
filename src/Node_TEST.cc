@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+#include "gtest/gtest.h"
+
 #include <gz/msgs/int32.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/vector3d.pb.h>
@@ -26,7 +28,6 @@
 #include <string>
 #include <thread>
 
-#include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/Node.hh"
 #include "gz/transport/NodeOptions.hh"
@@ -36,8 +37,7 @@
 
 #include <gz/utils/Environment.hh>
 
-#include "gtest/gtest.h"
-#include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 

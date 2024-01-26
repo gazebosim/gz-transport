@@ -26,17 +26,7 @@ endif()
 
 gz_build_tests(TYPE INTEGRATION SOURCES ${tests}
   TEST_LIST test_list
-  LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
-
-foreach(test ${test_list})
-
-  # Inform each test of its output directory so it knows where to call the
-  # auxiliary files from. Using a generator expression here is useful for
-  # multi-configuration generators, like Visual Studio.
-  target_compile_definitions(${test} PRIVATE
-    "DETAIL_GZ_TRANSPORT_TEST_DIR=\"$<TARGET_FILE_DIR:${test}>\"")
-
-endforeach()
+  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config)
 
 set(auxiliary_files
   authPubSubSubscriberInvalid_aux
@@ -56,20 +46,14 @@ set(auxiliary_files
 
 # Build the auxiliary files.
 foreach(AUX_EXECUTABLE ${auxiliary_files})
-  gz_add_executable(INTEGRATION_${AUX_EXECUTABLE} ${AUX_EXECUTABLE}.cc)
+  gz_add_executable(${AUX_EXECUTABLE} test_executables/${AUX_EXECUTABLE}.cc)
 
   # Link the libraries that we always need.
-  target_link_libraries(INTEGRATION_${AUX_EXECUTABLE}
+  target_link_libraries(${AUX_EXECUTABLE}
     PRIVATE
       ${PROJECT_LIBRARY_TARGET_NAME}
       gtest
       ${EXTRA_TEST_LIB_DEPS}
+      test_config
   )
-
-  if(UNIX)
-    # pthread is only available on Unix machines
-    target_link_libraries(INTEGRATION_${AUX_EXECUTABLE}
-      PRIVATE pthread)
-  endif()
-
 endforeach(AUX_EXECUTABLE)
