@@ -152,7 +152,6 @@ TEST(twoProcPubSub, PubSubTwoProcsTwoNodesSubscriber)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  gz::utils::setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1");
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
