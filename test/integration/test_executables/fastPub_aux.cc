@@ -16,20 +16,11 @@
 */
 #include <chrono>
 #include <string>
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
 #include <gz/msgs/vector3d.pb.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #include "gz/transport/Node.hh"
 
 #include <gz/utils/Environment.hh>
-
-#include "test_config.hh"
 
 using namespace gz;
 
@@ -52,16 +43,7 @@ void advertiseAndPublish()
 }
 
 //////////////////////////////////////////////////
-int main(int argc, char **argv)
+int main(int, char **)
 {
-  if (argc != 2)
-  {
-    std::cerr << "Partition name has not be passed as argument" << std::endl;
-    return -1;
-  }
-
-  // Set the partition name for this test.
-  gz::utils::setenv("GZ_PARTITION", argv[1]);
-
   advertiseAndPublish();
 }

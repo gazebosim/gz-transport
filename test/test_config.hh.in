@@ -22,7 +22,6 @@ constexpr const char * kGzVersion = "@PROJECT_VERSION_FULL@";
 
 namespace test_executables
 {
-
 #ifdef GZ_EXE
 constexpr const char * kGzExe  = GZ_EXE;
 #endif  // GZ_EXE

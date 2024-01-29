@@ -24,7 +24,6 @@
 #include <gz/utils/Environment.hh>
 
 #include "gtest/gtest.h"
-#include "test_config.hh"
 
 using namespace gz;
 
@@ -43,20 +42,11 @@ void runReplier()
 {
   transport::Node node;
   EXPECT_TRUE(node.Advertise(g_topic, srvWithoutOutput));
-  std::this_thread::sleep_for(std::chrono::milliseconds(6000));
+  std::this_thread::sleep_for(std::chrono::seconds(30));
 }
 
 //////////////////////////////////////////////////
-int main(int argc, char **argv)
+int main(int, char **)
 {
-  if (argc != 2)
-  {
-    std::cerr << "Partition name has not be passed as argument" << std::endl;
-    return -1;
-  }
-
-  // Set the partition name for this test.
-  gz::utils::setenv("GZ_PARTITION", argv[1]);
-
   runReplier();
 }

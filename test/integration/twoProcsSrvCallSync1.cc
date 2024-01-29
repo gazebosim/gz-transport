@@ -32,7 +32,8 @@
 
 using namespace gz;
 
-static std::string partition; // NOLINT(*)
+using twoProcSrvCallSync1 = testing::PartitionedTransportTest;
+
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int data = 5;
 
@@ -41,10 +42,9 @@ static int data = 5;
 /// synchronous requester uses a wrong service's name. The test should verify
 /// that the service call does not succeed and the elapsed time was close to
 /// the timeout.
-TEST(twoProcSrvCallSync1, SrvTwoProcs)
+TEST_F(twoProcSrvCallSync1, SrvTwoProcs)
 {
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsSrvCallReplier, partition});
+  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallReplier});
 
   int64_t timeout = 500;
   msgs::Int32 req;
@@ -73,20 +73,4 @@ TEST(twoProcSrvCallSync1, SrvTwoProcs)
   // Check if the elapsed time was close to the timeout.
   auto diff = std::max(elapsed, timeout) - std::min(elapsed, timeout);
   EXPECT_LT(diff, 200);
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Get a random partition name.
-  partition = testing::getRandomNumber();
-
-  // Set the partition name for this process.
-  gz::utils::setenv("GZ_PARTITION", partition);
-
-  // Enable verbose mode.
-  gz::utils::setenv("GZ_VERBOSE", "1");
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

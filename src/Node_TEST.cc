@@ -38,7 +38,7 @@
 
 using namespace gz;
 
-static std::string partition; // NOLINT(*)
+static std::string g_partition; // NOLINT(*)
 static std::string g_FQNPartition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 static std::string g_topic_remap = "/bar"; // NOLINT(*)
@@ -56,6 +56,19 @@ static bool responseExecuted;
 static bool wrongResponseExecuted;
 static int counter = 0;
 static bool terminatePub = false;
+
+/// Create a GZ_PARTITION to run each test in to prevent cross talk.
+/// Additionally set the global partition and FQN partition variables
+/// to be used in the free callback functions.
+class NodeTest : public testing::PartitionedTransportTest
+{
+  protected: void SetUp() override {
+    testing::PartitionedTransportTest::SetUp();
+    gz::utils::setenv("GZ_TOPIC_STATISTICS", "1");
+    g_partition = this->Partition();
+    g_FQNPartition = "/" + this->Partition();
+  }
+};
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -502,7 +515,7 @@ void CreatePubSubTwoThreads(
 
 //////////////////////////////////////////////////
 /// \brief Test the bool operator of the Node::Publisher class
-TEST(NodePubTest, BoolOperatorTest)
+TEST_F(NodeTest, BoolOperatorTest)
 {
   transport::Node node;
   transport::Node node2;
@@ -519,9 +532,12 @@ TEST(NodePubTest, BoolOperatorTest)
 
 //////////////////////////////////////////////////
 /// \brief A message should not be published if it is not advertised before.
-TEST(NodeTest, PubWithoutAdvertise)
+TEST_F(NodeTest, PubWithoutAdvertise)
 {
   reset();
+
+  g_partition = this->Partition();
+  g_FQNPartition = "/" + this->Partition();
 
   msgs::Int32 msg;
   msg.set_data(data);
@@ -530,9 +546,9 @@ TEST(NodeTest, PubWithoutAdvertise)
   // empty namespace.
   transport::NodeOptions optionsNode1;
   transport::NodeOptions optionsNode2;
-  optionsNode1.SetPartition(partition);
+  optionsNode1.SetPartition(g_partition);
   optionsNode1.SetNameSpace("invalid namespace");
-  optionsNode2.SetPartition(partition);
+  optionsNode2.SetPartition(g_partition);
   transport::Node node1(optionsNode1);
   transport::Node node2(optionsNode2);
 
@@ -581,7 +597,7 @@ TEST(NodeTest, PubWithoutAdvertise)
 
 //////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
-TEST(NodeTest, PubSubSameThread)
+TEST_F(NodeTest, PubSubSameThread)
 {
   reset();
 
@@ -629,7 +645,7 @@ TEST(NodeTest, PubSubSameThread)
 
 //////////////////////////////////////////////////
 /// \brief A thread can create a node, and send and receive messages.
-TEST(NodeTest, PubSubSameThreadGenericCb)
+TEST_F(NodeTest, PubSubSameThreadGenericCb)
 {
   reset();
 
@@ -673,7 +689,7 @@ TEST(NodeTest, PubSubSameThreadGenericCb)
 /// \brief A thread can create a node, and send and receive messages.
 /// This test uses a callback that accepts a parameter with the message
 /// information.
-TEST(NodeTest, PubSubSameThreadMessageInfo)
+TEST_F(NodeTest, PubSubSameThreadMessageInfo)
 {
   reset();
 
@@ -713,7 +729,7 @@ TEST(NodeTest, PubSubSameThreadMessageInfo)
 }
 
 //////////////////////////////////////////////////
-TEST(NodeTest, RawPubSubSameThreadMessageInfo)
+TEST_F(NodeTest, RawPubSubSameThreadMessageInfo)
 {
   reset();
 
@@ -753,7 +769,7 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
 }
 
 //////////////////////////////////////////////////
-TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
+TEST_F(NodeTest, RawPubRawSubSameThreadMessageInfo)
 {
   reset();
 
@@ -793,7 +809,7 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
 }
 
 //////////////////////////////////////////////////
-TEST(NodeTest, PubRawSubSameThreadMessageInfo)
+TEST_F(NodeTest, PubRawSubSameThreadMessageInfo)
 {
   reset();
 
@@ -834,7 +850,7 @@ TEST(NodeTest, PubRawSubSameThreadMessageInfo)
 
 //////////////////////////////////////////////////
 /// \brief Subscribe to a topic using a lambda function.
-TEST(NodeTest, PubSubSameThreadLambda)
+TEST_F(NodeTest, PubSubSameThreadLambda)
 {
   reset();
 
@@ -881,7 +897,7 @@ TEST(NodeTest, PubSubSameThreadLambda)
 /// \brief Subscribe to a topic using a lambda function.
 /// This test uses a callback that accepts a parameter with the message
 /// information.
-TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
+TEST_F(NodeTest, PubSubSameThreadLambdaMessageInfo)
 {
   reset();
 
@@ -927,7 +943,7 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
 //////////////////////////////////////////////////
 /// \brief Advertise two topics with the same name. It's not possible to do it
 /// within the same node but it's valid on separate nodes.
-TEST(NodeTest, AdvertiseTwoEqualTopics)
+TEST_F(NodeTest, AdvertiseTwoEqualTopics)
 {
   transport::Node node1;
   transport::Node node2;
@@ -943,7 +959,7 @@ TEST(NodeTest, AdvertiseTwoEqualTopics)
 //////////////////////////////////////////////////
 /// \brief Use two threads using their own transport nodes. One thread
 /// will publish a message, whereas the other thread is subscribed to the topic.
-TEST(NodeTest, PubSubTwoThreadsSameTopic)
+TEST_F(NodeTest, PubSubTwoThreadsSameTopic)
 {
   transport::NodeOptions options;
   CreatePubSubTwoThreads(options);
@@ -952,7 +968,7 @@ TEST(NodeTest, PubSubTwoThreadsSameTopic)
 //////////////////////////////////////////////////
 /// \brief Check that two nodes in different threads are able to communicate
 /// advertising a topic with "Process" scope.
-TEST(NodeTest, ScopeProcess)
+TEST_F(NodeTest, ScopeProcess)
 {
   transport::NodeOptions options;
   CreatePubSubTwoThreads(options, transport::Scope_t::PROCESS);
@@ -961,7 +977,7 @@ TEST(NodeTest, ScopeProcess)
 //////////////////////////////////////////////////
 /// \brief Check that two nodes in different threads are able to communicate
 /// advertising a topic with "Host" scope.
-TEST(NodeTest, ScopeHost)
+TEST_F(NodeTest, ScopeHost)
 {
   transport::NodeOptions options;
   CreatePubSubTwoThreads(options, transport::Scope_t::HOST);
@@ -970,7 +986,7 @@ TEST(NodeTest, ScopeHost)
 //////////////////////////////////////////////////
 /// \brief Check that two nodes in different threads are able to communicate
 /// advertising a topic with "All" scope.
-TEST(NodeTest, ScopeAll)
+TEST_F(NodeTest, ScopeAll)
 {
   transport::NodeOptions options;
   CreatePubSubTwoThreads(options, transport::Scope_t::ALL);
@@ -980,7 +996,7 @@ TEST(NodeTest, ScopeAll)
 /// \brief Use two threads using their own transport nodes. One thread
 /// will publish a message, whereas the other thread is subscribed to the topic.
 /// Topic remapping is enabled.
-TEST(NodeTest, PubSubTwoThreadsSameTopicRemap)
+TEST_F(NodeTest, PubSubTwoThreadsSameTopicRemap)
 {
   transport::NodeOptions options;
   options.AddTopicRemap(g_topic, g_topic_remap);
@@ -991,7 +1007,7 @@ TEST(NodeTest, PubSubTwoThreadsSameTopicRemap)
 /// \brief Check that two nodes in different threads are able to communicate
 /// advertising a topic with "Process" scope.
 /// Topic remapping is enabled.
-TEST(NodeTest, ScopeProcessRemap)
+TEST_F(NodeTest, ScopeProcessRemap)
 {
   transport::NodeOptions options;
   options.AddTopicRemap(g_topic, g_topic_remap);
@@ -1002,7 +1018,7 @@ TEST(NodeTest, ScopeProcessRemap)
 /// \brief Check that two nodes in different threads are able to communicate
 /// advertising a topic with "Host" scope.
 /// Topic remapping is enabled.
-TEST(NodeTest, ScopeHostRemap)
+TEST_F(NodeTest, ScopeHostRemap)
 {
   transport::NodeOptions options;
   options.AddTopicRemap(g_topic, g_topic_remap);
@@ -1013,7 +1029,7 @@ TEST(NodeTest, ScopeHostRemap)
 /// \brief Check that two nodes in different threads are able to communicate
 /// advertising a topic with "All" scope.
 /// Topic remapping is enabled.
-TEST(NodeTest, ScopeAllRemap)
+TEST_F(NodeTest, ScopeAllRemap)
 {
   transport::NodeOptions options;
   options.AddTopicRemap(g_topic, g_topic_remap);
@@ -1024,7 +1040,7 @@ TEST(NodeTest, ScopeAllRemap)
 /// \brief Use two different transport nodes on the same thread. Check that
 /// both receive the updates when they are subscribed to the same topic. Check
 /// also that when one of the nodes unsubscribes, no longer receives updates.
-TEST(NodeTest, PubSubOneThreadTwoSubs)
+TEST_F(NodeTest, PubSubOneThreadTwoSubs)
 {
   reset();
 
@@ -1100,7 +1116,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
 //////////////////////////////////////////////////
 /// \brief Use the transport inside a class and check advertise, subscribe and
 /// publish.
-TEST(NodeTest, ClassMemberCallbackMessage)
+TEST_F(NodeTest, ClassMemberCallbackMessage)
 {
   MyTestClass client;
   client.Subscribe();
@@ -1118,7 +1134,7 @@ TEST(NodeTest, ClassMemberCallbackMessage)
 //////////////////////////////////////////////////
 /// \brief Use the transport inside a class and check advertise, subscribe and
 /// publish. This test uses a callback that accepts message information.
-TEST(NodeTest, ClassMemberCallbackMessageInfo)
+TEST_F(NodeTest, ClassMemberCallbackMessageInfo)
 {
   MyTestClass client;
   client.SubscribeWithMessageInfo();
@@ -1136,7 +1152,7 @@ TEST(NodeTest, ClassMemberCallbackMessageInfo)
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous and synchronous service calls using member
 /// function.
-TEST(NodeTest, ClassMemberCallbackService)
+TEST_F(NodeTest, ClassMemberCallbackService)
 {
   MyTestClass client;
   client.TestServiceCall();
@@ -1145,7 +1161,7 @@ TEST(NodeTest, ClassMemberCallbackService)
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous and synchronous service calls without input
 /// using member function.
-TEST(NodeTest, ClassMemberCallbackServiceWithoutInput)
+TEST_F(NodeTest, ClassMemberCallbackServiceWithoutInput)
 {
   MyTestClass client;
   client.TestServiceCallWithoutInput();
@@ -1153,7 +1169,7 @@ TEST(NodeTest, ClassMemberCallbackServiceWithoutInput)
 
 //////////////////////////////////////////////////
 /// \brief Check that the types advertised and published match.
-TEST(NodeTest, TypeMismatch)
+TEST_F(NodeTest, TypeMismatch)
 {
   reset();
 
@@ -1177,7 +1193,7 @@ TEST(NodeTest, TypeMismatch)
 
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous service call using free function.
-TEST(NodeTest, ServiceCallAsync)
+TEST_F(NodeTest, ServiceCallAsync)
 {
   reset();
 
@@ -1241,7 +1257,7 @@ TEST(NodeTest, ServiceCallAsync)
 
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous service call without input using free function.
-TEST(NodeTest, ServiceCallWithoutInputAsync)
+TEST_F(NodeTest, ServiceCallWithoutInputAsync)
 {
   reset();
 
@@ -1303,7 +1319,7 @@ TEST(NodeTest, ServiceCallWithoutInputAsync)
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous service call without waiting for a response
 /// \using free function.
-TEST(NodeTest, ServiceWithoutOutputCallAsync)
+TEST_F(NodeTest, ServiceWithoutOutputCallAsync)
 {
   reset();
 
@@ -1346,7 +1362,7 @@ TEST(NodeTest, ServiceWithoutOutputCallAsync)
 
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous service call using lambdas.
-TEST(NodeTest, ServiceCallAsyncLambda)
+TEST_F(NodeTest, ServiceCallAsyncLambda)
 {
   reset();
 
@@ -1384,7 +1400,7 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 
 //////////////////////////////////////////////////
 /// \brief Make an asynchronous service call without input using lambdas.
-TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
+TEST_F(NodeTest, ServiceCallWithoutInputAsyncLambda)
 {
   reset();
 
@@ -1417,7 +1433,7 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 //////////////////////////////////////////////////
 /// \Make an asynchronous service call without waiting for response using
 /// \lambdas.
-TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
+TEST_F(NodeTest, ServiceCallWithoutOutputAsyncLambda)
 {
   bool executed = false;
 
@@ -1440,7 +1456,7 @@ TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
 
 //////////////////////////////////////////////////
 /// \brief Request multiple service calls at the same time.
-TEST(NodeTest, MultipleServiceCallAsync)
+TEST_F(NodeTest, MultipleServiceCallAsync)
 {
   reset();
 
@@ -1500,7 +1516,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
 
 //////////////////////////////////////////////////
 /// \brief Request multiple service calls without input at the same time.
-TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
+TEST_F(NodeTest, MultipleServiceCallWithoutInputAsync)
 {
   reset();
 
@@ -1557,7 +1573,7 @@ TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
 
 /// \brief Request multiple service calls without without waiting for a response
 /// \ at the same time.
-TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
+TEST_F(NodeTest, MultipleServiceWithoutOutputCallAsync)
 {
   reset();
 
@@ -1611,7 +1627,7 @@ TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
 
 //////////////////////////////////////////////////
 /// \brief Make a synchronous service call.
-TEST(NodeTest, ServiceCallSync)
+TEST_F(NodeTest, ServiceCallSync)
 {
   reset();
 
@@ -1639,7 +1655,7 @@ TEST(NodeTest, ServiceCallSync)
 
 //////////////////////////////////////////////////
 /// \brief Make a synchronous service call without input.
-TEST(NodeTest, ServiceCallWithoutInputSync)
+TEST_F(NodeTest, ServiceCallWithoutInputSync)
 {
   reset();
 
@@ -1664,7 +1680,7 @@ TEST(NodeTest, ServiceCallWithoutInputSync)
 
 //////////////////////////////////////////////////
 /// \brief Check a timeout in a synchronous service call.
-TEST(NodeTest, ServiceCallSyncTimeout)
+TEST_F(NodeTest, ServiceCallSyncTimeout)
 {
   reset();
 
@@ -1697,7 +1713,7 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 
 //////////////////////////////////////////////////
 /// \brief Check a timeout in a synchronous service call without input.
-TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
+TEST_F(NodeTest, ServiceCallWithoutInputSyncTimeout)
 {
   reset();
 
@@ -1773,7 +1789,7 @@ void signal_handler(int _signal)
 //////////////////////////////////////////////////
 /// \brief Check that an external program can capture a SIGINT and terminate
 /// the program without problems.
-TEST(NodeTest, SigIntTermination)
+TEST_F(NodeTest, SigIntTermination)
 {
   reset();
 
@@ -1792,7 +1808,7 @@ TEST(NodeTest, SigIntTermination)
 //////////////////////////////////////////////////
 /// \brief Check that an external program can capture a SIGTERM and terminate
 /// the program without problems.
-TEST(NodeTest, SigTermTermination)
+TEST_F(NodeTest, SigTermTermination)
 {
   reset();
 
@@ -1811,7 +1827,7 @@ TEST(NodeTest, SigTermTermination)
 //////////////////////////////////////////////////
 /// \brief Check that a message is not published if the type does not match
 /// the type advertised.
-TEST(NodeTest, PubSubWrongTypesOnPublish)
+TEST_F(NodeTest, PubSubWrongTypesOnPublish)
 {
   reset();
 
@@ -1855,7 +1871,7 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
 //////////////////////////////////////////////////
 /// \brief Check that a message is not received if the callback does not use
 /// the advertised types.
-TEST(NodeTest, PubSubWrongTypesOnSubscription)
+TEST_F(NodeTest, PubSubWrongTypesOnSubscription)
 {
   reset();
 
@@ -1887,7 +1903,7 @@ TEST(NodeTest, PubSubWrongTypesOnSubscription)
 /// \brief This test spawns two subscribers on the same topic. One of the
 /// subscribers has a wrong callback (types in the callback does not match the
 /// advertised type). Check that only the good callback is executed.
-TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
+TEST_F(NodeTest, PubSubWrongTypesTwoSubscribers)
 {
   reset();
 
@@ -1926,7 +1942,7 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 //////////////////////////////////////////////////
 /// \brief This test creates one publisher and one subscriber. The publisher
 /// publishes at higher frequency than the rate set by the subscriber.
-TEST(NodeTest, SubThrottled)
+TEST_F(NodeTest, SubThrottled)
 {
   reset();
 
@@ -1961,7 +1977,7 @@ TEST(NodeTest, SubThrottled)
 //////////////////////////////////////////////////
 /// \brief This test creates one publisher and one subscriber. The publisher
 /// publishes at a throttled frequency .
-TEST(NodeTest, PubThrottled)
+TEST_F(NodeTest, PubThrottled)
 {
   reset();
 
@@ -1999,7 +2015,7 @@ TEST(NodeTest, PubThrottled)
 /// \brief This test spawns a service responser and a service requester. The
 /// requester uses a wrong type for the request argument. The test should verify
 /// that the service call does not succeed.
-TEST(NodeTest, SrvRequestWrongReq)
+TEST_F(NodeTest, SrvRequestWrongReq)
 {
   reset();
 
@@ -2030,7 +2046,7 @@ TEST(NodeTest, SrvRequestWrongReq)
 /// \brief This test spawns a service responser and a service requester. The
 /// requester uses a wrong type for the response argument. The test should
 /// verify that the service call does not succeed.
-TEST(NodeTest, SrvRequestWrongRep)
+TEST_F(NodeTest, SrvRequestWrongRep)
 {
   reset();
 
@@ -2059,7 +2075,7 @@ TEST(NodeTest, SrvRequestWrongRep)
 /// \brief This test spawns a service that doesn't accept input parameters. The
 /// service requester uses a wrong type for the response argument. The test
 /// should verify that the service call does not succeed.
-TEST(NodeTest, SrvWithoutInputRequestWrongRep)
+TEST_F(NodeTest, SrvWithoutInputRequestWrongRep)
 {
   reset();
 
@@ -2086,7 +2102,7 @@ TEST(NodeTest, SrvWithoutInputRequestWrongRep)
 /// service requesters use incorrect types in some of the requests. The test
 /// should verify that a response is received only when the appropriate types
 /// are used.
-TEST(NodeTest, SrvTwoRequestsOneWrong)
+TEST_F(NodeTest, SrvTwoRequestsOneWrong)
 {
   reset();
 
@@ -2121,7 +2137,7 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
 /// service requesters use incorrect types in some of the requests. The test
 /// should verify that a response is received only when the appropriate types
 /// are used.
-TEST(NodeTest, SrvWithoutInputTwoRequestsOneWrong)
+TEST_F(NodeTest, SrvWithoutInputTwoRequestsOneWrong)
 {
   reset();
 
@@ -2151,7 +2167,7 @@ TEST(NodeTest, SrvWithoutInputTwoRequestsOneWrong)
 //////////////////////////////////////////////////
 /// \brief This test creates two nodes and advertises some topics. The test
 /// verifies that TopicList() returns the list of all the topics advertised.
-TEST(NodeTest, TopicList)
+TEST_F(NodeTest, TopicList)
 {
   std::vector<std::string> topics;
   transport::Node node1;
@@ -2181,7 +2197,7 @@ TEST(NodeTest, TopicList)
 /// \brief This test creates two nodes and advertises some topics. The test
 /// verifies that TopicList() returns the list of all the topics advertised.
 /// Topic remapping is enabled.
-TEST(NodeTest, TopicListRemap)
+TEST_F(NodeTest, TopicListRemap)
 {
   std::vector<std::string> topics;
   transport::NodeOptions nodeOptions;
@@ -2200,7 +2216,7 @@ TEST(NodeTest, TopicListRemap)
 //////////////////////////////////////////////////
 /// \brief This test creates two nodes and advertises some services. The test
 /// verifies that ServiceList() returns the list of all the services advertised.
-TEST(NodeTest, ServiceList)
+TEST_F(NodeTest, ServiceList)
 {
   std::vector<std::string> services;
   transport::Node node;
@@ -2228,7 +2244,7 @@ TEST(NodeTest, ServiceList)
 /// \brief This test creates two nodes and advertises some services. The test
 /// verifies that ServiceList() returns the list of all the services advertised.
 /// Topic remapping is enabled.
-TEST(NodeTest, ServiceListRemap)
+TEST_F(NodeTest, ServiceListRemap)
 {
   std::vector<std::string> services;
   transport::NodeOptions nodeOptions;
@@ -2244,7 +2260,7 @@ TEST(NodeTest, ServiceListRemap)
 
 //////////////////////////////////////////////////
 /// \brief Check bad topic remap use cases.
-TEST(NodeTest, WrongTopicRemap)
+TEST_F(NodeTest, WrongTopicRemap)
 {
   transport::NodeOptions nodeOptions;
 
@@ -2259,21 +2275,21 @@ TEST(NodeTest, WrongTopicRemap)
 
 /////////////////////////////////////////////////
 /// \brief Check the high water mark of the receiving message buffer.
-TEST(NodeTest, RcvHwm)
+TEST_F(NodeTest, RcvHwm)
 {
   EXPECT_EQ(transport::kDefaultRcvHwm, transport::rcvHwm());
 }
 
 //////////////////////////////////////////////////
 /// \brief Check the high water mark of the sending message buffer.
-TEST(NodeTest, SndHwm)
+TEST_F(NodeTest, SndHwm)
 {
   EXPECT_EQ(transport::kDefaultSndHwm, transport::sndHwm());
 }
 
 //////////////////////////////////////////////////
 /// \brief Check that we destruct a Node object before a Node::Publisher.
-TEST(NodePubTest, DestructionOrder)
+TEST_F(NodeTest, DestructionOrder)
 {
   transport::Node::Publisher pub;
 
@@ -2287,7 +2303,7 @@ TEST(NodePubTest, DestructionOrder)
 /// \brief Create a separate thread, block it calling waitForShutdown() and
 /// emit a SIGINT signal. Check that the transport library captures the signal
 /// and is able to terminate.
-TEST(NodeTest, waitForShutdownSIGINT)
+TEST_F(NodeTest, waitForShutdownSIGINT)
 {
   std::thread aThread([]{transport::waitForShutdown();});
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -2299,7 +2315,7 @@ TEST(NodeTest, waitForShutdownSIGINT)
 /// \brief Create a separate thread, block it calling waitForShutdown() and
 /// emit a SIGTERM signal. Check that the transport library captures the signal
 /// and is able to terminate.
-TEST(NodeTest, waitForShutdownSIGTERM)
+TEST_F(NodeTest, waitForShutdownSIGTERM)
 {
   std::thread aThread([]{transport::waitForShutdown();});
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -2309,26 +2325,9 @@ TEST(NodeTest, waitForShutdownSIGTERM)
 
 //////////////////////////////////////////////////
 /// \brief Test topic statistics with no statistics available.
-TEST(NodeTest, statistics)
+TEST_F(NodeTest, statistics)
 {
   transport::Node node;
   EXPECT_TRUE(node.EnableStats("/test", true));
   EXPECT_EQ(std::nullopt, node.TopicStats("/test"));
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Get a random partition name.
-  partition = testing::getRandomNumber();
-  g_FQNPartition = std::string("/") + partition;
-
-  // Set the partition name for this process.
-  gz::utils::setenv("GZ_PARTITION", partition);
-
-  // Enable verbose mode.
-  gz::utils::setenv("GZ_VERBOSE", "1");
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
