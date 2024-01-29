@@ -84,7 +84,8 @@ TEST_F(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 /// getting the list of available services.
 TEST_F(twoProcSrvCallWithoutOutput, ServiceList)
 {
-  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutOutputReplier});
+  this->SpawnSubprocess({
+    test_executables::kTwoProcsSrvCallWithoutOutputReplier});
   reset();
 
   transport::Node node;
@@ -127,7 +128,8 @@ TEST_F(twoProcSrvCallWithoutOutput, ServiceList)
 /// getting information about the service.
 TEST_F(twoProcSrvCallWithoutOutput, ServiceInfo)
 {
-  this->SpawnSubprocess({test_executables::kTwoProcsSrvCallWithoutOutputReplier});
+  this->SpawnSubprocess({
+    test_executables::kTwoProcsSrvCallWithoutOutputReplier});
   reset();
 
   transport::Node node;
