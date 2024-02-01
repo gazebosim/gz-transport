@@ -18,11 +18,10 @@
 #ifndef GZ_TRANSPORT_PUBLISHER_HH_
 #define GZ_TRANSPORT_PUBLISHER_HH_
 
-#include <gz/msgs/discovery.pb.h>
-
 #include <iostream>
 #include <string>
 
+#include "gz/transport/private_msgs/discovery.pb.h"
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -113,11 +112,12 @@ namespace gz
 
       /// \brief Populate a discovery message.
       /// \param[in] _msg Message to fill.
-      public: virtual void FillDiscovery(msgs::Discovery &_msg) const;
+      public: virtual void FillDiscovery(private_msgs::Discovery &_msg) const;
 
       /// \brief Set data from a discovery message.
       /// \param[in] _msg Discovery message.
-      public: virtual void SetFromDiscovery(const msgs::Discovery &_msg);
+      public: virtual void SetFromDiscovery(
+        const private_msgs::Discovery &_msg);
 
       /// \brief Equality operator. This function checks if the given
       /// publisher has identical Topic, Addr, PUuid, NUuid, and Scope
@@ -234,11 +234,13 @@ namespace gz
 
       /// \brief Populate a discovery message.
       /// \param[in] _msg Message to fill.
-      public: virtual void FillDiscovery(msgs::Discovery &_msg) const final;
+      public: virtual void FillDiscovery(
+        private_msgs::Discovery &_msg) const final;
 
       /// \brief Set data from a discovery message.
       /// \param[in] _msg Discovery message.
-      public: virtual void SetFromDiscovery(const msgs::Discovery &_msg);
+      public: virtual void SetFromDiscovery(
+        const private_msgs::Discovery &_msg);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.
@@ -361,12 +363,14 @@ namespace gz
 
       /// \brief Populate a discovery message.
       /// \param[in] _msg Message to fill.
-      public: virtual void FillDiscovery(msgs::Discovery &_msg) const final;
+      public: virtual void FillDiscovery(
+        private_msgs::Discovery &_msg) const final;
 
       /// \brief Populate a discovery message.
       /// \brief Set data from a discovery message.
       /// \param[in] _msg Discovery message.
-      public: virtual void SetFromDiscovery(const msgs::Discovery &_msg);
+      public: virtual void SetFromDiscovery(
+        const private_msgs::Discovery &_msg);
 
       /// \brief Stream insertion operator.
       /// \param[out] _out The output stream.

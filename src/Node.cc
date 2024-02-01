@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-#include <gz/msgs/discovery.pb.h>
 #include <gz/msgs/statistic.pb.h>
 
 #include <algorithm>

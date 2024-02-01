@@ -56,8 +56,6 @@
   #pragma warning(disable: 4996)
 #endif
 
-#include <gz/msgs/discovery.pb.h>
-
 #include <algorithm>
 #include <condition_variable>
 #include <limits>
@@ -70,6 +68,7 @@
 
 #include <gz/msgs/Utility.hh>
 
+#include "gz/transport/private_msgs/discovery.pb.h"
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/Helpers.hh"
@@ -262,7 +261,7 @@ namespace gz
 
         // Broadcast a BYE message to trigger the remote cancellation of
         // all our advertised topics.
-        this->SendMsg(DestinationType::ALL, msgs::Discovery::BYE,
+        this->SendMsg(DestinationType::ALL, private_msgs::Discovery::BYE,
           Publisher("", "", this->pUuid, "", AdvertiseOptions()));
 
         // Close sockets.
@@ -320,8 +319,8 @@ namespace gz
         // Only advertise a message outside this process if the scope
         // is not 'Process'
         if (_publisher.Options().Scope() != Scope_t::PROCESS)
-          this->SendMsg(DestinationType::ALL, msgs::Discovery::ADVERTISE,
-              _publisher);
+          this->SendMsg(DestinationType::ALL,
+              private_msgs::Discovery::ADVERTISE, _publisher);
 
         return true;
       }
@@ -356,7 +355,8 @@ namespace gz
         pub.SetPUuid(this->pUuid);
 
         // Send a discovery request.
-        this->SendMsg(DestinationType::ALL, msgs::Discovery::SUBSCRIBE, pub);
+        this->SendMsg(DestinationType::ALL, private_msgs::Discovery::SUBSCRIBE,
+          pub);
 
         {
           std::lock_guard<std::mutex> lock(this->mutex);
@@ -389,7 +389,7 @@ namespace gz
       public: void SendSubscribersRep(const MessagePublisher &_pub) const
       {
         this->SendMsg(
-          DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REP, _pub);
+          DestinationType::ALL, private_msgs::Discovery::SUBSCRIBERS_REP, _pub);
       }
 
       /// \brief Register a node from this process as a remote subscriber.
@@ -397,7 +397,7 @@ namespace gz
       public: void Register(const MessagePublisher &_pub) const
       {
         this->SendMsg(
-          DestinationType::ALL, msgs::Discovery::NEW_CONNECTION, _pub);
+          DestinationType::ALL, private_msgs::Discovery::NEW_CONNECTION, _pub);
       }
 
       /// \brief Unregister a node from this process as a remote subscriber.
@@ -405,7 +405,7 @@ namespace gz
       public: void Unregister(const MessagePublisher &_pub) const
       {
         this->SendMsg(
-          DestinationType::ALL, msgs::Discovery::END_CONNECTION, _pub);
+          DestinationType::ALL, private_msgs::Discovery::END_CONNECTION, _pub);
       }
 
       /// \brief Get the discovery information.
@@ -468,7 +468,7 @@ namespace gz
         if (inf.Options().Scope() != Scope_t::PROCESS)
         {
           this->SendMsg(DestinationType::ALL,
-              msgs::Discovery::UNADVERTISE, inf);
+              private_msgs::Discovery::UNADVERTISE, inf);
         }
 
         return true;
@@ -642,7 +642,7 @@ namespace gz
         // Request the list of subscribers.
         Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
         this->SendMsg(
-          DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REQ, pub);
+          DestinationType::ALL, private_msgs::Discovery::SUBSCRIBERS_REQ, pub);
 
         this->WaitForInit();
         std::lock_guard<std::mutex> lock(this->mutex);
@@ -746,7 +746,8 @@ namespace gz
         }
 
         Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
-        this->SendMsg(DestinationType::ALL, msgs::Discovery::HEARTBEAT, pub);
+        this->SendMsg(DestinationType::ALL, private_msgs::Discovery::HEARTBEAT,
+          pub);
 
         std::map<std::string, std::vector<Pub>> nodes;
         {
@@ -761,7 +762,7 @@ namespace gz
           for (const auto &node : topic.second)
           {
             this->SendMsg(DestinationType::ALL,
-                msgs::Discovery::ADVERTISE, node);
+                private_msgs::Discovery::ADVERTISE, node);
           }
         }
 
@@ -903,7 +904,7 @@ namespace gz
       private: void DispatchDiscoveryMsg(const std::string &_fromIp,
                                          char *_msg, uint16_t _len)
       {
-        gz::msgs::Discovery msg;
+        private_msgs::Discovery msg;
 
         // Parse the message, and return if parsing failed. Parsing could
         // fail when another discovery node is publishing messages using an
@@ -975,7 +976,7 @@ namespace gz
 
         switch (msg.type())
         {
-          case msgs::Discovery::ADVERTISE:
+          case private_msgs::Discovery::ADVERTISE:
           {
             // Read the rest of the fields.
             Pub publisher;
@@ -1004,7 +1005,7 @@ namespace gz
 
             break;
           }
-          case msgs::Discovery::SUBSCRIBE:
+          case private_msgs::Discovery::SUBSCRIBE:
           {
             std::string recvTopic;
             // Read the topic information.
@@ -1044,19 +1045,19 @@ namespace gz
 
               // Answer an ADVERTISE message.
               this->SendMsg(DestinationType::ALL,
-                  msgs::Discovery::ADVERTISE, nodeInfo);
+                  private_msgs::Discovery::ADVERTISE, nodeInfo);
             }
 
             break;
           }
-          case msgs::Discovery::SUBSCRIBERS_REQ:
+          case private_msgs::Discovery::SUBSCRIBERS_REQ:
           {
             if (subscribersReqCb)
               subscribersReqCb();
 
             break;
           }
-          case msgs::Discovery::SUBSCRIBERS_REP:
+          case private_msgs::Discovery::SUBSCRIBERS_REP:
           {
             // Save the remote subscriber.
             Pub publisher;
@@ -1068,7 +1069,7 @@ namespace gz
             }
             break;
           }
-          case msgs::Discovery::NEW_CONNECTION:
+          case private_msgs::Discovery::NEW_CONNECTION:
           {
             // Read the rest of the fields.
             Pub publisher;
@@ -1079,7 +1080,7 @@ namespace gz
 
             break;
           }
-          case msgs::Discovery::END_CONNECTION:
+          case private_msgs::Discovery::END_CONNECTION:
           {
             // Read the rest of the fields.
             Pub publisher;
@@ -1090,12 +1091,12 @@ namespace gz
 
             break;
           }
-          case msgs::Discovery::HEARTBEAT:
+          case private_msgs::Discovery::HEARTBEAT:
           {
             // The timestamp has already been updated.
             break;
           }
-          case msgs::Discovery::BYE:
+          case private_msgs::Discovery::BYE:
           {
             // Remove the activity entry for this publisher.
             {
@@ -1119,7 +1120,7 @@ namespace gz
 
             break;
           }
-          case msgs::Discovery::UNADVERTISE:
+          case private_msgs::Discovery::UNADVERTISE:
           {
             // Read the address.
             Pub publisher;
@@ -1164,10 +1165,10 @@ namespace gz
       /// or encryption.
       private: template<typename T>
       void SendMsg(const DestinationType &_destType,
-                   const msgs::Discovery::Type _type,
+                   const private_msgs::Discovery::Type _type,
                    const T &_pub) const
       {
-        gz::msgs::Discovery discoveryMsg;
+        private_msgs::Discovery discoveryMsg;
         discoveryMsg.set_version(this->Version());
         discoveryMsg.set_type(_type);
         discoveryMsg.set_process_uuid(this->pUuid);
@@ -1175,23 +1176,23 @@ namespace gz
 
         switch (_type)
         {
-          case msgs::Discovery::ADVERTISE:
-          case msgs::Discovery::UNADVERTISE:
-          case msgs::Discovery::NEW_CONNECTION:
-          case msgs::Discovery::END_CONNECTION:
+          case private_msgs::Discovery::ADVERTISE:
+          case private_msgs::Discovery::UNADVERTISE:
+          case private_msgs::Discovery::NEW_CONNECTION:
+          case private_msgs::Discovery::END_CONNECTION:
           {
             _pub.FillDiscovery(discoveryMsg);
             break;
           }
-          case msgs::Discovery::SUBSCRIBE:
+          case private_msgs::Discovery::SUBSCRIBE:
           {
             discoveryMsg.mutable_sub()->set_topic(_pub.Topic());
             break;
           }
-          case msgs::Discovery::HEARTBEAT:
-          case msgs::Discovery::BYE:
-          case msgs::Discovery::SUBSCRIBERS_REQ:
-          case msgs::Discovery::SUBSCRIBERS_REP:
+          case private_msgs::Discovery::HEARTBEAT:
+          case private_msgs::Discovery::BYE:
+          case private_msgs::Discovery::SUBSCRIBERS_REQ:
+          case private_msgs::Discovery::SUBSCRIBERS_REP:
             break;
           default:
             std::cerr << "Discovery::SendMsg() error: Unrecognized message"
@@ -1223,7 +1224,7 @@ namespace gz
 
       /// \brief Send a discovery message through all unicast relays.
       /// \param[in] _msg Discovery message.
-      private: void SendUnicast(const msgs::Discovery &_msg) const
+      private: void SendUnicast(const private_msgs::Discovery &_msg) const
       {
         uint16_t msgSize;
 
@@ -1277,7 +1278,7 @@ namespace gz
 
       /// \brief Send a discovery message through the multicast group.
       /// \param[in] _msg Discovery message.
-      private: void SendMulticast(const msgs::Discovery &_msg) const
+      private: void SendMulticast(const private_msgs::Discovery &_msg) const
       {
         uint16_t msgSize;
 
