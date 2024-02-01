@@ -117,7 +117,7 @@ TEST(PublisherTest, PublisherIO)
 
   // Pack a Publisher.
   Publisher publisher(g_topic, g_addr, g_puuid, g_nuuid, g_opts1);
-  msgs::Discovery msg;
+  private_msgs::Discovery msg;
   publisher.FillDiscovery(msg);
 
   // Unpack the Publisher.
@@ -206,7 +206,7 @@ TEST(PublisherTest, MessagePublisherIO)
   MessagePublisher publisher(g_topic, g_addr, g_ctrl, g_puuid, g_nuuid,
     g_msgTypeName, g_msgOpts2);
 
-  msgs::Discovery msg;
+  private_msgs::Discovery msg;
   publisher.FillDiscovery(msg);
 
   // Unpack the Publisher.
@@ -311,7 +311,7 @@ TEST(PublisherTest, ServicePublisherIO)
   ServicePublisher publisher(g_topic, g_addr, g_socketId, g_puuid, g_nuuid,
     g_reqTypeName, g_repTypeName, g_srvOpts2);
 
-  msgs::Discovery msg;
+  private_msgs::Discovery msg;
   publisher.FillDiscovery(msg);
 
   // Unpack the Publisher.

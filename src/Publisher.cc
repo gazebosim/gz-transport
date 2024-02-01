@@ -102,9 +102,9 @@ void Publisher::SetOptions(const AdvertiseOptions &_opts)
 }
 
 //////////////////////////////////////////////////
-void Publisher::FillDiscovery(msgs::Discovery &_msg) const
+void Publisher::FillDiscovery(private_msgs::Discovery &_msg) const
 {
-  msgs::Discovery::Publisher *pub = _msg.mutable_pub();
+  private_msgs::Discovery::Publisher *pub = _msg.mutable_pub();
   pub->set_topic(this->Topic());
   pub->set_address(this->Addr());
   pub->set_process_uuid(this->PUuid());
@@ -113,20 +113,20 @@ void Publisher::FillDiscovery(msgs::Discovery &_msg) const
   switch (this->opts.Scope())
   {
     case Scope_t::PROCESS:
-      pub->set_scope(msgs::Discovery::Publisher::PROCESS);
+      pub->set_scope(private_msgs::Discovery::Publisher::PROCESS);
       break;
     case Scope_t::HOST:
-      pub->set_scope(msgs::Discovery::Publisher::HOST);
+      pub->set_scope(private_msgs::Discovery::Publisher::HOST);
       break;
     default:
     case Scope_t::ALL:
-      pub->set_scope(msgs::Discovery::Publisher::ALL);
+      pub->set_scope(private_msgs::Discovery::Publisher::ALL);
       break;
   }
 }
 
 //////////////////////////////////////////////////
-void Publisher::SetFromDiscovery(const msgs::Discovery &_msg)
+void Publisher::SetFromDiscovery(const private_msgs::Discovery &_msg)
 {
   if (_msg.has_sub())
     this->topic = _msg.sub().topic();
@@ -139,14 +139,14 @@ void Publisher::SetFromDiscovery(const msgs::Discovery &_msg)
 
     switch (_msg.pub().scope())
     {
-      case msgs::Discovery::Publisher::PROCESS:
+      case private_msgs::Discovery::Publisher::PROCESS:
         this->opts.SetScope(Scope_t::PROCESS);
         break;
-      case msgs::Discovery::Publisher::HOST:
+      case private_msgs::Discovery::Publisher::HOST:
         this->opts.SetScope(Scope_t::HOST);
         break;
       default:
-      case msgs::Discovery::Publisher::ALL:
+      case private_msgs::Discovery::Publisher::ALL:
         this->opts.SetScope(Scope_t::ALL);
         break;
     }
@@ -216,10 +216,10 @@ void MessagePublisher::SetOptions(const AdvertiseMessageOptions &_opts)
 }
 
 //////////////////////////////////////////////////
-void MessagePublisher::FillDiscovery(msgs::Discovery &_msg) const
+void MessagePublisher::FillDiscovery(private_msgs::Discovery &_msg) const
 {
   Publisher::FillDiscovery(_msg);
-  msgs::Discovery::Publisher *pub = _msg.mutable_pub();
+  private_msgs::Discovery::Publisher *pub = _msg.mutable_pub();
 
   // Message options
   pub->mutable_msg_pub()->set_ctrl(this->Ctrl());
@@ -229,7 +229,7 @@ void MessagePublisher::FillDiscovery(msgs::Discovery &_msg) const
 }
 
 //////////////////////////////////////////////////
-void MessagePublisher::SetFromDiscovery(const msgs::Discovery &_msg)
+void MessagePublisher::SetFromDiscovery(const private_msgs::Discovery &_msg)
 {
   Publisher::SetFromDiscovery(_msg);
   this->ctrl = _msg.pub().msg_pub().ctrl();
@@ -319,10 +319,10 @@ void ServicePublisher::SetOptions(const AdvertiseServiceOptions &_opts)
 }
 
 //////////////////////////////////////////////////
-void ServicePublisher::FillDiscovery(msgs::Discovery &_msg) const
+void ServicePublisher::FillDiscovery(private_msgs::Discovery &_msg) const
 {
   Publisher::FillDiscovery(_msg);
-  msgs::Discovery::Publisher *pub = _msg.mutable_pub();
+  private_msgs::Discovery::Publisher *pub = _msg.mutable_pub();
 
   // Service publisher info
   pub->mutable_srv_pub()->set_socket_id(this->SocketId());
@@ -331,7 +331,7 @@ void ServicePublisher::FillDiscovery(msgs::Discovery &_msg) const
 }
 
 //////////////////////////////////////////////////
-void ServicePublisher::SetFromDiscovery(const msgs::Discovery &_msg)
+void ServicePublisher::SetFromDiscovery(const private_msgs::Discovery &_msg)
 {
   Publisher::SetFromDiscovery(_msg);
   this->srvOpts.SetScope(Publisher::Options().Scope());

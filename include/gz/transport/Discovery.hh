@@ -1217,8 +1217,8 @@ namespace gz
 
         if (this->verbose)
         {
-          std::cout << "\t* Sending " << msgs::ToString(_type)
-                    << " msg [" << _pub.Topic() << "]" << std::endl;
+          // std::cout << "\t* Sending " << msgs::ToString(_type)
+          //           << " msg [" << _pub.Topic() << "]" << std::endl;
         }
       }
 
