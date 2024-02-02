@@ -71,11 +71,14 @@ void runServiceCommand(const ServiceOptions &_opt)
     case ServiceCommand::kServiceReq:
       if (_opt.repType.empty())
       {
-        cmdServiceReqOneway(_opt.service.c_str(),
-          _opt.reqType.c_str(), _opt.reqData.c_str());
+        // One-way service request.
+        cmdServiceReq(_opt.service.c_str(),
+            _opt.reqType.c_str(), "gz.msgs.Empty",
+            -1, _opt.reqData.c_str());
       }
       else
       {
+        // Two-way service request.
         cmdServiceReq(_opt.service.c_str(),
             _opt.reqType.c_str(), _opt.repType.c_str(),
             _opt.timeout, _opt.reqData.c_str());
