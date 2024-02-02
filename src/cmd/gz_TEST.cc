@@ -500,7 +500,7 @@ TEST(gzTest, ServiceOnewayRequest)
   // Check the 'gz service -r' command.
   std::string gz = std::string(GZ_PATH);
   std::string output = custom_exec_str(gz +
-      " service -s " + service + " --reqtype gz_msgs.Int32 " +
+      " service -s " + service + " --reqtype gz_msgs.StringMsg " +
       "--req 'data: " + value + "' " + g_gzVersion);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
