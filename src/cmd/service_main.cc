@@ -30,7 +30,6 @@ enum class ServiceCommand
   kServiceList,
   kServiceInfo,
   kServiceReq,
-  kServiceReqOneway,
 };
 
 //////////////////////////////////////////////////

@@ -73,6 +73,13 @@ bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
 }
 
 //////////////////////////////////////////////////
+/// \brief Provide a one-way service.
+void srvOneway(const msgs::StringMsg &_msg)
+{
+  g_topicCBStr = _msg.data();
+}
+
+//////////////////////////////////////////////////
 /// \brief Topic callback
 void topicCB(const msgs::StringMsg &_msg)
 {
@@ -452,7 +459,7 @@ TEST(gzTest, TopicPublish)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'gz service -r' to request a service.
+/// \brief Check 'gz service -r' to request a two-way service.
 TEST(gzTest, ServiceRequest)
 {
   transport::Node node;
@@ -473,6 +480,31 @@ TEST(gzTest, ServiceRequest)
       "--req 'data: " + value + "' " + g_gzVersion);
 
   ASSERT_EQ(output, "data: " + value + "\n\n");
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r' to request a one-way service.
+TEST(gzTest, ServiceOnewayRequest)
+{
+  g_topicCBStr = "bad_value";
+  transport::Node node;
+
+  // Advertise a service.
+  std::string service = "/oneway";
+  std::string value = "good_value";
+  EXPECT_TRUE(node.Advertise(service, srvOneway));
+
+  msgs::StringMsg msg;
+  msg.set_data(value);
+
+  // Check the 'gz service -r' command.
+  std::string gz = std::string(GZ_PATH);
+  std::string output = custom_exec_str(gz +
+      " service -s " + service + " --reqtype gz_msgs.Int32 " +
+      "--req 'data: " + value + "' " + g_gzVersion);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  EXPECT_EQ("good_value", g_topicCBStr);
 }
 
 //////////////////////////////////////////////////
