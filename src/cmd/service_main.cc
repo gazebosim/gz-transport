@@ -69,13 +69,17 @@ void runServiceCommand(const ServiceOptions &_opt)
       cmdServiceInfo(_opt.service.c_str());
       break;
     case ServiceCommand::kServiceReq:
-      cmdServiceReq(_opt.service.c_str(),
-          _opt.reqType.c_str(), _opt.repType.c_str(),
-          _opt.timeout, _opt.reqData.c_str());
-      break;
-    case ServiceCommand::kServiceReqOneway:
-      cmdServiceReqOneway(_opt.service.c_str(),
+      if (_opt.repType.empty())
+      {
+        cmdServiceReqOneway(_opt.service.c_str(),
           _opt.reqType.c_str(), _opt.reqData.c_str());
+      }
+      else
+      {
+        cmdServiceReq(_opt.service.c_str(),
+            _opt.reqType.c_str(), _opt.repType.c_str(),
+            _opt.timeout, _opt.reqData.c_str());
+      }
       break;
     case ServiceCommand::kNone:
     default:
@@ -98,6 +102,8 @@ void addServiceFlags(CLI::App &_app)
                                     opt->repType, "Type of a response.");
   auto timeoutOpt = _app.add_option("--timeout",
                                     opt->timeout, "Timeout in milliseconds.");
+  repTypeOpt = repTypeOpt->needs(timeoutOpt);
+  timeoutOpt = timeoutOpt->needs(repTypeOpt);
 
   auto command = _app.add_option_group("command", "Command to be executed.");
 
@@ -126,24 +132,6 @@ the same used by Protobuf DebugString(). E.g.:
     --reptype gz.msgs.StringMsg \
     --timeout 2000 \
     --req 'data: "Hello"'
-)")
-    ->needs(serviceOpt)
-    ->needs(reqTypeOpt)
-    ->needs(repTypeOpt)
-    ->needs(timeoutOpt);
-
-  command->add_option_function<std::string>("-o,--req-oneway",
-      [opt](const std::string &_reqData){
-        opt->command = ServiceCommand::kServiceReqOneway;
-        opt->reqData = _reqData;
-      },
-R"(Request a service.
-TEXT is the input data.
-The format expected is
-the same used by Protobuf DebugString(). E.g.:
-  gz service -s /echo \
-    --reqtype gz.msgs.StringMsg \
-    --req-oneway 'data: "Hello"'
 )")
     ->needs(serviceOpt)
     ->needs(reqTypeOpt);
