@@ -52,6 +52,8 @@ extern "C" void cmdTopicPub(const char *_topic,
 /// \param[in] _reqType Message type used in the request.
 /// \param[in] _repType Message type used in the response.
 /// \param[in] _timeout The request will timeout after '_timeout' ms.
+///                     If -1 is used, the request will be one-way and _repType
+///                     will be ignored.
 /// \param[in] _reqData Input data sent in the request.
 /// The format expected is the same used by Protobuf DebugString().
 /// E.g.: cmdServiceReq("/bar", "gz.msgs.StringMsg",
@@ -62,17 +64,6 @@ extern "C" void cmdServiceReq(const char *_service,
                               const char *_repType,
                               const int _timeout,
                               const char *_reqData);
-
-/// \brief External hook to execute 'gz service -r' from the command line.
-/// \param[in] _service Service name.
-/// \param[in] _reqType Message type used in the request.
-/// \param[in] _reqData Input data sent in the request.
-/// The format expected is the same used by Protobuf DebugString().
-/// E.g.: cmdServiceReq("/bar", "gz.msgs.StringMsg",
-///                     "gz.msgs.StringMsg");
-extern "C" void cmdServiceReqOneway(const char *_service,
-                                    const char *_reqType,
-                                    const char *_reqData);
 
 extern "C" {
   /// \brief Enum used for specifing the message output format for functions
