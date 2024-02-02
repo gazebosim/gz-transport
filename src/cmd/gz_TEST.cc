@@ -494,7 +494,7 @@ TEST(gzTest, ServiceOnewayRequest)
   EXPECT_TRUE(node.Advertise(service, srvOneway));
 
   msgs::StringMsg msg;
-  msg.set_data(value);
+  msg.set_data("good_value");
 
   // Check the 'gz service -r' command.
   std::string gz = std::string(GZ_PATH);
