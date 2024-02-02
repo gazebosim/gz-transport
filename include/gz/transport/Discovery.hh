@@ -306,6 +306,8 @@ namespace gz
       /// (e.g. if the discovery has not been started).
       public: bool Advertise(const Pub &_publisher)
       {
+        DiscoveryCallback<Pub> cb;
+
         {
           std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -315,10 +317,12 @@ namespace gz
           // Add the addressing information (local publisher).
           if (!this->info.AddPublisher(_publisher))
             return false;
+
+          cb = this->connectionCb;
         }
 
-        if (this->connectionCb)
-          this->connectionCb(_publisher);
+        if (cb)
+          cb(_publisher);
 
         // Only advertise a message outside this process if the scope
         // is not 'Process'
