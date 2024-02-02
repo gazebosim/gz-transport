@@ -491,7 +491,6 @@ TEST(gzTest, ServiceOnewayRequest)
 
   // Advertise a service.
   std::string service = "/oneway";
-  std::string value = "good_value";
   EXPECT_TRUE(node.Advertise(service, srvOneway));
 
   msgs::StringMsg msg;
@@ -501,7 +500,7 @@ TEST(gzTest, ServiceOnewayRequest)
   std::string gz = std::string(GZ_PATH);
   std::string output = custom_exec_str(gz +
       " service -s " + service + " --reqtype gz_msgs.StringMsg " +
-      "--req 'data: " + value + "' " + g_gzVersion);
+      "--req 'data:\"good_value\"' " + g_gzVersion);
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_EQ("good_value", g_topicCBStr);
