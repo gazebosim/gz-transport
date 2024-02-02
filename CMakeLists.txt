@@ -56,19 +56,23 @@ message(STATUS "\n\n-- ====== Finding Dependencies ======")
 # Python interfaces
 if (SKIP_PYBIND11)
   message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
+  find_package(Python3 COMPONENTS Interpreter)
 else()
-  set(PYBIND11_PYTHON_VERSION 3)
-  find_package(pybind11 2.4 QUIET)
-
-  if (${pybind11_FOUND})
-    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-    find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
+  find_package(Python3 COMPONENTS Interpreter Development)
+  if (NOT Python3_Development_FOUND)
+    GZ_BUILD_WARNING("Python development libraries are missing: Python interfaces are disabled.")
   else()
-    GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-    message (STATUS "Searching for pybind11 - not found.")
+    set(PYBIND11_PYTHON_VERSION 3)
+    find_package(pybind11 2.4 CONFIG QUIET)
+
+    if (pybind11_FOUND)
+      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+    else()
+      GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+      message (STATUS "Searching for pybind11 - not found.")
+    endif()
   endif()
 endif()
-
 
 #--------------------------------------
 # Find Protobuf
