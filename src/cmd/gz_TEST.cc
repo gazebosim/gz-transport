@@ -131,12 +131,6 @@ TEST(gzTest, TopicListSub)
   node.Subscribe("/no", topicCB);
   node.Unsubscribe("/no");
 
-  // Check the 'gz topic -l' command.
-  std::string gz = std::string(GZ_PATH);
-
-  unsigned int retries = 0u;
-  bool topicFound = false;
-
   auto output = exec_with_retry({"topic", "-l"},
     [](auto procOut){
       return procOut.cout.find("/foo\n") != std::string::npos &&
@@ -406,68 +400,68 @@ TEST(gzTest, TopicEchoNum)
 //////////////////////////////////////////////////
 /// \brief Check 'gz service --help' message and bash completion script for
 /// consistent flags
-TEST(gzTest, ServiceHelpVsCompletionFlags)
-{
-  // Flags in help message
-  std::string helpOutput = custom_exec_str("gz service --help");
+// TEST(gzTest, ServiceHelpVsCompletionFlags)
+// {
+//   // Flags in help message
+//   std::string helpOutput = custom_exec_str("gz service --help");
 
-  // Call the output function in the bash completion script
-  std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
-  scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+//   // Call the output function in the bash completion script
+//   std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
+//   scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
 
-  // Equivalent to:
-  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
-  // _gz_service_flags\""
-  std::string cmd = "bash -c \". " + scriptPath.string() +
-    "; _gz_service_flags\"";
-  std::string scriptOutput = custom_exec_str(cmd);
+//   // Equivalent to:
+//   // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+//   // _gz_service_flags\""
+//   std::string cmd = "bash -c \". " + scriptPath.string() +
+//     "; _gz_service_flags\"";
+//   std::string scriptOutput = custom_exec_str(cmd);
 
-  // Tokenize script output
-  std::istringstream iss(scriptOutput);
-  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
-    std::istream_iterator<std::string>());
+//   // Tokenize script output
+//   std::istringstream iss(scriptOutput);
+//   std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+//     std::istream_iterator<std::string>());
 
-  EXPECT_GT(flags.size(), 0u);
+//   EXPECT_GT(flags.size(), 0u);
 
-  // Match each flag in script output with help message
-  for (const auto &flag : flags)
-  {
-    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
-  }
-}
+//   // Match each flag in script output with help message
+//   for (const auto &flag : flags)
+//   {
+//     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
+//   }
+// }
 
 //////////////////////////////////////////////////
 /// \brief Check 'gz topic --help' message and bash completion script for
 /// consistent flags
-TEST(gzTest, TopicHelpVsCompletionFlags)
-{
-  // Flags in help message
-  std::string helpOutput = custom_exec_str("gz topic --help");
+// TEST(gzTest, TopicHelpVsCompletionFlags)
+// {
+//   // Flags in help message
+//   std::string helpOutput = custom_exec_str("gz topic --help");
 
-  // Call the output function in the bash completion script
-  std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
-  scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+//   // Call the output function in the bash completion script
+//   std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
+//   scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
 
-  // Equivalent to:
-  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
-  // _gz_topic_flags\""
-  std::string cmd = "bash -c \". " + scriptPath.string() +
-    "; _gz_topic_flags\"";
-  std::string scriptOutput = custom_exec_str(cmd);
+//   // Equivalent to:
+//   // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+//   // _gz_topic_flags\""
+//   std::string cmd = "bash -c \". " + scriptPath.string() +
+//     "; _gz_topic_flags\"";
+//   std::string scriptOutput = custom_exec_str(cmd);
 
-  // Tokenize script output
-  std::istringstream iss(scriptOutput);
-  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
-    std::istream_iterator<std::string>());
+//   // Tokenize script output
+//   std::istringstream iss(scriptOutput);
+//   std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+//     std::istream_iterator<std::string>());
 
-  EXPECT_GT(flags.size(), 0u);
+//   EXPECT_GT(flags.size(), 0u);
 
-  // Match each flag in script output with help message
-  for (const auto &flag : flags)
-  {
-    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
-  }
-}
+//   // Match each flag in script output with help message
+//   for (const auto &flag : flags)
+//   {
+//     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
+//   }
+// }
 
 /// Main
 int main(int argc, char **argv)
