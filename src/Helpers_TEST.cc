@@ -14,13 +14,12 @@
  * limitations under the License.
  *
 */
+#include "gtest/gtest.h"
 
 #include "gz/transport/Helpers.hh"
+#include "test_utils.hh"
 
 #include <gz/utils/Environment.hh>
-
-#include "test_config.hh"
-#include "gtest/gtest.h"
 
 using namespace gz;
 

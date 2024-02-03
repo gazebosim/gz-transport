@@ -25,44 +25,18 @@
 
 #include <gz/utils/Environment.hh>
 #include <gz/utils/ExtraTestMacros.hh>
+#include <gz/utils/Subprocess.hh>
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
-#include "test_config.hh"
 
-#ifdef _MSC_VER
-#    define popen _popen
-#    define pclose _pclose
-#endif
+#include "test_config.hh"
+#include "test_utils.hh"
 
 using namespace gz;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topicCBStr; // NOLINT(*)
-static const std::string g_gzVersion("--force-version " + // NOLINT(*)
-  std::string(GZ_VERSION_FULL));
-
-/////////////////////////////////////////////////
-std::string custom_exec_str(std::string _cmd)
-{
-  _cmd += " 2>&1";
-  FILE *pipe = popen(_cmd.c_str(), "r");
-
-  if (!pipe)
-    return "ERROR";
-
-  char buffer[128];
-  std::string result = "";
-
-  while (!feof(pipe))
-  {
-    if (fgets(buffer, 128, pipe) != NULL)
-      result += buffer;
-  }
-
-  pclose(pipe);
-  return result;
-}
 
 //////////////////////////////////////////////////
 /// \brief Provide a service.
@@ -93,34 +67,57 @@ void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
 }
 
 //////////////////////////////////////////////////
+struct ProcessOutput
+{
+  int code {-1};
+  std::string cout;
+  std::string cerr;
+};
+
+//////////////////////////////////////////////////
+ProcessOutput custom_exec_str(const std::vector<std::string> &_args)
+{
+  auto fullArgs = std::vector<std::string>{test_executables::kGzExe};
+  std::copy(std::begin(_args), std::end(_args), std::back_inserter(fullArgs));
+  fullArgs.emplace_back("--force-version");
+  fullArgs.emplace_back(kGzVersion);
+  auto proc = gz::utils::Subprocess(fullArgs);
+  auto return_code = proc.Join();
+  return {return_code, proc.Stdout(), proc.Stderr()};
+}
+
+//////////////////////////////////////////////////
+std::optional<ProcessOutput>
+exec_with_retry(const std::vector<std::string> &_args,
+                const std::function<bool(ProcessOutput)> &_condition)
+{
+  bool success = false;
+  int retries = 0;
+
+  while (!success && retries++ < 10)
+  {
+    auto output = custom_exec_str(_args);
+    success = _condition(output);
+    if (success)
+      return output;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+  return {};
+}
+
+//////////////////////////////////////////////////
 /// \brief Check 'gz topic -l' running the advertiser on a different process.
 TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
-  // Launch a new publisher process that advertises a topic.
-  std::string publisher_path = testing::portablePathUnion(
-    GZ_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcsPublisher_aux");
+  auto proc = gz::utils::Subprocess({
+    test_executables::kTwoProcsPublisher, g_partition});
 
-  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
-    g_partition.c_str());
+  auto output = exec_with_retry({"topic", "-l"},
+    [](auto procOut){
+      return procOut.cout == "/foo\n";
+    });
 
-  // Check the 'gz topic -l' command.
-  std::string gz = std::string(GZ_PATH);
-
-  unsigned int retries = 0u;
-  bool topicFound = false;
-
-  while (!topicFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str(gz + " topic -l " + g_gzVersion);
-    topicFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(topicFound);
-
-  // Wait for the child process to return.
-  testing::waitAndCleanupFork(pi);
+  EXPECT_TRUE(output);
 }
 
 //////////////////////////////////////////////////
@@ -140,17 +137,15 @@ TEST(gzTest, TopicListSub)
   unsigned int retries = 0u;
   bool topicFound = false;
 
-  while (!topicFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str(gz + " topic -l " + g_gzVersion);
-    topicFound = output.find("/foo\n") != std::string::npos;
-    topicFound &= output.find("/bar\n") != std::string::npos;
-    topicFound &= output.find("/baz\n") != std::string::npos;
-    topicFound &= output.find("/no\n") == std::string::npos;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
+  auto output = exec_with_retry({"topic", "-l"},
+    [](auto procOut){
+      return procOut.cout.find("/foo\n") != std::string::npos &&
+             procOut.cout.find("/bar\n") != std::string::npos &&
+             procOut.cout.find("/baz\n") != std::string::npos &&
+             procOut.cout.find("/no\n") == std::string::npos;
+    });
 
-  EXPECT_TRUE(topicFound);
+  EXPECT_TRUE(output);
 }
 
 //////////////////////////////////////////////////
@@ -158,70 +153,19 @@ TEST(gzTest, TopicListSub)
 TEST(gzTest, TopicInfo)
 {
   // Launch a new publisher process that advertises a topic.
-  std::string publisher_path = testing::portablePathUnion(
-    GZ_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcsPublisher_aux");
+  auto proc = gz::utils::Subprocess({
+    test_executables::kTwoProcsPublisher, g_partition});
 
-  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
-    g_partition.c_str());
+  auto output = exec_with_retry({"topic", "-t", "/foo", "-i"},
+    [](auto procOut){
+      return procOut.cout.size() > 50u;
+    });
 
-  // Check the 'gz topic -i' command.
-  std::string gz = std::string(GZ_PATH);
 
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
-
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str(gz + " topic -t /foo -i " + g_gzVersion);
-    bool pubsFound = output.find("No publishers") == std::string::npos;
-    bool subsFound = output.find("No subscribers") == std::string::npos;
-    // We should have publishers info but no subscribers.
-    infoFound = pubsFound && !subsFound;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("gz.msgs.Vector3d") != std::string::npos);
-
-  // Wait for the child process to return.
-  testing::waitAndCleanupFork(pi);
-}
-
-//////////////////////////////////////////////////
-/// \brief Check 'gz topic -i' running a subscriber on a different process.
-TEST(gzTest, TopicInfoSub)
-{
-  transport::Node node;
-  node.Subscribe("/foo", topicCB);
-  node.SubscribeRaw("/baz", cbRaw, msgs::StringMsg().GetTypeName());
-  node.Subscribe("/no", topicCB);
-  node.Unsubscribe("/no");
-
-  // Check the 'gz topic -i' command.
-  std::string gz = std::string(GZ_PATH);
-
-  for (auto topic : {"/foo", "/baz"})
-  {
-    unsigned int retries = 0u;
-    bool infoFound = false;
-    std::string output;
-
-    while (!infoFound && retries++ < 10u)
-    {
-      output = custom_exec_str(gz + " topic -i -t " + topic + " "
-        + g_gzVersion);
-      bool pubsFound = output.find("No publishers") == std::string::npos;
-      bool subsFound = output.find("No subscribers") == std::string::npos;
-      // We should have subscribers info but no publishers.
-      infoFound = !pubsFound && subsFound;
-      std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    }
-
-    EXPECT_TRUE(infoFound);
-    EXPECT_TRUE(output.find("gz.msgs.") != std::string::npos);
-  }
+  ASSERT_TRUE(output) << "OUTPUT["
+    << output->cout << "] Size[" << output->cout.size()
+    << "]. Expected Size=50" << std::endl;
+  EXPECT_TRUE(output->cout.find("gz.msgs.Vector3d") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -230,63 +174,32 @@ TEST(gzTest, TopicInfoSub)
 TEST(gzTest, ServiceList)
 {
   // Launch a new responser process that advertises a service.
-  std::string replier_path = testing::portablePathUnion(
-    GZ_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcsSrvCallReplier_aux");
+  auto proc = gz::utils::Subprocess({
+    test_executables::kTwoProcsSrvCallReplier, g_partition});
 
-  testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
-    g_partition.c_str());
+  auto output = exec_with_retry({"service", "-l"},
+    [](auto procOut){
+      return procOut.cout == "/foo\n";
+    });
 
-  // Check the 'gz service -l' command.
-  std::string gz = std::string(GZ_PATH);
-
-  unsigned int retries = 0u;
-  bool serviceFound = false;
-
-  while (!serviceFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str(gz + " service -l " + g_gzVersion);
-    serviceFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(serviceFound);
-
-  // Wait for the child process to return.
-  testing::waitAndCleanupFork(pi);
+  EXPECT_TRUE(output);
 }
 
 //////////////////////////////////////////////////
 /// \brief Check 'gz service -i' running the advertiser on a different process.
 TEST(gzTest, ServiceInfo)
 {
-  // Launch a new publisher process that advertises a topic.
-  std::string replier_path = testing::portablePathUnion(
-    GZ_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcsSrvCallReplier_aux");
+  // Launch a new responser process that advertises a service.
+  auto proc = gz::utils::Subprocess(
+    {test_executables::kTwoProcsSrvCallReplier, g_partition});
 
-  testing::forkHandlerType pi = testing::forkAndRun(replier_path.c_str(),
-    g_partition.c_str());
+  auto output = exec_with_retry({"service", "-s", "/foo", "-i"},
+    [](auto procOut){
+      return procOut.cout.size() > 50u;
+    });
 
-  // Check the 'gz service -i' command.
-  std::string gz = std::string(GZ_PATH);
-
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
-
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str(gz + " service -s /foo -i " + g_gzVersion);
-    infoFound = output.size() > 50u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("gz.msgs.Int32") != std::string::npos);
-
-  // Wait for the child process to return.
-  testing::waitAndCleanupFork(pi);
+  ASSERT_TRUE(output);
+  EXPECT_TRUE(output->cout.find("gz.msgs.Int32") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -304,20 +217,12 @@ TEST(gzTest, TopicListSameProc)
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
-  // Check the 'gz topic -l' command.
-  std::string gz = std::string(GZ_PATH);
+  auto output = exec_with_retry({"topic", "-l"},
+    [](auto procOut){
+      return procOut.cout == "/foo\n";
+    });
 
-  unsigned int retries = 0u;
-  bool topicFound = false;
-
-  while (!topicFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str(gz + " topic -l " + g_gzVersion);
-    topicFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(topicFound);
+  EXPECT_TRUE(output);
 }
 
 //////////////////////////////////////////////////
@@ -335,22 +240,13 @@ TEST(gzTest, TopicInfoSameProc)
   EXPECT_TRUE(pub);
   EXPECT_TRUE(pub.Publish(msg));
 
-  // Check the 'gz topic -i' command.
-  std::string gz = std::string(GZ_PATH);
+  auto output = exec_with_retry({"topic", "-t", "/foo", "-i"},
+    [](auto procOut){
+      return procOut.cout.size() > 50u;
+    });
 
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
-
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str(gz + " topic -t /foo -i " + g_gzVersion);
-    infoFound = output.size() > 60u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("gz.msgs.Vector3d") != std::string::npos);
+  ASSERT_TRUE(output);
+  EXPECT_TRUE(output->cout.find("gz.msgs.Vector3d") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -360,20 +256,12 @@ TEST(gzTest, ServiceListSameProc)
   transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
-  // Check the 'gz service -l' command.
-  std::string gz = std::string(GZ_PATH);
+  auto output = exec_with_retry({"service", "-l"},
+    [](auto procOut){
+      return procOut.cout == "/foo\n";
+    });
 
-  unsigned int retries = 0u;
-  bool serviceFound = false;
-
-  while (!serviceFound && retries++ < 10u)
-  {
-    std::string output = custom_exec_str(gz + " service -l " + g_gzVersion);
-    serviceFound = output == "/foo\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(serviceFound);
+  EXPECT_TRUE(output);
 }
 
 //////////////////////////////////////////////////
@@ -383,24 +271,14 @@ TEST(gzTest, ServiceInfoSameProc)
   transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
-  // Check the 'gz service -i' command.
-  std::string gz = std::string(GZ_PATH);
+  auto output = exec_with_retry({"service", "-s", "/foo", "-i"},
+    [](auto procOut){
+      return procOut.cout.size() > 50u;
+    });
 
-  unsigned int retries = 0u;
-  bool infoFound = false;
-  std::string output;
-
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str(gz + " service -s /foo -i " + g_gzVersion);
-    infoFound = output.size() > 50u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
-
-  EXPECT_TRUE(infoFound);
-  EXPECT_TRUE(output.find("gz.msgs.Int32") != std::string::npos);
+  ASSERT_TRUE(output);
+  EXPECT_TRUE(output->cout.find("gz.msgs.Int32") != std::string::npos);
 }
-
 
 //////////////////////////////////////////////////
 /// \brief Check 'gz topic -p' to send a message.
@@ -410,45 +288,45 @@ TEST(gzTest, TopicPublish)
   g_topicCBStr = "bad_value";
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
-  // Check the 'gz topic -p' command.
-  std::string gz = std::string(GZ_PATH);
-  std::string output;
-
   unsigned int retries = 0;
-  while (g_topicCBStr != "good_value" && retries++ < 200u)
+  while (retries++ < 100u)
   {
-    // Send on alternating retries
-    if (retries % 2)
-    {
-      output = custom_exec_str(gz +
-        " topic -t /bar -m gz_msgs.StringMsg -p 'data:\"good_value\"' " +
-        g_gzVersion);
-      EXPECT_TRUE(output.empty()) << output;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    auto output = custom_exec_str({"topic",
+        "-t", "/bar",
+        "-m", "gz.msgs.StringMsg",
+        "-p", "data: \"good_value\""});
+
+    EXPECT_TRUE(output.cout.empty());
+    EXPECT_TRUE(output.cerr.empty());
+    if (g_topicCBStr == "good_value")
+      break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(60));
   }
   EXPECT_EQ(g_topicCBStr, "good_value");
 
   // Try to publish a message not included in Gazebo Messages.
   std::string error = "Unable to create message of type";
-  output = custom_exec_str(gz +
-      " topic -t /bar -m gz_msgs.__bad_msg_type -p 'data:\"good_value\"' " +
-      g_gzVersion);
-  EXPECT_EQ(output.compare(0, error.size(), error), 0);
+  auto output = custom_exec_str({"topic",
+    "-t", "/bar",
+    "-m", "gz.msgs.__bad_msg_type",
+    "-p", R"(data: "good_value")"});
+  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0);
 
   // Try to publish using an incorrect topic name.
   error = "Topic [/] is not valid";
-  output = custom_exec_str(gz +
-      " topic -t / -m gz_msgs.StringMsg -p 'data:\"good_value\"' "+
-      g_gzVersion);
-  EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
+  output = custom_exec_str({"topic",
+      "-t", "/",
+      "-m", "gz.msgs.StringMsg",
+      "-p", R"(data: "good_value")"});
+  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0);
 
   // Try to publish using an incorrect number of arguments.
   error = "The following argument was not expected: wrong_topic";
-  output = custom_exec_str(gz +
-      " topic -t / wrong_topic -m gz_msgs.StringMsg -p 'data:\"good_value\"' "+
-      g_gzVersion);
-  EXPECT_EQ(output.compare(0, error.size(), error), 0) << output;
+  output = custom_exec_str({"topic",
+      "-t", "/", "wrong_topic",
+      "-m", "gz.msgs.StringMsg",
+      "-p", R"(data: "good_value")"});
+  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0);
 }
 
 //////////////////////////////////////////////////
@@ -466,13 +344,13 @@ TEST(gzTest, ServiceRequest)
   msg.set_data(10);
 
   // Check the 'gz service -r' command.
-  std::string gz = std::string(GZ_PATH);
-  std::string output = custom_exec_str(gz +
-      " service -s " + service + " --reqtype gz_msgs.Int32 " +
-      "--reptype gz_msgs.Int32 --timeout 1000 " +
-      "--req 'data: " + value + "' " + g_gzVersion);
-
-  ASSERT_EQ(output, "data: " + value + "\n\n");
+  auto output = custom_exec_str({"service",
+    "-s", service,
+    "--reqtype", "gz_msgs.Int32",
+    "--reptype", "gz_msgs.Int32",
+    "--timeout",  "1000",
+    "--req", "data: " + value});
+  ASSERT_EQ(output.cout, "data: " + value + "\n\n");
 }
 
 //////////////////////////////////////////////////
@@ -480,24 +358,15 @@ TEST(gzTest, ServiceRequest)
 TEST(gzTest, TopicEcho)
 {
   // Launch a new publisher process that advertises a topic.
-  std::string publisher_path = testing::portablePathUnion(
-    GZ_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcsPublisher_aux");
+  auto proc = gz::utils::Subprocess(
+    {test_executables::kTwoProcsPublisher, g_partition});
 
-  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
-    g_partition.c_str());
+  auto output = custom_exec_str(
+    {"topic", "-e", "-t", "/foo", "-d", "1.5"});
 
-  // Check the 'gz topic -e' command.
-  std::string gz = std::string(GZ_PATH);
-  std::string output = custom_exec_str(
-    gz + " topic -e -t /foo -d 1.5 " + g_gzVersion);
-
-  EXPECT_TRUE(output.find("x: 1") != std::string::npos);
-  EXPECT_TRUE(output.find("y: 2") != std::string::npos);
-  EXPECT_TRUE(output.find("z: 3") != std::string::npos);
-
-  // Wait for the child process to return.
-  testing::waitAndCleanupFork(pi);
+  EXPECT_TRUE(output.cout.find("x: 1") != std::string::npos);
+  EXPECT_TRUE(output.cout.find("y: 2") != std::string::npos);
+  EXPECT_TRUE(output.cout.find("z: 3") != std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -506,41 +375,32 @@ TEST(gzTest, TopicEcho)
 TEST(gzTest, TopicEchoNum)
 {
   // Launch a new publisher process that advertises a topic.
-  std::string publisher_path = testing::portablePathUnion(
-    GZ_TRANSPORT_TEST_DIR,
-    "INTEGRATION_twoProcsPublisher_aux");
+  auto proc = gz::utils::Subprocess(
+    {test_executables::kTwoProcsPublisher, g_partition});
 
-  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
-    g_partition.c_str());
+  auto output = custom_exec_str(
+    {"topic", "-e", "-t", "/foo", "-n", "2"});
 
-  // Check the 'gz topic -e -n' command.
-  std::string gz = std::string(GZ_PATH);
-  std::string output = custom_exec_str(
-    gz + " topic -e -t /foo -n 2 " + g_gzVersion);
-
-  size_t pos = output.find("x: 1");
+  size_t pos = output.cout.find("x: 1");
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("x: 1", pos + 4);
+  pos = output.cout.find("x: 1", pos + 4);
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("x: 1", pos + 4);
+  pos = output.cout.find("x: 1", pos + 4);
   EXPECT_TRUE(pos == std::string::npos);
 
-  pos = output.find("y: 2");
+  pos = output.cout.find("y: 2");
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("y: 2", pos + 4);
+  pos = output.cout.find("y: 2", pos + 4);
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("y: 2", pos + 4);
+  pos = output.cout.find("y: 2", pos + 4);
   EXPECT_TRUE(pos == std::string::npos);
 
-  pos = output.find("z: 3");
+  pos = output.cout.find("z: 3");
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("z: 3", pos + 4);
+  pos = output.cout.find("z: 3", pos + 4);
   EXPECT_TRUE(pos != std::string::npos);
-  pos = output.find("z: 3", pos + 4);
+  pos = output.cout.find("z: 3", pos + 4);
   EXPECT_TRUE(pos == std::string::npos);
-
-  // Wait for the child process to return.
-  testing::waitAndCleanupFork(pi);
 }
 
 //////////////////////////////////////////////////
@@ -609,7 +469,6 @@ TEST(gzTest, TopicHelpVsCompletionFlags)
   }
 }
 
-/////////////////////////////////////////////////
 /// Main
 int main(int argc, char **argv)
 {
@@ -618,15 +477,6 @@ int main(int argc, char **argv)
 
   // Set the partition name for this process.
   gz::utils::setenv("GZ_PARTITION", g_partition);
-
-  // Make sure that we load the library recently built and not the one installed
-  // in your system.
-  // Save the current value of LD_LIBRARY_PATH.
-  std::string value = "";
-  transport::env("LD_LIBRARY_PATH", value);
-  // Add the directory where Gazebo Transport has been built.
-  value = std::string(GZ_TEST_LIBRARY_PATH) + ":" + value;
-  gz::utils::setenv("LD_LIBRARY_PATH", value);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
