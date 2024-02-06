@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 
+#! [complete]
 from gz.msgs11.stringmsg_pb2 import StringMsg
 from gz.transport14 import Node
 
@@ -26,6 +27,8 @@ def main():
 
     result, response = node.request(service_name, request, StringMsg, StringMsg, timeout)
     print("Result:", result, "\nResponse:", response.data)
+
+#! [complete]
 
 if __name__ == "__main__":
     main()

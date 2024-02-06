@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include "gtest/gtest.h"
 
 #include <chrono>
 #include <ios>
@@ -21,13 +22,16 @@
 #include <unordered_set>
 
 #include "gz/transport/log/Log.hh"
-#include "test_config.hh"
-#include "log/test_config.hh"
-#include "gtest/gtest.h"
+
+#include "test_utils.hh"
 
 using namespace gz;
 using namespace gz::transport;
 using namespace std::chrono_literals;
+
+namespace {
+constexpr const char * kCorruptDbTestPath = CORRUPT_DB_TEST_PATH;
+}
 
 //////////////////////////////////////////////////
 TEST(Log, OpenMemoryDatabase)
@@ -251,10 +255,7 @@ TEST(Log, NullDescriptorUnopenedLog)
 TEST(Log, OpenCorruptDatabase)
 {
   log::Log logFile;
-  std::string path =
-    testing::portablePathUnion(GZ_TRANSPORT_LOG_TEST_PATH, "data");
-  path = testing::portablePathUnion(path, "state.tlog");
-  logFile.Open(path);
+  logFile.Open(kCorruptDbTestPath);
   EXPECT_GT(logFile.EndTime(), 0ns) << "logFile.EndTime() == "
     << logFile.EndTime().count() << "ns";;
 }
