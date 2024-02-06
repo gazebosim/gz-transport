@@ -561,6 +561,27 @@ namespace gz
           std::function<void(const ReplyT &_reply,
                              const bool _result)> &_callback);
 
+      /// \brief Request a new service using a non-blocking call.
+      /// In this version the callback is a lambda function and the
+      /// request and response may be abstract types.
+      /// \param[in] _topic Service name requested.
+      /// \param[in] _request Protobuf message containing the request's
+      /// parameters.
+      /// \param[in] _callback Lambda function executed when the response
+      /// arrives. The callback has the following parameters:
+      ///   * _reply Protobuf message containing the response.
+      ///   * _result Result of the service call. If false, there was
+      ///   a problem executing your request.
+      /// \param[in] _repType Message type used in the response.
+      /// \return true when the service call was succesfully requested.
+      public: template<typename RequestT, typename ReplyT>
+      bool Request(
+          const std::string &_topic,
+          const RequestT &_request,
+          std::function<void(const ReplyT &_reply,
+                             const bool _result)> &_callback,
+          const char *_repType);
+
       /// \brief Request a new service without input parameter using a
       /// non-blocking call.
       /// In this version the callback is a lambda function.

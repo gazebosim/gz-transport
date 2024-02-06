@@ -478,6 +478,99 @@ namespace gz
     }
 
     //////////////////////////////////////////////////
+    template<typename RequestT, typename ReplyT>
+    bool Node::Request(
+      const std::string &_topic,
+      const RequestT &_request,
+      std::function<void(const ReplyT &_reply, const bool _result)> &_cb,
+      const char *_repType)
+    {
+      auto rep = gz::msgs::Factory::New(_repType);
+      if (!rep)
+      {
+        std::cerr << "Unable to create response of type["
+                  << _repType << "].\n";
+        return false;
+      }
+
+      // Topic remapping.
+      std::string topic = _topic;
+      this->Options().TopicRemap(_topic, topic);
+
+      std::string fullyQualifiedTopic;
+      if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+        this->Options().NameSpace(), topic, fullyQualifiedTopic))
+      {
+        std::cerr << "Service [" << topic << "] is not valid." << std::endl;
+        return false;
+      }
+
+      bool localResponserFound;
+      IRepHandlerPtr repHandler;
+      {
+        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+        localResponserFound = this->Shared()->repliers.FirstHandler(
+              fullyQualifiedTopic,
+              _request.GetTypeName(),
+              rep->GetTypeName(),
+              repHandler);
+      }
+
+      // If the responser is within my process.
+      if (localResponserFound)
+      {
+        // There is a responser in my process, let's use it.
+        bool result = repHandler->RunLocalCallback(_request, *rep);
+
+        _cb(*rep, result);
+        return true;
+      }
+
+      // Create a new request handler.
+      std::shared_ptr<ReqHandler<RequestT, ReplyT>> reqHandlerPtr(
+        new ReqHandler<RequestT, ReplyT>(this->NodeUuid()));
+
+      // Insert the request's parameters.
+      reqHandlerPtr->SetMessage(&_request);
+
+      // Set the response message (to set the type info).
+      reqHandlerPtr->SetResponse(rep.get());
+
+      // Insert the callback into the handler.
+      reqHandlerPtr->SetCallback(_cb);
+
+      {
+        std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+
+        // Store the request handler.
+        this->Shared()->requests.AddHandler(
+          fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
+
+        // If the responser's address is known, make the request.
+        SrvAddresses_M addresses;
+        if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
+        {
+          this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
+            _request.GetTypeName(), rep->GetTypeName());
+        }
+        else
+        {
+          // Discover the service responser.
+          if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
+          {
+            std::cerr << "Node::Request(): Error discovering service ["
+                      << topic
+                      << "]. Did you forget to start the discovery service?"
+                      << std::endl;
+            return false;
+          }
+        }
+      }
+
+      return true;
+    }
+
+    //////////////////////////////////////////////////
     template<typename ReplyT>
     bool Node::Request(
       const std::string &_topic,
