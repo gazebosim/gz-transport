@@ -19,14 +19,16 @@ endif()
 gz_build_tests(
   TYPE "UNIT"
   SOURCES ${gtest_sources}
-  LIB_DEPS ${log_lib_target} ${EXTRA_TEST_LIB_DEPS}
+  LIB_DEPS ${log_lib_target} ${EXTRA_TEST_LIB_DEPS} test_config
   TEST_LIST logging_tests
 )
 
 foreach(test_target ${logging_tests})
-
-  set_tests_properties(${logging_tests} PROPERTIES
+  set_tests_properties(${test_target} PROPERTIES
     ENVIRONMENT GZ_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)
+  target_compile_definitions(${test_target} PRIVATE
+    "CORRUPT_DB_TEST_PATH=\"${CMAKE_SOURCE_DIR}/log/test/data/state.tlog\""
+  )
 
 endforeach()
 
@@ -45,9 +47,6 @@ set(SCHEMA_INSTALL_BASE ${GZ_DATA_INSTALL_DIR})
 install(DIRECTORY ../sql DESTINATION ${SCHEMA_INSTALL_BASE})
 set(SCHEMA_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/${SCHEMA_INSTALL_BASE}/sql)
 configure_file(build_config.hh.in build_config.hh @ONLY)
-
-
-message(STATUS "CMAKE_CURRENT_SOURCE_DIR:${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_include_directories(${log_lib_target}
   PUBLIC
