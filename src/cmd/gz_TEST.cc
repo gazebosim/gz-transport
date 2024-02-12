@@ -413,7 +413,17 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServiceHelpVsCompletionFlags))
      "\"\". " + std::string(kTransportBashCompletion) +
       "; _gz_service_flags\"\""});
   auto return_code = proc.Join();
-  EXPECT_EQ(0u, return_code);
+
+  if (return_code != 0u)
+  {
+    // Try again with /bin/bash for macOS and friends
+    proc = gz::utils::Subprocess(
+      {"/bin/bash", "-c",
+       "\"\". " + std::string(kTransportBashCompletion) +
+        "; _gz_service_flags\"\""});
+    return_code = proc.Join();
+  }
+  ASSERT_EQ(0u, return_code);
 
   // Tokenize script output
   std::istringstream iss(proc.Stdout());
@@ -446,7 +456,17 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TopicHelpVsCompletionFlags))
      "\"\". " + std::string(kTransportBashCompletion) +
       "; _gz_topic_flags\"\""});
   auto return_code = proc.Join();
-  EXPECT_EQ(0u, return_code);
+
+  if (return_code != 0u)
+  {
+    // Try again with /bin/bash for macOS and friends
+    proc = gz::utils::Subprocess(
+    {"/bin/bash", "-c",
+     "\"\". " + std::string(kTransportBashCompletion) +
+      "; _gz_topic_flags\"\""});
+    return_code = proc.Join();
+  }
+  ASSERT_EQ(0u, return_code);
 
   // Tokenize script output
   std::istringstream iss(proc.Stdout());
