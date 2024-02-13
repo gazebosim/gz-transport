@@ -12,6 +12,7 @@ target_include_directories(test_config INTERFACE
 target_compile_definitions(test_config INTERFACE
 # Location of the "gz" command
   "GZ_EXE=\"${HAVE_GZ_TOOLS}\""
+  "TRANSPORT_BASH_COMPLETION_SH=\"${PROJECT_SOURCE_DIR}/src/cmd/transport.bash_completion.sh\""
 # Auxillary executables for test
   "AUTH_PUB_SUB_SUBSCRIBER_INVALID_EXE=\"$<TARGET_FILE:authPubSubSubscriberInvalid_aux>\""
   "FAST_PUB_EXE=\"$<TARGET_FILE:fastPub_aux>\""

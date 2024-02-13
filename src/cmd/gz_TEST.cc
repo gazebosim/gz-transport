@@ -400,68 +400,68 @@ TEST(gzTest, TopicEchoNum)
 //////////////////////////////////////////////////
 /// \brief Check 'gz service --help' message and bash completion script for
 /// consistent flags
-// TEST(gzTest, ServiceHelpVsCompletionFlags)
-// {
-//   // Flags in help message
-//   std::string helpOutput = custom_exec_str("gz service --help");
+TEST(gzTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ServiceHelpVsCompletionFlags))
+{
+  // Flags in help message
+  auto helpOutput = custom_exec_str({"service",  "--help"});
 
-//   // Call the output function in the bash completion script
-//   std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
-//   scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+  // _gz_service_flags\""
+  auto proc = gz::utils::Subprocess(
+    {"/usr/bin/bash", "-c",
+     "\"\". " + std::string(kTransportBashCompletion) +
+      "; _gz_service_flags\"\""});
+  auto return_code = proc.Join();
+  ASSERT_EQ(0u, return_code) << proc.Stderr();
 
-//   // Equivalent to:
-//   // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
-//   // _gz_service_flags\""
-//   std::string cmd = "bash -c \". " + scriptPath.string() +
-//     "; _gz_service_flags\"";
-//   std::string scriptOutput = custom_exec_str(cmd);
+  // Tokenize script output
+  std::istringstream iss(proc.Stdout());
+  std::vector<std::string> flags(
+    (std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
 
-//   // Tokenize script output
-//   std::istringstream iss(scriptOutput);
-//   std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
-//     std::istream_iterator<std::string>());
+  EXPECT_GT(flags.size(), 0u);
 
-//   EXPECT_GT(flags.size(), 0u);
-
-//   // Match each flag in script output with help message
-//   for (const auto &flag : flags)
-//   {
-//     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
-//   }
-// }
+  // Match each flag in script output with help message
+  for (const auto &flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.cout.find(flag)) << helpOutput.cout;
+  }
+}
 
 //////////////////////////////////////////////////
 /// \brief Check 'gz topic --help' message and bash completion script for
 /// consistent flags
-// TEST(gzTest, TopicHelpVsCompletionFlags)
-// {
-//   // Flags in help message
-//   std::string helpOutput = custom_exec_str("gz topic --help");
+TEST(gzTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(TopicHelpVsCompletionFlags))
+{
+  // Flags in help message
+  auto helpOutput = custom_exec_str({"topic",  "--help"});
 
-//   // Call the output function in the bash completion script
-//   std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
-//   scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+  // _gz_topic_flags\""
+  auto proc = gz::utils::Subprocess(
+    {"/usr/bin/bash", "-c",
+     "\"\". " + std::string(kTransportBashCompletion) +
+      "; _gz_topic_flags\"\""});
+  auto return_code = proc.Join();
+  ASSERT_EQ(0u, return_code) << proc.Stderr();
 
-//   // Equivalent to:
-//   // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
-//   // _gz_topic_flags\""
-//   std::string cmd = "bash -c \". " + scriptPath.string() +
-//     "; _gz_topic_flags\"";
-//   std::string scriptOutput = custom_exec_str(cmd);
+  // Tokenize script output
+  std::istringstream iss(proc.Stdout());
+  std::vector<std::string> flags(
+    (std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
 
-//   // Tokenize script output
-//   std::istringstream iss(scriptOutput);
-//   std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
-//     std::istream_iterator<std::string>());
+  EXPECT_GT(flags.size(), 0u);
 
-//   EXPECT_GT(flags.size(), 0u);
-
-//   // Match each flag in script output with help message
-//   for (const auto &flag : flags)
-//   {
-//     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
-//   }
-// }
+  // Match each flag in script output with help message
+  for (const auto &flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.cout.find(flag)) << helpOutput.cout;
+  }
+}
 
 /// Main
 int main(int argc, char **argv)
