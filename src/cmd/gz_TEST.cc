@@ -400,7 +400,7 @@ TEST(gzTest, TopicEchoNum)
 //////////////////////////////////////////////////
 /// \brief Check 'gz service --help' message and bash completion script for
 /// consistent flags
-TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServiceHelpVsCompletionFlags))
+TEST(gzTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ServiceHelpVsCompletionFlags))
 {
   // Flags in help message
   auto helpOutput = custom_exec_str({"service",  "--help"});
@@ -413,17 +413,7 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServiceHelpVsCompletionFlags))
      "\"\". " + std::string(kTransportBashCompletion) +
       "; _gz_service_flags\"\""});
   auto return_code = proc.Join();
-
-  if (return_code != 0u)
-  {
-    // Try again with /bin/bash for macOS and friends
-    proc = gz::utils::Subprocess(
-      {"/bin/bash", "-c",
-       "\"\". " + std::string(kTransportBashCompletion) +
-        "; _gz_service_flags\"\""});
-    return_code = proc.Join();
-  }
-  ASSERT_EQ(0u, return_code);
+  ASSERT_EQ(0u, return_code) << proc.Stderr();
 
   // Tokenize script output
   std::istringstream iss(proc.Stdout());
@@ -443,7 +433,7 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServiceHelpVsCompletionFlags))
 //////////////////////////////////////////////////
 /// \brief Check 'gz topic --help' message and bash completion script for
 /// consistent flags
-TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TopicHelpVsCompletionFlags))
+TEST(gzTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(TopicHelpVsCompletionFlags))
 {
   // Flags in help message
   auto helpOutput = custom_exec_str({"topic",  "--help"});
@@ -456,17 +446,7 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TopicHelpVsCompletionFlags))
      "\"\". " + std::string(kTransportBashCompletion) +
       "; _gz_topic_flags\"\""});
   auto return_code = proc.Join();
-
-  if (return_code != 0u)
-  {
-    // Try again with /bin/bash for macOS and friends
-    proc = gz::utils::Subprocess(
-    {"/bin/bash", "-c",
-     "\"\". " + std::string(kTransportBashCompletion) +
-      "; _gz_topic_flags\"\""});
-    return_code = proc.Join();
-  }
-  ASSERT_EQ(0u, return_code);
+  ASSERT_EQ(0u, return_code) << proc.Stderr();
 
   // Tokenize script output
   std::istringstream iss(proc.Stdout());
