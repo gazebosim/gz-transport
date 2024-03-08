@@ -251,7 +251,7 @@ extern "C" void cmdServiceReq(const char *_service,
   Node node;
   bool result;
 
-  if (_timeout == -1)
+  if (_timeout == -1 || !strcmp(_repType, "gz.msgs.Empty"))
   {
     // One-way service.
     node.Request(_service, *req, 1000, *rep, result);
