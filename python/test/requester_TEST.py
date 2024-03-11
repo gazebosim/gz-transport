@@ -29,7 +29,7 @@ class RequesterTEST(unittest.TestCase):
         os.environ["GZ_PARTITION"] = gz_partition
 
         # Subprocess Setup
-        cmd = f"{os.getenv('CMAKE_BINARY_DIR')}/INTEGRATION_twoProcsSrvCallReplier_aux {gz_partition}"
+        cmd = f"{os.getenv('CMAKE_BINARY_DIR')}/twoProcsSrvCallReplier_aux {gz_partition}"
         self.service_process = subprocess.Popen(cmd, shell=True)
 
         # Requester Setup

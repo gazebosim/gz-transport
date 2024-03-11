@@ -14,27 +14,21 @@
  * limitations under the License.
  *
 */
+#include "gtest/gtest.h"
+
+#include <gz/msgs/int32.pb.h>
 
 #include <future>
 #include <string>
 #include <iostream>
 #include <sstream>
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-#include <gz/msgs/int32.pb.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #include "gz.hh"
 #include "gz/transport/Node.hh"
 
 #include <gz/utils/Environment.hh>
 
-#include "test_config.hh"
-#include "gtest/gtest.h"
+#include "test_utils.hh"
 
 using namespace gz;
 
