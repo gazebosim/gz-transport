@@ -368,11 +368,10 @@ TEST(gzTest, ServiceOnewayRequest)
   msgs::StringMsg msg;
   msg.set_data("good_value");
 
-  // Check the 'gz service -r' command.
-  std::string gz = std::string(GZ_PATH);
-  std::string output = custom_exec_str(gz +
-      " service -s " + service + " --reqtype gz_msgs.StringMsg " +
-      "--req 'data:\"good_value\"' " + g_gzVersion);
+  // Check the 'gz service' oneway command.
+  auto output = custom_exec_str(
+    {"service", "-s", service, "--reqtype", "gz_msgs.StringMsg",
+     "--req", "'data:\"good_value\"'"});
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_EQ("good_value", g_topicCBStr);
