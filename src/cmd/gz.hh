@@ -51,9 +51,9 @@ extern "C" void cmdTopicPub(const char *_topic,
 /// \param[in] _service Service name.
 /// \param[in] _reqType Message type used in the request.
 /// \param[in] _repType Message type used in the response.
+///                     If "gz.msgs.Empty" is used, the request will be one-way
+///                     and _repType and _timeout will be ignored.
 /// \param[in] _timeout The request will timeout after '_timeout' ms.
-///                     If -1 is used, the request will be one-way and _repType
-///                     will be ignored.
 /// \param[in] _reqData Input data sent in the request.
 /// The format expected is the same used by Protobuf DebugString().
 /// E.g.: cmdServiceReq("/bar", "gz.msgs.StringMsg",

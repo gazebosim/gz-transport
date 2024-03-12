@@ -73,7 +73,7 @@ void runServiceCommand(const ServiceOptions &_opt)
         // One-way service request.
         cmdServiceReq(_opt.service.c_str(),
             _opt.reqType.c_str(), "gz.msgs.Empty",
-            -1, _opt.reqData.c_str());
+            0, _opt.reqData.c_str());
       }
       else
       {
