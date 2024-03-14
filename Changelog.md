@@ -1,5 +1,46 @@
 ## Gazebo Transport 13.X
 
+### Gazebo Transport 13.1.0 (2024-03-14)
+1. Oneway service request from the command line
+    * [Pull request #477](https://github.com/gazebosim/gz-transport/pull/477)
+
+1. Re-enable tests of bash completion functions for gz
+    * [Pull request #481](https://github.com/gazebosim/gz-transport/pull/481)
+
+1. Find Python3 directly, not with GzPython
+    * [Pull request #472](https://github.com/gazebosim/gz-transport/pull/472)
+
+1. Fix issue #468
+    * [Pull request #470](https://github.com/gazebosim/gz-transport/pull/470)
+
+1. Test refactoring part 2
+    * [Pull request #463](https://github.com/gazebosim/gz-transport/pull/463)
+
+1. Update CI badges in README
+    * [Pull request #465](https://github.com/gazebosim/gz-transport/pull/465)
+
+1. Support for bazel on garden
+    * [Pull request #399](https://github.com/gazebosim/gz-transport/pull/399)
+
+1. Use subprocess rather than custom code
+    * [Pull request #429](https://github.com/gazebosim/gz-transport/pull/429)
+
+1. Infrastructure
+    * [Pull request #460](https://github.com/gazebosim/gz-transport/pull/460)
+
+1. Remove duplicated functionality from test_config
+    * [Pull request #457](https://github.com/gazebosim/gz-transport/pull/457)
+    * [Pull request #458](https://github.com/gazebosim/gz-transport/pull/458)
+
+1. Make empty constructor as peer to explicit
+    * [Pull request #453](https://github.com/gazebosim/gz-transport/pull/453)
+
+1. Adds the subcommands for the log command for bash completion
+    * [Pull request #451](https://github.com/gazebosim/gz-transport/pull/451)
+
+1. Adds the python bindings tutorial
+    * [Pull request #450](https://github.com/gazebosim/gz-transport/pull/450)
+
 ### Gazebo Transport 13.0.0 (2023-09-29)
 
 1. Fix Docker in Harmonic
