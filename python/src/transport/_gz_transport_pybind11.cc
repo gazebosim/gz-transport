@@ -186,7 +186,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
 
     py::class_<TopicStatistics>(
       m, "TopicStatistics",
-      "This class encapsulates statistics for a single topic..")
+      "This class encapsulates statistics for a single topic.")
       .def(py::init<>());
 
     auto node = py::class_<Node>(m, "Node",

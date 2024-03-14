@@ -1,0 +1,131 @@
+load(
+    "@gz//bazel/skylark:build_defs.bzl",
+    "GZ_FEATURES",
+    "GZ_ROOT",
+    "GZ_VISIBILITY",
+    "gz_configure_header",
+    "gz_export_header",
+    "gz_include_header",
+)
+load(
+    "@gz//bazel/lint:lint.bzl",
+    "add_lint_tests",
+)
+
+package(
+    default_visibility = GZ_VISIBILITY,
+    features = GZ_FEATURES,
+)
+
+licenses(["notice"])  # Apache-2.0
+
+exports_files(["LICENSE"])
+
+gz_configure_header(
+    name = "transport_config_hh",
+    src = "include/gz/transport/config.hh.in",
+    cmakelists = ["CMakeLists.txt"],
+    package = "transport",
+)
+
+gz_export_header(
+    name = "include/gz/transport/Export.hh",
+    export_base = "GZ_TRANSPORT",
+    lib_name = "gz-transport",
+    visibility = ["//visibility:private"],
+)
+
+public_headers_no_gen = glob([
+    "include/gz/transport/*.h",
+    "include/gz/transport/*.hh",
+    "include/gz/transport/detail/*.hh",
+])
+
+private_headers = glob(["src/*.hh"])
+
+sources = glob(
+    ["src/*.cc"],
+    exclude = [
+        "src/*_TEST.cc",
+    ],
+)
+
+gz_include_header(
+    name = "transport_hh_genrule",
+    out = "include/gz/transport.hh",
+    hdrs = public_headers_no_gen + [
+        "include/gz/transport/config.hh",
+        "include/gz/transport/Export.hh",
+    ],
+)
+
+public_headers = public_headers_no_gen + [
+    "include/gz/transport/config.hh",
+    "include/gz/transport/Export.hh",
+    "include/gz/transport.hh",
+]
+
+cc_library(
+    name = "transport",
+    srcs = sources + private_headers,
+    hdrs = public_headers,
+    copts = [
+        "-Wno-deprecated-declarations",
+    ],
+    includes = ["include"],
+    deps = [
+        GZ_ROOT + "msgs",
+        "@uuid",
+        "@zmq",
+    ],
+)
+
+cc_binary(
+    name = "topic",
+    srcs = [
+        "src/cmd/gz.cc",
+        "src/cmd/gz.hh",
+        "src/cmd/topic_main.cc",
+    ],
+    includes = ["src/cmd"],
+    deps = [
+        ":transport",
+        GZ_ROOT + "utils/cli",
+    ],
+)
+
+cc_binary(
+    name = "service",
+    srcs = [
+        "src/cmd/gz.cc",
+        "src/cmd/gz.hh",
+        "src/cmd/service_main.cc",
+    ],
+    includes = ["src/cmd"],
+    deps = [
+        ":transport",
+        GZ_ROOT + "utils/cli",
+    ],
+)
+
+test_sources = glob(
+    include = ["src/*_TEST.cc"],
+)
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    env = {
+        "GZ_BAZEL": "1",
+        "GZ_BAZEL_PATH": "transport",
+    },
+    deps = [
+        ":transport",
+        GZ_ROOT + "common/testing",
+        GZ_ROOT + "transport/test:utils",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+) for src in test_sources]
+
+add_lint_tests()

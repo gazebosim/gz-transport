@@ -1,0 +1,15 @@
+load(
+    "@gz//bazel/skylark:build_defs.bzl",
+    "GZ_ROOT",
+    "GZ_VISIBILITY",
+)
+
+cc_library(
+    name = "utils",
+    hdrs = ["test_utils.hh"],
+    includes = ["."],
+    visibility = GZ_VISIBILITY,
+    deps = [
+        GZ_ROOT + "utils",
+    ],
+)
