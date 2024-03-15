@@ -32,7 +32,6 @@ namespace gz
   {
     inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     {
-    class NodeShared;
 
     /// \internal
     /// \brief Private data for Node class.
@@ -67,7 +66,7 @@ namespace gz
 
       /// \brief Pointer to the object shared between all the nodes within the
       /// same process.
-      public: NodeShared *shared = NodeShared::Instance();
+      public: std::shared_ptr<NodeShared> shared = NodeShared::Instance();
 
       /// \brief Partition for this node.
       public: std::string partition = hostname() + ":" + username();

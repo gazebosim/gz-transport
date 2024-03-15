@@ -69,7 +69,7 @@ namespace gz
       /// \brief NodeShared is a singleton. This method gets the
       /// NodeShared instance shared between all the nodes.
       /// \return Pointer to the current NodeShared instance.
-      public: static NodeShared *Instance();
+      public: static std::shared_ptr<NodeShared> Instance();
 
       /// \brief Receive data and control messages.
       public: void RunReceptionTask();
@@ -285,10 +285,10 @@ namespace gz
                   const std::string &_topic) const;
 
       /// \brief Constructor.
-      protected: NodeShared();
+      public: NodeShared();
 
       /// \brief Destructor.
-      protected: virtual ~NodeShared();
+      public: virtual ~NodeShared();
 
       /// \brief Initialize all sockets.
       /// \return True when success or false otherwise. This function might

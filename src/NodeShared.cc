@@ -152,47 +152,19 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 }
 
 //////////////////////////////////////////////////
-NodeShared *NodeShared::Instance()
+std::shared_ptr<NodeShared> NodeShared::Instance()
 {
   // Create an instance of NodeShared per process so the ZMQ context
   // is not shared between different processes.
+  static std::weak_ptr<NodeShared> nodeSharedWeak;
 
-  static std::shared_mutex mutex;
-  static std::unordered_map<unsigned int, NodeShared*> nodeSharedMap;
+  auto nodeShared = nodeSharedWeak.lock();
+  if (nodeShared)
+    return nodeShared;
 
-  // Get current process ID.
-  auto pid = getProcessId();
-
-  // Check if there's already a NodeShared instance for this process.
-  // Use a shared_lock so multiple threads can read simultaneously.
-  // This will only block if there's another thread locking exclusively
-  // for writing. Since most of the time threads will be reading,
-  // we make the read operation faster at the expense of making the write
-  // operation slower. Use exceptions for their zero-cost when successful.
-  try
-  {
-    std::shared_lock readLock(mutex);
-    return nodeSharedMap.at(pid);
-  }
-  catch (...)
-  {
-    // Multiple threads from the same process could have arrived here
-    // simultaneously, so after locking, we need to make sure that there's
-    // not an already constructed NodeShared instance for this process.
-    std::lock_guard writeLock(mutex);
-
-    auto iter = nodeSharedMap.find(pid);
-    if (iter != nodeSharedMap.end())
-    {
-      // There's already an instance for this process, return it.
-      return iter->second;
-    }
-
-    // No instance, construct a new one.
-    auto ret = nodeSharedMap.insert({pid, new NodeShared});
-    assert(ret.second);  // Insert operation should be successful.
-    return ret.first->second;
-  }
+  nodeShared = std::make_shared<NodeShared>();
+  nodeSharedWeak = nodeShared;
+  return nodeShared;
 }
 
 //////////////////////////////////////////////////

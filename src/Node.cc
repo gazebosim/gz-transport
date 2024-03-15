@@ -189,7 +189,7 @@ namespace gz
 
       /// \brief Pointer to the object shared between all the nodes within the
       /// same process.
-      public: NodeShared *shared = nullptr;
+      public: std::shared_ptr<NodeShared> shared = nullptr;
 
       /// \brief The message publisher.
       public: MessagePublisher publisher;
@@ -862,7 +862,7 @@ bool Node::EnableStats(const std::string &_topic, bool _enable,
 }
 
 //////////////////////////////////////////////////
-NodeShared *Node::Shared() const
+std::shared_ptr<NodeShared> Node::Shared() const
 {
   return this->dataPtr->shared;
 }
