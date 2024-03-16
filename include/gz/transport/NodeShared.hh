@@ -285,10 +285,10 @@ namespace gz
                   const std::string &_topic) const;
 
       /// \brief Constructor.
-      public: NodeShared();
+      protected: NodeShared();
 
       /// \brief Destructor.
-      public: virtual ~NodeShared();
+      protected: virtual ~NodeShared();
 
       /// \brief Initialize all sockets.
       /// \return True when success or false otherwise. This function might

@@ -765,7 +765,7 @@ namespace gz
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
       /// \return The pointer to the shared node.
-      private: std::shared_ptr<NodeShared> Shared() const;
+      private: NodeShared *Shared() const;
 
       /// \brief Get the UUID of this node.
       /// \return The node UUID.

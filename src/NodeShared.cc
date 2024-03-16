@@ -158,11 +158,12 @@ std::shared_ptr<NodeShared> NodeShared::Instance()
   // is not shared between different processes.
   static std::weak_ptr<NodeShared> nodeSharedWeak;
 
-  auto nodeShared = nodeSharedWeak.lock();
+  std::shared_ptr<NodeShared> nodeShared = nodeSharedWeak.lock();
   if (nodeShared)
     return nodeShared;
 
-  nodeShared = std::make_shared<NodeShared>();
+  class MakeSharedEnabler : public NodeShared {};
+  nodeShared = std::make_shared<MakeSharedEnabler>();
   nodeSharedWeak = nodeShared;
   return nodeShared;
 }

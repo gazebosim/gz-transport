@@ -862,9 +862,9 @@ bool Node::EnableStats(const std::string &_topic, bool _enable,
 }
 
 //////////////////////////////////////////////////
-std::shared_ptr<NodeShared> Node::Shared() const
+NodeShared *Node::Shared() const
 {
-  return this->dataPtr->shared;
+  return this->dataPtr->shared.get();
 }
 
 //////////////////////////////////////////////////
