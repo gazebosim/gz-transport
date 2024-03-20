@@ -70,7 +70,7 @@ namespace gz
       /// NodeShared instance shared between all the nodes.
       /// Note: This is deprecated. Please use \sa SharedInstance
       /// \return Pointer to the current NodeShared instance.
-      public: static NodeShared *Instance() GZ_DEPRECATED(13);
+      public: static NodeShared GZ_DEPRECATED(13) *Instance();
 
       /// \brief NodeShared is a singleton. This method gets the
       /// a reference counted NodeShared instance shared between all the nodes.
