@@ -77,13 +77,13 @@ namespace gz
     //////////////////////////////////////////////////
     int rcvHwm()
     {
-      return NodeShared::Instance()->RcvHwm();
+      return NodeShared::SharedInstance()->RcvHwm();
     }
 
     //////////////////////////////////////////////////
     int sndHwm()
     {
-      return NodeShared::Instance()->SndHwm();
+      return NodeShared::SharedInstance()->SndHwm();
     }
 
     //////////////////////////////////////////////////
@@ -104,14 +104,14 @@ namespace gz
     {
       /// \brief Default constructor.
       public: PublisherPrivate()
-        : shared(NodeShared::Instance())
+        : shared(NodeShared::SharedInstance())
       {
       }
 
       /// \brief Constructor
       /// \param[in] _publisher The message publisher.
       public: explicit PublisherPrivate(const MessagePublisher &_publisher)
-        : shared(NodeShared::Instance()),
+        : shared(NodeShared::SharedInstance()),
           publisher(_publisher)
       {
       }

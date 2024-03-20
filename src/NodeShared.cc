@@ -152,7 +152,17 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 }
 
 //////////////////////////////////////////////////
-std::shared_ptr<NodeShared> NodeShared::Instance()
+NodeShared *NodeShared::Instance()
+{
+  // This is a deprecated function, but since it's public, the following ensures
+  // backward compatibility by instantiating a shared_ptr that never gets
+  // deleted.
+  static std::shared_ptr<NodeShared> nodeShared = NodeShared::SharedInstance();
+  return nodeShared.get();
+}
+
+//////////////////////////////////////////////////
+std::shared_ptr<NodeShared> NodeShared::SharedInstance()
 {
   // Create an instance of NodeShared per process so the ZMQ context
   // is not shared between different processes.

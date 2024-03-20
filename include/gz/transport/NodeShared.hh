@@ -68,8 +68,14 @@ namespace gz
     {
       /// \brief NodeShared is a singleton. This method gets the
       /// NodeShared instance shared between all the nodes.
+      /// Note: This is deprecated. Please use \sa SharedInstance
       /// \return Pointer to the current NodeShared instance.
-      public: static std::shared_ptr<NodeShared> Instance();
+      public: static NodeShared *Instance() GZ_DEPRECATED(13);
+
+      /// \brief NodeShared is a singleton. This method gets the
+      /// a reference counted NodeShared instance shared between all the nodes.
+      /// \return A shared_ptr to the current NodeShared instance.
+      public: static std::shared_ptr<NodeShared> SharedInstance();
 
       /// \brief Receive data and control messages.
       public: void RunReceptionTask();
