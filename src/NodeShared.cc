@@ -169,14 +169,9 @@ std::shared_ptr<NodeShared> NodeShared::SharedInstance()
   // Create an instance of NodeShared per process so the ZMQ context
   // is not shared between different processes.
   static std::weak_ptr<NodeShared> nodeSharedWeak;
-  static std::shared_mutex mutex;
+  static std::mutex mutex;
 
   // Check if there's already a NodeShared instance for this process.
-  // Use a shared_lock so multiple threads can read simultaneously.
-  // This will only block if there's another thread locking exclusively
-  // for writing. Since most of the time threads will be reading,
-  // we make the read operation faster at the expense of making the write
-  // operation slower
   std::shared_ptr<NodeShared> nodeShared = nodeSharedWeak.lock();
   if (nodeShared)
     return nodeShared;
@@ -184,7 +179,7 @@ std::shared_ptr<NodeShared> NodeShared::SharedInstance()
   // Multiple threads from the same process could have arrived here
   // simultaneously, so after locking, we need to make sure that there's
   // not an already constructed NodeShared instance for this process.
-  std::lock_guard writeLock(mutex);
+  std::lock_guard lock(mutex);
   nodeShared = nodeSharedWeak.lock();
   if (nodeShared)
     return nodeShared;
