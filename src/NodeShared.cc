@@ -152,6 +152,7 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 }
 
 //////////////////////////////////////////////////
+// LCOV_EXCL_START
 NodeShared *NodeShared::Instance()
 {
   // This is a deprecated function, but since it's public, the following ensures
@@ -160,6 +161,7 @@ NodeShared *NodeShared::Instance()
   static std::shared_ptr<NodeShared> nodeShared = NodeShared::SharedInstance();
   return nodeShared.get();
 }
+// LCOV_EXCL_STOP
 
 //////////////////////////////////////////////////
 std::shared_ptr<NodeShared> NodeShared::SharedInstance()
