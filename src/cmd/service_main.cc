@@ -105,11 +105,11 @@ void addServiceFlags(CLI::App &_app)
 
   auto serviceOpt = _app.add_option("-s,--service",
                                     opt->service, "Name of a service.");
-  auto reqTypeOpt = _app.add_option("--reqtype",
+  _app.add_option("--reqtype",
                                     opt->reqType, "Type of a request.");
-  auto repTypeOpt = _app.add_option("--reptype",
+  _app.add_option("--reptype",
                                     opt->repType, "Type of a response.");
-  auto timeoutOpt = _app.add_option("--timeout",
+  _app.add_option("--timeout",
                                     opt->timeout, "Timeout in milliseconds.");
 
   auto command = _app.add_option_group("command", "Command to be executed.");
