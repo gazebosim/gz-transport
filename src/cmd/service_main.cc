@@ -103,14 +103,11 @@ void addServiceFlags(CLI::App &_app)
 {
   auto opt = std::make_shared<ServiceOptions>();
 
-  auto serviceOpt = _app.add_option("-s,--service",
+  auto serviceOpt = _app.add_option("-s,--service", 
                                     opt->service, "Name of a service.");
-  _app.add_option("--reqtype",
-                                    opt->reqType, "Type of a request.");
-  _app.add_option("--reptype",
-                                    opt->repType, "Type of a response.");
-  _app.add_option("--timeout",
-                                    opt->timeout, "Timeout in milliseconds.");
+  _app.add_option("--reqtype", opt->reqType, "Type of a request.");
+  _app.add_option("--reptype", opt->repType, "Type of a response.");
+  _app.add_option("--timeout", opt->timeout, "Timeout in milliseconds.");
 
   auto command = _app.add_option_group("command", "Command to be executed.");
 
@@ -141,7 +138,7 @@ the same used by Protobuf DebugString(). E.g.:
     --req 'data: "Hello"'
 )")
     ->needs(serviceOpt)
-    ->expected(0,1);
+    ->expected(0, 1);
 
   _app.callback([opt](){runServiceCommand(*opt); });
 }
