@@ -54,6 +54,14 @@ void srvOneway(const msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
+/// \brief Provide a service without input.
+bool srvNoInput(msgs::StringMsg &_msg)
+{
+  _msg.set_data("good_value");
+  return true;
+}
+
+//////////////////////////////////////////////////
 /// \brief Topic callback
 void topicCB(const msgs::StringMsg &_msg)
 {
@@ -398,6 +406,23 @@ TEST(gzTest, ServiceOnewayRequest)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_EQ("good_value", g_topicCBStr);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r' to request a service without input args.
+TEST(gzTest, ServiceRequestNoInput)
+{
+  // Advertise a service.
+  transport::Node node;
+  std::string service = "/no_input";
+  EXPECT_TRUE(node.Advertise(service, srvNoInput));
+
+  // Check the 'gz service -r' no input command.
+  auto output = custom_exec_str(
+    {"service", "-s", service, "--reptype", "gz.msgs.StringMsg", "--req"});
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  EXPECT_EQ("data: \"good_value\"\n\n", output.cout);
 }
 
 //////////////////////////////////////////////////

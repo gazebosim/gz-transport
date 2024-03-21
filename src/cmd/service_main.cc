@@ -75,6 +75,13 @@ void runServiceCommand(const ServiceOptions &_opt)
             _opt.reqType.c_str(), "gz.msgs.Empty",
             0, _opt.reqData.c_str());
       }
+      else if (_opt.reqType.empty())
+      {
+        // No input service request.
+        cmdServiceReq(_opt.service.c_str(),
+            "gz.msgs.Empty", _opt.repType.c_str(),
+            _opt.timeout, "unused:true");
+      }
       else
       {
         // Two-way service request.
@@ -104,7 +111,6 @@ void addServiceFlags(CLI::App &_app)
                                     opt->repType, "Type of a response.");
   auto timeoutOpt = _app.add_option("--timeout",
                                     opt->timeout, "Timeout in milliseconds.");
-  timeoutOpt = timeoutOpt->needs(repTypeOpt);
 
   auto command = _app.add_option_group("command", "Command to be executed.");
 
@@ -135,7 +141,7 @@ the same used by Protobuf DebugString(). E.g.:
     --req 'data: "Hello"'
 )")
     ->needs(serviceOpt)
-    ->needs(reqTypeOpt);
+    ->expected(0,1);
 
   _app.callback([opt](){runServiceCommand(*opt); });
 }
