@@ -18,6 +18,7 @@
 #ifndef GZ_TRANSPORT_NODEPRIVATE_HH_
 #define GZ_TRANSPORT_NODEPRIVATE_HH_
 
+#include <memory>
 #include <string>
 #include <unordered_set>
 
@@ -67,7 +68,7 @@ namespace gz
 
       /// \brief Pointer to the object shared between all the nodes within the
       /// same process.
-      public: NodeShared *shared = NodeShared::Instance();
+      public: std::shared_ptr<NodeShared> shared = NodeShared::SharedInstance();
 
       /// \brief Partition for this node.
       public: std::string partition = hostname() + ":" + username();
