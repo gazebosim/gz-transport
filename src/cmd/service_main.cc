@@ -52,7 +52,7 @@ struct ServiceOptions
   std::string repType{""};
 
   /// \brief Timeout to use when requesting (in milliseconds)
-  int timeout{-1};
+  int timeout{1000};
 };
 
 //////////////////////////////////////////////////
@@ -104,7 +104,6 @@ void addServiceFlags(CLI::App &_app)
                                     opt->repType, "Type of a response.");
   auto timeoutOpt = _app.add_option("--timeout",
                                     opt->timeout, "Timeout in milliseconds.");
-  repTypeOpt = repTypeOpt->needs(timeoutOpt);
   timeoutOpt = timeoutOpt->needs(repTypeOpt);
 
   auto command = _app.add_option_group("command", "Command to be executed.");
