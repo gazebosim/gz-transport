@@ -103,7 +103,7 @@ void addServiceFlags(CLI::App &_app)
 {
   auto opt = std::make_shared<ServiceOptions>();
 
-  auto serviceOpt = _app.add_option("-s,--service", 
+  auto serviceOpt = _app.add_option("-s,--service",
                                     opt->service, "Name of a service.");
   _app.add_option("--reqtype", opt->reqType, "Type of a request.");
   _app.add_option("--reptype", opt->repType, "Type of a response.");
