@@ -77,13 +77,13 @@ namespace gz
     //////////////////////////////////////////////////
     int rcvHwm()
     {
-      return NodeShared::Instance()->RcvHwm();
+      return NodeShared::SharedInstance()->RcvHwm();
     }
 
     //////////////////////////////////////////////////
     int sndHwm()
     {
-      return NodeShared::Instance()->SndHwm();
+      return NodeShared::SharedInstance()->SndHwm();
     }
 
     //////////////////////////////////////////////////
@@ -104,14 +104,14 @@ namespace gz
     {
       /// \brief Default constructor.
       public: PublisherPrivate()
-        : shared(NodeShared::Instance())
+        : shared(NodeShared::SharedInstance())
       {
       }
 
       /// \brief Constructor
       /// \param[in] _publisher The message publisher.
       public: explicit PublisherPrivate(const MessagePublisher &_publisher)
-        : shared(NodeShared::Instance()),
+        : shared(NodeShared::SharedInstance()),
           publisher(_publisher)
       {
       }
@@ -189,7 +189,7 @@ namespace gz
 
       /// \brief Pointer to the object shared between all the nodes within the
       /// same process.
-      public: NodeShared *shared = nullptr;
+      public: std::shared_ptr<NodeShared> shared = nullptr;
 
       /// \brief The message publisher.
       public: MessagePublisher publisher;
@@ -864,7 +864,7 @@ bool Node::EnableStats(const std::string &_topic, bool _enable,
 //////////////////////////////////////////////////
 NodeShared *Node::Shared() const
 {
-  return this->dataPtr->shared;
+  return this->dataPtr->shared.get();
 }
 
 //////////////////////////////////////////////////
