@@ -1,6 +1,21 @@
 ## Gazebo Transport 13.X
 
+### Gazebo Transport 13.2.0 (2024-xx-xx)
+
+1. No input service request from the command line
+    * [Pull request #487](https://github.com/gazebosim/gz-transport/pull/487)
+
+1. Use `std::shared_ptr` for `gz::transport::NodeShared`
+    * [Pull request #484](https://github.com/gazebosim/gz-transport/pull/484)
+
+1. Use a default timeout when requesting a service from CLI.
+    * [Pull request #486](https://github.com/gazebosim/gz-transport/pull/486)
+
+1. Fix test failures when run under `colcon test`
+    * [Pull request #483](https://github.com/gazebosim/gz-transport/pull/483)
+
 ### Gazebo Transport 13.1.0 (2024-03-14)
+
 1. Oneway service request from the command line
     * [Pull request #477](https://github.com/gazebosim/gz-transport/pull/477)
 
