@@ -251,17 +251,25 @@ extern "C" void cmdServiceReq(const char *_service,
   Node node;
   bool result;
 
-  // Request the service.
-  bool executed = node.Request(_service, *req, _timeout, *rep, result);
-  if (executed)
+  if (!strcmp(_repType, "gz.msgs.Empty"))
   {
-    if (result)
-      std::cout << rep->DebugString() << std::endl;
-    else
-      std::cout << "Service call failed" << std::endl;
+    // One-way service.
+    node.Request(_service, *req, 1000, *rep, result);
   }
   else
-    std::cerr << "Service call timed out" << std::endl;
+  {
+    // Two-way service.
+    bool executed = node.Request(_service, *req, _timeout, *rep, result);
+    if (executed)
+    {
+      if (result)
+        std::cout << rep->DebugString() << std::endl;
+      else
+        std::cout << "Service call failed" << std::endl;
+    }
+    else
+      std::cerr << "Service call timed out" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////

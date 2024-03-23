@@ -47,6 +47,21 @@ bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
 }
 
 //////////////////////////////////////////////////
+/// \brief Provide a one-way service.
+void srvOneway(const msgs::StringMsg &_msg)
+{
+  g_topicCBStr = _msg.data();
+}
+
+//////////////////////////////////////////////////
+/// \brief Provide a service without input.
+bool srvNoInput(msgs::StringMsg &_msg)
+{
+  _msg.set_data("good_value");
+  return true;
+}
+
+//////////////////////////////////////////////////
 /// \brief Topic callback
 void topicCB(const msgs::StringMsg &_msg)
 {
@@ -327,7 +342,7 @@ TEST(gzTest, TopicPublish)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check 'gz service -r' to request a service.
+/// \brief Check 'gz service -r' to request a two-way service.
 TEST(gzTest, ServiceRequest)
 {
   transport::Node node;
@@ -348,6 +363,69 @@ TEST(gzTest, ServiceRequest)
     "--timeout",  "1000",
     "--req", "data: " + value});
   ASSERT_EQ(output.cout, "data: " + value + "\n\n");
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r' to request a two-way service without timeout.
+TEST(gzTest, ServiceRequestNoTimeout)
+{
+  transport::Node node;
+
+  // Advertise a service.
+  std::string service = "/echo";
+  std::string value = "10";
+  EXPECT_TRUE(node.Advertise(service, srvEcho));
+
+  msgs::Int32 msg;
+  msg.set_data(10);
+
+  // Check the 'gz service -r' command.
+  auto output = custom_exec_str({"service",
+    "-s", service,
+    "--reqtype", "gz_msgs.Int32",
+    "--reptype", "gz_msgs.Int32",
+    "--req", "data: " + value});
+  ASSERT_EQ(output.cout, "data: " + value + "\n\n");
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r' to request a one-way service.
+TEST(gzTest, ServiceOnewayRequest)
+{
+  g_topicCBStr = "bad_value";
+  transport::Node node;
+
+  // Advertise a service.
+  std::string service = "/oneway";
+  EXPECT_TRUE(node.Advertise(service, srvOneway));
+
+  msgs::StringMsg msg;
+  msg.set_data("good_value");
+
+  // Check the 'gz service' oneway command.
+  auto output = custom_exec_str(
+    {"service", "-s", service, "--reqtype", "gz.msgs.StringMsg",
+     "--req", "data: \"good_value\""});
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  EXPECT_EQ("good_value", g_topicCBStr);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r' to request a service without input args.
+TEST(gzTest, ServiceRequestNoInput)
+{
+  // Advertise a service.
+  transport::Node node;
+  std::string service = "/no_input";
+  EXPECT_TRUE(node.Advertise(service, srvNoInput));
+
+  // Check the 'gz service -r' no input command.
+  auto output = custom_exec_str(
+    {"service", "-s", service, "--reptype", "gz.msgs.StringMsg", "--req"});
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  EXPECT_EQ("data: \"good_value\"\n\n", output.cout);
 }
 
 //////////////////////////////////////////////////
@@ -403,68 +481,68 @@ TEST(gzTest, TopicEchoNum)
 //////////////////////////////////////////////////
 /// \brief Check 'gz service --help' message and bash completion script for
 /// consistent flags
-// TEST(gzTest, ServiceHelpVsCompletionFlags)
-// {
-//   // Flags in help message
-//   std::string helpOutput = custom_exec_str("gz service --help");
+TEST(gzTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ServiceHelpVsCompletionFlags))
+{
+  // Flags in help message
+  auto helpOutput = custom_exec_str({"service",  "--help"});
 
-//   // Call the output function in the bash completion script
-//   std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
-//   scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+  // _gz_service_flags\""
+  auto proc = gz::utils::Subprocess(
+    {"/usr/bin/bash", "-c",
+     "\"\". " + std::string(kTransportBashCompletion) +
+      "; _gz_service_flags\"\""});
+  auto return_code = proc.Join();
+  ASSERT_EQ(0u, return_code) << proc.Stderr();
 
-//   // Equivalent to:
-//   // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
-//   // _gz_service_flags\""
-//   std::string cmd = "bash -c \". " + scriptPath.string() +
-//     "; _gz_service_flags\"";
-//   std::string scriptOutput = custom_exec_str(cmd);
+  // Tokenize script output
+  std::istringstream iss(proc.Stdout());
+  std::vector<std::string> flags(
+    (std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
 
-//   // Tokenize script output
-//   std::istringstream iss(scriptOutput);
-//   std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
-//     std::istream_iterator<std::string>());
+  EXPECT_GT(flags.size(), 0u);
 
-//   EXPECT_GT(flags.size(), 0u);
-
-//   // Match each flag in script output with help message
-//   for (const auto &flag : flags)
-//   {
-//     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
-//   }
-// }
+  // Match each flag in script output with help message
+  for (const auto &flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.cout.find(flag)) << helpOutput.cout;
+  }
+}
 
 //////////////////////////////////////////////////
 /// \brief Check 'gz topic --help' message and bash completion script for
 /// consistent flags
-// TEST(gzTest, TopicHelpVsCompletionFlags)
-// {
-//   // Flags in help message
-//   std::string helpOutput = custom_exec_str("gz topic --help");
+TEST(gzTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(TopicHelpVsCompletionFlags))
+{
+  // Flags in help message
+  auto helpOutput = custom_exec_str({"topic",  "--help"});
 
-//   // Call the output function in the bash completion script
-//   std::filesystem::path scriptPath = PROJECT_SOURCE_DIR;
-//   scriptPath = scriptPath / "src" / "cmd" / "transport.bash_completion.sh";
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
+  // _gz_topic_flags\""
+  auto proc = gz::utils::Subprocess(
+    {"/usr/bin/bash", "-c",
+     "\"\". " + std::string(kTransportBashCompletion) +
+      "; _gz_topic_flags\"\""});
+  auto return_code = proc.Join();
+  ASSERT_EQ(0u, return_code) << proc.Stderr();
 
-//   // Equivalent to:
-//   // sh -c "bash -c \". /path/to/transport.bash_completion.sh;
-//   // _gz_topic_flags\""
-//   std::string cmd = "bash -c \". " + scriptPath.string() +
-//     "; _gz_topic_flags\"";
-//   std::string scriptOutput = custom_exec_str(cmd);
+  // Tokenize script output
+  std::istringstream iss(proc.Stdout());
+  std::vector<std::string> flags(
+    (std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
 
-//   // Tokenize script output
-//   std::istringstream iss(scriptOutput);
-//   std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
-//     std::istream_iterator<std::string>());
+  EXPECT_GT(flags.size(), 0u);
 
-//   EXPECT_GT(flags.size(), 0u);
-
-//   // Match each flag in script output with help message
-//   for (const auto &flag : flags)
-//   {
-//     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
-//   }
-// }
+  // Match each flag in script output with help message
+  for (const auto &flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.cout.find(flag)) << helpOutput.cout;
+  }
+}
 
 /// Main
 int main(int argc, char **argv)

@@ -20,6 +20,10 @@
 
 constexpr const char * kGzVersion = "@PROJECT_VERSION_FULL@";
 
+#ifdef TRANSPORT_BASH_COMPLETION_SH
+constexpr const char* kTransportBashCompletion = TRANSPORT_BASH_COMPLETION_SH;
+#endif  // TRANSPORT_BASH_COMPLETION_SH
+
 namespace test_executables
 {
 
