@@ -188,7 +188,7 @@ Recorder::Implementation::Implementation()
     this->OnMessageReceived(_data, _len, _info);
   };
 
-  auto shared = NodeShared::Instance();
+  auto shared = NodeShared::SharedInstance();
 
   this->discovery = std::make_unique<MsgDiscovery>(
       Uuid().ToString(), shared->discoveryIP, shared->msgDiscPort);

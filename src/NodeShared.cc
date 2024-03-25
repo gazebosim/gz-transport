@@ -152,47 +152,47 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 }
 
 //////////////////////////////////////////////////
+// LCOV_EXCL_START
 NodeShared *NodeShared::Instance()
+{
+  // This is a deprecated function, but since it's public, the following ensures
+  // backward compatibility by instantiating a shared_ptr that never gets
+  // deleted.
+  static std::shared_ptr<NodeShared> nodeShared = NodeShared::SharedInstance();
+  return nodeShared.get();
+}
+// LCOV_EXCL_STOP
+
+//////////////////////////////////////////////////
+std::shared_ptr<NodeShared> NodeShared::SharedInstance()
 {
   // Create an instance of NodeShared per process so the ZMQ context
   // is not shared between different processes.
-
-  static std::shared_mutex mutex;
-  static std::unordered_map<unsigned int, NodeShared*> nodeSharedMap;
-
-  // Get current process ID.
-  auto pid = getProcessId();
+  static std::weak_ptr<NodeShared> nodeSharedWeak;
+  static std::mutex mutex;
 
   // Check if there's already a NodeShared instance for this process.
-  // Use a shared_lock so multiple threads can read simultaneously.
-  // This will only block if there's another thread locking exclusively
-  // for writing. Since most of the time threads will be reading,
-  // we make the read operation faster at the expense of making the write
-  // operation slower. Use exceptions for their zero-cost when successful.
-  try
-  {
-    std::shared_lock readLock(mutex);
-    return nodeSharedMap.at(pid);
-  }
-  catch (...)
-  {
-    // Multiple threads from the same process could have arrived here
-    // simultaneously, so after locking, we need to make sure that there's
-    // not an already constructed NodeShared instance for this process.
-    std::lock_guard writeLock(mutex);
+  std::shared_ptr<NodeShared> nodeShared = nodeSharedWeak.lock();
+  if (nodeShared)
+    return nodeShared;
 
-    auto iter = nodeSharedMap.find(pid);
-    if (iter != nodeSharedMap.end())
-    {
-      // There's already an instance for this process, return it.
-      return iter->second;
-    }
+  // Multiple threads from the same process could have arrived here
+  // simultaneously, so after locking, we need to make sure that there's
+  // not an already constructed NodeShared instance for this process.
+  std::lock_guard lock(mutex);
+  nodeShared = nodeSharedWeak.lock();
+  if (nodeShared)
+    return nodeShared;
 
-    // No instance, construct a new one.
-    auto ret = nodeSharedMap.insert({pid, new NodeShared});
-    assert(ret.second);  // Insert operation should be successful.
-    return ret.first->second;
-  }
+  // Class used to enable use of std::shared_ptr. This is needed because the
+  // constructor and destructor of NodeShared are protected.
+  class MakeSharedEnabler : public NodeShared {};
+  // No instance, construct a new one.
+  nodeShared = std::make_shared<MakeSharedEnabler>();
+  // Assign to weak_ptr so next time SharedInstance is called, we can return the
+  // instance we just created.
+  nodeSharedWeak = nodeShared;
+  return nodeShared;
 }
 
 //////////////////////////////////////////////////

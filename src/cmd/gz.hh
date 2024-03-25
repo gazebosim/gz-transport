@@ -44,13 +44,15 @@ extern "C" void cmdServiceList();
 /// E.g.: cmdTopicPub("/foo", "gz.msgs.StringMsg",
 ///                   "'data:\"Custom data\"');
 extern "C" void cmdTopicPub(const char *_topic,
-                                                       const char *_msgType,
-                                                       const char *_msgData);
+                            const char *_msgType,
+                            const char *_msgData);
 
 /// \brief External hook to execute 'gz service -r' from the command line.
 /// \param[in] _service Service name.
 /// \param[in] _reqType Message type used in the request.
 /// \param[in] _repType Message type used in the response.
+///                     If "gz.msgs.Empty" is used, the request will be one-way
+///                     and _repType and _timeout will be ignored.
 /// \param[in] _timeout The request will timeout after '_timeout' ms.
 /// \param[in] _reqData Input data sent in the request.
 /// The format expected is the same used by Protobuf DebugString().
@@ -58,10 +60,10 @@ extern "C" void cmdTopicPub(const char *_topic,
 ///                     "gz.msgs.StringMsg", 1000,
 ///                     "'data:\"Custom data\"');
 extern "C" void cmdServiceReq(const char *_service,
-                                                         const char *_reqType,
-                                                         const char *_repType,
-                                                         const int _timeout,
-                                                         const char *_reqData);
+                              const char *_reqType,
+                              const char *_repType,
+                              const int _timeout,
+                              const char *_reqData);
 
 extern "C" {
   /// \brief Enum used for specifing the message output format for functions
