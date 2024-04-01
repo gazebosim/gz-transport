@@ -4,6 +4,7 @@ set(tests
   authPubSub.cc
   scopedTopic.cc
   callback_scope_TEST.cc
+  same_process_services.cc
   statistics.cc
   twoProcsPubSub.cc
   twoProcsSrvCall.cc
