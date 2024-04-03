@@ -57,4 +57,4 @@ configure_file(
   "transportparam.yaml.in"
   ${transportparam_configured})
 
-install(FILES ${transportparam_configured} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/gz/)
+install(FILES ${transportparam_configured} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
