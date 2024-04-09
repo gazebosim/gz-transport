@@ -1,6 +1,9 @@
 ## Gazebo Transport 13.X
 
-### Gazebo Transport 13.2.0 (2024-xx-xx)
+### Gazebo Transport 13.2.0 (2024-04-09)
+
+1. Use relative install path for gz tool data
+    * [Pull request #492](https://github.com/gazebosim/gz-transport/pull/492)
 
 1. No input service request from the command line
     * [Pull request #487](https://github.com/gazebosim/gz-transport/pull/487)
