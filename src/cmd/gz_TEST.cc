@@ -54,6 +54,14 @@ void srvOneway(const msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
+/// \brief Provide a service without input.
+bool srvNoInput(msgs::StringMsg &_msg)
+{
+  _msg.set_data("good_value");
+  return true;
+}
+
+//////////////////////////////////////////////////
 /// \brief Topic callback
 void topicCB(const msgs::StringMsg &_msg)
 {
@@ -355,6 +363,29 @@ TEST(gzTest, ServiceRequest)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check 'gz service -r' to request a two-way service without timeout.
+TEST(gzTest, ServiceRequestNoTimeout)
+{
+  transport::Node node;
+
+  // Advertise a service.
+  std::string service = "/echo";
+  std::string value = "10";
+  EXPECT_TRUE(node.Advertise(service, srvEcho));
+
+  msgs::Int32 msg;
+  msg.set_data(10);
+
+  // Check the 'gz service -r' command.
+  auto output = custom_exec_str({"service",
+    "-s", service,
+    "--reqtype", "gz_msgs.Int32",
+    "--reptype", "gz_msgs.Int32",
+    "--req", "data: " + value});
+  ASSERT_EQ(output.cout, "data: " + value + "\n\n");
+}
+
+//////////////////////////////////////////////////
 /// \brief Check 'gz service -r' to request a one-way service.
 TEST(gzTest, ServiceOnewayRequest)
 {
@@ -375,6 +406,23 @@ TEST(gzTest, ServiceOnewayRequest)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_EQ("good_value", g_topicCBStr);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r' to request a service without input args.
+TEST(gzTest, ServiceRequestNoInput)
+{
+  // Advertise a service.
+  transport::Node node;
+  std::string service = "/no_input";
+  EXPECT_TRUE(node.Advertise(service, srvNoInput));
+
+  // Check the 'gz service -r' no input command.
+  auto output = custom_exec_str(
+    {"service", "-s", service, "--reptype", "gz.msgs.StringMsg", "--req"});
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  EXPECT_EQ("data: \"good_value\"\n\n", output.cout);
 }
 
 //////////////////////////////////////////////////

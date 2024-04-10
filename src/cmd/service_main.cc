@@ -52,7 +52,7 @@ struct ServiceOptions
   std::string repType{""};
 
   /// \brief Timeout to use when requesting (in milliseconds)
-  int timeout{-1};
+  int timeout{1000};
 };
 
 //////////////////////////////////////////////////
@@ -74,6 +74,13 @@ void runServiceCommand(const ServiceOptions &_opt)
         cmdServiceReq(_opt.service.c_str(),
             _opt.reqType.c_str(), "gz.msgs.Empty",
             0, _opt.reqData.c_str());
+      }
+      else if (_opt.reqType.empty())
+      {
+        // No input service request.
+        cmdServiceReq(_opt.service.c_str(),
+            "gz.msgs.Empty", _opt.repType.c_str(),
+            _opt.timeout, "unused:true");
       }
       else
       {
@@ -98,14 +105,9 @@ void addServiceFlags(CLI::App &_app)
 
   auto serviceOpt = _app.add_option("-s,--service",
                                     opt->service, "Name of a service.");
-  auto reqTypeOpt = _app.add_option("--reqtype",
-                                    opt->reqType, "Type of a request.");
-  auto repTypeOpt = _app.add_option("--reptype",
-                                    opt->repType, "Type of a response.");
-  auto timeoutOpt = _app.add_option("--timeout",
-                                    opt->timeout, "Timeout in milliseconds.");
-  repTypeOpt = repTypeOpt->needs(timeoutOpt);
-  timeoutOpt = timeoutOpt->needs(repTypeOpt);
+  _app.add_option("--reqtype", opt->reqType, "Type of a request.");
+  _app.add_option("--reptype", opt->repType, "Type of a response.");
+  _app.add_option("--timeout", opt->timeout, "Timeout in milliseconds.");
 
   auto command = _app.add_option_group("command", "Command to be executed.");
 
@@ -136,7 +138,7 @@ the same used by Protobuf DebugString(). E.g.:
     --req 'data: "Hello"'
 )")
     ->needs(serviceOpt)
-    ->needs(reqTypeOpt);
+    ->expected(0, 1);
 
   _app.callback([opt](){runServiceCommand(*opt); });
 }
