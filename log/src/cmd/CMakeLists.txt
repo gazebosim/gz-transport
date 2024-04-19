@@ -57,4 +57,4 @@ configure_file(
   "transportlog.yaml.in"
   ${transportlog_configured})
 
-install(FILES ${transportlog_configured} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/gz/)
+install(FILES ${transportlog_configured} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
