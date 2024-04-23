@@ -22,7 +22,6 @@
   <depend>protobuf-dev</depend>
   <depend>pybind11-dev</depend>
   <depend>python3-dev</depend>
-  <depend>python3-distutils</depend>
   <depend>python3-psutil</depend>
   <depend>python3-pytest</depend>
   <depend>uuid</depend>
