@@ -512,6 +512,12 @@ Node::Node(const NodeOptions &_options)
 
   // Save the options.
   this->dataPtr->options = _options;
+
+  // Add relays from the node options.
+  for(const auto& addr : _options.Relays()) {
+    this->dataPtr->shared->dataPtr->msgDiscovery->AddRelayAddress(addr);
+    this->dataPtr->shared->dataPtr->srvDiscovery->AddRelayAddress(addr);
+  }
 }
 
 //////////////////////////////////////////////////

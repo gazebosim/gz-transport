@@ -20,6 +20,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/NetUtils.hh"
@@ -50,6 +51,9 @@ namespace gz
       /// \brief Table of remappings. The key is the original topic name and
       /// its value is the new topic name to be used instead.
       public: std::map<std::string, std::string> topicsRemap;
+
+      /// \brief List of unicast relay IPs.
+      public: std::vector<std::string> relayIPs;
     };
     }
   }

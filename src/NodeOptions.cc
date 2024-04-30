@@ -136,3 +136,15 @@ bool NodeOptions::TopicRemap(const std::string &_fromTopic,
 
   return topicIt != this->dataPtr->topicsRemap.end();
 }
+
+//////////////////////////////////////////////////
+bool NodeOptions::SetRelays(const std::vector<std::string>& _relayIPs) {
+  this->dataPtr->relayIPs = _relayIPs;
+  return true;
+}
+
+//////////////////////////////////////////////////
+const std::vector<std::string>& NodeOptions::Relays() const {
+  return this->dataPtr->relayIPs;
+}
+

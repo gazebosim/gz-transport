@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -125,6 +126,19 @@ namespace gz
       /// false otherwise.
       public: bool TopicRemap(const std::string &_fromTopic,
                               std::string &_toTopic) const;
+
+      /// \brief Add relay IPs. This node will send UDP unicast traffic to these
+      /// addresses to connect networks when UDP multicast traffic is not
+      /// forwarded.
+      /// It's also possible to use the environment variable GZ_RELAY to add
+      /// relays.
+      /// \param[in] _relayIPs IPv4 addresses of unicast relays to add.
+      /// \return True if the relay list is valid or false otherwise.
+      public: bool SetRelays(const std::vector<std::string>& _relayIPs);
+
+      /// \brief Gets the list of relay addresses specified in this NodeOptions.
+      /// \return The list of relay addresses.
+      public: const std::vector<std::string>& Relays() const;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
