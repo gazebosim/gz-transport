@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/NodeOptions.hh"
