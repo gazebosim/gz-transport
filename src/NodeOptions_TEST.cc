@@ -74,4 +74,11 @@ TEST(NodeOptionsTest, accessors)
   EXPECT_EQ(opts.Partition(), defaultPartition);
   EXPECT_TRUE(opts.SetPartition(aPartition));
   EXPECT_EQ(opts.Partition(), aPartition);
+
+  // Relay
+  std::string aRelay = "123.45.67.89";
+  EXPECT_TRUE(opts.SetRelays({aRelay}));
+  auto relays = opts.Relays();
+  ASSERT_EQ(relays.size(), 1);
+  EXPECT_EQ(relays[0], aRelay);
 }
