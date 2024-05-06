@@ -762,6 +762,9 @@ namespace gz
       public: std::optional<TopicStatistics> TopicStats(
                   const std::string &_topic) const;
 
+      public: void AddGlobalRelay(const std::string& relay_address);
+      public: std::vector<std::string> GlobalRelays() const;
+
       /// \brief Get a pointer to the shared node (singleton shared by all the
       /// nodes).
       /// \return The pointer to the shared node.
