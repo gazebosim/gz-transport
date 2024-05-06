@@ -2342,6 +2342,31 @@ TEST(NodeTest, statistics)
 }
 
 //////////////////////////////////////////////////
+/// \brief Test adding and querying relays
+TEST(NodeTest, relay) {
+  transport::Node node;
+
+  // Make sure the relay we're about to add hasn't already been configured.
+  const std::vector<std::string> relays_before_add = node.GlobalRelays();
+  {
+    auto relays_before_it = std::find_if(
+        relays_before_add.cbegin(), relays_before_add.cend(),
+        [](const std::string &relay) { return relay == "127.0.0.123"; });
+    ASSERT_EQ(relays_before_it, relays_before_add.cend());
+  }
+  node.AddGlobalRelay("127.0.0.123");
+
+  const std::vector<std::string> relays_after_add = node.GlobalRelays();
+  {
+    EXPECT_EQ(relays_after_add.size(), relays_before_add.size() + 1);
+    auto relay_it = std::find_if(
+        relays_after_add.cbegin(), relays_after_add.cend(),
+        [](const std::string &relay) { return relay == "127.0.0.123"; });
+    EXPECT_NE(relay_it, relays_after_add.cend());
+  }
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Get a random partition name.
