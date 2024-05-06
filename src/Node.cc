@@ -1140,8 +1140,8 @@ bool Node::RequestRaw(const std::string &_topic,
   return executed && res->SerializeToString(&_response);
 }
 
-void Node::AddGlobalRelay(const std::string& relay_address) {
-  Shared()->AddGlobalRelay(relay_address);
+void Node::AddGlobalRelay(const std::string& _relayAddress) {
+  Shared()->AddGlobalRelay(_relayAddress);
 }
 
 std::vector<std::string> Node::GlobalRelays() const {

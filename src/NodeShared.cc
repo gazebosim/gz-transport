@@ -23,6 +23,7 @@
 #include <iostream>
 #include <map>
 #include <mutex>
+#include <set>
 #include <shared_mutex>  //NOLINT
 #include <string>
 #include <thread>
