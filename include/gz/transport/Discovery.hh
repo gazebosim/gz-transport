@@ -760,6 +760,8 @@ namespace gz
         this->relayAddrs.push_back(addr);
       }
 
+      // \brief Gets this instance's relay addresses.
+      // \return The list of relay addresses.
       public: std::vector<std::string> RelayAddresses() const
       {
         std::vector<std::string> result;
