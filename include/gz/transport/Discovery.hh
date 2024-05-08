@@ -64,6 +64,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -744,6 +745,7 @@ namespace gz
       /// \param[in] _ip New IP address.
       public: void AddRelayAddress(const std::string &_ip)
       {
+        std::lock_guard<std::shared_mutex> lock(this->relayAddrsMutex);
         // Sanity check: Make sure that this IP address is not already saved.
         for (auto const &addr : this->relayAddrs)
         {
@@ -765,6 +767,8 @@ namespace gz
       public: std::vector<std::string> RelayAddresses() const
       {
         std::vector<std::string> result;
+
+        std::shared_lock<std::shared_mutex> lock(this->relayAddrsMutex);
 
         for (auto const &addr : this->relayAddrs) {
           result.push_back(inet_ntoa(addr.sin_addr));
@@ -1287,6 +1291,8 @@ namespace gz
         if (_msg.SerializeToArray(buffer + sizeof(msgSize), msgSize))
         {
           // Send the discovery message to the unicast relays.
+          std::shared_lock<std::shared_mutex> lock(this->relayAddrsMutex);
+
           for (const auto &sockAddr : this->relayAddrs)
           {
             errno = 0;
@@ -1547,6 +1553,9 @@ namespace gz
 
       /// \brief Collection of socket addresses used as remote relays.
       private: std::vector<sockaddr_in> relayAddrs;
+
+      /// \brief Mutex to guarantee exclusive write access to relayAddrs.
+      private: mutable std::shared_mutex relayAddrsMutex;
 
       /// \brief Mutex to guarantee exclusive access between the threads.
       private: mutable std::mutex mutex;
