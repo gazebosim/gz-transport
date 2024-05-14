@@ -52,6 +52,12 @@ namespace gz
         /// \return The updated Batch instance.
         public: Batch& operator=(Batch &&_other); // NOLINT
 
+        /// \brief No copy constructor.
+        public: Batch(const Batch& other) = delete;
+
+        /// \brief No copy-assignment operator.
+        public: Batch& operator=(const Batch& other) = delete;
+
         /// \brief destructor
         public: ~Batch();
 
