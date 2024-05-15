@@ -17,133 +17,130 @@
 
 #include "gz/transport/SubscriptionHandler.hh"
 
-namespace gz
+namespace gz::transport
 {
-  namespace transport
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
-    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
-    {
-    /////////////////////////////////////////////////
-    SubscriptionHandlerBase::SubscriptionHandlerBase(
-        const std::string &_nUuid,
-        const SubscribeOptions &_opts)
-      : opts(_opts),
-        periodNs(0.0),
-        hUuid(Uuid().ToString()),
-        lastCbTimestamp(std::chrono::seconds{0}),
-        nUuid(_nUuid)
-    {
-      if (this->opts.Throttled())
-        this->periodNs = 1e9 / this->opts.MsgsPerSec();
-    }
-
-    /////////////////////////////////////////////////
-    std::string SubscriptionHandlerBase::NodeUuid() const
-    {
-      return this->nUuid;
-    }
-
-    /////////////////////////////////////////////////
-    std::string SubscriptionHandlerBase::HandlerUuid() const
-    {
-      return this->hUuid;
-    }
-
-    /////////////////////////////////////////////////
-    bool SubscriptionHandlerBase::UpdateThrottling()
-    {
-      if (!this->opts.Throttled())
-        return true;
-
-      Timestamp now = std::chrono::steady_clock::now();
-
-      // Elapsed time since the last callback execution.
-      auto elapsed = now - this->lastCbTimestamp;
-
-      if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-            elapsed).count() < this->periodNs)
-      {
-        return false;
-      }
-
-      // Update the last callback execution.
-      this->lastCbTimestamp = now;
-      return true;
-    }
-
-    /////////////////////////////////////////////////
-    ISubscriptionHandler::ISubscriptionHandler(
-        const std::string &_nUuid,
-        const SubscribeOptions &_opts)
-      : SubscriptionHandlerBase(_nUuid, _opts)
-    {
-      // Do nothing
-    }
-
-    /////////////////////////////////////////////////
-    class RawSubscriptionHandler::Implementation
-    {
-      public: explicit Implementation(const std::string &_msgType)
-        : msgType(_msgType)
-      {
-        // Do nothing
-      }
-
-      public: std::string msgType;
-
-      public: RawCallback callback;
-    };
-
-    /////////////////////////////////////////////////
-    RawSubscriptionHandler::RawSubscriptionHandler(
-        const std::string &_nUuid,
-        const std::string &_msgType,
-        const SubscribeOptions &_opts)
-      : SubscriptionHandlerBase(_nUuid, _opts),
-        pimpl(new Implementation(_msgType))
-    {
-      // Do nothing
-    }
-
-    /////////////////////////////////////////////////
-    std::string RawSubscriptionHandler::TypeName()
-    {
-      return pimpl->msgType;
-    }
-
-    /////////////////////////////////////////////////
-    void RawSubscriptionHandler::SetCallback(const RawCallback &_callback)
-    {
-      pimpl->callback = _callback;
-    }
-
-    /////////////////////////////////////////////////
-    bool RawSubscriptionHandler::RunRawCallback(
-        const char *_msgData, const size_t _size,
-        const MessageInfo &_info)
-    {
-      // Make sure we have a callback
-      if (!this->pimpl->callback)
-      {
-        std::cerr << "RawSubscriptionHandler::RunRawCallback() "
-                  << "error: Callback is NULL" << std::endl;
-        return false;
-      }
-
-      // Check if we need to throttle
-      if (!this->UpdateThrottling())
-        return true;
-
-      // Trigger the callback
-      this->pimpl->callback(_msgData, _size, _info);
-      return true;
-    }
-
-    /////////////////////////////////////////////////
-    RawSubscriptionHandler::~RawSubscriptionHandler()
-    {
-      // Do nothing. This is here for pimpl.
-    }
-    }
+  /////////////////////////////////////////////////
+  SubscriptionHandlerBase::SubscriptionHandlerBase(
+      const std::string &_nUuid,
+      const SubscribeOptions &_opts)
+    : opts(_opts),
+      periodNs(0.0),
+      hUuid(Uuid().ToString()),
+      lastCbTimestamp(std::chrono::seconds{0}),
+      nUuid(_nUuid)
+  {
+    if (this->opts.Throttled())
+      this->periodNs = 1e9 / this->opts.MsgsPerSec();
   }
-}
+
+  /////////////////////////////////////////////////
+  std::string SubscriptionHandlerBase::NodeUuid() const
+  {
+    return this->nUuid;
+  }
+
+  /////////////////////////////////////////////////
+  std::string SubscriptionHandlerBase::HandlerUuid() const
+  {
+    return this->hUuid;
+  }
+
+  /////////////////////////////////////////////////
+  bool SubscriptionHandlerBase::UpdateThrottling()
+  {
+    if (!this->opts.Throttled())
+      return true;
+
+    Timestamp now = std::chrono::steady_clock::now();
+
+    // Elapsed time since the last callback execution.
+    auto elapsed = now - this->lastCbTimestamp;
+
+    if (std::chrono::duration_cast<std::chrono::nanoseconds>(
+          elapsed).count() < this->periodNs)
+    {
+      return false;
+    }
+
+    // Update the last callback execution.
+    this->lastCbTimestamp = now;
+    return true;
+  }
+
+  /////////////////////////////////////////////////
+  ISubscriptionHandler::ISubscriptionHandler(
+      const std::string &_nUuid,
+      const SubscribeOptions &_opts)
+    : SubscriptionHandlerBase(_nUuid, _opts)
+  {
+    // Do nothing
+  }
+
+  /////////////////////////////////////////////////
+  class RawSubscriptionHandler::Implementation
+  {
+    public: explicit Implementation(const std::string &_msgType)
+      : msgType(_msgType)
+    {
+      // Do nothing
+    }
+
+    public: std::string msgType;
+
+    public: RawCallback callback;
+  };
+
+  /////////////////////////////////////////////////
+  RawSubscriptionHandler::RawSubscriptionHandler(
+      const std::string &_nUuid,
+      const std::string &_msgType,
+      const SubscribeOptions &_opts)
+    : SubscriptionHandlerBase(_nUuid, _opts),
+      pimpl(new Implementation(_msgType))
+  {
+    // Do nothing
+  }
+
+  /////////////////////////////////////////////////
+  std::string RawSubscriptionHandler::TypeName()
+  {
+    return pimpl->msgType;
+  }
+
+  /////////////////////////////////////////////////
+  void RawSubscriptionHandler::SetCallback(const RawCallback &_callback)
+  {
+    pimpl->callback = _callback;
+  }
+
+  /////////////////////////////////////////////////
+  bool RawSubscriptionHandler::RunRawCallback(
+      const char *_msgData, const size_t _size,
+      const MessageInfo &_info)
+  {
+    // Make sure we have a callback
+    if (!this->pimpl->callback)
+    {
+      std::cerr << "RawSubscriptionHandler::RunRawCallback() "
+                << "error: Callback is NULL" << std::endl;
+      return false;
+    }
+
+    // Check if we need to throttle
+    if (!this->UpdateThrottling())
+      return true;
+
+    // Trigger the callback
+    this->pimpl->callback(_msgData, _size, _info);
+    return true;
+  }
+
+  /////////////////////////////////////////////////
+  RawSubscriptionHandler::~RawSubscriptionHandler()
+  {
+    // Do nothing. This is here for pimpl.
+  }
+  }  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport
