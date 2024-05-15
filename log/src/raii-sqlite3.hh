@@ -73,6 +73,5 @@ namespace raii_sqlite3
     /// \brief the pointer this is wrapping
     protected: sqlite3_stmt *handle = nullptr;
   };
-}
-
-#endif
+}  // namespace raii_sqlite3
+#endif  // GZ_TRANSPORT_LOG_RAIISQLITE3_HH_

@@ -25,9 +25,8 @@
 #include "MsgIterPrivate.hh"
 #include "raii-sqlite3.hh"
 
-using namespace gz::transport;
-using namespace gz::transport::log;
-
+namespace gz::transport::log
+{
 //////////////////////////////////////////////////
 MsgIterPrivate::MsgIterPrivate()
 {
@@ -245,3 +244,4 @@ const Message *MsgIter::operator->() const
 {
   return this->dataPtr->message.get();
 }
+}  // namespace gz::transport::log

@@ -24,69 +24,65 @@
 #include <gz/transport/config.hh>
 #include <gz/transport/log/Export.hh>
 
-namespace gz
+namespace gz::transport::log
 {
-  namespace transport
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  //
+  /// \brief Forward Declarations
+  class MessagePrivate;
+
+  /// \brief Represents a message in a bag file.
+  class GZ_TRANSPORT_LOG_VISIBLE Message
   {
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-      //
-      /// \brief Forward Declarations
-      class MessagePrivate;
+    /// \brief Default constructor
+    public: Message();
 
-      /// \brief Represents a message in a bag file.
-      class GZ_TRANSPORT_LOG_VISIBLE Message
-      {
-        /// \brief Default constructor
-        public: Message();
+    /// \brief Construct with data.
+    /// \internal
+    /// Referrences and pointers are borrowed, and must be kept alive by
+    /// the creator for as long as an instance lives.
+    /// This constructor is public for the sake of unit testing, but is not
+    /// expected to be called by a user.
+    /// \param[in] _timeRecv time the message was received
+    /// \param[in] _data the serialized message
+    /// \param[in] _dataLen number of bytes in _data
+    /// \param[in] _type the name of the message type
+    /// \param[in] _typeLen the length of _type
+    /// \param[in] _topic the name of the topic the message was published to
+    /// \param[in] _topicLen the length of _topic
+    public: Message(
+        const std::chrono::nanoseconds &_timeRecv,
+        const void *_data, std::size_t _dataLen,
+        const char *_type, std::size_t _typeLen,
+        const char *_topic, std::size_t _topicLen);
 
-        /// \brief Construct with data.
-        /// \internal
-        /// Referrences and pointers are borrowed, and must be kept alive by
-        /// the creator for as long as an instance lives.
-        /// This constructor is public for the sake of unit testing, but is not
-        /// expected to be called by a user.
-        /// \param[in] _timeRecv time the message was received
-        /// \param[in] _data the serialized message
-        /// \param[in] _dataLen number of bytes in _data
-        /// \param[in] _type the name of the message type
-        /// \param[in] _typeLen the length of _type
-        /// \param[in] _topic the name of the topic the message was published to
-        /// \param[in] _topicLen the length of _topic
-        public: Message(
-            const std::chrono::nanoseconds &_timeRecv,
-            const void *_data, std::size_t _dataLen,
-            const char *_type, std::size_t _typeLen,
-            const char *_topic, std::size_t _topicLen);
+    /// \brief No move constructor to prevent borrowed pointers from
+    /// living beyond creator's expectations.
+    public: Message(Message && _other) = delete;
 
-        /// \brief No move constructor to prevent borrowed pointers from
-        /// living beyond creator's expectations.
-        public: Message(Message && _other) = delete;
+    /// \brief No copy constructor to prevent borrowed pointers from
+    /// living beyond creator's expectations.
+    public: Message(const Message & _other) = delete;
 
-        /// \brief No copy constructor to prevent borrowed pointers from
-        /// living beyond creator's expectations.
-        public: Message(const Message & _other) = delete;
+    /// \brief Destructor
+    public: ~Message();
 
-        /// \brief Destructor
-        public: ~Message();
+    /// \brief Get the message data
+    /// \return The raw data for this message
+    public: std::string Data() const;
 
-        /// \brief Get the message data
-        /// \return The raw data for this message
-        public: std::string Data() const;
+    /// \brief Get the message type as a string
+    /// \return The message type name
+    public: std::string Type() const;
 
-        /// \brief Get the message type as a string
-        /// \return The message type name
-        public: std::string Type() const;
+    /// \brief Get the Topic name as a string
+    /// \return The topic for the message
+    public: std::string Topic() const;
 
-        /// \brief Get the Topic name as a string
-        /// \return The topic for the message
-        public: std::string Topic() const;
-
-        /// \brief Return the time the message was received
-        /// \return The time the message was received
-        public: const std::chrono::nanoseconds &TimeReceived() const;
+    /// \brief Return the time the message was received
+    /// \return The time the message was received
+    public: const std::chrono::nanoseconds &TimeReceived() const;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -94,14 +90,12 @@ namespace gz
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-        /// \brief Private Implementation Pointer
-        private: std::unique_ptr<MessagePrivate> dataPtr;
+    /// \brief Private Implementation Pointer
+    private: std::unique_ptr<MessagePrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
-      };
-      }
-    }
-  }
-}
-#endif
+  };
+  }  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport::log
+#endif  // GZ_TRANSPORT_LOG_MESSAGE_HH_

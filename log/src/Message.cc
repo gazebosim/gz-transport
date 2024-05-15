@@ -20,11 +20,14 @@
 
 #include "gz/transport/log/Message.hh"
 
-using namespace gz::transport;
-using namespace gz::transport::log;
 using namespace std::chrono_literals;
 
-class gz::transport::log::MessagePrivate
+namespace gz::transport::log
+{
+// Inline bracket to help doxygen filtering.
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
+{
+class MessagePrivate
 {
   /// \brief Time received
   public: std::chrono::nanoseconds timeReceived = 0ns;
@@ -47,6 +50,7 @@ class gz::transport::log::MessagePrivate
   /// \brief Length of message type
   public: std::size_t typeLen = 0;
 };
+}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
 
 //////////////////////////////////////////////////
 Message::Message()
@@ -99,3 +103,4 @@ const std::chrono::nanoseconds &Message::TimeReceived() const
 {
   return this->dataPtr->timeReceived;
 }
+}  // namespace gz::transport::log
