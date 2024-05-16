@@ -24,47 +24,45 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-namespace gz
+namespace gz::transport
 {
-  namespace transport
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  //
+  class SubscribeOptionsPrivate;
+
+  /// \class SubscribeOptions SubscribeOptions.hh
+  /// gz/transport/SubscribeOptions.hh
+  /// \brief A class to provide different options for a subscription.
+  class GZ_TRANSPORT_VISIBLE SubscribeOptions
   {
-    // Inline bracket to help doxygen filtering.
-    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-    //
-    class SubscribeOptionsPrivate;
+    /// \brief Constructor.
+    public: SubscribeOptions();
 
-    /// \class SubscribeOptions SubscribeOptions.hh
-    /// gz/transport/SubscribeOptions.hh
-    /// \brief A class to provide different options for a subscription.
-    class GZ_TRANSPORT_VISIBLE SubscribeOptions
-    {
-      /// \brief Constructor.
-      public: SubscribeOptions();
+    /// \brief Copy constructor.
+    /// \param[in] _otherSubscribeOpts SubscribeOptions to copy.
+    public: SubscribeOptions(const SubscribeOptions &_otherSubscribeOpts);
 
-      /// \brief Copy constructor.
-      /// \param[in] _otherSubscribeOpts SubscribeOptions to copy.
-      public: SubscribeOptions(const SubscribeOptions &_otherSubscribeOpts);
+    /// \brief Destructor.
+    public: ~SubscribeOptions();
 
-      /// \brief Destructor.
-      public: ~SubscribeOptions();
+    /// \brief Whether the subscription has been throttled.
+    /// \return true when the subscription is throttled or false otherwise.
+    /// \sa SetMsgsPerSec
+    /// \sa MsgsPerSec
+    public: bool Throttled() const;
 
-      /// \brief Whether the subscription has been throttled.
-      /// \return true when the subscription is throttled or false otherwise.
-      /// \sa SetMsgsPerSec
-      /// \sa MsgsPerSec
-      public: bool Throttled() const;
+    /// \brief Set the maximum number of messages per second received per
+    /// topic. Note that we calculate the minimum period of a message based
+    /// on the msgs/sec rate. Any message received since the last subscription
+    /// callback and the duration of the period will be discarded.
+    /// \param[in] _newMsgsPerSec Maximum number of messages per second.
+    public: void SetMsgsPerSec(const uint64_t _newMsgsPerSec);
 
-      /// \brief Set the maximum number of messages per second received per
-      /// topic. Note that we calculate the minimum period of a message based
-      /// on the msgs/sec rate. Any message received since the last subscription
-      /// callback and the duration of the period will be discarded.
-      /// \param[in] _newMsgsPerSec Maximum number of messages per second.
-      public: void SetMsgsPerSec(const uint64_t _newMsgsPerSec);
-
-      /// \brief Get the maximum number of messages per seconds received per
-      /// topic.
-      /// \return The maximum number of messages per second.
-      public: uint64_t MsgsPerSec() const;
+    /// \brief Get the maximum number of messages per seconds received per
+    /// topic.
+    /// \return The maximum number of messages per second.
+    public: uint64_t MsgsPerSec() const;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -72,14 +70,13 @@ namespace gz
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-      /// \internal
-      /// \brief Pointer to private data.
-      protected: std::unique_ptr<SubscribeOptionsPrivate> dataPtr;
+    /// \internal
+    /// \brief Pointer to private data.
+    protected: std::unique_ptr<SubscribeOptionsPrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
-    };
-    }
-  }
-}
+  };
+  }  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport
 #endif

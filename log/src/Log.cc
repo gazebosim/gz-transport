@@ -35,11 +35,11 @@
 #include "Descriptor.hh"
 #include "raii-sqlite3.hh"
 
-using namespace gz::transport;
-using namespace gz::transport::log;
+namespace gz::transport::log
+{
 
 /// \brief Private implementation
-class gz::transport::log::Log::Implementation
+class Log::Implementation
 {
   /// \internal \sa Log::Descriptor()
   public: const log::Descriptor *Descriptor() const;
@@ -717,3 +717,4 @@ std::string Log::Filename() const
 {
   return this->dataPtr->filename;
 }
+}  // namespace gz::transport::log

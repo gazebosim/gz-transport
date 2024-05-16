@@ -22,8 +22,8 @@
 #include "Console.hh"
 #include "raii-sqlite3.hh"
 
-using namespace raii_sqlite3;
-
+namespace raii_sqlite3
+{
 //////////////////////////////////////////////////
 Database::Database(const std::string &_path, int _flags)
 {
@@ -125,3 +125,4 @@ Statement::operator bool() const
 {
   return this->handle != nullptr;
 }
+}  // namespace raii_sqlite3

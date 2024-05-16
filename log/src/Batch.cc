@@ -23,8 +23,9 @@
 #include "MsgIterPrivate.hh"
 #include "raii-sqlite3.hh"
 
-using namespace gz::transport;
-using namespace gz::transport::log;
+
+namespace gz::transport::log
+{
 
 //////////////////////////////////////////////////
 BatchPrivate::BatchPrivate(const std::shared_ptr<raii_sqlite3::Database> &_db,
@@ -89,3 +90,4 @@ Batch::Batch(std::unique_ptr<BatchPrivate> &&_pimpl)  // NOLINT(build/c++11)
   : dataPtr(std::move(_pimpl))
 {
 }
+}  // namespace gz::transport::log

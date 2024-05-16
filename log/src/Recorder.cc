@@ -40,11 +40,11 @@
 #include "raii-sqlite3.hh"
 #include "build_config.hh"
 
-using namespace gz::transport;
-using namespace gz::transport::log;
 
+namespace gz::transport::log
+{
 /// \brief Private implementation
-class gz::transport::log::Recorder::Implementation
+class Recorder::Implementation
 {
   /// \brief Data type stored in dataQueue
   public: struct LogData
@@ -548,3 +548,4 @@ void Recorder::SetBufferSize(std::size_t _size)
   // Shift by 20 to convert to bytes
   this->dataPtr->maxBufferSize = _size << 20;
 }
+}  // namespace gz::transport::log

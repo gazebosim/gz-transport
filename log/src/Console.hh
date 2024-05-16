@@ -22,18 +22,12 @@
 
 #include <gz/transport/config.hh>
 
-namespace gz
+namespace gz::transport::log
 {
-  namespace transport
-  {
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-        //
-        extern int __verbosity;
-      }
-    }
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+    //
+    extern int __verbosity;
   }
 }
 

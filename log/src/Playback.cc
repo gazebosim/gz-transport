@@ -34,18 +34,17 @@
 #include "build_config.hh"
 #include "raii-sqlite3.hh"
 
-using namespace gz::transport;
-using namespace gz::transport::log;
-
 // We check whether sqlite3 is potentially threadsafe. Note that this only
 // knows whether sqlite3 was compiled with multi-threading capabilities. It
 // might not catch changes to sqlite3's runtime settings.
 // See: https://www.sqlite.org/threadsafe.html
 static const bool kSqlite3Threadsafe = (sqlite3_threadsafe() != 0);
 
+namespace gz::transport::log
+{
 //////////////////////////////////////////////////
 /// \brief Private implementation of Playback
-class gz::transport::log::Playback::Implementation
+class Playback::Implementation
 {
   /// \brief Constructor. Creates and initializes the log file
   /// \param[in] _file The full path of the file to open
@@ -810,3 +809,4 @@ PlaybackHandle::PlaybackHandle(
 {
   // Do nothing
 }
+}  // namespace gz::transport::log

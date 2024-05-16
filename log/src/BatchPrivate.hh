@@ -23,12 +23,15 @@
 #include "gz/transport/log/SqlStatement.hh"
 #include "raii-sqlite3.hh"
 
-using namespace gz::transport;
-using namespace gz::transport::log;
 
+namespace gz::transport::log
+{
+// Inline bracket to help doxygen filtering.
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
+{
 /// \brief Private implementation for Batch
 /// \internal
-class gz::transport::log::BatchPrivate
+class BatchPrivate
 {
   /// \brief constructor
   /// \param[in] _db an open sqlite3 database handle wrapper
@@ -46,5 +49,6 @@ class gz::transport::log::BatchPrivate
   /// \brief SQLite3 database pointer wrapper
   public: std::shared_ptr<raii_sqlite3::Database> db;
 };
-
-#endif
+}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport::log
+#endif  // GZ_TRANSPORT_LOG_BATCHPRIVATE_HH_

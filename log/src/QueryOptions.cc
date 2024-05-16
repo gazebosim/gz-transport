@@ -23,15 +23,14 @@
 
 #include <gz/transport/log/QueryOptions.hh>
 
-using namespace gz::transport;
-using namespace gz::transport::log;
-
+namespace
+{
 //////////////////////////////////////////////////
 /// \brief Append a topic ID condition clause that specifies a list of Topic IDs
 /// \param[in,out] _sql The SqlStatement to append the clause to
 /// \param[in] _ids The vector of Topic IDs to include in the list
-static void AppendTopicListClause(
-    SqlStatement &_sql, const std::vector<int64_t> &_ids)
+void AppendTopicListClause(
+    gz::transport::log::SqlStatement &_sql, const std::vector<int64_t> &_ids)
 {
   _sql.statement += "topic_id in (";
   bool first = true;
@@ -52,7 +51,10 @@ static void AppendTopicListClause(
 
   _sql.statement += ")";
 }
+}  // namespace
 
+namespace gz::transport::log
+{
 //////////////////////////////////////////////////
 SqlStatement QueryOptions::StandardMessageQueryPreamble()
 {
@@ -444,3 +446,4 @@ AllTopics::~AllTopics()
 {
   // Destroy the pimpl
 }
+}  // namespace gz::transport::log

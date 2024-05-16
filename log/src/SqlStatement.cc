@@ -20,8 +20,8 @@
 
 #include <gz/transport/log/SqlStatement.hh>
 
-using namespace gz::transport::log;
-
+namespace gz::transport::log
+{
 //////////////////////////////////////////////////
 class SqlParameter::Implementation
 {
@@ -227,3 +227,4 @@ void SqlStatement::Append(const SqlStatement &_other)
   for (const SqlParameter &p : _other.parameters)
     this->parameters.push_back(p);
 }
+}  // namespace gz::transport::log

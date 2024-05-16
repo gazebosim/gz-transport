@@ -17,16 +17,10 @@
 
 #include "Console.hh"
 
-namespace gz
-{
-namespace transport
-{
-namespace log
+namespace gz::transport::log
 {
 inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
   int __verbosity = 1;
 }
-}
-}
-}
+}  // namespace gz::transport::log

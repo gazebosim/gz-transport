@@ -19,11 +19,11 @@
 
 #include <gz/transport/log/QualifiedTime.hh>
 
-using namespace gz::transport::log;
-
+namespace gz::transport::log
+{
 //////////////////////////////////////////////////
 /// \internal Implementation for QualifiedTime
-class gz::transport::log::QualifiedTime::Implementation
+class QualifiedTime::Implementation
 {
   /// \internal \sa QualifiedTime(const std::chrono::nanoseconds&, Qualifier)
   public: Implementation(const Time &_time,
@@ -392,3 +392,4 @@ QualifiedTimeRange::~QualifiedTimeRange()
 {
   // Destroy pimpl
 }
+}  // namespace gz::transport::log

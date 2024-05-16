@@ -38,9 +38,7 @@
   #endif
 #endif
 
-namespace gz
-{
-namespace transport
+namespace gz::transport
 {
 inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
@@ -65,6 +63,5 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     // Return if we got a reply.
     return items[0].revents & ZMQ_POLLIN;
   }
-}
-}
-}
+}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport

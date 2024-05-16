@@ -20,8 +20,8 @@
 #include <string>
 #include <utility>
 
-using namespace gz::transport::log;
-
+namespace gz::transport::log
+{
 //////////////////////////////////////////////////
 void Descriptor::Implementation::Reset(const TopicKeyMap &_columns)
 {
@@ -87,3 +87,4 @@ Descriptor::Descriptor(Descriptor &&_orig)  // NOLINT(build/c++11)
 {
   // Do nothing
 }
+}  // namespace gz::transport::log

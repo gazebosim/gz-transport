@@ -25,14 +25,7 @@
 #include "gz/transport/log/SqlStatement.hh"
 #include "raii-sqlite3.hh"
 
-using namespace gz::transport;
-using namespace gz::transport::log;
-
-namespace gz
-{
-namespace transport
-{
-namespace log
+namespace gz::transport::log
 {
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
@@ -74,8 +67,6 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     /// \brief the message this iterator is at
     public: std::unique_ptr<Message> message;
   };
-}
-}
-}
-}
-#endif
+}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport::log
+#endif  // GZ_TRANSPORT_LOG_MSGITERPRIVATE_HH_
