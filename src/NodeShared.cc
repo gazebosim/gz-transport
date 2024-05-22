@@ -1943,9 +1943,9 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
   return numVal;
 }
 
-void NodeShared::AddGlobalRelay(const std::string& relay_address) {
-  dataPtr->msgDiscovery->AddRelayAddress(relay_address);
-  dataPtr->srvDiscovery->AddRelayAddress(relay_address);
+void NodeShared::AddGlobalRelay(const std::string& _relayAddress) {
+  dataPtr->msgDiscovery->AddRelayAddress(_relayAddress);
+  dataPtr->srvDiscovery->AddRelayAddress(_relayAddress);
 }
 
 std::vector<std::string> NodeShared::GlobalRelays() const {
