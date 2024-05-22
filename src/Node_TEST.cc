@@ -2347,22 +2347,22 @@ TEST(NodeTest, relay) {
   transport::Node node;
 
   // Make sure the relay we're about to add hasn't already been configured.
-  const std::vector<std::string> relays_before_add = node.GlobalRelays();
+  const std::vector<std::string> relaysBeforeAdd = node.GlobalRelays();
   {
-    auto relays_before_it = std::find_if(
-        relays_before_add.cbegin(), relays_before_add.cend(),
+    auto relaysBeforeIt = std::find_if(
+        relaysBeforeAdd.cbegin(), relaysBeforeAdd.cend(),
         [](const std::string &relay) { return relay == "127.0.0.123"; });
-    ASSERT_EQ(relays_before_it, relays_before_add.cend());
+    ASSERT_EQ(relaysBeforeIt, relaysBeforeAdd.cend());
   }
   node.AddGlobalRelay("127.0.0.123");
 
-  const std::vector<std::string> relays_after_add = node.GlobalRelays();
+  const std::vector<std::string> relaysAfterAdd = node.GlobalRelays();
   {
-    EXPECT_EQ(relays_after_add.size(), relays_before_add.size() + 1);
-    auto relay_it = std::find_if(
-        relays_after_add.cbegin(), relays_after_add.cend(),
+    EXPECT_EQ(relaysAfterAdd.size(), relaysBeforeAdd.size() + 1);
+    auto relayIt = std::find_if(
+        relaysAfterAdd.cbegin(), relaysAfterAdd.cend(),
         [](const std::string &relay) { return relay == "127.0.0.123"; });
-    EXPECT_NE(relay_it, relays_after_add.cend());
+    EXPECT_NE(relayIt, relaysAfterAdd.cend());
   }
 }
 
