@@ -23,6 +23,7 @@
 #include <iostream>
 #include <map>
 #include <mutex>
+#include <set>
 #include <shared_mutex>  //NOLINT
 #include <string>
 #include <thread>
@@ -1966,6 +1967,27 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
     }
   }
   return numVal;
+}
+
+//////////////////////////////////////////////////
+void NodeShared::AddGlobalRelay(const std::string& _relayAddress) {
+  dataPtr->msgDiscovery->AddRelayAddress(_relayAddress);
+  dataPtr->srvDiscovery->AddRelayAddress(_relayAddress);
+}
+
+//////////////////////////////////////////////////
+std::vector<std::string> NodeShared::GlobalRelays() const {
+  // Merge relays from message and service discovery. They should be identical
+  // since they're typically build from the same sources.
+  //
+  // This is confusing - do we want to add different handling here?
+  auto msgRelays = dataPtr->msgDiscovery->RelayAddresses();
+  std::set<std::string> msgRelaySet(msgRelays.cbegin(), msgRelays.cend());
+  auto srvRelays = dataPtr->srvDiscovery->RelayAddresses();
+  std::set<std::string> srvRelaySet(srvRelays.cbegin(), srvRelays.cend());
+  srvRelaySet.merge(msgRelaySet);
+
+  return std::vector<std::string>(srvRelaySet.cbegin(), srvRelaySet.cend());
 }
 
 //////////////////////////////////////////////////
