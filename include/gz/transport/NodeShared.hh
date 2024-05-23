@@ -286,6 +286,19 @@ namespace gz
       public: std::optional<TopicStatistics> TopicStats(
                   const std::string &_topic) const;
 
+      /// \brief Adds a unicast relay IP. All nodes in this process will send
+      /// UDP unicast traffic to the address to connect networks when UDP
+      /// multicast traffic is not forwarded.
+      /// It's also possible to use the environment variable GZ_RELAY to add
+      /// relays.
+      /// \param[in] _relayAddress IPv4 address of the relay to add.
+      public: void AddGlobalRelay(const std::string& _relayAddress);
+
+      /// \brief Gets the relay addresses configured for all nodes in this
+      /// process.
+      /// \return The relay addresses.
+      public: std::vector<std::string> GlobalRelays() const;
+
       /// \brief Unsubscribe a node from a topic.
       /// If the handler UUID argument is empty, all subscription handlers in
       /// the node for the specified topic are removed

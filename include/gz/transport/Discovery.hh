@@ -740,6 +740,42 @@ namespace gz
         }
       }
 
+      /// \brief Register a new relay address.
+      /// \param[in] _ip New IP address.
+      public: void AddRelayAddress(const std::string &_ip)
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        // Sanity check: Make sure that this IP address is not already saved.
+        for (auto const &addr : this->relayAddrs)
+        {
+          if (addr.sin_addr.s_addr == inet_addr(_ip.c_str()))
+            return;
+        }
+
+        sockaddr_in addr;
+        memset(&addr, 0, sizeof(addr));
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = inet_addr(_ip.c_str());
+        addr.sin_port = htons(static_cast<u_short>(this->port));
+
+        this->relayAddrs.push_back(addr);
+      }
+
+      // \brief Gets this instance's relay addresses.
+      // \return The list of relay addresses.
+      public: std::vector<std::string> RelayAddresses() const
+      {
+        std::vector<std::string> result;
+
+        std::lock_guard<std::mutex> lock(this->mutex);
+
+        for (auto const &addr : this->relayAddrs) {
+          result.push_back(inet_ntoa(addr.sin_addr));
+        }
+
+        return result;
+      }
+
       /// \brief Broadcast periodic heartbeats.
       private: void UpdateHeartbeat()
       {
@@ -1254,6 +1290,8 @@ namespace gz
         if (_msg.SerializeToArray(buffer + sizeof(msgSize), msgSize))
         {
           // Send the discovery message to the unicast relays.
+          std::lock_guard<std::mutex> lock(this->mutex);
+
           for (const auto &sockAddr : this->relayAddrs)
           {
             errno = 0;
@@ -1418,26 +1456,6 @@ namespace gz
         }
 
         return true;
-      }
-
-      /// \brief Register a new relay address.
-      /// \param[in] _ip New IP address.
-      private: void AddRelayAddress(const std::string &_ip)
-      {
-        // Sanity check: Make sure that this IP address is not already saved.
-        for (auto const &addr : this->relayAddrs)
-        {
-          if (addr.sin_addr.s_addr == inet_addr(_ip.c_str()))
-            return;
-        }
-
-        sockaddr_in addr;
-        memset(&addr, 0, sizeof(addr));
-        addr.sin_family = AF_INET;
-        addr.sin_addr.s_addr = inet_addr(_ip.c_str());
-        addr.sin_port = htons(static_cast<u_short>(this->port));
-
-        this->relayAddrs.push_back(addr);
       }
 
       /// \brief Default activity interval value (ms.).
