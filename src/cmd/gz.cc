@@ -19,9 +19,11 @@
 
 #include <chrono>
 #include <cmath>
+#include <condition_variable>
 #include <ctime>
 #include <functional>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -390,15 +392,15 @@ extern "C" void cmdTopicFrequency(const char *_topic)
     {
       for (int i = 0; i < 10; ++i)
       { 
-        interval_array[i]= (float) (time_array[i+1]-time_array[i])/1e+9;
+        interval_array[i] = static_cast<float>((time_array[i+1] - time_array[i]) / 1e+9);
       }
 
       for (int i = 0; i < 10; ++i)
       { 
-        if (i==0)
+        if (i == 0)
         {
-          min=interval_array[i];
-          max=interval_array[i];
+          min = interval_array[i];
+          max = interval_array[i];
         }
         if (i > 0) 
         {
@@ -422,13 +424,13 @@ extern "C" void cmdTopicFrequency(const char *_topic)
       for(int i = 0; i < 10; ++i) {
         dev += pow(interval_array[i] - mean, 2);
       }
-      stdDev = sqrt(dev/10);
-      std::cout << "\n"<< std::endl;
+      stdDev = sqrt(dev / 10);
+      std::cout << "\n" << std::endl;
       for(int i = 0; i < 10; ++i) {
-        std::cout << "interval [" << i <<"]:    "
+        std::cout << "interval [" << i << "]:    "
           << interval_array[i] << "s" << std::endl;
       }
-      std::cout << "average rate: " << 1.0/mean << std::endl;
+      std::cout << "average rate: " << 1.0 / mean << std::endl;
       std::cout << "min: " << min << "s max: " << max
                 << "s std dev: " << stdDev << "s window: 10"
                 << std::endl;
