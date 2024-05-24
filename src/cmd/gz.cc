@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright 2024 CogniPilot Foundation
+ * Copyright 2024 Open Source Robotics Foundation
+ * Copyright 2024 Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +18,8 @@
 */
 
 #include <chrono>
+#include <cmath>
+#include <ctime>
 #include <functional>
 #include <iostream>
 #include <string>
@@ -343,6 +347,104 @@ extern "C" void cmdTopicEcho(const char *_topic,
       condition.wait(lock, [&]{return count >= _count;});
     }
   }
+}
+
+//////////////////////////////////////////////////
+extern "C" void cmdTopicFrequency(const char *_topic)
+{
+  if (!_topic || std::string(_topic).empty())
+  {
+    std::cerr << "Invalid topic. Topic must not be empty.\n";
+    return;
+  }
+  using namespace std::chrono;
+  std::mutex mutex;
+  std::condition_variable condition;
+  int count = 0;
+  long long  time_array[11];
+  float interval_array[10];
+  float sum = 0.0;
+  float dev = 0.0;
+  float mean = 0.0;
+  float stdDev = 0.0;
+  float min = 0.0;
+  float max = 0.0;
+
+  std::function<void(const ProtoMsg&)> cb = [&](const ProtoMsg &_msg)
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+
+    if (count > 11 || count == 0)
+    {
+      count = 0;
+      sum = 0.0;
+      dev = 0.0;
+    }
+    if (count < 11)
+    {
+      time_point<system_clock> now = system_clock::now();
+      duration<long long, std::nano> duration = now.time_since_epoch();
+      time_array[count] = duration.count();
+    }
+    if  (count == 11)
+    {
+      for (int i = 0; i < 10; ++i)
+      { 
+        interval_array[i]= (float) (time_array[i+1]-time_array[i])/1e+9;
+      }
+
+      for (int i = 0; i < 10; ++i)
+      { 
+        if (i==0)
+        {
+          min=interval_array[i];
+          max=interval_array[i];
+        }
+        if (i > 0) 
+        {
+          if (min > interval_array[i])
+          {
+            min = interval_array[i];
+          }
+          if (max < interval_array[i])
+          {
+            max = interval_array[i];
+          }
+        }
+      }
+
+      for(int i = 0; i < 10; ++i) {
+        sum += interval_array[i];
+      }
+
+      mean = sum / 10;
+
+      for(int i = 0; i < 10; ++i) {
+        dev += pow(interval_array[i] - mean, 2);
+      }
+      stdDev = sqrt(dev/10);
+      std::cout << "\n"<< std::endl;
+      for(int i = 0; i < 10; ++i) {
+        std::cout << "interval [" << i <<"]:    "
+          << interval_array[i] << "s" << std::endl;
+      }
+      std::cout << "average rate: " << 1.0/mean << std::endl;
+      std::cout << "min: " << min << "s max: " << max
+                << "s std dev: " << stdDev << "s window: 10"
+                << std::endl;
+      std::string jsonStr;
+      auto status =
+        google::protobuf::util::MessageToJsonString(_msg, &jsonStr);
+    }
+    ++count;
+    condition.notify_one();
+  };
+
+  Node node;
+  if (!node.Subscribe(_topic, cb))
+    return;
+
+  waitForShutdown();
 }
 
 //////////////////////////////////////////////////
