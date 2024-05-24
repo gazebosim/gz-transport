@@ -391,18 +391,19 @@ extern "C" void cmdTopicFrequency(const char *_topic)
     if  (count == 11)
     {
       for (int i = 0; i < 10; ++i)
-      { 
-        interval_array[i] = static_cast<float>((time_array[i+1] - time_array[i]) / 1e+9);
+      {
+        interval_array[i] = static_cast<float>((time_array[i+1]
+                              - time_array[i]) / 1e+9);
       }
 
       for (int i = 0; i < 10; ++i)
-      { 
+      {
         if (i == 0)
         {
           min = interval_array[i];
           max = interval_array[i];
         }
-        if (i > 0) 
+        if (i > 0)
         {
           if (min > interval_array[i])
           {
