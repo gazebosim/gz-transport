@@ -363,7 +363,7 @@ extern "C" void cmdTopicFrequency(const char *_topic)
   std::mutex mutex;
   std::condition_variable condition;
   int count = 0;
-  long long  time_array[11];
+  int64_t  time_array[11];
   float interval_array[10];
   float sum = 0.0;
   float dev = 0.0;
@@ -385,7 +385,7 @@ extern "C" void cmdTopicFrequency(const char *_topic)
     if (count < 11)
     {
       time_point<system_clock> now = system_clock::now();
-      duration<long long, std::nano> duration = now.time_since_epoch();
+      duration<int64_t, std::nano> duration = now.time_since_epoch();
       time_array[count] = duration.count();
     }
     if  (count == 11)
