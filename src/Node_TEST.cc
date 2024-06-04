@@ -2037,9 +2037,9 @@ TEST(NodeTest, IgnoreLocalMessages)
   EXPECT_TRUE(pub);
 
   transport::SubscribeOptions opts;
-  EXPECT_FALSE(opts.IgnoreLocalMessages())
+  EXPECT_FALSE(opts.IgnoreLocalMessages());
   opts.SetIgnoreLocalMessages(true);
-  EXPECT_TRUE(opts.IgnoreLocalMessages())
+  EXPECT_TRUE(opts.IgnoreLocalMessages());
   EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
 
   // Should be true the first time
