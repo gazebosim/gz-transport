@@ -36,6 +36,7 @@ SubscribeOptions::SubscribeOptions(const SubscribeOptions &_otherSubscribeOpts)
   : dataPtr(new SubscribeOptionsPrivate())
 {
   this->SetMsgsPerSec(_otherSubscribeOpts.MsgsPerSec());
+  this->SetIgnoreLocalMessages(_otherSubscribeOpts.IgnoreLocalMessages());
 }
 
 //////////////////////////////////////////////////
@@ -59,4 +60,16 @@ uint64_t SubscribeOptions::MsgsPerSec() const
 void SubscribeOptions::SetMsgsPerSec(const uint64_t _newMsgsPerSec)
 {
   this->dataPtr->msgsPerSec = _newMsgsPerSec;
+}
+
+//////////////////////////////////////////////////
+bool SubscribeOptions::IgnoreLocalMessages() const
+{
+  return this->dataPtr->ignoreLocalMessages;
+}
+
+//////////////////////////////////////////////////
+void SubscribeOptions::SetIgnoreLocalMessages(bool _ignore)
+{
+  this->dataPtr->ignoreLocalMessages = _ignore;
 }

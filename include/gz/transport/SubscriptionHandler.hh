@@ -80,6 +80,10 @@ namespace gz
       /// \return A string representation of the handler UUID.
       public: std::string HandlerUuid() const;
 
+      /// \brief Return whether local messages are ignored or not.
+      /// \return True when local messages are ignored or false otherwise.
+      public: bool IgnoreLocalMessages() const;
+
       /// \brief Check if message subscription is throttled. If so, verify
       /// whether the callback should be executed or not.
       /// \return true if the callback should be executed or false otherwise.

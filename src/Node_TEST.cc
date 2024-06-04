@@ -2021,6 +2021,41 @@ TEST(NodeTest, PubThrottled)
 }
 
 //////////////////////////////////////////////////
+/// \brief This test creates one local publisher and subscriber and
+/// checks that no messages are received when using SetIgnoreLocalMessages
+/// is set to true.
+TEST(NodeTest, IgnoreLocalMessages)
+{
+  reset();
+
+  msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  transport::SubscribeOptions opts;
+  EXPECT_FALSE(opts.IgnoreLocalMessages())
+  opts.SetIgnoreLocalMessages(true);
+  EXPECT_TRUE(opts.IgnoreLocalMessages())
+  EXPECT_TRUE(node.Subscribe(g_topic, cb, opts));
+
+  // Should be true the first time
+  for (auto i = 0; i < 3; ++i)
+  {
+    EXPECT_TRUE(pub.Publish(msg));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  // No messages should be received.
+  EXPECT_EQ(0, counter);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief This test spawns a service responser and a service requester. The
 /// requester uses a wrong type for the request argument. The test should verify
 /// that the service call does not succeed.
