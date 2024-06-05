@@ -33,10 +33,8 @@ SubscribeOptions::SubscribeOptions()
 
 //////////////////////////////////////////////////
 SubscribeOptions::SubscribeOptions(const SubscribeOptions &_otherSubscribeOpts)
-  : dataPtr(new SubscribeOptionsPrivate())
+  : dataPtr(new SubscribeOptionsPrivate(*_otherSubscribeOpts.dataPtr))
 {
-  this->SetMsgsPerSec(_otherSubscribeOpts.MsgsPerSec());
-  this->SetIgnoreLocalMessages(_otherSubscribeOpts.IgnoreLocalMessages());
 }
 
 //////////////////////////////////////////////////
