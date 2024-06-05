@@ -1,5 +1,19 @@
 ## Gazebo Transport 13.X
 
+### Gazebo Transport 13.3.0 (2024-06-05)
+
+1. Adding option to ignore local messages
+    * [Pull request #506](https://github.com/gazebosim/gz-transport/pull/506)
+
+1. Include Python tutorial in list of tutorials
+    * [Pull request #499](https://github.com/gazebosim/gz-transport/pull/499)
+
+1. Remove python3-distutils since it's not needed on Jammy
+    * [Pull request #496](https://github.com/gazebosim/gz-transport/pull/496)
+
+1. Add package.xml
+    * [Pull request #485](https://github.com/gazebosim/gz-transport/pull/485)
+
 ### Gazebo Transport 13.2.0 (2024-04-09)
 
 1. Use relative install path for gz tool data
