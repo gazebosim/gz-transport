@@ -338,6 +338,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     pubMsgDetails->msgCopy.reset(_msg.New());
     pubMsgDetails->msgCopy->CopyFrom(_msg);
 
+    pubMsgDetails->publisherNodeUUID = this->dataPtr->publisher.NUuid();
+
     if (subscribers.haveLocal)
     {
       for (const auto &node : subscribers.localHandlers)

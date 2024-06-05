@@ -66,6 +66,18 @@ namespace gz
       /// \return The maximum number of messages per second.
       public: uint64_t MsgsPerSec() const;
 
+      /// \brief Set the value to ignore local messages or not.
+      /// \param[in] _ignore True when ignoring local messages
+      /// or false otherwise.
+      /// \sa IgnoreLocalMessages
+      public: void SetIgnoreLocalMessages(bool _ignore);
+
+      /// \brief Whether the local messages should be ignored.
+      /// \return true when the local messages should be ignored or
+      /// false otherwise.
+      /// \sa SetIgnoreLocalMessages
+      public: bool IgnoreLocalMessages() const;
+
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::unique_ptr
