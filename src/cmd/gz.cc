@@ -388,7 +388,7 @@ extern "C" void cmdTopicFrequency(const char *_topic)
       duration<int64_t, std::nano> duration = now.time_since_epoch();
       time_array[count] = duration.count();
     }
-    if  (count == 11)
+    if (count == 11)
     {
       for (int i = 0; i < 10; ++i)
       {
@@ -416,7 +416,8 @@ extern "C" void cmdTopicFrequency(const char *_topic)
         }
       }
 
-      for(int i = 0; i < 10; ++i) {
+      for (int i = 0; i < 10; ++i)
+      {
         sum += interval_array[i];
       }
 
