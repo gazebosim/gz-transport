@@ -402,8 +402,9 @@ extern "C" void cmdTopicFrequency(const char *_topic)
       mean = std::accumulate(std::begin(intervalV),
                       std::end(intervalV), 0.0) / window;
 
-      for(int i = 0; i < window; ++i) {
-        dev += pow(intervalV[i] - mean, 2);
+      for (auto interval : intervalV)
+      {
+        dev += pow(interval - mean, 2);
       }
       stdDev = sqrt(dev / window);
       std::cout << "\n" << std::endl;
