@@ -17,6 +17,7 @@
  *
 */
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <condition_variable>
@@ -24,6 +25,7 @@
 #include <functional>
 #include <iostream>
 #include <mutex>
+#include <numeric>
 #include <string>
 #include <vector>
 
@@ -360,88 +362,62 @@ extern "C" void cmdTopicFrequency(const char *_topic)
     return;
   }
   using namespace std::chrono;
-  std::mutex mutex;
-  std::condition_variable condition;
   int count = 0;
-  int64_t  time_array[11];
-  float interval_array[10];
+  int samples = 11;
+  int window = samples - 1;
+  std::vector<int64_t> timeV;
+  std::vector<float> intervalV;
   float sum = 0.0;
   float dev = 0.0;
   float mean = 0.0;
   float stdDev = 0.0;
-  float min = 0.0;
-  float max = 0.0;
 
-  std::function<void(const ProtoMsg&)> cb = [&](const ProtoMsg &_msg)
+  std::function<void(const ProtoMsg&)> cb = [&](
+        __attribute__((unused)) const ProtoMsg &_msg)
   {
-    std::lock_guard<std::mutex> lock(mutex);
-
-    if (count > 11 || count == 0)
+    if (count > samples || count == 0)
     {
       count = 0;
       sum = 0.0;
       dev = 0.0;
+      timeV.clear();
+      intervalV.clear();
     }
-    if (count < 11)
+    if (count < samples)
     {
       time_point<system_clock> now = system_clock::now();
       duration<int64_t, std::nano> duration = now.time_since_epoch();
-      time_array[count] = duration.count();
+      timeV.push_back(duration.count());
     }
-    if (count == 11)
+    if (count == samples)
     {
-      for (int i = 0; i < 10; ++i)
+      for (int i = 0; i < window; ++i)
       {
-        interval_array[i] = static_cast<float>((time_array[i+1]
-                              - time_array[i]) / 1e+9);
+        intervalV.push_back(static_cast<float>((timeV[i+1]
+                      - timeV[i])) / 1e+9);
       }
 
-      for (int i = 0; i < 10; ++i)
-      {
-        if (i == 0)
-        {
-          min = interval_array[i];
-          max = interval_array[i];
-        }
-        if (i > 0)
-        {
-          if (min > interval_array[i])
-          {
-            min = interval_array[i];
-          }
-          if (max < interval_array[i])
-          {
-            max = interval_array[i];
-          }
-        }
-      }
+      auto [min, max] = std::minmax_element(intervalV.begin(), intervalV.end());
 
-      for (int i = 0; i < 10; ++i)
-      {
-        sum += interval_array[i];
-      }
+      mean = std::accumulate(std::begin(intervalV), std::end(intervalV), 0.0) / window;
 
-      mean = sum / 10;
-
-      for(int i = 0; i < 10; ++i) {
-        dev += pow(interval_array[i] - mean, 2);
+      for(int i = 0; i < window; ++i) {
+        dev += pow(intervalV[i] - mean, 2);
       }
-      stdDev = sqrt(dev / 10);
+      stdDev = sqrt(dev / window);
       std::cout << "\n" << std::endl;
-      for(int i = 0; i < 10; ++i) {
+      for(int i = 0; i < window; ++i) {
         std::cout << "interval [" << i << "]:    "
-          << interval_array[i] << "s" << std::endl;
+          << intervalV[i] << "s" << std::endl;
       }
       std::cout << "average rate: " << 1.0 / mean << std::endl;
-      std::cout << "min: " << min << "s max: " << max
-                << "s std dev: " << stdDev << "s window: 10"
-                << std::endl;
-      std::string jsonStr;
-      auto status =
-        google::protobuf::util::MessageToJsonString(_msg, &jsonStr);
+      std::cout << "min: " << *min << "s max: " << *max
+                << "s std dev: " << stdDev << "s window: "
+                << window << std::endl;
+      // Avoid unused _msg warn in callback
+      (void)_msg;
     }
     ++count;
-    condition.notify_one();
   };
 
   Node node;
