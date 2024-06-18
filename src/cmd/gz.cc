@@ -363,8 +363,8 @@ extern "C" void cmdTopicFrequency(const char *_topic)
   }
   using namespace std::chrono;
   int count = 0;
-  int samples = 11;
-  int window = samples - 1;
+  const int samples = 11;
+  const int window = samples - 1;
   std::vector<int64_t> timeV;
   std::vector<float> intervalV;
   float sum = 0.0;
@@ -372,8 +372,7 @@ extern "C" void cmdTopicFrequency(const char *_topic)
   float mean = 0.0;
   float stdDev = 0.0;
 
-  std::function<void(const ProtoMsg&)> cb = [&](
-        __attribute__((unused)) const ProtoMsg &_msg)
+  std::function<void(const ProtoMsg&)> cb = [&](const ProtoMsg &)
   {
     if (count > samples || count == 0)
     {
