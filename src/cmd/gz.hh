@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright 2024 CogniPilot Foundation
+ * Copyright 2024 Open Source Robotics Foundation
+ * Copyright 2024 Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +93,10 @@ extern "C" {
 /// \param[in] _outputFormat Message output format.
 extern "C" void cmdTopicEcho(const char *_topic, const double _duration,
                              int _count, MsgOutputFormat _outputFormat);
+
+/// \brief External hook to execute 'gz topic -f' from the command line.
+/// \param[in] _topic Topic name.
+extern "C" void cmdTopicFrequency(const char *_topic);
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
