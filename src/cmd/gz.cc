@@ -395,20 +395,18 @@ extern "C" void cmdTopicFrequency(const char *_topic)
         intervalV.push_back(static_cast<float>((timeV[i+1]
                       - timeV[i])) / 1e+9);
       }
-
       auto [min, max] = std::minmax_element(intervalV.begin(),
                       intervalV.end());
-
       mean = std::accumulate(std::begin(intervalV),
                       std::end(intervalV), 0.0) / window;
-
       for (auto interval : intervalV)
       {
         dev += pow(interval - mean, 2);
       }
       stdDev = sqrt(dev / window);
       std::cout << "\n" << std::endl;
-      for(int i = 0; i < window; ++i) {
+      for(int i = 0; i < window; ++i)
+      {
         std::cout << "interval [" << i << "]:    "
           << intervalV[i] << "s" << std::endl;
       }
