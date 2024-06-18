@@ -389,7 +389,7 @@ extern "C" void cmdTopicFrequency(const char *_topic)
       duration<int64_t, std::nano> duration = now.time_since_epoch();
       timeV.push_back(duration.count());
     }
-    if (count == samples)
+    else if (count == samples)
     {
       for (int i = 0; i < window; ++i)
       {
@@ -397,9 +397,11 @@ extern "C" void cmdTopicFrequency(const char *_topic)
                       - timeV[i])) / 1e+9);
       }
 
-      auto [min, max] = std::minmax_element(intervalV.begin(), intervalV.end());
+      auto [min, max] = std::minmax_element(intervalV.begin(),
+                      intervalV.end());
 
-      mean = std::accumulate(std::begin(intervalV), std::end(intervalV), 0.0) / window;
+      mean = std::accumulate(std::begin(intervalV),
+                      std::end(intervalV), 0.0) / window;
 
       for(int i = 0; i < window; ++i) {
         dev += pow(intervalV[i] - mean, 2);
@@ -414,8 +416,6 @@ extern "C" void cmdTopicFrequency(const char *_topic)
       std::cout << "min: " << *min << "s max: " << *max
                 << "s std dev: " << stdDev << "s window: "
                 << window << std::endl;
-      // Avoid unused _msg warn in callback
-      (void)_msg;
     }
     ++count;
   };
