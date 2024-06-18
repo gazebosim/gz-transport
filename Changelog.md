@@ -1,5 +1,10 @@
 ## Gazebo Transport 13.X
 
+### Gazebo Transport 13.4.0 (2024-06-18)
+
+1. Add frequency to topic CLI.
+    * [Pull request #503](https://github.com/gazebosim/gz-transport/pull/503)
+
 ### Gazebo Transport 13.3.0 (2024-06-05)
 
 1. Adding option to ignore local messages
