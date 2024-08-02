@@ -41,6 +41,9 @@ namespace gz
 
       /// \brief Default message subscription rate.
       public: uint64_t msgsPerSec = kUnthrottled;
+
+      /// \brief Whether local messages should be ignored or not.
+      public: bool ignoreLocalMessages = false;
     };
     }
   }

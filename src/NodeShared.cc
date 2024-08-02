@@ -1850,6 +1850,14 @@ void NodeSharedPrivate::PublishThread()
     // Send the message to all the local handlers.
     for (auto &handler : msgDetails->localHandlers)
     {
+
+      // Check here if we want to ignore local publications.
+      if (handler->IgnoreLocalMessages() &&
+          msgDetails->publisherNodeUUID == handler->NodeUuid())
+      {
+        continue;
+      }
+
       try
       {
         handler->RunLocalCallback(*(msgDetails->msgCopy.get()),

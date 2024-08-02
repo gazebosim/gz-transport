@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright 2024 CogniPilot Foundation
+ * Copyright 2024 Open Source Robotics Foundation
+ * Copyright 2024 Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +32,8 @@ enum class TopicCommand
   kTopicList,
   kTopicInfo,
   kTopicPub,
-  kTopicEcho
+  kTopicEcho,
+  kTopicFrequency
 };
 
 //////////////////////////////////////////////////
@@ -80,6 +83,9 @@ void runTopicCommand(const TopicOptions &_opt)
       cmdTopicEcho(_opt.topic.c_str(), _opt.duration, _opt.count,
                    _opt.msgOutputFormat);
       break;
+    case TopicCommand::kTopicFrequency:
+      cmdTopicFrequency(_opt.topic.c_str());
+      break;
     case TopicCommand::kNone:
     default:
       // In the event that there is no command, display help
@@ -128,6 +134,14 @@ R"(Get info about a topic. E.g.:
     },
 R"(Output data to screen. E.g.:
   gz topic -e -t /foo)")
+    ->needs(topicOpt);
+
+  command->add_flag_callback("-f,--frequency",
+    [opt](){
+      opt->command = TopicCommand::kTopicFrequency;
+    },
+R"(Calculate the frequency of a topic:
+  gz topic -f -t /foo)")
     ->needs(topicOpt);
 
   command->add_flag_callback("--json-output",
