@@ -50,6 +50,12 @@ namespace gz
     }
 
     /////////////////////////////////////////////////
+    bool SubscriptionHandlerBase::IgnoreLocalMessages() const
+    {
+      return this->opts.IgnoreLocalMessages();
+    }
+
+    /////////////////////////////////////////////////
     bool SubscriptionHandlerBase::UpdateThrottling()
     {
       if (!this->opts.Throttled())

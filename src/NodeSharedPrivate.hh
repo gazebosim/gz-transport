@@ -167,6 +167,9 @@ namespace gz
 
                 /// \brief Information about the topic and type.
                 public: MessageInfo info;
+
+                /// \brief Publisher's node UUID.
+                public: std::string publisherNodeUUID;
               };
 
       /// \brief Publish thread used to process the pubQueue.

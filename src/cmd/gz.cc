@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright 2024 CogniPilot Foundation
+ * Copyright 2024 Open Source Robotics Foundation
+ * Copyright 2024 Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +17,15 @@
  *
 */
 
+#include <algorithm>
 #include <chrono>
+#include <cmath>
+#include <condition_variable>
+#include <ctime>
 #include <functional>
 #include <iostream>
+#include <mutex>
+#include <numeric>
 #include <string>
 #include <vector>
 
@@ -343,6 +351,78 @@ extern "C" void cmdTopicEcho(const char *_topic,
       condition.wait(lock, [&]{return count >= _count;});
     }
   }
+}
+
+//////////////////////////////////////////////////
+extern "C" void cmdTopicFrequency(const char *_topic)
+{
+  if (!_topic || std::string(_topic).empty())
+  {
+    std::cerr << "Invalid topic. Topic must not be empty.\n";
+    return;
+  }
+  using namespace std::chrono;
+  int count = 0;
+  const int samples = 11;
+  const int window = samples - 1;
+  std::vector<int64_t> timeV;
+  std::vector<float> intervalV;
+  float sum = 0.0;
+  float dev = 0.0;
+  float mean = 0.0;
+  float stdDev = 0.0;
+
+  std::function<void(const ProtoMsg&)> cb = [&](const ProtoMsg &)
+  {
+    if (count > samples || count == 0)
+    {
+      count = 0;
+      sum = 0.0;
+      dev = 0.0;
+      timeV.clear();
+      intervalV.clear();
+    }
+    if (count < samples)
+    {
+      time_point<system_clock> now = system_clock::now();
+      duration<int64_t, std::nano> duration = now.time_since_epoch();
+      timeV.push_back(duration.count());
+    }
+    else if (count == samples)
+    {
+      for (int i = 0; i < window; ++i)
+      {
+        intervalV.push_back(static_cast<float>((timeV[i+1]
+                      - timeV[i])) / 1e+9);
+      }
+      auto [min, max] = std::minmax_element(intervalV.begin(),
+                      intervalV.end());
+      mean = std::accumulate(std::begin(intervalV),
+                      std::end(intervalV), 0.0) / window;
+      for (auto interval : intervalV)
+      {
+        dev += pow(interval - mean, 2);
+      }
+      stdDev = sqrt(dev / window);
+      std::cout << "\n" << std::endl;
+      for(int i = 0; i < window; ++i)
+      {
+        std::cout << "interval [" << i << "]:    "
+          << intervalV[i] << "s" << std::endl;
+      }
+      std::cout << "average rate: " << 1.0 / mean << std::endl;
+      std::cout << "min: " << *min << "s max: " << *max
+                << "s std dev: " << stdDev << "s window: "
+                << window << std::endl;
+    }
+    ++count;
+  };
+
+  Node node;
+  if (!node.Subscribe(_topic, cb))
+    return;
+
+  waitForShutdown();
 }
 
 //////////////////////////////////////////////////
