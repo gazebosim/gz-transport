@@ -26,7 +26,6 @@ cd ~/gz_transport_tutorial
 
 Before you begin, make sure you have the following installed:
 
-- Python 3.x
 - python3-gz-transport13
 
 To install the required package, run:
