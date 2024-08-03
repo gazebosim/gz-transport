@@ -22,6 +22,19 @@ mkdir ~/gz_transport_tutorial
 cd ~/gz_transport_tutorial
 ```
 
+## Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+- Python 3.x
+- python3-gz-transport13
+
+To install the required package, run:
+
+```bash
+sudo apt install python3-gz-transport13
+```
+
 ## Publisher
 
 Download the [publisher.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/publisher.py) file within the `gz_transport_tutorial`
