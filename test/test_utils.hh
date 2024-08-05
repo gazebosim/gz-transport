@@ -66,7 +66,8 @@ namespace testing
     }
 
     /// \brief Clean up the test fixture
-    protected: void TearDown() override {
+    protected: void TearDown() override
+    {
       gz::utils::setenv("GZ_PARTITION", this->prevPartition);
 
       if (this->pi)
@@ -78,7 +79,8 @@ namespace testing
 
     /// \brief Get the randomly generated partition for this test
     /// \return string value of the partition
-    protected: [[nodiscard]] std::string Partition() const {
+    protected: [[nodiscard]] std::string Partition() const
+    {
       return this->partition;
     }
 
@@ -100,8 +102,13 @@ namespace testing
         std::make_unique<gz::utils::Subprocess>(_commandLine, environment);
     }
 
+    /// \brief Store the partition when the tests starts to restore at the end
     private: std::string prevPartition;
+
+    /// \brief Store the current partition so it may be accessed by tests
     private: std::string partition;
+
+    /// \brief The subprocess running concurrently the test interacts with
     private: std::unique_ptr<gz::utils::Subprocess> pi;
   };
 }  // namespace testing
