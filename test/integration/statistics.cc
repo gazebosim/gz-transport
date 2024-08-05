@@ -31,6 +31,8 @@
 
 using namespace gz;
 
+using topicStatistics = testing::PartitionedTransportTest;
+
 static int statisticsCount = 0;
 
 void cb(const msgs::StringMsg & /*_msg*/)
@@ -43,8 +45,9 @@ void statsCb(const msgs::Metric & /*_msg*/)
   statisticsCount++;
 }
 
-TEST(topicStatistics, SingleProcessPublishStatistics)
+TEST_F(topicStatistics, SingleProcessPublishStatistics)
 {
+  ASSERT_TRUE(gz::utils::setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1"));
   statisticsCount = 0;
   std::string topic = "/foo";
   transport::Node node;
@@ -73,18 +76,4 @@ TEST(topicStatistics, SingleProcessPublishStatistics)
   // Currently, within process subscribers and publishers won't have statistics.
   EXPECT_EQ(0, statisticsCount);
   EXPECT_EQ(std::nullopt,  node.TopicStats(topic));
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  // Get a random partition name.
-  std::string partition = testing::getRandomNumber();
-
-  // Set the partition name for this process.
-  gz::utils::setenv("GZ_PARTITION", partition);
-  gz::utils::setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1");
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
