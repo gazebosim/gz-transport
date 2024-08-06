@@ -171,11 +171,11 @@ namespace gz
 
           // If the IP address that we're selecting as the main IP address of
           // the host is invalid, we change it to 127.0.0.1 .
-          // This is probably because IGN_IP is set to a wrong value.
+          // This is probably because GZ_IP is set to a wrong value.
           if (netIface == this->hostAddr && !succeed)
           {
             this->RegisterNetIface("127.0.0.1");
-            std::cerr << "Did you set the environment variable IGN_IP with a "
+            std::cerr << "Did you set the environment variable GZ_IP with a "
                       << "correct IP address? " << std::endl
                       << "  [" << netIface << "] seems an invalid local IP "
                       << "address." << std::endl
