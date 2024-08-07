@@ -28,7 +28,7 @@ Before you begin, make sure you have the following installed:
 
 - python3-gz-transport13
 
-To install the required package, run:
+To install the required package in Linux, run:
 
 ```bash
 sudo apt install python3-gz-transport13
