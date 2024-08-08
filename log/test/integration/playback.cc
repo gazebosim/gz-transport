@@ -568,7 +568,7 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
 //////////////////////////////////////////////////
 /// \brief Record a log and then play it back calling the Step method to control
 /// the playback workflow.
-TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayStep))
+TEST(playback, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ReplayStep))
 {
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
