@@ -32,11 +32,9 @@
 1. Use HIDE_SYMBOLS_BY_DEFAULT
     * [Pull request #461](https://github.com/gazebosim/gz-transport/pull/461)
 
-1. Bumps in ionic: ci_matching_branch/bump_ionic_gz-transport14
-    * [Pull request #456](https://github.com/gazebosim/gz-transport/pull/456)
-
 1. Bumps in Ionic: gz-transport14
     * [Pull request #455](https://github.com/gazebosim/gz-transport/pull/455)
+    * [Pull request #456](https://github.com/gazebosim/gz-transport/pull/456)
 
 
 ## Gazebo Transport 13.X
