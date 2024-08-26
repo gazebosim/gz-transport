@@ -1,6 +1,41 @@
 ## Gazebo Transport 14.X
 
-### Gazebo Transport 14.0.0 (2023-XX-XX)
+### Gazebo Transport 14.0.0 (2024-08-26)
+
+1. Replace IGN_IP with GZ_IP
+    * [Pull request #515](https://github.com/gazebosim/gz-transport/pull/515)
+
+1. Add an explicit dependency on cppzmq-dev
+    * [Pull request #512](https://github.com/gazebosim/gz-transport/pull/512)
+
+1. Enable 24.04 CI, require cmake 3.22.1
+    * [Pull request #504](https://github.com/gazebosim/gz-transport/pull/504)
+
+1. Allow programmatic configuration of unicast relays.
+    * [Pull request #498](https://github.com/gazebosim/gz-transport/pull/498)
+
+1. Delete copy ctor and copy-assignment for log::Batch
+    * [Pull request #501](https://github.com/gazebosim/gz-transport/pull/501)
+
+1. Remove python3-distutils since it's not needed on Jammy (#496)
+    * [Pull request #496) (#500](https://github.com/gazebosim/gz-transport/pull/496)
+
+1. Find Python3 directly, not with GzPython
+    * [Pull request #472](https://github.com/gazebosim/gz-transport/pull/472)
+
+1. gz_TEST: more output when tests fail
+    * [Pull request #479](https://github.com/gazebosim/gz-transport/pull/479)
+
+1. Remove HIDE_SYMBOLS_BY_DEFAULT: replace by a default configuration in gz-cmake.
+    * [Pull request #467](https://github.com/gazebosim/gz-transport/pull/467)
+
+1. Use HIDE_SYMBOLS_BY_DEFAULT
+    * [Pull request #461](https://github.com/gazebosim/gz-transport/pull/461)
+
+1. Bumps in Ionic: gz-transport14
+    * [Pull request #455](https://github.com/gazebosim/gz-transport/pull/455)
+    * [Pull request #456](https://github.com/gazebosim/gz-transport/pull/456)
+
 
 ## Gazebo Transport 13.X
 
