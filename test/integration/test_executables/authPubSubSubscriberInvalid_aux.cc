@@ -17,24 +17,13 @@
 
 #include <chrono>
 #include <string>
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
 #include <gz/msgs/int32.pb.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-#ifdef _WIN32
-  #include <filesystem>
-#endif
 
 #include "gz/transport/Node.hh"
 
 #include <gz/utils/Environment.hh>
 
 #include "gtest/gtest.h"
-#include "test_config.hh"
 
 using namespace gz;
 
@@ -76,22 +65,6 @@ TEST(authProcPubSub, PubSubTwoProcsTwoNodesSubscriber)
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  if (argc != 4)
-  {
-    std::cerr << "Partition name, username, and password have not be passed as "
-      << "arguments" << std::endl;
-    return -1;
-  }
-
-  // Set the partition name for this test.
-  gz::utils::setenv("GZ_PARTITION", argv[1]);
-
-  // Set the username for this test.
-  gz::utils::setenv("GZ_TRANSPORT_USERNAME", argv[2]);
-
-  // Set the password for this test.
-  gz::utils::setenv("GZ_TRANSPORT_PASSWORD", argv[3]);
-
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
