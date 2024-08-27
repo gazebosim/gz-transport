@@ -2,7 +2,13 @@
 
 ### Gazebo Transport 14.0.0 (2024-08-26)
 
-Changes since 13.4.0:
+1. **Baseline:** this includes all changes from 13.4.0 and earlier.
+
+1. Update gz-transport14 badge URLs
+    * [Pull request #524](https://github.com/gazebosim/gz-transport/pull/524)
+
+1. Ionic Changelog
+    * [Pull request #523](https://github.com/gazebosim/gz-transport/pull/523)
 
 1. Replace IGN_IP with GZ_IP
     * [Pull request #515](https://github.com/gazebosim/gz-transport/pull/515)
