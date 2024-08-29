@@ -286,16 +286,9 @@ cd build
 make doc
 ```
 
-Upload documentation to gazebosim.org.
-```bash
-cd build
-sh upload.sh
+View the documentation by running the following command from the `build` directory.
 ```
-
-If you're creating a new release, then tell gazebosim.org about
-the new version. For example:
-```bash
-curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' https://api.gazebosim.org/1.0/versions
+firefox doxygen/html/index.html
 ```
 
 # Testing
