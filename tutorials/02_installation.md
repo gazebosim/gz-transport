@@ -42,7 +42,7 @@ tap](https://github.com/osrf/homebrew-simulation). Gazebo Transport is
 straightforward to install on Mac OS X 10.9 (Mavericks) or higher.
 Installation on older versions requires changing the default standard
 library and rebuilding dependencies due to the use of c++11. For
-purposes of this documentation, Assuming OS X 10.9 or greater is in
+purposes of this documentation, assuming OS X 10.9 or greater is in
 use. Here are the instructions:
 
 Install homebrew, which should also prompt you to install the XCode
@@ -84,7 +84,7 @@ which version you need.
 ## Ubuntu Linux
 
 For compiling the latest version of Gazebo Transport you will need an
-Ubuntu distribution equal to 20.04 (Focal) or newer.
+Ubuntu distribution equal to 24.04 (Noble) or newer.
 
 Make sure you have removed the Ubuntu pre-compiled binaries before
 installing from source:
@@ -278,7 +278,7 @@ conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
 
 # Documentation
 
-Visit the [documentation page](https://gazebosim.org/api/transport/12.0/index.html).
+Visit the [documentation page](https://gazebosim.org/api/transport/14.0/index.html).
 
 ## Build documentation
 ```bash
@@ -293,9 +293,9 @@ sh upload.sh
 ```
 
 If you're creating a new release, then tell gazebosim.org about
-   the new version. For example:
+the new version. For example:
 ```bash
-curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' http      s://api.gazebosim.org/1.0/versions
+curl -k -X POST -d '{"libName":"transport", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' https://api.gazebosim.org/1.0/versions
 ```
 
 # Testing
