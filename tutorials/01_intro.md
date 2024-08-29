@@ -11,12 +11,11 @@ around the world. Gazebo Transport is multi-platform (Linux, Mac OS X, and
 Windows), so all the low level details, such as data alignment or endianness, are
 hidden for you.
 
-Gazebo Transport uses [Google Protocol buffers]
-(https://developers.google.com/protocol-buffers/?hl=en) as the data type for
-communicating between nodes. Users can define their own messages using the
-Protobuf utils, and then exchange them between the nodes. Gazebo Transport
-discovers, serializes and delivers messages to the destinations using a
-combination of custom code and [ZeroMQ] (http://zeromq.org/).
+Gazebo Transport uses
+[Google Protocol buffers](https://developers.google.com/protocol-buffers/?hl=en)
+as the data type for communicating between nodes. Users can define their own
+messages using the Protobuf utils, and then exchange them between the nodes. Gazebo Transport discovers, serializes and delivers messages to the destinations
+using a combination of custom code and [ZeroMQ] (http://zeromq.org/).
 
 ## What programming language can I use with Gazebo Transport?
 
