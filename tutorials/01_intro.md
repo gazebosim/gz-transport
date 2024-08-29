@@ -15,7 +15,7 @@ Gazebo Transport uses
 [Google Protocol buffers](https://developers.google.com/protocol-buffers/?hl=en)
 as the data type for communicating between nodes. Users can define their own
 messages using the Protobuf utils, and then exchange them between the nodes. Gazebo Transport discovers, serializes and delivers messages to the destinations
-using a combination of custom code and [ZeroMQ] (http://zeromq.org/).
+using a combination of custom code and [ZeroMQ](http://zeromq.org/).
 
 ## What programming language can I use with Gazebo Transport?
 
