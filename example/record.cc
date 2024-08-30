@@ -20,6 +20,7 @@
 /// Launch the gz-transport publisher example so this example has
 /// something to record.
 
+//! [complete]
 #include <cstdint>
 #include <iostream>
 #include <regex>
@@ -65,4 +66,7 @@ int main(int argc, char *argv[])
   recorder.Stop();
 
   std::cout << "\nRecording finished!" << std::endl;
+
+  return 0;
 }
+//! [complete]
