@@ -1,4 +1,4 @@
-# Ubuntu 22.04
+# Ubuntu 24.04
 FROM ubuntu:noble
 
 ENV TZ=America/Los_Angeles
@@ -34,7 +34,6 @@ RUN apt-get update \
 
 # Install gazebo dependencies
 RUN /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' \
- && /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list' \
  && /bin/sh -c 'wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -' \
  && apt-get update \
  && apt-get install -y \
