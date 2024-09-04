@@ -29,25 +29,17 @@ Download the [build.bash](https://github.com/gazebosim/gz-transport/raw/gz-trans
 [Dockerfile](https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/gz-transport/Dockerfile) files.
 
 ```{.sh}
-wget https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/build.bash
-wget https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/run.bash
-mkdir gz-transport && wget https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/gz-transport/Dockerfile -O gz-transport/Dockerfile
-chmod +x build.bash run.bash
+wget https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/gz-transport/Dockerfile -O Dockerfile
 ```
 
 Now, it's time to build the Docker image:
 ```
-./build.bash gz-transport
+docker build -t gz-transport-relay - < Dockerfile
 ```
 
 Run your Docker container:
 ```
-./run.bash gz-transport
-```
-
-Inside the docker instance, go to the `example` directory:
-```
-cd gz-transport/example/build
+docker run -it --rm gz-transport-relay /bin/bash
 ```
 
 Back on your host, make sure that you have Gazebo Tools and net-tools
