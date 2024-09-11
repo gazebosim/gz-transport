@@ -261,10 +261,9 @@ We can declare the throttling option using the following code :
     # Setting the throttling option
     opts = AdvertiseMessageOptions()
     opts.msgs_per_sec = 1
-    pub = node.advertise(topic_name, StringMsg, opts);
-    if (!pub):
+    pub = node.advertise(topic_name, StringMsg, opts)
+    if not pub:
       print("Error advertising topic" + topic_name)
-      return False
 ```
 
 ### Walkthrough
@@ -280,7 +279,7 @@ it to set the publishing rate (the member `msgs_per_sec`), In our case, the rate
 specified is 1 msg/sec.
 
 ```{.py}
-    pub = node.advertise(topic_name, StringMsg, opts);
+    pub = node.advertise(topic_name, StringMsg, opts)
 ```
 
 Next, we advertise the topic with message throttling enabled. To do it, we pass opts
@@ -341,8 +340,8 @@ We can declare the topic remapping option using the following code:
 
     # Create a transport node and remap a topic.
     nodeOpts = NodeOptions()
-    nodeOptions.add_topic_remap("/foo", "/bar");
-    node = Node(nodeOptions);
+    nodeOpts.add_topic_remap("/foo", "/bar")
+    node = Node(nodeOpts)
 ```
 
 You can modify the publisher example to add this option.
