@@ -37,7 +37,7 @@ for both publishers and subscribers. Setting `GZ_TRANSPORT_TOPIC_STATISTICS` to 
 Additionally, a node on the subscriber side of a pub/sub relationship must
 call `EnableStats`. For example:
 
-```
+```c++
 if (!node.EnableStats(topic, true))
 {
   std::cout << "Unable to enable stats\n";
@@ -54,7 +54,7 @@ It is possible to change the statistics output topic from `/statistics` to
 one of your choosing by specifying a topic name when enabling topic
 statistics. For example:
 
-```
+```c++
 if (!node.EnableStats(topic, true, "/my_stats"))
 {
   std::cout << "Unable to enable stats\n";
@@ -64,7 +64,7 @@ if (!node.EnableStats(topic, true, "/my_stats"))
 You can also change the statistics publication rate from 1Hz by specifying
 the new Hz rate after the statistic's topic name:
 
-```
+```c++
 if (!node.EnableStats(topic, true, "/my_stats", 100))
 {
   std::cout << "Unable to enable stats\n";
@@ -73,9 +73,23 @@ if (!node.EnableStats(topic, true, "/my_stats", 100))
 
 ### Example
 
-If you have the Gazebo Transport sources with the example programs built,
-then you can test topic statistics by following these steps.
+For running the example, build the binaries in the example directory:
+
+```
+git clone https://github.com/gazebosim/gz-transport -b gz-transport14
+cd gz-transport/example
+cmake -S . -B build
+cmake --build build --config release --parallel
+```
+
+#### Executing on Linux or Mac
 
 1. Terminal 1: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./example/build/publisher`
 1. Terminal 2: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./example/build/subscriber_stats`
 1. Terminal 3: `GZ_TRANSPORT_TOPIC_STATISTICS=1 gz topic -et /statistics`
+
+#### Executing on Windows
+
+1. Terminal 1: `set "GZ_TRANSPORT_TOPIC_STATISTICS=1" && example\build\release\publisher.exe`
+1. Terminal 2: `set "GZ_TRANSPORT_TOPIC_STATISTICS=1" && example\build\subscriber_stats.exe`
+1. Terminal 3: `set "GZ_TRANSPORT_TOPIC_STATISTICS=1" && gz topic -et /statistics`
