@@ -266,7 +266,7 @@ conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
   cmake --build . --config Release
   ```
 
-  Try an example
+  Try an example (in the Release directory)
   ```bash
   responser
   ```
