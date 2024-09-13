@@ -159,11 +159,18 @@ NodeShared *NodeShared::Instance()
   // is not shared between different processes.
 
   static std::shared_mutex mutex;
-  static std::unordered_map<unsigned int, NodeShared*> nodeSharedMap;
+  static std::unordered_map<std::string, NodeShared*> nodeSharedMap;
 
   // Get current process ID.
   auto pid = getProcessId();
-
+  // Get current thread ID, so we can create multiple NodeShared per Process, per thread
+  auto tid = std::this_thread::get_id();
+  // Create a unique id using both pid and tid
+  std::stringstream ss;
+  ss << tid;
+  std::stringstream unique_ss;
+  unique_ss << std::hex << pid << "-" << ss.str();
+  auto uid = unique_ss.str();
   // Check if there's already a NodeShared instance for this process.
   // Use a shared_lock so multiple threads can read simultaneously.
   // This will only block if there's another thread locking exclusively
@@ -173,7 +180,7 @@ NodeShared *NodeShared::Instance()
   try
   {
     std::shared_lock readLock(mutex);
-    return nodeSharedMap.at(pid);
+    return nodeSharedMap.at(uid);
   }
   catch (...)
   {
@@ -182,7 +189,7 @@ NodeShared *NodeShared::Instance()
     // not an already constructed NodeShared instance for this process.
     std::lock_guard writeLock(mutex);
 
-    auto iter = nodeSharedMap.find(pid);
+    auto iter = nodeSharedMap.find(uid);
     if (iter != nodeSharedMap.end())
     {
       // There's already an instance for this process, return it.
@@ -190,7 +197,7 @@ NodeShared *NodeShared::Instance()
     }
 
     // No instance, construct a new one.
-    auto ret = nodeSharedMap.insert({pid, new NodeShared});
+    auto ret = nodeSharedMap.insert({uid, new NodeShared});
     assert(ret.second);  // Insert operation should be successful.
     return ret.first->second;
   }
