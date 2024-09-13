@@ -79,6 +79,9 @@ For running the example, build the binaries in the example directory:
 git clone https://github.com/gazebosim/gz-transport -b gz-transport14
 cd gz-transport/example
 cmake -S . -B build
+# For UNIX
+cmake --build build --parallel
+# For Windows
 cmake --build build --config release --parallel
 ```
 
