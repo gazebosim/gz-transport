@@ -163,7 +163,8 @@ NodeShared *NodeShared::Instance()
 
   // Get current process ID.
   auto pid = getProcessId();
-  // Get current thread ID, so we can create multiple NodeShared per Process, per thread
+  // Get current thread ID, so we can create multiple NodeShared per Process
+  // , per thread
   auto tid = std::this_thread::get_id();
   // Create a unique id using both pid and tid
   std::stringstream ss;
