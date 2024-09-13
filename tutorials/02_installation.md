@@ -205,7 +205,7 @@ sudo make uninstall
 
 ### Prerequisites
 
-First, follow the [gz-cmake](https://github.com/gazebosim/gz-cmake) tutorial for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
+First, follow the [source installation](https://gazebosim.org/docs/ionic/install_windows_src/) tutorial until step 5 included for installing Conda, Visual Studio, CMake, etc., prerequisites, and creating a Conda environment.
 
 Navigate to `condabin` if necessary to use the `conda` command (i.e., if Conda is not in your `PATH` environment variable. You can find the location of `condabin` in Anaconda Prompt, `where conda`).
 
@@ -266,7 +266,7 @@ conda install libgz-cmake<#> libgz-msgs<#> libgz-tools<#> --channel conda-forge
   cmake --build . --config Release
   ```
 
-  Try an example
+  Try an example (in the Release directory)
   ```bash
   responser
   ```
