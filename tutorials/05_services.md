@@ -609,6 +609,25 @@ cmake --build . --config Release
 
 ## Running the examples
 
+> **NOTE**
+> It is essential to have a valid value of `GZ_PARTITION` environment variable
+> and to have it set to the same value in all open terminals. As `GZ_PARTITION`
+> is based on hostname and username, especially Windows and Mac users might
+> have problems due to spaces in their username, which are not a valid character
+> in `GZ_PARTITION`. gz-transport prints error `Invalid partition name` in such
+> case. To resolve that, set `GZ_PARTITION` explicitly to a valid value:
+> ```bash
+> # Linux and Mac
+> export GZ_PARTITION=test
+> # Windows
+> set GZ_PARTITION=test
+> ```
+
+> **NOTE**
+> On Windows, you can see firewall or antivirus prompts when running the examples.
+> For them to work properly, you should allow all communication to the
+> example programs.
+
 Open three new terminals and from your ``build/`` directory run the executables.
 
 From terminal 1:
@@ -661,7 +680,11 @@ directory run the executables.
 From terminal 1:
 
 ```{.sh}
+# Linux and MacOS
 ./responser_oneway
+
+# Windows
+.\Release\responser_oneway.exe
 ```
 
 From terminal 2:
@@ -678,11 +701,7 @@ In your responser terminal, you should expect an output similar to this one,
 showing that your service provider has received a request:
 
 ```{.sh}
-# Linux and MacOS
 ./responser_oneway
-
-# Windows
-.\Release\responser_oneway.exe
 Request received: [HELLO]
 ```
 
@@ -723,11 +742,7 @@ In your requesters' terminals, you should expect an output similar to this one,
 showing that you have received a response:
 
 ```{.sh}
-# Linux and MacOS
 ./requester_no_input
-
-# Windows
-.\Release\requester_no_input.exe
 
 Press <CTRL-C> to exit
 Response: [This is it! This is the answer. It says here...that a bolt of
