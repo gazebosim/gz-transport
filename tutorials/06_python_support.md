@@ -354,7 +354,7 @@ We can declare the topic remapping option using the following code:
 
     # Create a transport node and remap a topic.
     nodeOpts = NodeOptions()
-    nodeOpts.add_topic_remap("/foo", "/bar")
+    nodeOpts.add_topic_remap("/example_stringmsg_topic", "/bar")
     node = Node(nodeOpts)
 ```
 
