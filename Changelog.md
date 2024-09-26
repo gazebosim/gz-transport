@@ -9,6 +9,7 @@
     * [Pull request #539](https://github.com/gazebosim/gz-transport/pull/539)
     * [Pull request #537](https://github.com/gazebosim/gz-transport/pull/537)
     * [Pull request #534](https://github.com/gazebosim/gz-transport/pull/534)
+    * [Pull request #532](https://github.com/gazebosim/gz-transport/pull/533)
     * [Pull request #532](https://github.com/gazebosim/gz-transport/pull/532)
     * [Pull request #528](https://github.com/gazebosim/gz-transport/pull/528)
     * [Pull request #527](https://github.com/gazebosim/gz-transport/pull/527)
