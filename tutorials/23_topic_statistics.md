@@ -85,14 +85,27 @@ cmake --build build --parallel
 cmake --build build --config release --parallel
 ```
 
-#### Executing on Linux or Mac
+#### Executing
+> **NOTE**
+> It is essential to have a valid value of `GZ_PARTITION` environment variable
+> and to have it set to the same value in all open terminals. As `GZ_PARTITION`
+> is based on hostname and username, especially Windows and Mac users might
+> have problems due to spaces in their username, which are not a valid character
+> in `GZ_PARTITION`. gz-transport prints error `Invalid partition name` in such
+> case. To resolve that, set `GZ_PARTITION` explicitly to a valid value.
 
-1. Terminal 1: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./example/build/publisher`
-1. Terminal 2: `GZ_TRANSPORT_TOPIC_STATISTICS=1 ./example/build/subscriber_stats`
-1. Terminal 3: `GZ_TRANSPORT_TOPIC_STATISTICS=1 gz topic -et /statistics`
+If you have the Gazebo Transport sources with the example programs built,
+then you can test topic statistics by following these steps depending on the
+platform:
 
-#### Executing on Windows
+##### Linux or Mac
 
-1. Terminal 1: `set "GZ_TRANSPORT_TOPIC_STATISTICS=1" && example\build\release\publisher.exe`
-1. Terminal 2: `set "GZ_TRANSPORT_TOPIC_STATISTICS=1" && example\build\subscriber_stats.exe`
-1. Terminal 3: `set "GZ_TRANSPORT_TOPIC_STATISTICS=1" && gz topic -et /statistics`
+1. Terminal 1: `GZ_PARTITION=test GZ_TRANSPORT_TOPIC_STATISTICS=1 ./example/build/publisher`
+1. Terminal 2: `GZ_PARTITION=test GZ_TRANSPORT_TOPIC_STATISTICS=1 ./example/build/subscriber_stats`
+1. Terminal 3: `GZ_PARTITION=test GZ_TRANSPORT_TOPIC_STATISTICS=1 gz topic -et /statistics`
+
+##### Windows
+
+1. Terminal 1: `set "GZ_PARTITION=test" && set "GZ_TRANSPORT_TOPIC_STATISTICS=1" && example\build\release\publisher.exe`
+1. Terminal 2: `set "GZ_PARTITION=test" && set "GZ_TRANSPORT_TOPIC_STATISTICS=1" && example\build\subscriber_stats.exe`
+1. Terminal 3: `set "GZ_PARTITION=test" && set "GZ_TRANSPORT_TOPIC_STATISTICS=1" && gz topic -et /statistics`

@@ -177,6 +177,20 @@ export PYTHONPATH=$PYTHONPATH:<path_install_prefix>/lib/python
 
 ## Running the examples
 
+> **NOTE**
+> It is essential to have a valid value of `GZ_PARTITION` environment variable
+> and to have it set to the same value in all open terminals. As `GZ_PARTITION`
+> is based on hostname and username, especially Windows and Mac users might
+> have problems due to spaces in their username, which are not a valid character
+> in `GZ_PARTITION`. gz-transport prints error `Invalid partition name` in such
+> case. To resolve that, set `GZ_PARTITION` explicitly to a valid value:
+> ```bash
+> # Linux and Mac
+> export GZ_PARTITION=test
+> # Windows
+> set GZ_PARTITION=test
+> ```
+
 Open two new terminals and directly run the Python scripts downloaded previously.
 
 From terminal 1:
@@ -340,7 +354,7 @@ We can declare the topic remapping option using the following code:
 
     # Create a transport node and remap a topic.
     nodeOpts = NodeOptions()
-    nodeOpts.add_topic_remap("/foo", "/bar")
+    nodeOpts.add_topic_remap("/example_stringmsg_topic", "/bar")
     node = Node(nodeOpts)
 ```
 
