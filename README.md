@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-transport/tree/gz-transport14/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-transport/tree/gz-transport14)
-Ubuntu Noble  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-gz-transport14-noble-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-gz-transport14-noble-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-gz-transport14-homebrew-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-gz-transport14-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-14-win)](https://build.osrfoundation.org/job/gz_transport-14-win/)
+Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-transport/tree/main/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-transport/tree/main)
+Ubuntu Noble  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-main-noble-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-main-noble-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-main-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-main-win)](https://build.osrfoundation.org/job/gz_transport-main-win/)
 
 Gazebo Transport, a component of [Gazebo](https://gazebosim.org), provides fast and efficient asynchronous message passing, services, and data logging.
 
