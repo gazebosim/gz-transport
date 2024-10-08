@@ -21,6 +21,7 @@
 /// Launch the gz-transport subscriber example if the log was created
 /// by recording the publisher example.
 
+//! [complete]
 #include <cstdint>
 #include <iostream>
 #include <regex>
@@ -62,4 +63,7 @@ int main(int argc, char *argv[])
   // Wait until the player stops on its own
   std::cout << "Playing all messages in the log file\n";
   handle->WaitUntilFinished();
+
+  return 0;
 }
+//! [complete]

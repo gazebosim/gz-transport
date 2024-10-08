@@ -28,54 +28,7 @@ cd ~/gz_transport_tutorial
 Download the [record.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/record.cc)
 file within the `gz_transport_tutorial` folder and open it with your favorite editor:
 
-```{.cpp}
-#include <cstdint>
-#include <iostream>
-#include <regex>
-
-#include <gz/transport/Node.hh>
-#include <gz/transport/log/Recorder.hh>
-
-//////////////////////////////////////////////////
-int main(int argc, char *argv[])
-{
-  if (argc != 2)
-  {
-    std::cerr << "Usage: " << argv[0] << " OUTPUT.tlog\n";
-    return -1;
-  }
-
-  gz::transport::log::Recorder recorder;
-
-  // Record all topics
-  const int64_t addTopicResult = recorder.AddTopic(std::regex(".*"));
-  if (addTopicResult < 0)
-  {
-    std::cerr << "An error occurred when trying to add topics: "
-              << addTopicResult << "\n";
-    return -1;
-  }
-
-  // Begin recording, saving received messages to the given file
-  const auto result = recorder.Start(argv[1]);
-  if (gz::transport::log::RecorderError::SUCCESS != result)
-  {
-    std::cerr << "Failed to start recording: " << static_cast<int64_t>(result)
-              << "\n";
-    return -2;
-  }
-
-  std::cout << "Press Ctrl+C to finish recording.\n  Recording... "
-            << std::endl;
-
-  // Wait until the interrupt signal is sent.
-  gz::transport::waitForShutdown();
-
-  recorder.Stop();
-
-  std::cout << "\nRecording finished!" << std::endl;
-}
-```
+\snippet example/record.cc complete
 
 ### Walkthrough
 
@@ -130,50 +83,7 @@ Download the [playback.cc](https://github.com/gazebosim/gz-transport/raw/gz-tran
 file within the `gz_transport_tutorial` folder and open it with your favorite
 editor:
 
-```{.cpp}
-#include <cstdint>
-#include <iostream>
-#include <regex>
-#include <gz/transport/log/Playback.hh>
-
-//////////////////////////////////////////////////
-int main(int argc, char *argv[])
-{
-  if (argc != 2)
-  {
-    std::cerr << "Usage: " << argv[0] << " INPUT.tlog\n";
-    return -1;
-  }
-
-  gz::transport::log::Playback player(argv[1]);
-
-  // Playback all topics
-  const int64_t addTopicResult = player.AddTopic(std::regex(".*"));
-  if (addTopicResult == 0)
-  {
-    std::cout << "No topics to play back\n";
-    return 0;
-  }
-  else if (addTopicResult < 0)
-  {
-    std::cerr << "Failed to advertise topics: " << addTopicResult
-              << "\n";
-    return -1;
-  }
-
-  // Begin playback
-  const auto handle = player.Start();
-  if (!handle)
-  {
-    std::cerr << "Failed to start playback\n";
-    return -2;
-  }
-
-  // Wait until the player stops on its own
-  std::cout << "Playing all messages in the log file\n";
-  handle->WaitUntilFinished();
-}
-```
+\snippet example/playback.cc complete
 
 ### Walkthrough
 
@@ -237,6 +147,20 @@ cmake --build . --config Release
 ```
 
 ## Running the examples
+
+> **NOTE**
+> It is essential to have a valid value of `GZ_PARTITION` environment variable
+> and to have it set to the same value in all open terminals. As `GZ_PARTITION`
+> is based on hostname and username, especially Windows and Mac users might
+> have problems due to spaces in their username, which are not a valid character
+> in `GZ_PARTITION`. gz-transport prints error `Invalid partition name` in such
+> case. To resolve that, set `GZ_PARTITION` explicitly to a valid value:
+> ```bash
+> # Linux and Mac
+> export GZ_PARTITION=test
+> # Windows
+> set GZ_PARTITION=test
+> ```
 
 Open two new terminals and from your `build/` directory run the recorder.
 

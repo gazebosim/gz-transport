@@ -187,7 +187,7 @@ class Cmd
 
       case options['subcommand']
       when 'record'
-        if options['force'] and File.exists?(options['file'])
+        if options['force'] and File.exist?(options['file'])
           begin
             File.delete(options['file'])
           rescue Exception => e

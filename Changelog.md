@@ -1,6 +1,31 @@
 ## Gazebo Transport 14.X
 
-### Gazebo Transport 14.0.0 (2024-08-26)
+### Gazebo Transport 14.0.0 (2024-09-25)
+
+1. **Baseline:** this includes all changes from 13.4.0 and earlier.
+
+1. Miscellaneous documentation fixes
+    * [Pull request #536](https://github.com/gazebosim/gz-transport/pull/536)
+    * [Pull request #539](https://github.com/gazebosim/gz-transport/pull/539)
+    * [Pull request #537](https://github.com/gazebosim/gz-transport/pull/537)
+    * [Pull request #534](https://github.com/gazebosim/gz-transport/pull/534)
+    * [Pull request #532](https://github.com/gazebosim/gz-transport/pull/533)
+    * [Pull request #532](https://github.com/gazebosim/gz-transport/pull/532)
+    * [Pull request #528](https://github.com/gazebosim/gz-transport/pull/528)
+    * [Pull request #527](https://github.com/gazebosim/gz-transport/pull/527)
+    * [Pull request #526](https://github.com/gazebosim/gz-transport/pull/526)
+
+1. Simplify the relay tutorial docker setup
+    * [Pull request #530](https://github.com/gazebosim/gz-transport/pull/530)
+
+1. Replace deprecated File.exists with File.exist and tweak tutorial
+    * [Pull request #529](https://github.com/gazebosim/gz-transport/pull/529)
+
+1. Update gz-transport14 badge URLs
+    * [Pull request #524](https://github.com/gazebosim/gz-transport/pull/524)
+
+1. Ionic Changelog
+    * [Pull request #523](https://github.com/gazebosim/gz-transport/pull/523)
 
 1. Replace IGN_IP with GZ_IP
     * [Pull request #515](https://github.com/gazebosim/gz-transport/pull/515)
