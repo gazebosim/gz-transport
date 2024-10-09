@@ -17,7 +17,7 @@ cd ~/gz_transport_tutorial
 
 ## Publisher
 
-Download the [publisher.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport15/example/publisher.cc) file within the `gz_transport_tutorial`
+Download the [publisher.cc](https://github.com/gazebosim/gz-transport/raw/main/example/publisher.cc) file within the `gz_transport_tutorial`
 folder and open it with your favorite editor:
 
 \snippet example/publisher.cc complete
@@ -76,7 +76,7 @@ The method *Publish()* sends a message to all the subscribers.
 
 ## Subscriber
 
-Download the [subscriber.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport15/example/subscriber.cc)
+Download the [subscriber.cc](https://github.com/gazebosim/gz-transport/raw/main/example/subscriber.cc)
 file into the `gz_transport_tutorial` folder and open it with your favorite editor:
 
 \snippet example/subscriber.cc complete
@@ -126,7 +126,7 @@ until you hit *CTRL-C*. Note that this function captures the *SIGINT* and
 
 ## Building the code
 
-Download the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport15/example/CMakeLists.txt) file within the `gz_transport_tutorial` folder.
+Download the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/CMakeLists.txt) file within the `gz_transport_tutorial` folder.
 
 Once you have all your files, go ahead and create a `build/` directory within
 the `gz_transport_tutorial` directory.
@@ -287,7 +287,7 @@ between Gazebo Transport and another protocol or if you want to just print the
 content of a generic protobuf message using `DebugString()`, among other use
 cases.
 
-Download the [subscriber_generic.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport15/example/subscriber_generic.cc) file within the `gz_transport_tutorial` folder and open it with your favorite editor:
+Download the [subscriber_generic.cc](https://github.com/gazebosim/gz-transport/raw/main/example/subscriber_generic.cc) file within the `gz_transport_tutorial` folder and open it with your favorite editor:
 
 ```{.cpp}
 #include <google/protobuf/message.h>
@@ -416,12 +416,12 @@ often the integration of the message generation into the build system of your
 project. Next, you can find an example of a publisher and subscriber using a
 custom Protobuf message integrated with CMake.
 
-Download the [publisher_custom_msg.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport15/example/publisher_custom_msg.cc)
-and the [subscriber_custom_msg.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport15/example/subscriber_custom_msg.cc)
+Download the [publisher_custom_msg.cc](https://github.com/gazebosim/gz-transport/raw/main/example/publisher_custom_msg.cc)
+and the [subscriber_custom_msg.cc](https://github.com/gazebosim/gz-transport/raw/main/example/subscriber_custom_msg.cc)
 files within the `gz_transport_tutorial`. Then, create a `msgs` folder and
-download the [stringmsg.proto](https://github.com/gazebosim/gz-transport/raw/gz-transport15/example/msgs/stringmsg.proto)
-and the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport15/example/msgs/CMakeLists.txt)
-files within the `msgs` folder. Finally, we'll need the main [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport15/example/CMakeLists.txt)
+download the [stringmsg.proto](https://github.com/gazebosim/gz-transport/raw/main/example/msgs/stringmsg.proto)
+and the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/msgs/CMakeLists.txt)
+files within the `msgs` folder. Finally, we'll need the main [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/CMakeLists.txt)
 file. You should have this file from the previous examples. Otherwise,
 download and place it within the `gz_transport_tutorial` folder.
 

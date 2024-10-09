@@ -9,7 +9,7 @@ In this tutorial, we are going to show the functionalities implemented in Python
 These features are brought up by creating bindings from the C++ implementation 
 using pybind11. It is important to note that not all of C++ features are available
 yet, on this tutorial we will go over the most relevant features. For more information,
-refer to the [__init__.py](https://github.com/gazebosim/gz-transport/blob/gz-transport15/python/src/__init__.py)
+refer to the [__init__.py](https://github.com/gazebosim/gz-transport/blob/main/python/src/__init__.py)
 file which is a wrapper for all the bindings.
 
 For this tutorial, we will create two nodes that communicate via messages. One node
@@ -24,7 +24,7 @@ cd ~/gz_transport_tutorial
 
 ## Publisher
 
-Download the [publisher.py](https://github.com/gazebosim/gz-transport/blob/gz-transport15/python/examples/publisher.py) file within the `gz_transport_tutorial`
+Download the [publisher.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/publisher.py) file within the `gz_transport_tutorial`
 folder and open it with your favorite editor:
 
 \snippet python/examples/publisher.py complete
@@ -89,7 +89,7 @@ each topic. The method *publish()* sends a message to all the subscribers.
 
 ## Subscriber
 
-Download the [subscriber.py](https://github.com/gazebosim/gz-transport/blob/gz-transport15/python/examples/subscriber.py)
+Download the [subscriber.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/subscriber.py)
 file into the `gz_transport_tutorial` folder and open it with your favorite editor:
 
 \snippet python/examples/subscriber.py complete
@@ -240,9 +240,9 @@ in several places (publisher and subscribers).
 
 We developed a couple of examples that demonstrate this particular issue. Take
 a look at a publisher and subscriber (whithin the same node) that have race
-conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport15/python/examples/data_race_without_mutex.py) file. The proposed solution to this
+conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/data_race_without_mutex.py) file. The proposed solution to this
 issue is to use the `threading` library, you can see the same example with a mutex
-in the [data_race_with_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport15/python/examples/data_race_with_mutex.py) file.
+in the [data_race_with_mutex.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/data_race_with_mutex.py) file.
 
 You can run any of those examples by just doing the following in a terminal:
 ```{.sh}
@@ -380,7 +380,7 @@ The command `gz log playback` also supports the notion of topic remapping. Run
 
 ## Service Requester
 
-Download the [requester.py](https://github.com/gazebosim/gz-transport/blob/gz-transport15/python/examples/requester.py)
+Download the [requester.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/requester.py)
 file into the `gz_transport_tutorial` folder and open it with your favorite editor:
 
 \snippet python/examples/requester.py complete
@@ -421,7 +421,7 @@ result and response of the request in some variables and printing them out.
 
 Unfortunately, this feature is not available on Python at the moment. However,
 we can use a service responser created in C++ and make a request to it from a
-code in Python. Taking that into account, we will use the [response.cc](https://github.com/gazebosim/gz-transport/blob/gz-transport15/example/responser.cc) file as the service responser.
+code in Python. Taking that into account, we will use the [response.cc](https://github.com/gazebosim/gz-transport/blob/main/example/responser.cc) file as the service responser.
 
 ## Running the examples
 

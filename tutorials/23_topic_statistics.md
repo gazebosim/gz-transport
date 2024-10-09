@@ -44,7 +44,7 @@ if (!node.EnableStats(topic, true))
 }
 ```
 
-A complete example can be found in the [subscriber_stats example program](https://github.com/gazebosim/gz-transport/blob/gz-transport15/example/subscriber_stats.cc).
+A complete example can be found in the [subscriber_stats example program](https://github.com/gazebosim/gz-transport/blob/main/example/subscriber_stats.cc).
 
 With both `GZ_TRANSPORT_TOPIC_STATISTICS` set to `1` and a node
 enabling topic statistics, then you will be able to echo statistic
@@ -76,7 +76,7 @@ if (!node.EnableStats(topic, true, "/my_stats", 100))
 For running the example, build the binaries in the example directory:
 
 ```
-git clone https://github.com/gazebosim/gz-transport -b gz-transport15
+git clone https://github.com/gazebosim/gz-transport -b main
 cd gz-transport/example
 cmake -S . -B build
 # For UNIX
