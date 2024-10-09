@@ -25,11 +25,11 @@ install Docker following any of the existing guides available
 ([here](https://docs.docker.com/get-docker/)'s one).
 
 We're going to build a Docker image and run it inside your host computer.
-Download the [build.bash](https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/build.bash), [run.bash](https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/run.bash) and
-[Dockerfile](https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/gz-transport/Dockerfile) files.
+Download the [build.bash](https://github.com/gazebosim/gz-transport/raw/gz-transport15/docker/build.bash), [run.bash](https://github.com/gazebosim/gz-transport/raw/gz-transport15/docker/run.bash) and
+[Dockerfile](https://github.com/gazebosim/gz-transport/raw/gz-transport15/docker/gz-transport/Dockerfile) files.
 
 ```{.sh}
-wget https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/gz-transport/Dockerfile -O Dockerfile
+wget https://github.com/gazebosim/gz-transport/raw/gz-transport15/docker/gz-transport/Dockerfile -O Dockerfile
 ```
 
 Now, it's time to build the Docker image:
