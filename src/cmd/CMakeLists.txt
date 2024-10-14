@@ -2,12 +2,6 @@
 # "gtest_sources" variable.
 gz_get_libsources_and_unittests(sources gtest_sources)
 
-# Skip command line tests for Windows, see
-# https://github.com/gazebosim/gz-transport/issues/104
-if (MSVC)
-  list(REMOVE_ITEM gtest_sources gz_TEST.cc)
-endif()
-
 if (NOT HAVE_GZ_TOOLS)
   list(REMOVE_ITEM gtest_sources gz_TEST.cc)
 endif()
