@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 project(gz-transport-examples)
 
 # Find the Gazebo Transport library
-find_package(gz-transport14 QUIET REQUIRED OPTIONAL_COMPONENTS log)
-set(GZ_TRANSPORT_VER ${gz-transport14_VERSION_MAJOR})
+find_package(gz-transport15 QUIET REQUIRED OPTIONAL_COMPONENTS log)
+set(GZ_TRANSPORT_VER ${gz-transport15_VERSION_MAJOR})
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/msgs/")
   # Message generation. Only required when using custom Protobuf messages.
