@@ -146,6 +146,18 @@ namespace gz
           google::protobuf::DynamicCastMessage<Req>(&_msgReq);
         auto msgRep =
           google::protobuf::DynamicCastMessage<Rep>(&_msgRep);
+#elif GOOGLE_PROTOBUF_VERSION >= 4022000
+        auto msgReq =
+          google::protobuf::internal::DownCast<const Req*>(&_msgReq);
+        auto msgRep = google::protobuf::internal::DownCast<Rep*>(&_msgRep);
+#elif GOOGLE_PROTOBUF_VERSION > 2999999
+        auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
+        auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
+#else
+        auto msgReq =
+          google::protobuf::internal::down_cast<const Req*>(&_msgReq);
+        auto msgRep = google::protobuf::internal::down_cast<Rep*>(&_msgRep);
+#endif
 
         // Verify the dynamically casted messages are valid
         if (msgReq == nullptr || msgRep == nullptr)
@@ -185,18 +197,6 @@ namespace gz
           std::cerr.flush();
           return false;
         }
-#elif GOOGLE_PROTOBUF_VERSION >= 4022000
-        auto msgReq =
-          google::protobuf::internal::DownCast<const Req*>(&_msgReq);
-        auto msgRep = google::protobuf::internal::DownCast<Rep*>(&_msgRep);
-#elif GOOGLE_PROTOBUF_VERSION > 2999999
-        auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
-        auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
-#else
-        auto msgReq =
-          google::protobuf::internal::down_cast<const Req*>(&_msgReq);
-        auto msgRep = google::protobuf::internal::down_cast<Rep*>(&_msgRep);
-#endif
 
         return this->cb(*msgReq, *msgRep);
       }

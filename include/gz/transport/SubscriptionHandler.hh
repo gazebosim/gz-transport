@@ -216,6 +216,13 @@ namespace gz
 
 #if GOOGLE_PROTOBUF_VERSION >= 5028000
         auto msgPtr = google::protobuf::DynamicCastMessage<T>(&_msg);
+#elif GOOGLE_PROTOBUF_VERSION >= 4022000
+        auto msgPtr = google::protobuf::internal::DownCast<const T*>(&_msg);
+#elif GOOGLE_PROTOBUF_VERSION >= 3000000
+        auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
+#else
+        auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
+#endif
 
         // Verify the dynamically casted message is valid
         if (msgPtr == nullptr)
@@ -236,13 +243,6 @@ namespace gz
           std::cerr.flush();
           return false;
         }
-#elif GOOGLE_PROTOBUF_VERSION >= 4022000
-        auto msgPtr = google::protobuf::internal::DownCast<const T*>(&_msg);
-#elif GOOGLE_PROTOBUF_VERSION >= 3000000
-        auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
-#else
-        auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
-#endif
 
         this->cb(*msgPtr, _info);
         return true;
