@@ -126,7 +126,6 @@ TEST(ignTest, TopicInfo)
   auto testLoop = std::async(std::launch::async, [&]{
     while (!infoFound && retries++ < 10u)
     {
-      std::cout << "Waiting for topic ...\n";
       output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
       infoFound = output.size() > 50u;
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -134,7 +133,6 @@ TEST(ignTest, TopicInfo)
   });
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
-  std::cout << "Fork and run " << publisher_path << std::endl;
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
 
