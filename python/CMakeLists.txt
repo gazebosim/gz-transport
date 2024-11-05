@@ -1,6 +1,6 @@
 # Detect if we are doing a standalone build of the bindings, using an external gz-transport
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  cmake_minimum_required(VERSION 3.16)
+  cmake_minimum_required(VERSION 3.22.1)
   set(GZ_TRANSPORT_VER 14)
   project(gz-transport${GZ_TRANSPORT_VER}-python VERSION ${GZ_TRANSPORT_VER})
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
@@ -9,9 +9,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   set(PROJECT_LIBRARY_TARGET_NAME "gz-transport${PROJECT_VERSION_MAJOR}::gz-transport${PROJECT_VERSION_MAJOR}")
   include(GNUInstallDirs)
   include(CTest)
-  if(BUILD_TESTING)
-    enable_testing()
-  endif()
 endif()
 
 if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
