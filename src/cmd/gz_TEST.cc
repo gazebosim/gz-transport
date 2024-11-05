@@ -17,6 +17,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <iostream>
 #include <string>
 #include <ignition/msgs.hh>
@@ -115,9 +116,6 @@ TEST(ignTest, TopicInfo)
     IGN_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsPublisher_aux");
 
-  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
-    g_partition.c_str());
-
   // Check the 'ign topic -i' command.
   std::string ign = std::string(IGN_PATH);
 
@@ -125,13 +123,20 @@ TEST(ignTest, TopicInfo)
   bool infoFound = false;
   std::string output;
 
-  while (!infoFound && retries++ < 10u)
-  {
-    output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
-    infoFound = output.size() > 50u;
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  }
+  auto testLoop = std::async(std::launch::async, [&]{
+    while (!infoFound && retries++ < 10u)
+    {
+      output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
+      infoFound = output.size() > 50u;
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    }
+  });
 
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
+    g_partition.c_str());
+
+  testLoop.wait();
   EXPECT_TRUE(infoFound) << "OUTPUT["
     << output << "] Size[" << output.size()
     << "]. Expected Size=50" << std::endl;
