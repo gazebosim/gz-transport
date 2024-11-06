@@ -1,5 +1,28 @@
 ## Gazebo Transport 12.X
 
+### Gazebo Transport 12.2.2 (2024-11-06)
+
+1. Disable playback.ReplayStep for windows
+    * [Pull request #517](https://github.com/gazebosim/gz-transport/pull/517)
+
+1. Test refactoring part 2
+    * [Pull request #463](https://github.com/gazebosim/gz-transport/pull/463)
+
+1. Support for bazel on garden
+    * [Pull request #399](https://github.com/gazebosim/gz-transport/pull/399)
+
+1. Use subprocess rather than custom code
+    * [Pull request #429](https://github.com/gazebosim/gz-transport/pull/429)
+
+1. Infrastructure
+    * [Pull request #460](https://github.com/gazebosim/gz-transport/pull/460)
+
+1. Remove duplicated functionality from test_config
+    * [Pull request #457](https://github.com/gazebosim/gz-transport/pull/457)
+
+1. Adds the subcommands for the log command
+    * [Pull request #451](https://github.com/gazebosim/gz-transport/pull/451)
+
 ### Gazebo Transport 12.2.1 (2023-09-26)
 
 1. Infrastructure
