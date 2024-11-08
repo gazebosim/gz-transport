@@ -184,6 +184,28 @@ modify your `LD_LIBRARY_PATH`:
 echo "export LD_LIBRARY_PATH=<install_path>/local/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
 ```
 
+### Build python bindings separately from main library
+
+If you want to build Python bindings separately from the main gz-transport library
+(for example if you want to build Python bindings for multiple versions of Python),
+you can invoke cmake on the `python` folder instead of the root folder.
+Specify the path to the python executable with which you wish to build bindings
+in the `Python3_EXECUTABLE` cmake variable.
+Specify the install path for the bindings in the `CMAKE_INSTALL_PREFIX`
+variable, and be sure to set your `PYTHONPATH` accordingly after install.
+
+```bash
+cd sdformat
+mkdir build_python3
+cd build_python3
+cmake ../python \
+    -DPython3_EXECUTABLE=/usr/local/bin/python3.12 \
+    -DCMAKE_INSTALL_PREFIX=<prefix>
+```
+
+See the homebrew [sdformat15 formula](https://github.com/osrf/homebrew-simulation/blob/027d06f5be49da1e40d01180aedae7f76dc7ff47/Formula/sdformat15.rb#L12-L56)
+for an example of building bindings for multiple versions of Python.
+
 ### Uninstalling Source-based Install
 
 If you need to uninstall Gazebo Transport or switch back to a
