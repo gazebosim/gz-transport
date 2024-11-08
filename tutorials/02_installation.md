@@ -45,13 +45,10 @@ library and rebuilding dependencies due to the use of c++11. For
 purposes of this documentation, assuming OS X 10.9 or greater is in
 use. Here are the instructions:
 
-Install homebrew, which should also prompt you to install the XCode
-command-line tools:
-```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
+After installing the [Homebrew package manager](https://brew.sh),
+which should also prompt you to install the XCode command-line tools
+add OSRF packages and run the install command:
 
-Run the following commands:
 ```
 brew tap osrf/simulation
 brew install gz-transport<#>
@@ -81,7 +78,9 @@ which version you need.
 
 # Source Install
 
-## Ubuntu Linux
+## Install Prerequisites
+
+### Ubuntu Linux
 
 For compiling the latest version of Gazebo Transport you will need an
 Ubuntu distribution equal to 24.04 (Noble) or newer.
@@ -97,10 +96,29 @@ Install prerequisites. A clean Ubuntu system will need:
 sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs11-dev libgz-utils3-cli-dev
 ```
 
+### macOS
+
+After installing the [Homebrew package manager](https://brew.sh),
+which should also prompt you to install the XCode command-line tools
+add OSRF packages and run the command to install dependencies:
+
+```
+brew tap osrf/simulation
+brew install --only-dependencies gz-transport<#>
+```
+
+Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
+which version you need.
+
+## Clone, Configure, and Build
+
 Clone the repository
 ```
-git clone https://github.com/gazebosim/gz-transport
+git clone https://github.com/gazebosim/gz-transport -b gz-transport<#>
 ```
+Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
+which version you need. From version 12 use `gz-transport<#>` for lower versions
+use `ign-transport<#>`
 
 Configure and build
 ```
@@ -110,6 +128,13 @@ cd build
 cmake ..
 make
 ```
+
+Optionally, install
+```
+sudo make install
+```
+
+### Configuration options
 
 Configure Gazebo Transport (choose either method a or b below):
 
@@ -169,37 +194,6 @@ source, navigate to your source code directory's build folders and run
 cd /tmp/gz-transport/build
 sudo make uninstall
 ```
-
-### macOS
-
-1. Clone the repository
-  ```
-  git clone https://github.com/gazebosim/gz-transport -b gz-transport<#>
-  ```
-  Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
-  which version you need. From version 12 use `gz-transport<#>` for lower versions
-  use `ign-transport<#>`
-
-2. Install dependencies
-  ```
-  brew install --only-dependencies gz-transport<#>
-  ```
-  Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
-  which version you need.
-
-3. Configure and build
-  ```
-  cd gz-transport
-  mkdir build
-  cd build
-  cmake ..
-  make
-  ```
-
-4. Optionally, install
-  ```
-  sudo make install
-  ```
 
 ## Windows
 
