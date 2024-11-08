@@ -1,3 +1,27 @@
+# Detect if we are doing a standalone build of the bindings, using an external gz-transport
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  cmake_minimum_required(VERSION 3.22.1)
+  set(GZ_TRANSPORT_VER 14)
+  project(gz-transport${GZ_TRANSPORT_VER}-python VERSION ${GZ_TRANSPORT_VER})
+  find_package(gz-transport${PROJECT_VERSION_MAJOR} REQUIRED)
+  set(PROJECT_LIBRARY_TARGET_NAME "gz-transport${PROJECT_VERSION_MAJOR}::gz-transport${PROJECT_VERSION_MAJOR}")
+  # require python dependencies to be found
+  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+  set(CMAKE_REQUIRE_FIND_PACKAGE_pybind11 TRUE)
+  include(GNUInstallDirs)
+  include(CTest)
+endif()
+
+set(PYBIND11_PYTHON_VERSION 3)
+find_package(pybind11 2.4 CONFIG QUIET)
+
+if (pybind11_FOUND)
+  message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+else()
+  message(WARNING "pybind11 is missing: Python interfaces are disabled.")
+  return()
+endif()
+
 if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
   if(NOT Python3_SITEARCH)
     # Get install variable from Python3 module
@@ -12,7 +36,7 @@ if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
   endif()
 else()
   # If not a system installation, respect local paths
-  set(GZ_PYTHON_INSTALL_PATH ${GZ_LIB_INSTALL_DIR}/python)
+  set(GZ_PYTHON_INSTALL_PATH ${CMAKE_INSTALL_LIBDIR}/python)
 endif()
 
 set(GZ_PYTHON_INSTALL_PATH "${GZ_PYTHON_INSTALL_PATH}/gz")
@@ -68,10 +92,10 @@ if (BUILD_TESTING AND NOT WIN32)
   foreach (test ${python_tests})
     if (pytest_FOUND)
       add_test(NAME ${test}.py COMMAND
-        "${Python3_EXECUTABLE}" -m pytest "${CMAKE_SOURCE_DIR}/python/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/${test}.xml")
+        "${Python3_EXECUTABLE}" -m pytest "${CMAKE_CURRENT_SOURCE_DIR}/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/${test}.xml")
     else()
       add_test(NAME ${test}.py COMMAND
-        "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/test/${test}.py")
     endif()
     set(_env_vars)
     list(APPEND _env_vars "CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}/bin")

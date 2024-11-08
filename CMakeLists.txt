@@ -58,19 +58,11 @@ if (SKIP_PYBIND11)
   message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
   find_package(Python3 COMPONENTS Interpreter)
 else()
-  find_package(Python3 COMPONENTS Interpreter Development)
+  find_package(Python3
+    COMPONENTS Interpreter
+    OPTIONAL_COMPONENTS Development)
   if (NOT Python3_Development_FOUND)
     GZ_BUILD_WARNING("Python development libraries are missing: Python interfaces are disabled.")
-  else()
-    set(PYBIND11_PYTHON_VERSION 3)
-    find_package(pybind11 2.4 CONFIG QUIET)
-
-    if (pybind11_FOUND)
-      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-    else()
-      GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-      message (STATUS "Searching for pybind11 - not found.")
-    endif()
   endif()
 endif()
 
@@ -164,7 +156,7 @@ add_subdirectory(conf)
 #============================================================================
 # gz transport python bindings
 #============================================================================
-if (pybind11_FOUND AND NOT SKIP_PYBIND11)
+if (Python3_Development_FOUND AND NOT SKIP_PYBIND11)
   add_subdirectory(python)
 endif()
 
