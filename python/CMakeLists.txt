@@ -2,7 +2,7 @@
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   cmake_minimum_required(VERSION 3.22.1)
   set(GZ_TRANSPORT_VER 14)
-  project(gz-transport${GZ_TRANSPORT_VER}-python VERSION ${GZ_TRANSPORT_VER})${PACKAGE_XML_VERSION})
+  project(gz-transport${GZ_TRANSPORT_VER}-python VERSION ${GZ_TRANSPORT_VER})
   find_package(gz-transport${PROJECT_VERSION_MAJOR} REQUIRED)
   set(PROJECT_LIBRARY_TARGET_NAME "gz-transport${PROJECT_VERSION_MAJOR}::gz-transport${PROJECT_VERSION_MAJOR}")
   # require python dependencies to be found
