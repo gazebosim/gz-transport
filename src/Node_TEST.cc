@@ -952,9 +952,11 @@ TEST(NodeTest, AdvertiseTwoEqualTopics)
   auto pub1 = node1.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub1);
   auto pub2 = node1.Advertise<msgs::StringMsg>(g_topic);
-  EXPECT_FALSE(pub2);
-  auto pub3 = node2.Advertise<msgs::StringMsg>(g_topic);
-  EXPECT_TRUE(pub3);
+  EXPECT_TRUE(pub2);
+  auto pub3 = node1.Advertise<msgs::StringMsg>(g_topic);
+  EXPECT_FALSE(pub3);
+  auto pub4 = node2.Advertise<msgs::StringMsg>(g_topic);
+  EXPECT_TRUE(pub4);
 }
 
 //////////////////////////////////////////////////

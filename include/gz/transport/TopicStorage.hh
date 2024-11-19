@@ -66,12 +66,7 @@ namespace gz
         {
           // Check that the Publisher does not exist.
           auto &v = m[_publisher.PUuid()];
-          auto found = std::find_if(v.begin(), v.end(),
-            [&](const T &_pub)
-            {
-              return _pub.Addr()  == _publisher.Addr() &&
-                     _pub.NUuid() == _publisher.NUuid();
-            });
+          auto found = std::find(v.begin(), v.end(), _publisher);
 
           // The publisher was already existing, just exit.
           if (found != v.end())

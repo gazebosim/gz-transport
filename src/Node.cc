@@ -1016,18 +1016,6 @@ Node::Publisher Node::Advertise(const std::string &_topic,
     return Publisher();
   }
 
-  auto currentTopics = this->AdvertisedTopics();
-
-  if (std::find(currentTopics.begin(), currentTopics.end(),
-        fullyQualifiedTopic) != currentTopics.end())
-  {
-    std::cerr << "Topic [" << topic << "] already advertised. You cannot"
-      << " advertise the same topic twice on the same node."
-      << " If you want to advertise the same topic with different"
-      << " types, use separate nodes" << std::endl;
-    return Publisher();
-  }
-
   std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
   // Notify the discovery service to register and advertise my topic.
