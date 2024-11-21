@@ -49,7 +49,7 @@ Below are descriptions of the available environment variables:
     forward UDP multicast traffic, so the regular discovery protocol only works
     when nodes are within the same local network. If you feel the need to
     connect these networks, make sure to have one node pointing to the IP
-    address of another node from the other network. Note that only one IP_RELAY
+    address of another node from the other network. Note that only one GZ_RELAY
     link is needed for bidirectional communication between nodes of two
     different networks.
 * **GZ_TRANSPORT_LOG_SQL_PATH**
