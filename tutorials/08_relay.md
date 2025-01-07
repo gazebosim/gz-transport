@@ -25,29 +25,21 @@ install Docker following any of the existing guides available
 ([here](https://docs.docker.com/get-docker/)'s one).
 
 We're going to build a Docker image and run it inside your host computer.
-Download the [build.bash](https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/build.bash), [run.bash](https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/run.bash) and
-[Dockerfile](https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/gz-transport/Dockerfile) files.
+Download the [build.bash](https://github.com/gazebosim/gz-transport/raw/main/docker/build.bash), [run.bash](https://github.com/gazebosim/gz-transport/raw/main/docker/run.bash) and
+[Dockerfile](https://github.com/gazebosim/gz-transport/raw/main/docker/gz-transport/Dockerfile) files.
 
 ```{.sh}
-wget https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/build.bash
-wget https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/run.bash
-mkdir gz-transport && wget https://github.com/gazebosim/gz-transport/raw/gz-transport14/docker/gz-transport/Dockerfile -O gz-transport/Dockerfile
-chmod +x build.bash run.bash
+wget https://github.com/gazebosim/gz-transport/raw/main/docker/gz-transport/Dockerfile -O Dockerfile
 ```
 
 Now, it's time to build the Docker image:
 ```
-./build.bash gz-transport
+docker build -t gz-transport-relay - < Dockerfile
 ```
 
 Run your Docker container:
 ```
-./run.bash gz-transport
-```
-
-Inside the docker instance, go to the `example` directory:
-```
-cd gz-transport/example/build
+docker run -it --rm gz-transport-relay /bin/bash
 ```
 
 Back on your host, make sure that you have Gazebo Tools and net-tools

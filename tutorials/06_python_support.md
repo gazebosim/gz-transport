@@ -9,7 +9,7 @@ In this tutorial, we are going to show the functionalities implemented in Python
 These features are brought up by creating bindings from the C++ implementation 
 using pybind11. It is important to note that not all of C++ features are available
 yet, on this tutorial we will go over the most relevant features. For more information,
-refer to the [__init__.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/src/__init__.py)
+refer to the [__init__.py](https://github.com/gazebosim/gz-transport/blob/main/python/src/__init__.py)
 file which is a wrapper for all the bindings.
 
 For this tutorial, we will create two nodes that communicate via messages. One node
@@ -24,7 +24,7 @@ cd ~/gz_transport_tutorial
 
 ## Publisher
 
-Download the [publisher.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/publisher.py) file within the `gz_transport_tutorial`
+Download the [publisher.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/publisher.py) file within the `gz_transport_tutorial`
 folder and open it with your favorite editor:
 
 \snippet python/examples/publisher.py complete
@@ -32,16 +32,16 @@ folder and open it with your favorite editor:
 ### Walkthrough
 
 ```{.py}
-    from gz.msgs10.stringmsg_pb2 import StringMsg
-    from gz.msgs10.vector3d_pb2 import Vector3d
-    from gz.transport13 import Node
+    from gz.msgs11.stringmsg_pb2 import StringMsg
+    from gz.msgs11.vector3d_pb2 import Vector3d
+    from gz.transport15 import Node
 ```
 
-The library `gz.transport13` contains all the Gazebo Transport elements that can be 
+The library `gz.transport15` contains all the Gazebo Transport elements that can be
 used in Python. The final API we will use is contained inside the class `Node`.
 
-The lines `from gz.msgs10.stringmsg_pb2 import StringMsg` and `from gz.msgs10.vector3d_pb2 import Vector3d`
-includes the generated protobuf code that we are going to use for our messages.
+The lines `from gz.msgs11.stringmsg_pb2 import StringMsg` and `from gz.msgs11.vector3d_pb2 import Vector3d`
+include the generated protobuf code that we are going to use for our messages.
 We are going to publish two types of messages: `StringMsg` and `Vector3d` protobuf
 messages.
 
@@ -89,7 +89,7 @@ each topic. The method *publish()* sends a message to all the subscribers.
 
 ## Subscriber
 
-Download the [subscriber.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/subscriber.py)
+Download the [subscriber.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/subscriber.py)
 file into the `gz_transport_tutorial` folder and open it with your favorite editor:
 
 \snippet python/examples/subscriber.py complete
@@ -97,12 +97,12 @@ file into the `gz_transport_tutorial` folder and open it with your favorite edit
 ### Walkthrough
 
 ```{.py}
-    from gz.msgs10.stringmsg_pb2 import StringMsg
-    from gz.msgs10.vector3d_pb2 import Vector3d
-    from gz.transport13 import Node
+    from gz.msgs11.stringmsg_pb2 import StringMsg
+    from gz.msgs11.vector3d_pb2 import Vector3d
+    from gz.transport15 import Node
 ```
 
-Just as before, we are importing the `Node` class from the `gz.transport13` library 
+Just as before, we are importing the `Node` class from the `gz.transport15` library
 and the generated code for the `StringMsg` and `Vector3d` protobuf messages.
 
 ```{.py}
@@ -177,6 +177,20 @@ export PYTHONPATH=$PYTHONPATH:<path_install_prefix>/lib/python
 
 ## Running the examples
 
+> **NOTE**
+> It is essential to have a valid value of `GZ_PARTITION` environment variable
+> and to have it set to the same value in all open terminals. As `GZ_PARTITION`
+> is based on hostname and username, especially Windows and Mac users might
+> have problems due to spaces in their username, which are not a valid character
+> in `GZ_PARTITION`. gz-transport prints error `Invalid partition name` in such
+> case. To resolve that, set `GZ_PARTITION` explicitly to a valid value:
+> ```bash
+> # Linux and Mac
+> export GZ_PARTITION=test
+> # Windows
+> set GZ_PARTITION=test
+> ```
+
 Open two new terminals and directly run the Python scripts downloaded previously.
 
 From terminal 1:
@@ -226,9 +240,9 @@ in several places (publisher and subscribers).
 
 We developed a couple of examples that demonstrate this particular issue. Take
 a look at a publisher and subscriber (whithin the same node) that have race
-conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/data_race_without_mutex.py) file. The proposed solution to this
+conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/data_race_without_mutex.py) file. The proposed solution to this
 issue is to use the `threading` library, you can see the same example with a mutex
-in the [data_race_with_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/data_race_with_mutex.py) file.
+in the [data_race_with_mutex.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/data_race_with_mutex.py) file.
 
 You can run any of those examples by just doing the following in a terminal:
 ```{.sh}
@@ -251,8 +265,8 @@ of messages published per topic.
 We can declare the throttling option using the following code :
 
 ```{.py}
-    from gz.msgs10.stringmsg_pb2 import StringMsg
-    from gz.transport13 import Node, AdvertiseMessageOptions
+    from gz.msgs11.stringmsg_pb2 import StringMsg
+    from gz.transport15 import Node, AdvertiseMessageOptions
 
     # Create a transport node and advertise a topic with throttling enabled.
     node = Node()
@@ -261,10 +275,9 @@ We can declare the throttling option using the following code :
     # Setting the throttling option
     opts = AdvertiseMessageOptions()
     opts.msgs_per_sec = 1
-    pub = node.advertise(topic_name, StringMsg, opts);
-    if (!pub):
+    pub = node.advertise(topic_name, StringMsg, opts)
+    if not pub:
       print("Error advertising topic" + topic_name)
-      return False
 ```
 
 ### Walkthrough
@@ -280,7 +293,7 @@ it to set the publishing rate (the member `msgs_per_sec`), In our case, the rate
 specified is 1 msg/sec.
 
 ```{.py}
-    pub = node.advertise(topic_name, StringMsg, opts);
+    pub = node.advertise(topic_name, StringMsg, opts)
 ```
 
 Next, we advertise the topic with message throttling enabled. To do it, we pass opts
@@ -296,8 +309,8 @@ second from that particular topic.
 We can declare the throttling option using the following code :
 
 ```{.py}
-    from gz.msgs10.stringmsg_pb2 import StringMsg
-    from gz.transport13 import Node, SubscribeOptions
+    from gz.msgs11.stringmsg_pb2 import StringMsg
+    from gz.transport15 import Node, SubscribeOptions
 
     def stringmsg_cb(msg: StringMsg):
         print("Received StringMsg: [{}]".format(msg.data))
@@ -337,12 +350,12 @@ topic without having to modify the publisher and create a new log.
 We can declare the topic remapping option using the following code:
 
 ```{.py}
-    from gz.transport13 import Node, NodeOptions
+    from gz.transport15 import Node, NodeOptions
 
     # Create a transport node and remap a topic.
     nodeOpts = NodeOptions()
-    nodeOptions.add_topic_remap("/foo", "/bar");
-    node = Node(nodeOptions);
+    nodeOpts.add_topic_remap("/example_stringmsg_topic", "/bar")
+    node = Node(nodeOpts)
 ```
 
 You can modify the publisher example to add this option.
@@ -367,7 +380,7 @@ The command `gz log playback` also supports the notion of topic remapping. Run
 
 ## Service Requester
 
-Download the [requester.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/requester.py)
+Download the [requester.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/requester.py)
 file into the `gz_transport_tutorial` folder and open it with your favorite editor:
 
 \snippet python/examples/requester.py complete
@@ -375,11 +388,11 @@ file into the `gz_transport_tutorial` folder and open it with your favorite edit
 ### Walkthrough
 
 ```{.py}
-    from gz.msgs10.stringmsg_pb2 import StringMsg
-    from gz.transport13 import Node
+    from gz.msgs11.stringmsg_pb2 import StringMsg
+    from gz.transport15 import Node
 ```
 
-Just as before, we are importing the `Node` class from the `gz.transport13`
+Just as before, we are importing the `Node` class from the `gz.transport15`
 library and the generated code for the `StringMsg` protobuf message.
 
 ```{.py}
@@ -408,7 +421,7 @@ result and response of the request in some variables and printing them out.
 
 Unfortunately, this feature is not available on Python at the moment. However,
 we can use a service responser created in C++ and make a request to it from a
-code in Python. Taking that into account, we will use the [response.cc](https://github.com/gazebosim/gz-transport/blob/gz-transport13/example/responser.cc) file as the service responser.
+code in Python. Taking that into account, we will use the [response.cc](https://github.com/gazebosim/gz-transport/blob/main/example/responser.cc) file as the service responser.
 
 ## Running the examples
 

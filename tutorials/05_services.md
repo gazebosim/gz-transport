@@ -25,7 +25,7 @@ cd ~/gz_transport_tutorial
 
 ## Responser
 
-Download the [responser.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/responser.cc) file within the ``gz_transport_tutorial``
+Download the [responser.cc](https://github.com/gazebosim/gz-transport/raw/main/example/responser.cc) file within the ``gz_transport_tutorial``
 folder and open it with your favorite editor:
 
 ```{.cpp}
@@ -133,7 +133,7 @@ until you hit *CTRL-C*. Note that this function captures the *SIGINT* and
 
 ## Synchronous requester
 
-Download the [requester.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/requester.cc) file within the ``gz_transport_tutorial``
+Download the [requester.cc](https://github.com/gazebosim/gz-transport/raw/main/example/requester.cc) file within the ``gz_transport_tutorial``
 folder and open it with your favorite editor:
 
 ```{.cpp}
@@ -228,7 +228,7 @@ message.
 
 ## Asynchronous requester
 
-Download the [requester_async.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/requester_async.cc) file within the
+Download the [requester_async.cc](https://github.com/gazebosim/gz-transport/raw/main/example/requester_async.cc) file within the
 ``gz_transport_tutorial`` folder and open it with your favorite editor:
 
 ```{.cpp}
@@ -314,7 +314,7 @@ oneway service to process service requests without sending back responses.
 Oneway services don't accept any output parameters nor the requests have to wait
 for the response.
 
-Download the [responser_oneway.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/responser_oneway.cc) file within the
+Download the [responser_oneway.cc](https://github.com/gazebosim/gz-transport/raw/main/example/responser_oneway.cc) file within the
 ``gz_transport_tutorial`` folder and open it with your favorite editor:
 
 ```{.cpp}
@@ -389,7 +389,7 @@ This case is similar to the oneway service provider. This code can be used for
 requesting a service that does not need a response back. We don't need any
 output parameters in this case nor we have to wait for the response.
 
-Download the [requester_oneway.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/requester_oneway.cc) file within the
+Download the [requester_oneway.cc](https://github.com/gazebosim/gz-transport/raw/main/example/requester_oneway.cc) file within the
 ``gz_transport_tutorial`` folder and open it with your favorite editor:
 
 ```{.cpp}
@@ -454,7 +454,7 @@ request was already published.
 Sometimes we want to receive some result but don't have any input parameter to
 send.
 
-Download the [responser_no_input.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/responser_no_input.cc)
+Download the [responser_no_input.cc](https://github.com/gazebosim/gz-transport/raw/main/example/responser_no_input.cc)
  file within the ``gz_transport_tutorial`` folder and open it with your
 favorite editor:
 
@@ -534,7 +534,7 @@ service requests.
 This case is similar to the service without input parameter. We don't send any
 request.
 
-Download the [requester_no_input.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/requester_no_input.cc)
+Download the [requester_no_input.cc](https://github.com/gazebosim/gz-transport/raw/main/example/requester_no_input.cc)
 file within the ``gz_transport_tutorial`` folder and open it with your
 favorite editor:
 
@@ -577,14 +577,14 @@ request timed out or reached the service provider and ``result`` shows if the
 service was successfully executed.
 
 We also have the async version for service request without input. You should
-download [requester_async_no_input.cc](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/requester_async_no_input.cc)
+download [requester_async_no_input.cc](https://github.com/gazebosim/gz-transport/raw/main/example/requester_async_no_input.cc)
 file within the ``gz_transport_tutorial`` folder.
 
 ## Building the code
 
-Download the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/CMakeLists.txt) file
+Download the [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/CMakeLists.txt) file
 within the ``gz_transport_tutorial`` folder. Then, create a `msgs` directory
-and download [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/msgs/CMakeLists.txt) and [stringmsg.proto](https://github.com/gazebosim/gz-transport/raw/gz-transport14/example/msgs/stringmsg.proto) inside the
+and download [CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/msgs/CMakeLists.txt) and [stringmsg.proto](https://github.com/gazebosim/gz-transport/raw/main/example/msgs/stringmsg.proto) inside the
 ``msgs`` directory.
 
 Once you have all your files, go ahead and create a ``build/`` folder within
@@ -608,6 +608,25 @@ cmake --build . --config Release
 ```
 
 ## Running the examples
+
+> **NOTE**
+> It is essential to have a valid value of `GZ_PARTITION` environment variable
+> and to have it set to the same value in all open terminals. As `GZ_PARTITION`
+> is based on hostname and username, especially Windows and Mac users might
+> have problems due to spaces in their username, which are not a valid character
+> in `GZ_PARTITION`. gz-transport prints error `Invalid partition name` in such
+> case. To resolve that, set `GZ_PARTITION` explicitly to a valid value:
+> ```bash
+> # Linux and Mac
+> export GZ_PARTITION=test
+> # Windows
+> set GZ_PARTITION=test
+> ```
+
+> **NOTE**
+> On Windows, you can see firewall or antivirus prompts when running the examples.
+> For them to work properly, you should allow all communication to the
+> example programs.
 
 Open three new terminals and from your ``build/`` directory run the executables.
 
@@ -661,7 +680,11 @@ directory run the executables.
 From terminal 1:
 
 ```{.sh}
+# Linux and MacOS
 ./responser_oneway
+
+# Windows
+.\Release\responser_oneway.exe
 ```
 
 From terminal 2:
@@ -678,11 +701,7 @@ In your responser terminal, you should expect an output similar to this one,
 showing that your service provider has received a request:
 
 ```{.sh}
-# Linux and MacOS
 ./responser_oneway
-
-# Windows
-.\Release\responser_oneway.exe
 Request received: [HELLO]
 ```
 
@@ -723,11 +742,7 @@ In your requesters' terminals, you should expect an output similar to this one,
 showing that you have received a response:
 
 ```{.sh}
-# Linux and MacOS
 ./requester_no_input
-
-# Windows
-.\Release\requester_no_input.exe
 
 Press <CTRL-C> to exit
 Response: [This is it! This is the answer. It says here...that a bolt of
