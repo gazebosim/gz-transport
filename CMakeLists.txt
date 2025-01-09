@@ -157,7 +157,7 @@ if (NOT SKIP_PYBIND11)
   if (Python3_Development_FOUND)
     add_subdirectory(python)
   else ()
-    GZ_BUILD_WARNING("Python development libraries are missing: Python interfaces are disabled.")
+    message(WARNING "Python development libraries are missing: Python interfaces are disabled.")
   endif()
 endif()
 
