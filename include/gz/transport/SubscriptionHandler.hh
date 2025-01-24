@@ -44,7 +44,6 @@
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/SubscribeOptions.hh"
 #include "gz/transport/TransportTypes.hh"
-#include "gz/transport/Uuid.hh"
 
 namespace gz
 {

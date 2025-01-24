@@ -35,7 +35,6 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/TransportTypes.hh"
-#include "gz/transport/Uuid.hh"
 
 namespace gz
 {

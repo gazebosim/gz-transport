@@ -45,7 +45,6 @@
 #include "gz/transport/TopicStorage.hh"
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TransportTypes.hh"
-#include "gz/transport/Uuid.hh"
 
 namespace gz
 {
