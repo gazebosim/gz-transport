@@ -1,5 +1,10 @@
 ## Ignition Transport 8
 
+### Gazebo Transport 8.5.1 (2025-01-29)
+
+1. Disable playback.ReplayStep for windows
+    * [Pull request #517](https://github.com/gazebosim/gz-transport/pull/517)
+
 ### Gazebo Transport 8.5.0 (2024-01-05)
 
 1. Update github action workflows
