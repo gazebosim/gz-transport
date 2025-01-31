@@ -62,6 +62,7 @@ pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
 
 target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
+  zenohcxx::zenohc
 )
 
 target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
