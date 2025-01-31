@@ -16,6 +16,7 @@ endif()
 add_library(gz STATIC gz.cc)
 target_link_libraries(gz
   ${PROJECT_LIBRARY_TARGET_NAME}
+  zenohcxx::zenohc
 )
 
 if (HAVE_ZENOH)
@@ -31,6 +32,7 @@ target_link_libraries(${topic_executable}
   gz
   gz-utils${GZ_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
+  zenohcxx::zenohc
 )
 if (HAVE_ZENOH)
   target_link_libraries(${topic_executable}
@@ -46,6 +48,7 @@ target_link_libraries(${service_executable}
   gz
   gz-utils${GZ_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
+  zenohcxx::zenohc
 )
 if (HAVE_ZENOH)
   target_link_libraries(${service_executable}
@@ -60,7 +63,7 @@ gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   LIB_DEPS
     gz
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
-    ${EXTRA_TEST_LIB_DEPS} test_config)
+    ${EXTRA_TEST_LIB_DEPS} test_config zenohcxx::zenohc)
 
 foreach(test ${test_list})
   # Inform each test of its output directory so it knows where to call the

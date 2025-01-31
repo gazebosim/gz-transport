@@ -37,6 +37,7 @@ pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
 
 target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
+  zenohcxx::zenohc
 )
 
 if (HAVE_ZENOH)
