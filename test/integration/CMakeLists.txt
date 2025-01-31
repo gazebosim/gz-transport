@@ -26,7 +26,7 @@ endif()
 
 gz_build_tests(TYPE INTEGRATION SOURCES ${tests}
   TEST_LIST test_list
-  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config)
+  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config zenohcxx::zenohc)
 
 set(auxiliary_files
   authPubSubSubscriberInvalid_aux
@@ -55,5 +55,6 @@ foreach(AUX_EXECUTABLE ${auxiliary_files})
       gtest
       ${EXTRA_TEST_LIB_DEPS}
       test_config
+      zenohcxx::zenohc
   )
 endforeach(AUX_EXECUTABLE)

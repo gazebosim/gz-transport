@@ -96,6 +96,11 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
   PRETTY CppZMQ)
 
 #--------------------------------------
+# Find zenoh-cpp and its backend.
+find_package(zenohc REQUIRED)
+find_package(zenohcxx REQUIRED)
+
+#--------------------------------------
 # Find uuid
 if (MSVC)
   set(skip_pybind11_default_value ON)

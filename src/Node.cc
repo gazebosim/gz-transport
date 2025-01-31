@@ -116,6 +116,16 @@ namespace gz
       {
       }
 
+      /// \brief Constructor
+      /// \param[in] _publisher The message publisher.
+      public: explicit PublisherPrivate(const MessagePublisher &_publisher,
+                                        zenoh::Publisher _zPub)
+        : shared(NodeShared::Instance()),
+          publisher(_publisher),
+          zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub)))
+      {
+      }
+
       /// \brief Check if this Publisher is ready to send an update based on
       /// publication settings and the clock.
       ///
@@ -194,6 +204,9 @@ namespace gz
       /// \brief The message publisher.
       public: MessagePublisher publisher;
 
+      /// \brief The zenoh publisher.
+      public: std::unique_ptr<zenoh::Publisher> zPub;
+
       /// \brief Timestamp of the last callback executed.
       public: Timestamp lastCbTimestamp;
 
@@ -217,6 +230,18 @@ Node::Publisher::Publisher()
 //////////////////////////////////////////////////
 Node::Publisher::Publisher(const MessagePublisher &_publisher)
   : dataPtr(std::make_shared<PublisherPrivate>(_publisher))
+{
+  if (this->dataPtr->publisher.Options().Throttled())
+  {
+    this->dataPtr->periodNs =
+      1e9 / this->dataPtr->publisher.Options().MsgsPerSec();
+  }
+}
+
+//////////////////////////////////////////////////
+Node::Publisher::Publisher(const MessagePublisher &_publisher,
+                           zenoh::Publisher _zPub)
+  : dataPtr(std::make_shared<PublisherPrivate>(_publisher, std::move(_zPub)))
 {
   if (this->dataPtr->publisher.Options().Throttled())
   {
@@ -1046,7 +1071,16 @@ Node::Publisher Node::Advertise(const std::string &_topic,
     return Publisher();
   }
 
-  return Publisher(publisher);
+  // -- Zenoh prototype begin --
+  std::cout << "Declaring zenoh Publisher on '"
+            << fullyQualifiedTopic << "'..." << std::endl;
+  auto zPub = this->Shared()->dataPtr->session->declare_publisher(
+     zenoh::KeyExpr(fullyQualifiedTopic));
+
+  return Publisher(publisher, std::move(zPub));
+  // -- Zenoh prototype end --
+
+  // return Publisher(publisher;
 }
 
 //////////////////////////////////////////////////

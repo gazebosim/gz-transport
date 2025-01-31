@@ -18,14 +18,15 @@
 #ifndef GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 #define GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 
-#include <zmq.hpp>
-
 #include <atomic>
 #include <list>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <zmq.hpp>
+#include <zenoh.hxx>
 
 #include "gz/transport/Discovery.hh"
 #include "gz/transport/Node.hh"
@@ -55,6 +56,8 @@ namespace gz
       // Constructor
       public: NodeSharedPrivate() :
                 context(new zmq::context_t(1)),
+                session(new zenoh::Session(
+                  zenoh::Session::open(zenoh::Config::create_default()))),
                 publisher(new zmq::socket_t(*context, ZMQ_PUB)),
                 subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
                 requester(new zmq::socket_t(*context, ZMQ_ROUTER)),
@@ -90,6 +93,10 @@ namespace gz
       /// \brief 0MQ context. Always declare this object before any ZMQ socket
       /// to make sure that the context is destroyed after all sockets.
       public: std::unique_ptr<zmq::context_t> context;
+
+      // -- Zenoh prototype begin --
+      public: std::unique_ptr<zenoh::Session> session;
+      // -- Zenoh prototype end --
 
       //////////////////////////////////////////////////
       ///////     Declare here all ZMQ sockets   ///////
