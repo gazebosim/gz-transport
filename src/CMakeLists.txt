@@ -11,8 +11,8 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
     gz-msgs${GZ_MSGS_VER}::gz-msgs${GZ_MSGS_VER}
     CPPZMQ::CPPZMQ
-  PRIVATE
     zenohcxx::zenohc
+  PRIVATE
     ${ZeroMQ_TARGET}
 )
 
