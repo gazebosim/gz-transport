@@ -373,6 +373,8 @@ bool NodeShared::Publish(
     const size_t /*_dataSize*/, DeallocFunc */*_ffn*/,
     const std::string &/*_msgType*/)
 {
+  std::cout << "NodeShared::Publish()" << std::endl;
+
 //   try
 //   {
 //     // Create the messages.

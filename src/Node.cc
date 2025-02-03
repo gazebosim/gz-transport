@@ -439,22 +439,28 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   {
     // Zmq will call this lambda when the message is published.
     // We use it to deallocate the buffer.
-    auto myDeallocator = [](void *_buffer, void *)
-    {
-      delete[] reinterpret_cast<char*>(_buffer);
-    };
+    // auto myDeallocator = [](void *_buffer, void *)
+    // {
+    //   delete[] reinterpret_cast<char*>(_buffer);
+    // };
 
-    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
-          msgBuffer, msgSize, myDeallocator, _msg.GetTypeName()))
-    {
-      return false;
-    }
-  }
-  else
-  {
-    delete[] msgBuffer;
-  }
+    // -- Zenoh prototype begin --
+    zenoh::Publisher::PutOptions options;
+    this->dataPtr->zPub->put(msgBuffer, std::move(options));
+    // -- Zenoh prototype end --
 
+    // if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
+    //       msgBuffer, msgSize, myDeallocator, _msg.GetTypeName()))
+    // {
+    //   return false;
+    // }
+  }
+  // else
+  // {
+  //   delete[] msgBuffer;
+  // }
+
+  delete[] msgBuffer;
   return true;
 }
 
