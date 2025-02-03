@@ -32,10 +32,14 @@ namespace ignition
   namespace transport
   {
     // Inline bracket to help doxygen filtering.
+<<<<<<< HEAD
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
     //
     // Forward declarations.
     class MessagePublisherPrivate;
+=======
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+>>>>>>> 75b3f72 (Remove unused MessagePublisherPrivate forward declaration. (#570))
 
     /// \class Publisher Publisher.hh
     /// ignition/transport/Publisher.hh
