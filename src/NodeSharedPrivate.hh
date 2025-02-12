@@ -95,7 +95,7 @@ namespace gz
       public: std::unique_ptr<zmq::context_t> context;
 
       // -- Zenoh prototype begin --
-      public: std::unique_ptr<zenoh::Session> session;
+      public: std::shared_ptr<zenoh::Session> session;
       // -- Zenoh prototype end --
 
       //////////////////////////////////////////////////

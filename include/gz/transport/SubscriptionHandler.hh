@@ -38,6 +38,7 @@
 #include <utility>
 
 #include <gz/msgs/Factory.hh>
+#include <zenoh.hxx>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -168,6 +169,14 @@ namespace gz
       }
 
       // Documentation inherited.
+      // public: explicit SubscriptionHandler(const std::string &_nUuid,
+      //   zenoh::Subscriber<void> _zSub = zenoh::Subscriber<void>())
+      //   : ISubscriptionHandler(_nUuid),
+      //     zSub(std::make_unique<zenoh::Subscriber<void>>(std::move(_zSub)))
+      // {
+      // }
+
+      // Documentation inherited.
       public: const std::shared_ptr<ProtoMsg> CreateMsg(
         const std::string &_data,
         const std::string &/*_type*/) const
@@ -196,6 +205,27 @@ namespace gz
       public: void SetCallback(const MsgCallback<T> &_cb)
       {
         this->cb = _cb;
+      }
+
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback with the following parameters:
+      public: void SetCallback(const MsgCallback<T> &_cb,
+                               std::shared_ptr<zenoh::Session> _session,
+                               const std::string &_topic)
+      {
+        zenoh::KeyExpr keyexpr(_topic);
+        auto dataHandler = [this](const zenoh::Sample &_sample)
+        {
+          auto output = this->CreateMsg(
+            _sample.get_payload().as_string(), this->TypeName());
+          this->RunLocalCallback(*output, MessageInfo());
+        };
+
+        this->zSub_ = std::make_unique<zenoh::Subscriber<void>>(
+          _session->declare_subscriber(
+            keyexpr, dataHandler, zenoh::closures::none));
+
+        this->SetCallback(std::move(_cb));
       }
 
       // Documentation inherited.
@@ -250,6 +280,8 @@ namespace gz
 
       /// \brief Callback to the function registered for this handler.
       private: MsgCallback<T> cb;
+
+      private: std::unique_ptr<zenoh::Subscriber<void>> zSub_;
     };
 
     /// \brief Specialized template when the user prefers a callbacks that
@@ -314,6 +346,35 @@ namespace gz
         this->cb = _cb;
       }
 
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback with the following parameters:
+      public: void SetCallback(const MsgCallback<ProtoMsg> &_cb,
+                               std::shared_ptr<zenoh::Session> _session,
+                               const std::string &_topic)
+      {
+        zenoh::KeyExpr keyexpr(_topic);
+        auto dataHandler = [this](const zenoh::Sample &_sample)
+        {
+          std::cout << "Generic Subscriber" << std::endl;
+
+          std::cout << ">> [Subscriber] Received "
+                    << " ('" << _sample.get_keyexpr().as_string_view() << "' : '"
+                    << _sample.get_payload().as_string() << "')";
+
+          std::cout << "Typename: " << this->TypeName() << std::endl;
+
+          auto output = this->CreateMsg(
+            _sample.get_payload().as_string(), this->TypeName());
+          this->RunLocalCallback(*output, MessageInfo());
+        };
+
+        this->zSub_ = std::make_unique<zenoh::Subscriber<void>>(
+          _session->declare_subscriber(
+            keyexpr, dataHandler, zenoh::closures::none));
+
+        this->SetCallback(std::move(_cb));
+      }
+
       // Documentation inherited.
       public: bool RunLocalCallback(const ProtoMsg &_msg,
                                     const MessageInfo &_info)
@@ -336,6 +397,8 @@ namespace gz
 
       /// \brief Callback to the function registered for this handler.
       private: MsgCallback<ProtoMsg> cb;
+
+      private: std::unique_ptr<zenoh::Subscriber<void>> zSub_;
     };
 
     //////////////////////////////////////////////////
