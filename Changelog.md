@@ -29,9 +29,6 @@
 1. Disable playback.ReplayStep for windows
     * [Pull request #517](https://github.com/gazebosim/gz-transport/pull/517)
 
-1. Disable playback.ReplayStep for windows
-    * [Pull request #517](https://github.com/gazebosim/gz-transport/pull/517)
-
 1. Added Prerequisites section in python tutorial
     * [Pull request #516](https://github.com/gazebosim/gz-transport/pull/516)
 
