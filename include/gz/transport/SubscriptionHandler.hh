@@ -361,10 +361,12 @@ namespace gz
                     << " ('" << _sample.get_keyexpr().as_string_view() << "' : '"
                     << _sample.get_payload().as_string() << "')";
 
-          std::cout << "Typename: " << this->TypeName() << std::endl;
+          auto attachment = _sample.get_attachment();
+          if (attachment.has_value())
+            std::cout << "Attachment:  (" << attachment->get().as_string() << ")";
 
           auto output = this->CreateMsg(
-            _sample.get_payload().as_string(), this->TypeName());
+            _sample.get_payload().as_string(), attachment->get().as_string());
           this->RunLocalCallback(*output, MessageInfo());
         };
 
