@@ -35,6 +35,8 @@
 #include <vector>
 #include <map>
 
+#include <zenoh.hxx>
+
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/HandlerStorage.hh"
@@ -296,6 +298,9 @@ namespace gz
       /// process.
       /// \return The relay addresses.
       public: std::vector<std::string> GlobalRelays() const;
+
+      /// \brief ToDo.
+      public: std::shared_ptr<zenoh::Session> Session();
 
       /// \brief Constructor.
       protected: NodeShared();

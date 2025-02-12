@@ -132,13 +132,14 @@ namespace gz
           new SubscriptionHandler<MessageT>(this->NodeUuid(), _opts));
 
       // Insert the callback into the handler.
-      subscrHandlerPtr->SetCallback(std::move(_cb));
+      subscrHandlerPtr->SetCallback(std::move(_cb),
+        this->Shared()->Session(), fullyQualifiedTopic);
 
       std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
       // Store the subscription handler. Each subscription handler is
       // associated with a topic. When the receiving thread gets new data,
-      // it will recover the subscription handler associated to the topic and
+      // it will recover the subscription  handler associated to the topic and
       // will invoke the callback.
       this->Shared()->localSubscribers.normal.AddHandler(
         fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
