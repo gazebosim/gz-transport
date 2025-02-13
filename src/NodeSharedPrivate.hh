@@ -96,6 +96,8 @@ namespace gz
 
       // -- Zenoh prototype begin --
       public: std::shared_ptr<zenoh::Session> session;
+
+      // public: std::shared_ptr<zenoh.Liveliness> zLivelinessSub;
       // -- Zenoh prototype end --
 
       //////////////////////////////////////////////////

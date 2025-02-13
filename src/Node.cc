@@ -119,10 +119,12 @@ namespace gz
       /// \brief Constructor
       /// \param[in] _publisher The message publisher.
       public: explicit PublisherPrivate(const MessagePublisher &_publisher,
-                                        zenoh::Publisher _zPub)
+                                        zenoh::Publisher _zPub,
+                                        zenoh::LivelinessToken _zToken)
         : shared(NodeShared::Instance()),
           publisher(_publisher),
-          zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub)))
+          zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub))),
+          zToken(std::make_unique<zenoh::LivelinessToken>(std::move(_zToken)))
       {
       }
 
@@ -163,7 +165,7 @@ namespace gz
         return true;
       }
 
-      /// \brief Check if this Publisher is valid
+      /// \brief Check if thisP ublisher is valid
       /// \return True if we have a topic to publish to, otherwise false.
       public: bool Valid()
       {
@@ -207,6 +209,9 @@ namespace gz
       /// \brief The zenoh publisher.
       public: std::unique_ptr<zenoh::Publisher> zPub;
 
+      /// \brief The liveliness token.
+      public: std::unique_ptr<zenoh::LivelinessToken> zToken;
+
       /// \brief Timestamp of the last callback executed.
       public: Timestamp lastCbTimestamp;
 
@@ -240,8 +245,10 @@ Node::Publisher::Publisher(const MessagePublisher &_publisher)
 
 //////////////////////////////////////////////////
 Node::Publisher::Publisher(const MessagePublisher &_publisher,
-                           zenoh::Publisher _zPub)
-  : dataPtr(std::make_shared<PublisherPrivate>(_publisher, std::move(_zPub)))
+                           zenoh::Publisher _zPub,
+                           zenoh::LivelinessToken _zToken)
+  : dataPtr(std::make_shared<PublisherPrivate>(
+    _publisher, std::move(_zPub), std::move(_zToken)))
 {
   if (this->dataPtr->publisher.Options().Throttled())
   {
@@ -447,7 +454,12 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     // -- Zenoh prototype begin --
     zenoh::Publisher::PutOptions options;
     // Add message type as an attachment.
-    options.attachment = _msg.GetTypeName();
+    options.attachment =
+      this->dataPtr->publisher.Topic() + "@" +
+      this->dataPtr->publisher.PUuid() + "@" +
+      this->dataPtr->publisher.NUuid() + "@" +
+      this->dataPtr->publisher.MsgTypeName();
+
     this->dataPtr->zPub->put(msgBuffer, std::move(options));
     // -- Zenoh prototype end --
 
@@ -1084,8 +1096,13 @@ Node::Publisher Node::Advertise(const std::string &_topic,
             << fullyQualifiedTopic << "'..." << std::endl;
   auto zPub = this->Shared()->dataPtr->session->declare_publisher(
      zenoh::KeyExpr(fullyQualifiedTopic));
+  auto zToken = this->Shared()->dataPtr->session->liveliness_declare_token(
+    fullyQualifiedTopic + "@" +
+    this->Shared()->pUuid + "@" +
+    this->NodeUuid() + "@" +
+    _msgTypeName);
 
-  return Publisher(publisher, std::move(zPub));
+  return Publisher(publisher, std::move(zPub), std::move(zToken));
   // -- Zenoh prototype end --
 
   // return Publisher(publisher;

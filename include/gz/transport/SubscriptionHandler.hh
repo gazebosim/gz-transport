@@ -225,6 +225,13 @@ namespace gz
           _session->declare_subscriber(
             keyexpr, dataHandler, zenoh::closures::none));
 
+        this->zToken_ = std::make_unique<zenoh::LivelinessToken>(
+          _session->liveliness_declare_token(
+            _topic + "@" +
+            "ProcessUUID" + "@" +
+            "NodeUUID" + "@" +
+            this->TypeName()));
+
         this->SetCallback(std::move(_cb));
       }
 
@@ -282,6 +289,8 @@ namespace gz
       private: MsgCallback<T> cb;
 
       private: std::unique_ptr<zenoh::Subscriber<void>> zSub_;
+
+      private: std::unique_ptr<zenoh::LivelinessToken> zToken_;
     };
 
     /// \brief Specialized template when the user prefers a callbacks that
