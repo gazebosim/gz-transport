@@ -69,7 +69,7 @@ bool MsgIterPrivate::PrepareNextStatement()
     return false;
   }
 
-  // Bind the parameters supplied with the statment
+  // Bind the parameters supplied with the statement
   int i = 1;
   int returnCode;
   for (const SqlParameter &param : query.parameters)

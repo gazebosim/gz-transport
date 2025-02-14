@@ -159,7 +159,8 @@ NodeShared *NodeShared::Instance()
   // is not shared between different processes.
 
   static std::shared_mutex mutex;
-  static std::unordered_map<unsigned int, NodeShared*> nodeSharedMap;
+  static std::unordered_map<unsigned int, std::unique_ptr<NodeShared>>
+      nodeSharedMap;
 
   // Get current process ID.
   auto pid = getProcessId();
@@ -173,7 +174,7 @@ NodeShared *NodeShared::Instance()
   try
   {
     std::shared_lock readLock(mutex);
-    return nodeSharedMap.at(pid);
+    return nodeSharedMap.at(pid).get();
   }
   catch (...)
   {
@@ -186,13 +187,13 @@ NodeShared *NodeShared::Instance()
     if (iter != nodeSharedMap.end())
     {
       // There's already an instance for this process, return it.
-      return iter->second;
+      return iter->second.get();
     }
 
     // No instance, construct a new one.
-    auto ret = nodeSharedMap.insert({pid, new NodeShared});
+    auto ret = nodeSharedMap.insert({pid, std::unique_ptr<NodeShared>(new NodeShared)});
     assert(ret.second);  // Insert operation should be successful.
-    return ret.first->second;
+    return ret.first->second.get();
   }
 }
 
@@ -1196,7 +1197,7 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
   }
 
   // A remote subscriber[s] has been disconnected.
-  if (topic != "" && nUuid != "")
+  if (!topic.empty() && !nUuid.empty())
   {
     this->remoteSubscribers.DelPublisherByNode(topic, procUuid, nUuid);
 
@@ -1218,7 +1219,7 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
     if (!this->connections.Publishers(topic, info))
       return;
 
-    // Remove all the connections from the process disonnected.
+    // Remove all the connections from the process disconnected.
     this->connections.DelPublishersByProc(procUuid);
   }
 }
@@ -1625,7 +1626,7 @@ void NodeSharedPrivate::SecurityOnNewConnection()
   // Set username and pass if they exist
   // \todo(anyone): This will cause the subscriber to connect only to secure
   // connections. Would be nice if the subscriber could still connect to
-  // unsecure connections. This might require an unsecure and secure
+  // insecure connections. This might require an insecure and secure
   // subscriber.
   // See issue #74
   if (userPass(user, pass))
@@ -1881,7 +1882,7 @@ void NodeSharedPrivate::PublishThread()
       }
       catch (...)
       {
-        std::cerr << "Exception occured in a local raw callback "
+        std::cerr << "Exception occurred in a local raw callback "
           << "on topic [" << msgDetails->info.Topic() << "] with "
           << "message [" << msgDetails->msgCopy->DebugString() << "]"
           << std::endl;

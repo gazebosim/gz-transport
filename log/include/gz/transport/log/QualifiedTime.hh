@@ -67,7 +67,7 @@ namespace gz
         /// std::chrono::seconds(value)
         /// std::chrono::milliseconds(value)
         /// std::chrono::minutes(value)
-        /// // ... ect ...
+        /// // ... etc ...
         /// \endcode
         ///
         /// into any function that accepts this Time type.

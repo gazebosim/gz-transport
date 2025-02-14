@@ -44,7 +44,7 @@ namespace gz
 
         /// \brief Construct with data.
         /// \internal
-        /// Referrences and pointers are borrowed, and must be kept alive by
+        /// References and pointers are borrowed, and must be kept alive by
         /// the creator for as long as an instance lives.
         /// This constructor is public for the sake of unit testing, but is not
         /// expected to be called by a user.
