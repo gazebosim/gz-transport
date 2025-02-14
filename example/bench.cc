@@ -70,7 +70,7 @@ bool gStop = false;
 /// topics. FloodSub and FloodPub can be enabled with the `-f <num>` command
 /// line argument. Flooding adds <num> extra publishers and subscribers. The
 /// purpose is to "flood" the network with extra messages while performing
-/// benchmark analyis.
+/// benchmark analysis.
 class FloodSub
 {
   /// \brief Create the subscribers.
@@ -100,7 +100,7 @@ class FloodSub
 /// topics. FloodSub and FloodPub can be enabled with the `-f <num>` command
 /// line argument. Flooding adds <num> extra publishers and subscribers. The
 /// purpose is to "flood" the network with extra messages while performing
-/// benchmark analyis.
+/// benchmark analysis.
 class FloodPub
 {
   /// \brief Create a number of publishers.
@@ -635,7 +635,7 @@ class PubTester
   private: std::chrono::time_point<std::chrono::high_resolution_clock> timeEnd;
 
   /// \brief Output filename or empty string for console output.
-  private: std::string filename = "";
+  private: std::string filename;
 
   private: int expectedStamp = 0;
 };
@@ -663,16 +663,16 @@ int main(int argc, char **argv)
   std::signal(SIGTERM, signalHandler);
 
   // Simple usage.
-  std::string usage("Benchmark testing program.");
-  usage += " Usage:\n ./bench <options>\n\n";
-  usage += " Example intraprocess latency:\n\t./bench -l\n";
-  usage += " Example interprocess latency:\n";
-  usage += " \tTerminal 1: ./bench -l -r\n";
-  usage += " \tTerminal 2: ./bench -l -p\n";
-  usage += " Example intraprocess throughput:\n\t./bench -t\n";
-  usage += " Example interprocess throughput:\n";
-  usage += " \tTerminal 1: ./bench -t -r\n";
-  usage += " \tTerminal 2: ./bench -t -p\n";
+  std::string usage = "Benchmark testing program."
+    " Usage:\n ./bench <options>\n\n"
+    " Example intraprocess latency:\n\t./bench -l\n"
+    " Example interprocess latency:\n"
+    " \tTerminal 1: ./bench -l -r\n"
+    " \tTerminal 2: ./bench -l -p\n"
+    " Example intraprocess throughput:\n\t./bench -t\n"
+    " Example interprocess throughput:\n"
+    " \tTerminal 1: ./bench -t -r\n"
+    " \tTerminal 2: ./bench -t -p\n";
 
   gflags::SetUsageMessage(usage);
 

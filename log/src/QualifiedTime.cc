@@ -78,7 +78,7 @@ class gz::transport::log::QualifiedTime::Implementation
   /// \internal \sa QualifiedTime::operator==()
   public: bool operator==(const Implementation &_other) const
   {
-    // We mimick the behavior of NaN equality comparisons, which always return
+    // We mimic the behavior of NaN equality comparisons, which always return
     // false during an equality comparison.
     if (_other.IsIndeterminate() || this->IsIndeterminate())
       return false;

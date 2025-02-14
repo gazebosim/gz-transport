@@ -49,8 +49,8 @@ class PubSubTEST(unittest.TestCase):
     def tearDown(self):
         del self.pub, self.pub_node
 
-    # Check that the publisher publishes a message of the appropiate type
-    # but doesn't publish when the message is not the appropiate type.
+    # Check that the publisher publishes a message of the appropriate type
+    # but doesn't publish when the message is not the appropriate type.
     def test_publish_msg(self):
         string_msg = StringMsg()
         string_msg.data = "Hello"

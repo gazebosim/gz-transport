@@ -110,7 +110,7 @@ bool NodeOptions::AddTopicRemap(const std::string &_fromTopic,
     }
   }
 
-  // Sanity check: Make sure that the orignal topic hasn't been remapped already
+  // Sanity check: Make sure that the original topic hasn't been remapped already
   if (this->dataPtr->topicsRemap.find(_fromTopic) !=
       this->dataPtr->topicsRemap.end())
   {

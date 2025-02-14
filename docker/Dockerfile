@@ -12,7 +12,6 @@ RUN apt-get update \
         pkg-config \
         cppcheck \
         git \
-        mercurial \
         build-essential \
         curl \
         libprotobuf-dev \
@@ -41,6 +40,7 @@ RUN /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/gazebo
     libgz-math8-dev \
     libgz-msgs11-dev \
     libgz-utils3-cli-dev \
+    libgflags-dev \
  && apt-get clean
 
 USER ubuntu

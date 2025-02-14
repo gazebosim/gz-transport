@@ -5,8 +5,8 @@ Previous Tutorial: \ref python
 
 ## Overview
 
-Gazebo Transport's default mode of communication is unsecure, which means
-no authentication or encryption is used. Unsecure communication is the
+Gazebo Transport's default mode of communication is insecure, which means
+no authentication or encryption is used. Insecure communication is the
 default because it is simple to implement and use, supports introspection,
 and reduces third-party development effort.
 
@@ -51,7 +51,7 @@ password. Also, every subscriber will only connect to secure publishers.
 > set GZ_PARTITION=test
 > ```
 
-First, let's test unsecure communication. This example requires
+First, let's test insecure communication. This example requires
 [gz-tools](https://github.com/gazebosim/gz-tools).
 
 1. Open a terminal, and echo topic `/foo`.
@@ -60,14 +60,14 @@ gz topic -t /foo -e
 ```
 2. Open a second terminal and publish a message on topic `/foo`.
 ```
-gz topic -t /foo -m gz.msgs.StringMsg -p 'data:"Unsecure message"'
+gz topic -t /foo -m gz.msgs.StringMsg -p 'data:"Insecure message"'
 ```
 3. The first terminal should see the following output.
 ```
-data: "Unsecure message"
+data: "Insecure message"
 ```
 
-Now let's try a secure publisher and an unsecure subscriber.
+Now let's try a secure publisher and an insecure subscriber.
 
 1. Leave the first terminal running `gz topic -t /foo -e`.
 2. Setup authentication in the second terminal:
@@ -113,7 +113,7 @@ gz topic -t /foo -m gz.msgs.StringMsg -p 'data:"Secure message"'
 ```
 data: "Secure message"
 ```
-5. The unsecure subscriber in the first terminal should not change.
+5. The insecure subscriber in the first terminal should not change.
 
 ## Encryption
 
