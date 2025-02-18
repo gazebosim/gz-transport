@@ -25,6 +25,8 @@
 #include <string>
 #include <vector>
 
+#include <gz/transport/getargs.hh>
+
 #include <zmq.hpp>
 #include <zenoh.hxx>
 
@@ -56,14 +58,42 @@ namespace gz
       // Constructor
       public: NodeSharedPrivate() :
                 context(new zmq::context_t(1)),
-                session(new zenoh::Session(
-                  zenoh::Session::open(zenoh::Config::create_default()))),
                 publisher(new zmq::socket_t(*context, ZMQ_PUB)),
                 subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
                 requester(new zmq::socket_t(*context, ZMQ_ROUTER)),
                 responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
                 replier(new zmq::socket_t(*context, ZMQ_ROUTER))
       {
+        try
+        {
+          // Set the configuration file.
+          std::string zenohConfigPath;
+          if (env("GZ_ZENOH_CONFIG_PATH", zenohConfigPath) &&
+              !zenohConfigPath.empty())
+          {
+            std::cerr << "Zenoh config path: " << zenohConfigPath << std::endl;
+
+            auto _argc = 3;
+            char *_argv[] = {strdup("ignore"), strdup("-c"), strdup(zenohConfigPath.c_str())};
+            auto &&[config, args] =
+              ConfigCliArgParser(_argc, _argv)
+                .run();
+
+            this->session = std::make_shared<zenoh::Session>(
+              zenoh::Session::open(std::move(config)));
+          }
+          else
+          {
+            this->session = std::make_shared<zenoh::Session>(
+              zenoh::Session::open(zenoh::Config::create_default()));
+          }
+        } catch (zenoh::ZException e) {
+          std::cout << "Received an error :" << e.what() << "\n";
+        }
+
+
+        
+        
       }
 
       /// \brief Initialize security
