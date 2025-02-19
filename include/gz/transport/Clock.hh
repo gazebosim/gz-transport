@@ -112,7 +112,7 @@ namespace gz
         private: WallClock();
 
         /// \brief Destructor
-        public: ~WallClock() override;
+        private: ~WallClock() override;
 
         /// \internal Implementation of this class
         private: class Implementation;

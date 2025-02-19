@@ -301,7 +301,7 @@ namespace gz
       protected: NodeShared();
 
       /// \brief Destructor.
-      public: virtual ~NodeShared();
+      protected: virtual ~NodeShared();
 
       /// \brief Initialize all sockets.
       /// \return True when success or false otherwise. This function might
