@@ -124,7 +124,7 @@ namespace gz
         /// nullptr if it does not contain a REAL value.
         public: const double *QueryReal() const;
 
-        /// \brief Get the text value of this paramter.
+        /// \brief Get the text value of this parameter.
         /// \return A pointer to this parameter's text string, or a nullptr if
         /// it does not contain a text string.
         public: const std::string *QueryText() const;

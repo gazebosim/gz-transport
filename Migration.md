@@ -71,7 +71,7 @@ release will remove the deprecated code.
 1. The discovery wire protocol changed to use gz::msgs::Discovery
    instead of C-structs. The Packet.hh header file is deprecated, which
    contained the Header, SubscriptionMsg, and AdvertiseMessage classes. The
-   version of the wire protocal has bumped from 9 to 10. This means Gazebo
+   version of the wire protocol has bumped from 9 to 10. This means Gazebo
    Transport 8+ will not work with Gazebo Transport 7 and below.
     * [BitBucket pull request 403](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-transport/pull-requests/403)
 

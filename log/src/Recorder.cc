@@ -142,7 +142,7 @@ class gz::transport::log::Recorder::Implementation
   /// from topic callbacks.
   public: std::atomic<std::size_t> maxBufferSize{1000<<20};
 
-  /// \brief Current size of the buffer (in bytes). This is computed everytime
+  /// \brief Current size of the buffer (in bytes). This is computed every time
   /// data is added or removed from the queue. Because of that, we'll use
   /// `dataQueueMutex` to protect it.
   public: std::size_t bufferSize{0};
