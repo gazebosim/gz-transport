@@ -83,7 +83,7 @@ void reset()
 }
 
 //////////////////////////////////////////////////
-/// \brief This test spawns a service that doesn't wait for ouput parameters.
+/// \brief This test spawns a service that doesn't wait for output parameters.
 /// The requester uses a wrong type for the request argument. The test should
 /// verify that the service call does not succeed.
 TEST_F(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)

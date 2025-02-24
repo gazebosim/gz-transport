@@ -56,7 +56,7 @@ static const std::string g_newReqTypeName = "RequestType2"; // NOLINT(*)
 static const std::string g_newRepTypeName = "ResponseType2"; // NOLINT(*)
 
 //////////////////////////////////////////////////
-/// \brief Initalize some global variables.
+/// \brief Initialize some global variables.
 void init()
 {
   g_opts1.SetScope(g_scope);
@@ -85,7 +85,7 @@ TEST(PublisherTest, Publisher)
   // Copy constructor.
   Publisher pub2(publisher);
 
-  // Asignment operator.
+  // Assignment operator.
   Publisher pub3 = pub2;
 
   // [In]Equality operators.
