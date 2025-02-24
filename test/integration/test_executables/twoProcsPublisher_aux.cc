@@ -23,8 +23,6 @@
 
 #include <gz/utils/Environment.hh>
 
-#include "test_config.hh"
-
 using namespace gz;
 
 static std::string g_topic = "/foo"; // NOLINT(*)
@@ -49,16 +47,7 @@ void advertiseAndPublish()
 }
 
 //////////////////////////////////////////////////
-int main(int argc, char **argv)
+int main(int, char **)
 {
-  if (argc != 2)
-  {
-    std::cerr << "Partition name has not be passed as argument" << std::endl;
-    return -1;
-  }
-
-  // Set the partition name for this test.
-  gz::utils::setenv("GZ_PARTITION", argv[1]);
-
   advertiseAndPublish();
 }
