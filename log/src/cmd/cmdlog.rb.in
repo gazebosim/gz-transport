@@ -70,7 +70,7 @@ SUBCOMMANDS = { 'record' =>
   "                             between topic advertisement and publishing.\n"\
   "                             Default: 1000 (1 second).\n"+
   "  -f                         Enable fast playback. This will publish    \n"\
-  "                             messages without waiting betweeen messages \n"\
+  "                             messages without waiting between messages  \n"\
   "                             according to the logged timestamps.        \n"\
   +
   COMMON_OPTIONS

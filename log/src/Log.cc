@@ -95,7 +95,7 @@ class gz::transport::log::Log::Implementation
   public: mutable log::Descriptor descriptor;
 
   /// \brief Name of the log file.
-  public: std::string filename = "";
+  public: std::string filename;
 
   /// \brief Time of the first message in the log file.
   public: std::chrono::nanoseconds startTime = std::chrono::nanoseconds(-1);
@@ -307,7 +307,7 @@ int64_t Log::Implementation::InsertOrGetTopicId(
   returnCode = sqlite3_step(topicStatement.Handle());
   if (returnCode != SQLITE_DONE)
   {
-    LERR("Faild to insert topic: " << returnCode << "\n");
+    LERR("Failed to insert topic: " << returnCode << "\n");
     return -1;
   }
 
@@ -544,7 +544,7 @@ bool Log::InsertMessage(
   if (SQLITE_OK != this->dataPtr->EndTransactionIfEnoughTimeHasPassed())
   {
     // Something is really busted if this happens
-    LERR("Failed to end transcation: "<< sqlite3_errmsg(
+    LERR("Failed to end transaction: "<< sqlite3_errmsg(
         this->dataPtr->db->Handle()) << "\n");
     return false;
   }

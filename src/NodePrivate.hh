@@ -52,7 +52,7 @@ namespace gz
 
       /// \brief Helper function to remove handlers from the shared publish
       /// queue. This is called when the node unsubscribes to a topic
-      /// \param[in] _topic Topic that the node unsubcribed to.
+      /// \param[in] _topic Topic that the node unsubscribed to.
       /// \return True on success.
       public: bool RemoveHandlersFromPubQueue(const std::string &_topic);
 
@@ -73,7 +73,7 @@ namespace gz
       public: std::string partition = hostname() + ":" + username();
 
       /// \brief Default namespace for this node.
-      public: std::string ns = "";
+      public: std::string ns;
 
       /// \brief Custom options for this node.
       public: NodeOptions options;

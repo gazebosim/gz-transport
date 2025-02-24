@@ -69,7 +69,7 @@ namespace gz
         /// \return false if the two iterator point to the same message
         public: bool operator!=(const MsgIter &_other) const;
 
-        /// \brief Move assignement operator
+        /// \brief Move assignment operator
         /// \param[in] _other the new iterator replacing the current one
         /// \return The updated MsgIter.
         public: MsgIter& operator=(MsgIter &&_other); // NOLINT

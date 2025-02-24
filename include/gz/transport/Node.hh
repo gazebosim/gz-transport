@@ -213,7 +213,7 @@ namespace gz
       /// \param[in] _options Advertise options.
       /// \return A PublisherId, which can be used in Node::Publish calls.
       /// The PublisherId also acts as boolean, where true occurs if the topic
-      /// was succesfully advertised.
+      /// was successfully advertised.
       /// \sa AdvertiseOptions.
       public: template<typename MessageT>
       Node::Publisher Advertise(
@@ -229,7 +229,7 @@ namespace gz
       /// \param[in] _options Advertise options.
       /// \return A PublisherId, which can be used in Node::Publish calls.
       /// The PublisherId also acts as boolean, where true occurs if the topic
-      /// was succesfully advertised.
+      /// was successfully advertised.
       /// \sa AdvertiseOptions.
       public: Node::Publisher Advertise(
           const std::string &_topic,
@@ -257,7 +257,7 @@ namespace gz
 
       /// \brief Subscribe to a topic registering a callback.
       /// Note that this callback does not include any message information.
-      /// In this version the callback is a lamda function.
+      /// In this version the callback is a lambda function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _callback Lambda function with the following parameters:
       ///   * _msg Protobuf message containing a new topic update.
@@ -304,7 +304,7 @@ namespace gz
 
       /// \brief Subscribe to a topic registering a callback.
       /// Note that this callback includes message information.
-      /// In this version the callback is a lamda function.
+      /// In this version the callback is a lambda function.
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] _callback Lambda function with the following parameters:
       ///   * _msg Protobuf message containing a new topic update.
@@ -523,7 +523,7 @@ namespace gz
       ///   * _reply Protobuf message containing the response.
       ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
-      /// \return true when the service call was succesfully requested.
+      /// \return true when the service call was successfully requested.
       public: template<typename RequestT, typename ReplyT>
       bool Request(
           const std::string &_topic,
@@ -539,7 +539,7 @@ namespace gz
       ///   * _reply Protobuf message containing the response.
       ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
-      /// \return true when the service call was succesfully requested.
+      /// \return true when the service call was successfully requested.
       public: template<typename ReplyT>
       bool Request(
           const std::string &_topic,
@@ -555,7 +555,7 @@ namespace gz
       ///   * _reply Protobuf message containing the response.
       ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
-      /// \return true when the service call was succesfully requested.
+      /// \return true when the service call was successfully requested.
       public: template<typename RequestT, typename ReplyT>
       bool Request(
           const std::string &_topic,
@@ -572,7 +572,7 @@ namespace gz
       ///   * _reply Protobuf message containing the response.
       ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
-      /// \return true when the service call was succesfully requested.
+      /// \return true when the service call was successfully requested.
       public: template<typename ReplyT>
       bool Request(
           const std::string &_topic,
@@ -590,7 +590,7 @@ namespace gz
       ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \param[in] _obj Instance containing the member function.
-      /// \return true when the service call was succesfully requested.
+      /// \return true when the service call was successfully requested.
       public: template<typename ClassT, typename RequestT, typename ReplyT>
       bool Request(
           const std::string &_topic,
@@ -608,7 +608,7 @@ namespace gz
       ///   * _result Result of the service call. If false, there was
       ///   a problem executing your request.
       /// \param[in] _obj Instance containing the member function.
-      /// \return true when the service call was succesfully requested.
+      /// \return true when the service call was successfully requested.
       public: template<typename ClassT, typename ReplyT>
       bool Request(
           const std::string &_topic,
@@ -651,7 +651,7 @@ namespace gz
       /// \param[in] _topic Topic requested.
       /// \param[in] _request Protobuf message containing the request's
       /// parameters.
-      /// \return true when the service call was succesfully requested.
+      /// \return true when the service call was successfully requested.
       public: template<typename RequestT>
       bool Request(const std::string &_topic, const RequestT &_request);
 
