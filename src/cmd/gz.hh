@@ -64,7 +64,7 @@ extern "C" void cmdServiceReq(const char *_service,
                                                          const char *_reqData);
 
 extern "C" {
-  /// \brief Enum used for specifing the message output format for functions
+  /// \brief Enum used for specifying the message output format for functions
   /// like cmdTopicEcho.
   enum class MsgOutputFormat {
     // Default. Currently, this is Protobuf's DebugString output format.

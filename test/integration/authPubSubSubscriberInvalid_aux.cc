@@ -39,7 +39,7 @@ static bool cbExecuted;
 static std::string g_topic = "/foo"; // NOLINT(*)
 
 //////////////////////////////////////////////////
-/// \brief Function is called everytime a topic update is received.
+/// \brief Function is called every time a topic update is received.
 void cb(const msgs::Int32 &/*_msg*/)
 {
   std::cerr << "CALLBACK\n";

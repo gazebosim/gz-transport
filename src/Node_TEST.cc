@@ -1725,7 +1725,7 @@ TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 
 //////////////////////////////////////////////////
 /// \brief Create a publisher that sends messages "forever". This function will
-/// be used emiting a SIGINT or SIGTERM signal, to make sure that the transport
+/// be used emitting a SIGINT or SIGTERM signal, to make sure that the transport
 /// library captures the signals, stop all the tasks and signal the event with
 /// the method Interrupted().
 void createInfinitePublisher()

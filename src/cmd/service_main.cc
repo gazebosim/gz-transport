@@ -39,16 +39,16 @@ struct ServiceOptions
   ServiceCommand command{ServiceCommand::kNone};
 
   /// \brief Name of the service
-  std::string service{""};
+  std::string service;
 
   /// \brief Data used with a service request
-  std::string reqData{""};
+  std::string reqData;
 
   /// \brief Request type to use when requesting
-  std::string reqType{""};
+  std::string reqType;
 
   /// \brief Response type to use when requesting
-  std::string repType{""};
+  std::string repType;
 
   /// \brief Timeout to use when requesting (in milliseconds)
   int timeout{-1};

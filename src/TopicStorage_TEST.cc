@@ -382,7 +382,7 @@ TEST(TopicStorageTest, TopicStorageAPI)
   EXPECT_FALSE(test.HasTopic(g_topic1));
 
   // Insert some topics, and remove all the topics from a process but keeping
-  // the same topics from other proccesses.
+  // the same topics from other processes.
   Publisher publisher6(g_topic1, g_addr1, g_pUuid1, g_nUuid1, g_opts1);
   Publisher publisher7(g_topic1, g_addr1, g_pUuid1, g_nUuid2, g_opts2);
   Publisher publisher8(g_topic1, g_addr2, g_pUuid2, g_nUuid3, g_opts3);

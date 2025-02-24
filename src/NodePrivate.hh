@@ -50,6 +50,15 @@ namespace ignition
       /// \sa TopicUtils::FullyQualifiedName
       public: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
 
+<<<<<<< HEAD
+=======
+      /// \brief Helper function to remove handlers from the shared publish
+      /// queue. This is called when the node unsubscribes to a topic
+      /// \param[in] _topic Topic that the node unsubscribed to.
+      /// \return True on success.
+      public: bool RemoveHandlersFromPubQueue(const std::string &_topic);
+
+>>>>>>> 72758e8 (Code cleanup (#578))
       /// \brief The list of topics subscribed by this node.
       public: std::unordered_set<std::string> topicsSubscribed;
 
@@ -67,7 +76,7 @@ namespace ignition
       public: std::string partition = hostname() + ":" + username();
 
       /// \brief Default namespace for this node.
-      public: std::string ns = "";
+      public: std::string ns;
 
       /// \brief Custom options for this node.
       public: NodeOptions options;

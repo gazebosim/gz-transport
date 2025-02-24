@@ -232,8 +232,13 @@ namespace ignition
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
         std::vector<std::string> relays;
+<<<<<<< HEAD
         std::string ignRelay = "";
         if (env("IGN_RELAY", ignRelay) && !ignRelay.empty())
+=======
+        std::string gzRelay;
+        if (env("GZ_RELAY", gzRelay) && !gzRelay.empty())
+>>>>>>> 72758e8 (Code cleanup (#578))
         {
           relays = transport::split(ignRelay, ':');
         }

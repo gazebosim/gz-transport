@@ -211,7 +211,7 @@ class PlaybackHandle::Implementation
   // \brief Time read from the next message to playback
   public: std::chrono::nanoseconds nextMessageTime;
 
-  // \brief Time at which ocurred the last event in the realtime frame
+  // \brief Time at which occurred the last event in the realtime frame
   public: std::chrono::nanoseconds lastEventTime;
 
   /// \brief A mutex to use when waiting for playback to be resumed

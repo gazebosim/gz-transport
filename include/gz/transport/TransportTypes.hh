@@ -53,7 +53,7 @@ namespace ignition
     /// \brief Map that stores all generic publishers.
     /// The keys are the process uuids of the nodes. For each uuid key, the
     /// value contains the list of publishers advertising the topic within the
-    /// same proccess uuid.
+    /// same process uuid.
     template<typename T>
     using Addresses_M = std::map<std::string, std::vector<T>>;
 
@@ -173,7 +173,7 @@ namespace ignition
     /// \brief The string type used for generic messages.
     const std::string kGenericMessageType = "google.protobuf.Message";
 
-    /// \brief The high water mark of the recieve message buffer.
+    /// \brief The high water mark of the receive message buffer.
     /// \sa NodeShared::RcvHwm
     const int kDefaultRcvHwm = 1000;
 

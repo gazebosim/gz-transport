@@ -176,7 +176,7 @@ namespace ignition
 
       /// \brief When there is a blocking service call request, the call can
       /// be unlocked when a service call REP is available. This variable
-      /// captures if we have found a node that can satisty our request.
+      /// captures if we have found a node that can satisfy our request.
       public: bool repAvailable;
     };
 
@@ -200,7 +200,7 @@ namespace ignition
       public: std::shared_ptr<Rep> CreateMsg(const std::string &_data) const
       {
         // Instantiate a specific protobuf message
-        std::shared_ptr<Rep> msgPtr(new Rep());
+        auto msgPtr = std::make_shared<Rep>();
 
         // Create the message using some serialized data
         if (!msgPtr->ParseFromString(_data))
@@ -224,7 +224,7 @@ namespace ignition
       }
 
       /// \brief Set the REQ protobuf message for this handler.
-      /// \param[in] _reqMsg Protofub message containing the input parameters of
+      /// \param[in] _reqMsg Protobuf message containing the input parameters of
       /// of the service request.
       public: void SetMessage(const Req *_reqMsg)
       {
@@ -240,7 +240,7 @@ namespace ignition
       /// \brief This function is only used for compatibility with
       /// SetResponse() when [REP = google::protobuf::Message].
       /// It shouldn't do anything.
-      /// \param[in] _repMsg Protofub message containing the variable where
+      /// \param[in] _repMsg Protobuf message containing the variable where
       /// the result will be stored.
       public: void SetResponse(const Rep *_repMsg)
       {
@@ -318,7 +318,7 @@ namespace ignition
       }
 
       /// \brief Set the REQ protobuf message for this handler.
-      /// \param[in] _reqMsg Protofub message containing the input parameters of
+      /// \param[in] _reqMsg Protobuf message containing the input parameters of
       /// of the service request.
       public: void SetMessage(const google::protobuf::Message *_reqMsg)
       {
@@ -333,7 +333,7 @@ namespace ignition
       }
 
       /// \brief Set the REP protobuf message for this handler.
-      /// \param[in] _repMsg Protofub message containing the variable where
+      /// \param[in] _repMsg Protobuf message containing the variable where
       /// the result will be stored. The only purpose of this function is to
       /// store the type information of _repMsg.
       public: void SetResponse(const google::protobuf::Message *_repMsg)

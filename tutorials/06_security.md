@@ -5,8 +5,13 @@ Previous Tutorial: \ref services
 
 ## Overview
 
+<<<<<<< HEAD:tutorials/06_security.md
 Ignition Transport's default mode of communication is unsecure, which means
 no authentication or encryption is used. Unsecure communication is the
+=======
+Gazebo Transport's default mode of communication is insecure, which means
+no authentication or encryption is used. Insecure communication is the
+>>>>>>> 72758e8 (Code cleanup (#578)):tutorials/07_security.md
 default because it is simple to implement and use, supports introspection,
 and reduces third-party development effort.
 
@@ -37,8 +42,27 @@ password. Also, every subscriber will only connect to secure publishers.
 
 ### Example
 
+<<<<<<< HEAD:tutorials/06_security.md
 First, let's test unsecure communication. This example requires
 [ign-tools](https://github.com/ignitionrobotics/ign-tools).
+=======
+> **NOTE**
+> It is essential to have a valid value of `GZ_PARTITION` environment variable
+> and to have it set to the same value in all open terminals. As `GZ_PARTITION`
+> is based on hostname and username, especially Windows and Mac users might
+> have problems due to spaces in their username, which are not a valid character
+> in `GZ_PARTITION`. gz-transport prints error `Invalid partition name` in such
+> case. To resolve that, set `GZ_PARTITION` explicitly to a valid value:
+> ```bash
+> # Linux and Mac
+> export GZ_PARTITION=test
+> # Windows
+> set GZ_PARTITION=test
+> ```
+
+First, let's test insecure communication. This example requires
+[gz-tools](https://github.com/gazebosim/gz-tools).
+>>>>>>> 72758e8 (Code cleanup (#578)):tutorials/07_security.md
 
 1. Open a terminal, and echo topic `/foo`.
 ```
@@ -46,14 +70,18 @@ ign topic -t /foo -e
 ```
 2. Open a second terminal and publish a message on topic `/foo`.
 ```
+<<<<<<< HEAD:tutorials/06_security.md
 ign topic -t /foo -m ignition.msgs.StringMsg -p 'data:"Unsecure message"'
+=======
+gz topic -t /foo -m gz.msgs.StringMsg -p 'data:"Insecure message"'
+>>>>>>> 72758e8 (Code cleanup (#578)):tutorials/07_security.md
 ```
 3. The first terminal should see the following output.
 ```
-data: "Unsecure message"
+data: "Insecure message"
 ```
 
-Now let's try a secure publisher and an unsecure subscriber.
+Now let's try a secure publisher and an insecure subscriber.
 
 1. Leave the first terminal running `ign topic -t /foo -e`.
 2. Setup authentication in the second terminal:
@@ -89,7 +117,7 @@ ign topic -t /foo -m ignition.msgs.StringMsg -p 'data:"Secure message"'
 ```
 data: "Secure message"
 ```
-5. The unsecure subscriber in the first terminal should not change.
+5. The insecure subscriber in the first terminal should not change.
 
 ## Encryption
 

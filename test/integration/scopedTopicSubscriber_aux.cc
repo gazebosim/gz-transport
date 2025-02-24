@@ -30,7 +30,7 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 static int data = 5;
 
 //////////////////////////////////////////////////
-/// \brief Function is called everytime a topic update is received.
+/// \brief Function is called every time a topic update is received.
 void cb(const msgs::Int32 &_msg)
 {
   EXPECT_EQ(_msg.data(), data);

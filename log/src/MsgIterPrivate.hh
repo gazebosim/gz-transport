@@ -56,7 +56,7 @@ inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
     public: void StepStatement();
 
     /// \brief Prepares the next statement to be executed
-    /// \return true if the statement was sucessfully prepared
+    /// \return true if the statement was successfully prepared
     public: bool PrepareNextStatement();
 
     /// \brief a statement that is being stepped

@@ -42,7 +42,7 @@ namespace ignition
       public: virtual ~NodeOptionsPrivate() = default;
 
       /// \brief Namespace for this node.
-      public: std::string ns = "";
+      public: std::string ns;
 
       /// \brief Partition for this node.
       public: std::string partition = hostname() + ":" + username();

@@ -236,7 +236,7 @@ TEST(DiscoveryTest, TestAdvertise)
   reset();
 
   // This should not trigger a discovery response on discovery2. They are in
-  // different proccesses and the scope is set to "Process".
+  // different processes and the scope is set to "Process".
   AdvertiseMessageOptions opts1;
   opts1.SetScope(Scope_t::PROCESS);
   MessagePublisher publisher2("/topic2", addr1, ctrl1, pUuid1, nUuid1,

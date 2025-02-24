@@ -207,7 +207,7 @@ namespace ignition
       private: std::shared_ptr<Req> CreateMsg(const std::string &_data) const
       {
         // Instantiate a specific protobuf message
-        std::shared_ptr<Req> msgPtr(new Req());
+        auto msgPtr = std::make_shared<Req>();
 
         // Create the message using some serialized data
         if (!msgPtr->ParseFromString(_data))
