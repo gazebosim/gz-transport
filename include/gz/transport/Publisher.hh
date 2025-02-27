@@ -33,9 +33,6 @@ namespace gz
   {
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-    //
-    // Forward declarations.
-    class MessagePublisherPrivate;
 
     /// \class Publisher Publisher.hh
     /// gz/transport/Publisher.hh
