@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-transport13 VERSION 13.4.0)
+project(gz-transport13 VERSION 13.4.1)
 
 #============================================================================
 # Find gz-cmake
@@ -61,9 +61,6 @@ else()
   find_package(Python3
     COMPONENTS Interpreter
     OPTIONAL_COMPONENTS Development)
-  if (NOT Python3_Development_FOUND)
-    GZ_BUILD_WARNING("Python development libraries are missing: Python interfaces are disabled.")
-  endif()
 endif()
 
 #--------------------------------------
@@ -156,8 +153,12 @@ add_subdirectory(conf)
 #============================================================================
 # gz transport python bindings
 #============================================================================
-if (Python3_Development_FOUND AND NOT SKIP_PYBIND11)
-  add_subdirectory(python)
+if (NOT SKIP_PYBIND11)
+  if (Python3_Development_FOUND)
+    add_subdirectory(python)
+  else ()
+    message(WARNING "Python development libraries are missing: Python interfaces are disabled.")
+  endif()
 endif()
 
 #============================================================================
