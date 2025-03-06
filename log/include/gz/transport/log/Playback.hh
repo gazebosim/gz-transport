@@ -79,7 +79,7 @@ namespace gz
         /// In most cases there should be no issue, but if you or a library you
         /// are using calls sqlite3_config(~) to change the threading mode to
         /// Single-thread or Multi-thread (instead of the default setting of
-        /// Seralized), then starting multiple simultaneous playbacks from the
+        /// Serialized), then starting multiple simultaneous playbacks from the
         /// same log file could be dangerous.
         ///
         /// \return A handle for managing the playback of the log. You must hold
