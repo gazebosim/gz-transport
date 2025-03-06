@@ -44,13 +44,13 @@ struct TopicOptions
   TopicCommand command{TopicCommand::kNone};
 
   /// \brief Name of the topic
-  std::string topic{""};
+  std::string topic;
 
   /// \brief Message type to use when publishing
-  std::string msgType{""};
+  std::string msgType;
 
   /// \brief Message data to use when publishing
-  std::string msgData{""};
+  std::string msgData;
 
   /// \brief Amount of time to echo (in seconds)
   double duration{-1};

@@ -96,10 +96,10 @@ transport::parameters::operator<<(
       ss << "parameter operation unexpected error";
       break;
   }
-  if (ret.ParamName() != "") {
+  if (!ret.ParamName().empty()) {
     ss << ", parameter name [" << ret.ParamName() << "]";
   }
-  if (ret.ParamType() != "") {
+  if (!ret.ParamType().empty()) {
     ss << ", parameter type [" << ret.ParamType() << "]";
   }
   os << ss.str();
