@@ -37,9 +37,6 @@ password. Also, every subscriber will only connect to secure publishers.
 
 ### Example
 
-<<<<<<< HEAD
-First, let's test unsecure communication. This example requires
-=======
 > **NOTE**
 > It is essential to have a valid value of `GZ_PARTITION` environment variable
 > and to have it set to the same value in all open terminals. As `GZ_PARTITION`
@@ -55,7 +52,6 @@ First, let's test unsecure communication. This example requires
 > ```
 
 First, let's test insecure communication. This example requires
->>>>>>> 72758e8 (Code cleanup (#578))
 [gz-tools](https://github.com/gazebosim/gz-tools).
 
 1. Open a terminal, and echo topic `/foo`.

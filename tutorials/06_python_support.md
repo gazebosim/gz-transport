@@ -237,13 +237,8 @@ recommend to always use threading locks when working with object that are used
 in several places (publisher and subscribers). 
 
 We developed a couple of examples that demonstrate this particular issue. Take
-<<<<<<< HEAD
-a look at a publisher and subscriber (whithin the same node) that have race
-conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/data_race_without_mutex.py) file. The proposed solution to this
-=======
 a look at a publisher and subscriber (within the same node) that have race
-conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/data_race_without_mutex.py) file. The proposed solution to this
->>>>>>> 72758e8 (Code cleanup (#578))
+conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/data_race_without_mutex.py) file. The proposed solution to this
 issue is to use the `threading` library, you can see the same example with a mutex
 in the [data_race_with_mutex.py](https://github.com/gazebosim/gz-transport/blob/gz-transport13/python/examples/data_race_with_mutex.py) file.
 
