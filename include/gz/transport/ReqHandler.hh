@@ -224,6 +224,63 @@ namespace gz
         this->cb = _cb;
       }
 
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback with the following parameters:
+      /// * _rep Protobuf message containing the service response.
+      /// * _result True when the service request was successful or
+      /// false otherwise.
+      public: void SetCallback(const std::function <void(
+        const Rep &_rep, const bool _result)> &_cb,
+        std::shared_ptr<zenoh::Session> _session,
+        const std::string &_service)
+      {
+        this->SetCallback(std::move(_cb));
+
+        std::mutex m;
+        std::condition_variable doneSignal;
+        bool done = false;
+        auto onReply = [this](const zenoh::Reply &reply)
+        {
+          if (reply.is_ok())
+          {
+            const auto &sample = reply.get_ok();
+            auto msg = this->CreateMsg(sample.get_payload().as_string());
+            this->cb(*msg, true);
+            // std::cout << "Received ('" << sample.get_keyexpr().as_string_view()
+            //           << "' : '" << sample.get_payload().as_string() << "')\n";
+          }
+          else
+          {
+            std::cout << "Received an error :"
+                      << reply.get_err().get_payload().as_string() << "\n";
+          }
+        };
+
+        auto onDone = [&m, &done, &doneSignal]()
+        {
+          std::lock_guard lock(m);
+          done = true;
+          doneSignal.notify_all();
+        };
+
+        zenoh::Session::GetOptions options;
+        // options.target = queryTarget;
+
+        std::string payload;
+        this->Serialize(payload);
+
+        if (!payload.empty())
+          options.payload = payload;
+
+        options.timeout_ms = 2000u;
+        _session->get(_service, "",
+                    onReply, onDone, std::move(options));
+        std::cerr << "ReqHandler::get()" << std::endl;
+
+        std::unique_lock lock(m);
+        doneSignal.wait(lock, [&done] { return done; });
+      }
+
       /// \brief Set the REQ protobuf message for this handler.
       /// \param[in] _reqMsg Protofub message containing the input parameters of
       /// of the service request.
@@ -264,6 +321,7 @@ namespace gz
       // Documentation inherited.
       public: void NotifyResult(const std::string &_rep, const bool _result)
       {
+        std::cerr << "ReqHandler::NotifyResult()" << std::endl;
         // Execute the callback (if existing).
         if (this->cb)
         {

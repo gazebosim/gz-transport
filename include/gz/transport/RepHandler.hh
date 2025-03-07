@@ -36,6 +36,8 @@
 #include <memory>
 #include <string>
 
+#include <zenoh.hxx>
+
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/TransportTypes.hh"
@@ -129,10 +131,36 @@ namespace gz
         this->cb = _cb;
       }
 
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback with the following parameters:
+      public: void SetCallback(
+        const std::function<bool(const Req &, Rep &)> &_cb,
+        std::shared_ptr<zenoh::Session> _session,
+        const std::string &_service)
+      {
+        auto onQuery = [this, _service](const zenoh::Query &_query)
+        {
+          std::cerr << "OnQuery()" << std::endl;
+          std::string output;
+          this->RunCallback(_query.get_payload()->get().as_string(), output);
+          _query.reply(_service, output);
+        };
+
+        auto onDropQueryable = []() { std::cout << "Destroying queryable\n"; };
+
+        zenoh::Session::QueryableOptions opts;
+        this->zQueryable_ = std::make_unique<zenoh::Queryable<void>>(
+          _session->declare_queryable(
+            _service, onQuery, onDropQueryable, std::move(opts)));
+
+        this->SetCallback(std::move(_cb));
+      }
+
       // Documentation inherited.
       public: bool RunLocalCallback(const transport::ProtoMsg &_msgReq,
                                     transport::ProtoMsg &_msgRep)
       {
+        std::cerr << "RepHandler::RunLocalCallback()" << std::endl;
         // Execute the callback (if existing)
         if (!this->cb)
         {
@@ -205,6 +233,7 @@ namespace gz
       public: bool RunCallback(const std::string &_req,
                                std::string &_rep)
       {
+        std::cerr << "RepHandler::RunCallback()" << std::endl;
         // Check if we have a callback registered.
         if (!this->cb)
         {
@@ -266,6 +295,8 @@ namespace gz
 
       /// \brief Callback to the function registered for this handler.
       private: std::function<bool(const Req &, Rep &)> cb;
+
+      private: std::unique_ptr<zenoh::Queryable<void>> zQueryable_;
     };
     }
   }

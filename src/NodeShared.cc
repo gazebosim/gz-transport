@@ -258,8 +258,8 @@ NodeShared::NodeShared()
       new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
 
   // Initialize the 0MQ objects.
-  if (!this->InitializeSockets())
-    return;
+  // if (!this->InitializeSockets())
+  //   return;
 
   if (this->verbose)
   {

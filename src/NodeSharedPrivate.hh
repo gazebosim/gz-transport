@@ -87,7 +87,7 @@ namespace gz
             this->session = std::make_shared<zenoh::Session>(
               zenoh::Session::open(zenoh::Config::create_default()));
           }
-        } catch (zenoh::ZException e) {
+        } catch (zenoh::ZException &e) {
           std::cout << "Received an error :" << e.what() << "\n";
         }
 

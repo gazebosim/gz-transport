@@ -230,8 +230,9 @@ namespace gz
     bool Node::Advertise(
       const std::string &_topic,
       std::function<bool(const RequestT &, ReplyT &)> _cb,
-      const AdvertiseServiceOptions &_options)
+      const AdvertiseServiceOptions &/*_options*/)
     {
+      std::cerr << "Node::Advertise()" << std::endl;
       // Topic remapping.
       std::string topic = _topic;
       this->Options().TopicRemap(_topic, topic);
@@ -249,7 +250,8 @@ namespace gz
         new RepHandler<RequestT, ReplyT>());
 
       // Insert the callback into the handler.
-      repHandlerPtr->SetCallback(_cb);
+      repHandlerPtr->SetCallback(_cb,
+        this->Shared()->Session(), fullyQualifiedTopic);
 
       std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
@@ -264,20 +266,20 @@ namespace gz
         fullyQualifiedTopic, this->NodeUuid(), repHandlerPtr);
 
       // Notify the discovery service to register and advertise my responser.
-      ServicePublisher publisher(fullyQualifiedTopic,
-        this->Shared()->myReplierAddress,
-        this->Shared()->replierId.ToString(),
-        this->Shared()->pUuid, this->NodeUuid(),
-        RequestT().GetTypeName(), ReplyT().GetTypeName(), _options);
+      // ServicePublisher publisher(fullyQualifiedTopic,
+      //   this->Shared()->myReplierAddress,
+      //   this->Shared()->replierId.ToString(),
+      //   this->Shared()->pUuid, this->NodeUuid(),
+      //   RequestT().GetTypeName(), ReplyT().GetTypeName(), _options);
 
-      if (!this->Shared()->AdvertisePublisher(publisher))
-      {
-        std::cerr << "Node::Advertise(): Error advertising service ["
-                  << topic
-                  << "]. Did you forget to start the discovery service?"
-                  << std::endl;
-        return false;
-      }
+      // if (!this->Shared()->AdvertisePublisher(publisher))
+      // {
+      //   std::cerr << "Node::Advertise(): Error advertising service ["
+      //             << topic
+      //             << "]. Did you forget to start the discovery service?"
+      //             << std::endl;
+      //   return false;
+      // }
 
       return true;
     }
@@ -403,6 +405,8 @@ namespace gz
       const RequestT &_request,
       std::function<void(const ReplyT &_reply, const bool _result)> &_cb)
     {
+      std::cerr << "Node::Request()" << std::endl;
+
       // Topic remapping.
       std::string topic = _topic;
       this->Options().TopicRemap(_topic, topic);
@@ -445,7 +449,8 @@ namespace gz
       reqHandlerPtr->SetMessage(&_request);
 
       // Insert the callback into the handler.
-      reqHandlerPtr->SetCallback(_cb);
+      reqHandlerPtr->SetCallback(_cb,
+        this->Shared()->Session(), fullyQualifiedTopic);
 
       {
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
@@ -454,25 +459,25 @@ namespace gz
         this->Shared()->requests.AddHandler(
           fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
 
-        // If the responser's address is known, make the request.
-        SrvAddresses_M addresses;
-        if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
-        {
-          this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-            RequestT().GetTypeName(), ReplyT().GetTypeName());
-        }
-        else
-        {
-          // Discover the service responser.
-          if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
-          {
-            std::cerr << "Node::Request(): Error discovering service ["
-                      << topic
-                      << "]. Did you forget to start the discovery service?"
-                      << std::endl;
-            return false;
-          }
-        }
+        // // If the responser's address is known, make the request.
+        // SrvAddresses_M addresses;
+        // if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
+        // {
+        //   this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
+        //     RequestT().GetTypeName(), ReplyT().GetTypeName());
+        // }
+        // else
+        // {
+        //   // Discover the service responser.
+        //   if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
+        //   {
+        //     std::cerr << "Node::Request(): Error discovering service ["
+        //               << topic
+        //               << "]. Did you forget to start the discovery service?"
+        //               << std::endl;
+        //     return false;
+        //   }
+        // }
       }
 
       return true;
