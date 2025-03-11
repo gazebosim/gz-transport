@@ -163,6 +163,11 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_raw.cc")
   )
 endif()
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/test_publisher.cc")
+  add_executable(test_publisher test_publisher.cc)
+  target_link_libraries(test_publisher gz-transport${GZ_TRANSPORT_VER}::core)
+endif()
+
 # Logging examples.
 if (TARGET gz-transport${GZ_TRANSPORT_VER}::log)
 
