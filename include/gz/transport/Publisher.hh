@@ -33,9 +33,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-    //
-    // Forward declarations.
-    class MessagePublisherPrivate;
 
     /// \class Publisher Publisher.hh
     /// ignition/transport/Publisher.hh
