@@ -234,7 +234,7 @@ namespace gz
         this->mcastAddr.sin_port = htons(static_cast<u_short>(this->port));
 
         std::vector<std::string> relays;
-        std::string gzRelay = "";
+        std::string gzRelay;
         if (env("GZ_RELAY", gzRelay) && !gzRelay.empty())
         {
           relays = transport::split(gzRelay, ':');

@@ -40,13 +40,13 @@ namespace gz
       public: virtual ~MessageInfoPrivate() = default;
 
       /// \brief Topic name.
-      public: std::string topic = "";
+      public: std::string topic;
 
       /// \brief Message type name.
-      public: std::string type = "";
+      public: std::string type;
 
       /// \brief Partition name.
-      public: std::string partition = "";
+      public: std::string partition;
 
       /// \brief Was the message sent via intra-process?
       public: bool isIntraProcess = false;

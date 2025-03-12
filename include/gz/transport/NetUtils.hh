@@ -63,7 +63,7 @@ namespace gz
     /// \brief Determine your login name.
     /// \return Name used to gain access to the computer.
     /// On linux and Mac only, if determination
-    /// of your login name failes then a string of the form "error-UUID"
+    /// of your login name fails then a string of the form "error-UUID"
     /// is returned where UUID is a universally unique identifier.
     std::string GZ_TRANSPORT_VISIBLE username();
     }

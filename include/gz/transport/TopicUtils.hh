@@ -79,7 +79,7 @@ namespace gz
       /// \<TOPIC\>: The topic name. A trailing slash will always be removed.
       ///
       /// Note: Intuitively, you can imagine the fully qualified name as a
-      /// UNIX absolute path, where the partition is always sorrounded by "@".
+      /// UNIX absolute path, where the partition is always surrounded by "@".
       /// A namespace, if present, corresponds with the directories of the
       /// path, and you can imagine the topic as the filename.
       ///

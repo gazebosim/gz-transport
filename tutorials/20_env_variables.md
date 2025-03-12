@@ -5,7 +5,7 @@ Previous Tutorial: \ref logging
 
 ## Overview
 
-Similar to how you can programatically customize the behavior of your
+Similar to how you can programmatically customize the behavior of your
 nodes or specify some options when you advertise a topic, it is possible to
 use an environment variable to tweak the behavior of Gazebo Transport.
 Below are descriptions of the available environment variables:
@@ -40,7 +40,7 @@ Below are descriptions of the available environment variables:
     user launching the node.
     * *Description*: Specifies a partition name for all the nodes declared
     inside this process. Note that an alternative partition name  declared
-    programatically and  passed to the constructor of a Node class will take
+    programmatically and  passed to the constructor of a Node class will take
     priority over *GZ_PARTITION*.
 * **GZ_RELAY**
     * *Value allowed*: Colon delimited list of IP addresses

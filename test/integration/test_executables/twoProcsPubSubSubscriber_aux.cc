@@ -37,7 +37,7 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 static std::string data = "bar"; // NOLINT(*)
 
 //////////////////////////////////////////////////
-/// \brief Function is called everytime a topic update is received.
+/// \brief Function is called every time a topic update is received.
 void cb(const msgs::Vector3d &_msg)
 {
   EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
@@ -64,7 +64,7 @@ void cbRaw(const char *_msgData, const size_t _size,
 }
 
 //////////////////////////////////////////////////
-/// \brief Function is called everytime a topic update is received.
+/// \brief Function is called every time a topic update is received.
 void cb2(const msgs::Vector3d &_msg)
 {
   EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
