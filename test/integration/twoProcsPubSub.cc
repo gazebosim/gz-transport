@@ -473,10 +473,14 @@ TEST(twoProcPubSub, TopicInfo)
 }
 
 //////////////////////////////////////////////////
-/// \brief Three different nodes running in two different processes. In the
-/// subscriber process there are two nodes. Both should receive the message.
-/// After some time one of them unsubscribe. After that check that only one
-/// node receives the message.
+/// \brief Two different nodes running in two different processes. The
+/// publisher in the main process here publishes a message to the
+/// remote subscriber in the other process before immediately going
+/// out of scope. The subcriber in the other process then unsubscribes to
+/// the topic. The test verifies that the publisher node in the main process
+/// is able to correctly remove its remote subscribers in the case that the
+/// publisher is destroyed before the subscriber so that HasConnections()
+/// check returns the correct result.
 TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
 {
   transport::Node node;
