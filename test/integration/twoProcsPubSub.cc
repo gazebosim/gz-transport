@@ -476,7 +476,7 @@ TEST(twoProcPubSub, TopicInfo)
 /// \brief Two different nodes running in two different processes. The
 /// publisher in the main process here publishes a message to the
 /// remote subscriber in the other process before immediately going
-/// out of scope. The subcriber in the other process then unsubscribes to
+/// out of scope. The subscriber in the other process then unsubscribes to
 /// the topic. The test verifies that the publisher node in the main process
 /// is able to correctly remove its remote subscribers in the case that the
 /// publisher is destroyed before the subscriber so that HasConnections()
