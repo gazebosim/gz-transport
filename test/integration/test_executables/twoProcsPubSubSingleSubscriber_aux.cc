@@ -71,14 +71,13 @@ void runSubscriber()
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
   // Add a raw subscription to `node`
-//  EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
-//                                msgs::Vector3d().GetTypeName()));
+  EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
+                                msgs::Vector3d().GetTypeName()));
 
   int interval = 100;
 
   // Wait until we've received at least one message.
-  // while (!cbExecuted || !cb2Executed || !cbRawExecuted)
-  while (!cbExecuted)
+  while (!cbExecuted || !cbRawExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     interval--;
@@ -88,7 +87,6 @@ void runSubscriber()
   }
 
   EXPECT_TRUE(node.Unsubscribe(g_topic));
-//  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
