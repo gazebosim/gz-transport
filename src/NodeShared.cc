@@ -1286,7 +1286,7 @@ void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
 void NodeShared::OnNewRegistration(const MessagePublisher &_pub)
 {
   // Discard the message if the destination PUUID is not me.
-  if (_pub.Ctrl() != this->pUuid)
+  if (!_pub.Ctrl().empty() && _pub.Ctrl() != this->pUuid)
     return;
 
   std::string procUuid = _pub.PUuid();
