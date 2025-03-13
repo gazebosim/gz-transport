@@ -643,11 +643,8 @@ bool Node::Unsubscribe(const std::string &_topic)
 
   // Notify to the publishers that I am no longer interested in the topic.
   MsgAddresses_M addresses;
-  if (!this->dataPtr->shared->dataPtr->msgDiscovery->Publishers(
-        fullyQualifiedTopic, addresses))
-  {
-    return false;
-  }
+  this->dataPtr->shared->dataPtr->msgDiscovery->Publishers(
+    fullyQualifiedTopic, addresses);
 
   for (auto &proc : addresses)
   {
@@ -658,6 +655,12 @@ bool Node::Unsubscribe(const std::string &_topic)
 
     this->Shared()->dataPtr->msgDiscovery->Unregister(pub);
   }
+
+  MessagePublisher pub(fullyQualifiedTopic, this->dataPtr->shared->myAddress,
+    "", this->dataPtr->shared->pUuid, this->dataPtr->nUuid,
+    kGenericMessageType, AdvertiseMessageOptions());
+
+  this->Shared()->dataPtr->msgDiscovery->Unregister(pub);
 
   return true;
 }
