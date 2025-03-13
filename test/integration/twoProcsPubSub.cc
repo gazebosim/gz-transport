@@ -498,7 +498,6 @@ TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
 
       // No subscribers yet right after pub comes up because it takes time for
       // it to discover subscribers on the network
-      // from subscribers
       EXPECT_FALSE(pub.HasConnections());
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
