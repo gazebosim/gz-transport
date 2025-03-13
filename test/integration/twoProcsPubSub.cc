@@ -533,6 +533,55 @@ TEST(twoProcPubSub, TopicInfo)
 }
 
 //////////////////////////////////////////////////
+/// \brief Two different nodes running in two different processes. The
+/// publisher in the main process here publishes a message to the
+/// remote subscriber in the other process before immediately going
+/// out of scope. The subscriber in the other process then unsubscribes to
+/// the topic. The test verifies that the publisher node in the main process
+/// is able to correctly remove its remote subscribers in the case that the
+/// publisher is destroyed before the subscriber so that HasConnections()
+/// check returns the correct result.
+TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
+{
+  transport::Node node;
+
+  for (auto j = 0; j < 2; ++j)
+  {
+    // Start subscriber process before a publisher is created
+    auto pi = gz::utils::Subprocess(
+       {test_executables::kTwoProcsPubSubSingleSubscriber, partition});
+
+    // Sleep for subscriber process to fully come up
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    // Reduce the publisher scope so that it is destroyed before the subscriber
+    // process ends.
+    {
+      auto pub = node.Advertise<msgs::Vector3d>(g_topic);
+      EXPECT_TRUE(pub);
+
+      // No subscribers yet right after pub comes up because it takes time for
+      // it to discover subscribers on the network
+      EXPECT_FALSE(pub.HasConnections());
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+      // Now, we should have subscribers.
+      EXPECT_TRUE(pub.HasConnections());
+
+      msgs::Vector3d msg;
+      msg.set_x(1.0);
+      msg.set_y(2.0);
+      msg.set_z(3.0);
+
+      EXPECT_TRUE(pub.Publish(msg));
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Get a random partition name.
