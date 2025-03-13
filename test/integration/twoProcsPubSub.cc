@@ -473,6 +473,52 @@ TEST(twoProcPubSub, TopicInfo)
 }
 
 //////////////////////////////////////////////////
+/// \brief Three different nodes running in two different processes. In the
+/// subscriber process there are two nodes. Both should receive the message.
+/// After some time one of them unsubscribe. After that check that only one
+/// node receives the message.
+TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
+{
+  transport::Node node;
+
+  for (auto j = 0; j < 2; ++j)
+  {
+    // Start subscriber process before a publisher is created
+    auto pi = gz::utils::Subprocess(
+       {test_executables::kTwoProcsPubSubSingleSubscriber, partition});
+
+    // Sleep for subscriber process to fully come up
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    // Reduce the publisher scope so that it is destroyed before the subscriber
+    // process ends.
+    {
+      auto pub = node.Advertise<msgs::Vector3d>(g_topic);
+      EXPECT_TRUE(pub);
+
+      // No subscribers yet right after pub comes up because it takes time for
+      // it to discover subscribers on the network
+      // from subscribers
+      EXPECT_FALSE(pub.HasConnections());
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+      // Now, we should have subscribers.
+      EXPECT_TRUE(pub.HasConnections());
+
+      msgs::Vector3d msg;
+      msg.set_x(1.0);
+      msg.set_y(2.0);
+      msg.set_z(3.0);
+
+      EXPECT_TRUE(pub.Publish(msg));
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Get a random partition name.
