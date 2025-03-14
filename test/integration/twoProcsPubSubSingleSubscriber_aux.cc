@@ -20,11 +20,8 @@
 #include <string>
 
 #include "gz/transport/Node.hh"
-
-#include <gz/utils/Environment.hh>
-
 #include "gtest/gtest.h"
-#include "test_config.hh"
+#include "gz/transport/test_config.h"
 
 using namespace gz;
 
@@ -109,8 +106,8 @@ int main(int argc, char **argv)
   }
 
   // Set the partition name for this test.
-  gz::utils::setenv("GZ_PARTITION", argv[1]);
-  gz::utils::setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1");
+  setenv("IGN_PARTITION", argv[1], 1);
+  setenv("IGN_TRANSPORT_TOPIC_STATISTICS", "1", 1);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

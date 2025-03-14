@@ -548,8 +548,11 @@ TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
   for (auto j = 0; j < 2; ++j)
   {
     // Start subscriber process before a publisher is created
-    auto pi = gz::utils::Subprocess(
-       {test_executables::kTwoProcsPubSubSingleSubscriber, partition});
+    std::string subscriberPath = testing::portablePathUnion(
+      IGN_TRANSPORT_TEST_DIR, "INTEGRATION_twoProcsPubSubSingleSubscriber_aux");
+
+    testing::forkHandlerType pi = testing::forkAndRun(subscriberPath.c_str(),
+      partition.c_str());
 
     // Sleep for subscriber process to fully come up
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -578,6 +581,7 @@ TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    testing::waitAndCleanupFork(pi);
   }
 }
 
