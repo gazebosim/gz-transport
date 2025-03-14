@@ -44,6 +44,7 @@ set(auxiliary_files
   pub_aux_throttled
   scopedTopicSubscriber_aux
   twoProcsPublisher_aux
+  twoProcsPubSubSingleSubscriber_aux
   twoProcsPubSubSubscriber_aux
   twoProcsSrvCallReplier_aux
   twoProcsSrvCallReplierInc_aux

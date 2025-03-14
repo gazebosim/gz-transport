@@ -1319,7 +1319,7 @@ void NodeShared::OnNewRegistration(const MessagePublisher &_pub)
 void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
 {
   // Discard the message if the destination PUUID is not me.
-  if (_pub.Ctrl() != this->pUuid)
+  if (!_pub.Ctrl().empty() && _pub.Ctrl() != this->pUuid)
     return;
 
   std::string topic = _pub.Topic();
