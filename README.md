@@ -12,7 +12,7 @@ Build | Status
 Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-transport/tree/gz-transport13/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-transport/tree/gz-transport13)
 Ubuntu Jammy  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-gz-transport13-jammy-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-gz-transport13-jammy-amd64)
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-gz-transport13-homebrew-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-gz-transport13-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-13-win)](https://build.osrfoundation.org/job/gz_transport-13-win/)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-13-clowin)](https://build.osrfoundation.org/job/gz_transport-13-clowin/)
 
 Gazebo Transport, a component of [Gazebo](https://gazebosim.org), provides fast and efficient asynchronous message passing, services, and data logging.
 
