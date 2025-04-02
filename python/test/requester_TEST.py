@@ -15,7 +15,7 @@
 
 from gz.msgs11.int32_pb2 import Int32
 from gz.msgs11.stringmsg_pb2 import StringMsg
-from gz.transport15 import Node
+from gz.transport import Node
 
 import os
 import subprocess

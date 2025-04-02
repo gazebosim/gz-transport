@@ -14,7 +14,7 @@
 #
 
 from gz.msgs11.vector3d_pb2 import Vector3d
-from gz.transport15 import Node
+from gz.transport import Node
 
 import time
 
