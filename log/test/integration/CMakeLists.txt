@@ -21,9 +21,11 @@ if (UNIX AND NOT APPLE)
 endif()
 
 foreach(test_target ${logging_tests})
-
+  set(_env_vars)
+  list(APPEND _env_vars "IGN_IP=127.0.0.1")
+  list(APPEND _env_vars "IGN_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql")
   set_tests_properties(${test_target} PROPERTIES
-    ENVIRONMENT IGN_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)
+    ENVIRONMENT "${_env_vars}")
   target_compile_definitions(${test_target}
     PRIVATE IGN_TRANSPORT_LOG_SQL_PATH="${PROJECT_SOURCE_DIR}/log/sql")
   target_compile_definitions(${test_target}
