@@ -34,10 +34,10 @@ folder and open it with your favorite editor:
 ```{.py}
     from gz.msgs11.stringmsg_pb2 import StringMsg
     from gz.msgs11.vector3d_pb2 import Vector3d
-    from gz.transport15 import Node
+    from gz.transport import Node
 ```
 
-The library `gz.transport15` contains all the Gazebo Transport elements that can be
+The library `gz.transport` contains all the Gazebo Transport elements that can be
 used in Python. The final API we will use is contained inside the class `Node`.
 
 The lines `from gz.msgs11.stringmsg_pb2 import StringMsg` and `from gz.msgs11.vector3d_pb2 import Vector3d`
@@ -99,10 +99,10 @@ file into the `gz_transport_tutorial` folder and open it with your favorite edit
 ```{.py}
     from gz.msgs11.stringmsg_pb2 import StringMsg
     from gz.msgs11.vector3d_pb2 import Vector3d
-    from gz.transport15 import Node
+    from gz.transport import Node
 ```
 
-Just as before, we are importing the `Node` class from the `gz.transport15` library
+Just as before, we are importing the `Node` class from the `gz.transport` library
 and the generated code for the `StringMsg` and `Vector3d` protobuf messages.
 
 ```{.py}
@@ -266,7 +266,7 @@ We can declare the throttling option using the following code :
 
 ```{.py}
     from gz.msgs11.stringmsg_pb2 import StringMsg
-    from gz.transport15 import Node, AdvertiseMessageOptions
+    from gz.transport import Node, AdvertiseMessageOptions
 
     # Create a transport node and advertise a topic with throttling enabled.
     node = Node()
@@ -310,7 +310,7 @@ We can declare the throttling option using the following code :
 
 ```{.py}
     from gz.msgs11.stringmsg_pb2 import StringMsg
-    from gz.transport15 import Node, SubscribeOptions
+    from gz.transport import Node, SubscribeOptions
 
     def stringmsg_cb(msg: StringMsg):
         print("Received StringMsg: [{}]".format(msg.data))
@@ -350,7 +350,7 @@ topic without having to modify the publisher and create a new log.
 We can declare the topic remapping option using the following code:
 
 ```{.py}
-    from gz.transport15 import Node, NodeOptions
+    from gz.transport import Node, NodeOptions
 
     # Create a transport node and remap a topic.
     nodeOpts = NodeOptions()
@@ -389,10 +389,10 @@ file into the `gz_transport_tutorial` folder and open it with your favorite edit
 
 ```{.py}
     from gz.msgs11.stringmsg_pb2 import StringMsg
-    from gz.transport15 import Node
+    from gz.transport import Node
 ```
 
-Just as before, we are importing the `Node` class from the `gz.transport15`
+Just as before, we are importing the `Node` class from the `gz.transport`
 library and the generated code for the `StringMsg` protobuf message.
 
 ```{.py}

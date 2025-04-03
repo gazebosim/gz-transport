@@ -21,7 +21,7 @@ set(GZ_PYTHON_INSTALL_PATH "${GZ_PYTHON_INSTALL_PATH}/gz")
 function(configure_build_install_location _library_name)
   # Install library for actual use
   install(TARGETS ${_library_name}
-    DESTINATION "${GZ_PYTHON_INSTALL_PATH}/transport${PROJECT_VERSION_MAJOR}"
+    DESTINATION "${GZ_PYTHON_INSTALL_PATH}/transport"
   )
 endfunction()
 
@@ -46,7 +46,7 @@ configure_build_install_location(${BINDINGS_MODULE_NAME})
 
 install(FILES
   src/__init__.py  
-  DESTINATION "${GZ_PYTHON_INSTALL_PATH}/transport${PROJECT_VERSION_MAJOR}"
+  DESTINATION "${GZ_PYTHON_INSTALL_PATH}/transport"
 )
 
 if (BUILD_TESTING AND NOT WIN32)

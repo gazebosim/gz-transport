@@ -323,7 +323,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       .def("has_connections",
           &gz::transport::Node::Publisher::HasConnections,
           "Return true if this publisher has subscribers");
-}  // gz-transport15 module
+}  // gz-transport module
 
 }  // python
 }  // transport
