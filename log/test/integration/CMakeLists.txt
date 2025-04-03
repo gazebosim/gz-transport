@@ -32,8 +32,11 @@ if (UNIX AND NOT APPLE)
 endif()
 
 foreach(test_target ${logging_tests})
+  set(_env_vars)
+  list(APPEND _env_vars "GZ_IP=127.0.0.1")
+  list(APPEND _env_vars "GZ_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql")
   set_tests_properties(${test_target} PROPERTIES
-    ENVIRONMENT GZ_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql)
+    ENVIRONMENT "${_env_vars}")
   target_compile_definitions(${test_target}
     PRIVATE GZ_TRANSPORT_LOG_SQL_PATH="${PROJECT_SOURCE_DIR}/log/sql")
 endforeach()

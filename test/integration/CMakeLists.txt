@@ -28,6 +28,12 @@ gz_build_tests(TYPE INTEGRATION SOURCES ${tests}
   TEST_LIST test_list
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config)
 
+foreach(test ${test_list})
+  set(_env_vars)
+  list(APPEND _env_vars "GZ_IP=127.0.0.1")
+  set_property(TEST ${test} PROPERTY ENVIRONMENT "${_env_vars}")
+endforeach()
+
 set(auxiliary_files
   authPubSubSubscriberInvalid_aux
   fastPub_aux
