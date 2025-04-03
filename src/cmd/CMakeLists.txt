@@ -53,11 +53,17 @@ foreach(test ${test_list})
 endforeach()
 
 if (TARGET UNIT_gz_TEST)
+
+  set(_env_vars)
+  list(APPEND _env_vars "IGN_IP=127.0.0.1")
+  list(APPEND _env_vars
+      "IGN_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>"
+  )
   set_tests_properties(
     UNIT_gz_TEST
     PROPERTIES
     ENVIRONMENT
-      "IGN_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>"
+      "${_env_vars}"
   )
 endif()
 

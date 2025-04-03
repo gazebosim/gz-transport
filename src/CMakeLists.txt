@@ -38,6 +38,10 @@ ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS})
 
 foreach(test ${test_list})
+  set(_env_vars)
+  list(APPEND _env_vars "IGN_IP=127.0.0.1")
+  list(APPEND _env_vars "IGN_VERBOSE=1")
+  set_property(TEST ${test} PROPERTY ENVIRONMENT "${_env_vars}")
 
   # Inform each test of its output directory so it knows where to call the
   # auxiliary files from. Using a generator expression here is useful for

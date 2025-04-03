@@ -37,6 +37,12 @@ foreach(test ${test_list})
 
 endforeach()
 
+foreach(test ${test_list})
+  set(_env_vars)
+  list(APPEND _env_vars "IGN_IP=127.0.0.1")
+  set_property(TEST ${test} PROPERTY ENVIRONMENT "${_env_vars}")
+endforeach()
+
 set(auxiliary_files
   authPubSubSubscriberInvalid_aux
   fastPub_aux
