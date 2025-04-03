@@ -61,11 +61,16 @@ endforeach()
 
 if (TARGET UNIT_gz_TEST)
 
+  set(_env_vars)
+  list(APPEND _env_vars "GZ_IP=127.0.0.1")
+  list(APPEND _env_vars
+      "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>;LD_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\":$ENV{LD_LIBRARY_PATH}"
+  )
   set_tests_properties(
     UNIT_gz_TEST
     PROPERTIES
     ENVIRONMENT
-      "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>;LD_LIBRARY_PATH=\"$<TARGET_FILE_DIR:${PROJECT_LIBRARY_TARGET_NAME}>\":$ENV{LD_LIBRARY_PATH}"
+      "${_env_vars}"
   )
 endif()
 

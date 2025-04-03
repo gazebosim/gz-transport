@@ -34,7 +34,10 @@ gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config)
 
 foreach(test ${test_list})
-  set_property(TEST ${test} PROPERTY ENVIRONMENT "GZ_VERBOSE=1")
+  set(_env_vars)
+  list(APPEND _env_vars "GZ_IP=127.0.0.1")
+  list(APPEND _env_vars "GZ_VERBOSE=1")
+  set_property(TEST ${test} PROPERTY ENVIRONMENT "${_env_vars}")
 endforeach()
 
 if(MSVC)
