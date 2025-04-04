@@ -18,14 +18,15 @@
 #ifndef GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 #define GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 
-#include <zmq.hpp>
-
 #include <atomic>
 #include <list>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <zmq.hpp>
+#include <zenoh.hxx>
 
 #include "gz/transport/Discovery.hh"
 #include "gz/transport/Node.hh"
@@ -54,6 +55,8 @@ namespace gz
     {
       // Constructor
       public: NodeSharedPrivate() :
+                session(new zenoh::Session(
+                  zenoh::Session::open(zenoh::Config::create_default()))),
                 context(new zmq::context_t(1)),
                 publisher(new zmq::socket_t(*context, ZMQ_PUB)),
                 subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
@@ -82,6 +85,9 @@ namespace gz
       /// value if the validation wasn't succeed.
       public: int NonNegativeEnvVar(const std::string &_envVar,
                                     int _defaultValue) const;
+
+      /// \Pointer to the Zenoh session.
+      public: std::shared_ptr<zenoh::Session> session;
 
       //////////////////////////////////////////////////
       ///////    Declare here the ZMQ Context    ///////

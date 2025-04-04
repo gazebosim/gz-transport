@@ -6,6 +6,11 @@ project(gz-transport-examples)
 find_package(gz-transport14 QUIET REQUIRED OPTIONAL_COMPONENTS log)
 set(GZ_TRANSPORT_VER ${gz-transport14_VERSION_MAJOR})
 
+#--------------------------------------
+# Find zenoh-cpp and its backend.
+find_package(zenohc REQUIRED)
+find_package(zenohcxx REQUIRED)
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/msgs/")
   # Message generation. Only required when using custom Protobuf messages.
   find_package(Protobuf REQUIRED)

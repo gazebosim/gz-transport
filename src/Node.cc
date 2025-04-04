@@ -116,6 +116,17 @@ namespace gz
       {
       }
 
+      /// \brief Constructor
+      /// \param[in] _publisher The message publisher.
+      /// \param[in] _zPub The zenoh publisher.
+      public: explicit PublisherPrivate(const MessagePublisher &_publisher,
+                                        zenoh::Publisher _zPub)
+        : shared(NodeShared::Instance()),
+          publisher(_publisher),
+          zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub)))
+      {
+      }
+
       /// \brief Check if this Publisher is ready to send an update based on
       /// publication settings and the clock.
       ///
@@ -194,6 +205,9 @@ namespace gz
       /// \brief The message publisher.
       public: MessagePublisher publisher;
 
+      /// \brief The zenoh publisher.
+      public: std::unique_ptr<zenoh::Publisher> zPub;
+
       /// \brief Timestamp of the last callback executed.
       public: Timestamp lastCbTimestamp;
 
@@ -217,6 +231,18 @@ Node::Publisher::Publisher()
 //////////////////////////////////////////////////
 Node::Publisher::Publisher(const MessagePublisher &_publisher)
   : dataPtr(std::make_shared<PublisherPrivate>(_publisher))
+{
+  if (this->dataPtr->publisher.Options().Throttled())
+  {
+    this->dataPtr->periodNs =
+      1e9 / this->dataPtr->publisher.Options().MsgsPerSec();
+  }
+}
+
+//////////////////////////////////////////////////
+Node::Publisher::Publisher(const MessagePublisher &_publisher,
+                           zenoh::Publisher _zPub)
+  : dataPtr(std::make_shared<PublisherPrivate>(_publisher, std::move(_zPub)))
 {
   if (this->dataPtr->publisher.Options().Throttled())
   {
@@ -414,22 +440,30 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   {
     // Zmq will call this lambda when the message is published.
     // We use it to deallocate the buffer.
-    auto myDeallocator = [](void *_buffer, void *)
-    {
-      delete[] reinterpret_cast<char*>(_buffer);
-    };
+    // auto myDeallocator = [](void *_buffer, void *)
+    // {
+    //   delete[] reinterpret_cast<char*>(_buffer);
+    // };
 
-    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
-          msgBuffer, msgSize, myDeallocator, _msg.GetTypeName()))
-    {
-      return false;
-    }
-  }
-  else
-  {
-    delete[] msgBuffer;
-  }
+    // -- Zenoh prototype begin --
+    zenoh::Publisher::PutOptions options;
+    // Add message type as an attachment.
+    options.attachment = _msg.GetTypeName();
+    this->dataPtr->zPub->put(msgBuffer, std::move(options));
+    // -- Zenoh prototype end --
 
+    // if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
+    //       msgBuffer, msgSize, myDeallocator, _msg.GetTypeName()))
+    // {
+    //   return false;
+    // }
+  }
+  // else
+  // {
+  //   delete[] msgBuffer;
+  // }
+
+  delete[] msgBuffer;
   return true;
 }
 
@@ -1049,7 +1083,10 @@ Node::Publisher Node::Advertise(const std::string &_topic,
     return Publisher();
   }
 
-  return Publisher(publisher);
+  auto zPub = this->Shared()->dataPtr->session->declare_publisher(
+     zenoh::KeyExpr(fullyQualifiedTopic));
+
+  return Publisher(publisher, std::move(zPub));
 }
 
 //////////////////////////////////////////////////

@@ -30,6 +30,9 @@
 #include <vector>
 #include <unordered_map>
 
+#include <zenoh.hxx>
+#include <zmq.hpp>
+
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Discovery.hh"
 #include "gz/transport/Helpers.hh"
@@ -365,66 +368,68 @@ void NodeShared::RunReceptionTask()
 
 //////////////////////////////////////////////////
 bool NodeShared::Publish(
-    const std::string &_topic,
-    char *_data,
-    const size_t _dataSize, DeallocFunc *_ffn,
-    const std::string &_msgType)
+    const std::string &/*_topic*/,
+    char */*_data*/,
+    const size_t /*_dataSize*/, DeallocFunc */*_ffn*/,
+    const std::string &/*_msgType*/)
 {
-  try
-  {
-    // Create the messages.
-    // Note that we use zero copy for passing the message data (msg2).
-    zmq::message_t msg0(_topic.data(), _topic.size()),
-                   msg1(this->myAddress.data(), this->myAddress.size()),
-                   msg2(_data, _dataSize, _ffn, nullptr),
-                   msg3(_msgType.data(), _msgType.size());
+  std::cout << "NodeShared::Publish()" << std::endl;
 
-    // Send the messages
-    std::lock_guard<std::recursive_mutex> lock(this->mutex);
+//   try
+//   {
+//     // Create the messages.
+//     // Note that we use zero copy for passing the message data (msg2).
+//     zmq::message_t msg0(_topic.data(), _topic.size()),
+//                    msg1(this->myAddress.data(), this->myAddress.size()),
+//                    msg2(_data, _dataSize, _ffn, nullptr),
+//                    msg3(_msgType.data(), _msgType.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
-    this->dataPtr->publisher->send(msg0, zmq::send_flags::sndmore);
-    this->dataPtr->publisher->send(msg1, zmq::send_flags::sndmore);
-    this->dataPtr->publisher->send(msg2, zmq::send_flags::sndmore);
-#else
-    this->dataPtr->publisher->send(msg0, ZMQ_SNDMORE);
-    this->dataPtr->publisher->send(msg1, ZMQ_SNDMORE);
-    this->dataPtr->publisher->send(msg2, ZMQ_SNDMORE);
-#endif
+//     // Send the messages
+//     std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-    if (this->dataPtr->topicStatsEnabled)
-    {
-      // Create publication metadata.
-      PublicationMetadata meta;
-      // Send the sequence number, which can be used to detect dropped
-      // messages.
-      meta.seq = this->dataPtr->topicPubSeq[_topic]++;
-      // Send the publication time.
-      meta.stamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::steady_clock::now().time_since_epoch()).count();
-      zmq::message_t msg4(&meta, sizeof(meta));
-#ifdef GZ_ZMQ_POST_4_3_1
-      this->dataPtr->publisher->send(msg3, zmq::send_flags::sndmore);
-      this->dataPtr->publisher->send(msg4, zmq::send_flags::none);
-#else
-      this->dataPtr->publisher->send(msg3, ZMQ_SNDMORE);
-      this->dataPtr->publisher->send(msg4, 0);
-#endif
-    }
-    else
-    {
-#ifdef GZ_ZMQ_POST_4_3_1
-      this->dataPtr->publisher->send(msg3, zmq::send_flags::none);
-#else
-      this->dataPtr->publisher->send(msg3, 0);
-#endif
-    }
-  }
-  catch(const zmq::error_t& ze)
-  {
-     std::cerr << "NodeShared::Publish() Error: " << ze.what() << std::endl;
-     return false;
-  }
+// #ifdef GZ_ZMQ_POST_4_3_1
+//     this->dataPtr->publisher->send(msg0, zmq::send_flags::sndmore);
+//     this->dataPtr->publisher->send(msg1, zmq::send_flags::sndmore);
+//     this->dataPtr->publisher->send(msg2, zmq::send_flags::sndmore);
+// #else
+//     this->dataPtr->publisher->send(msg0, ZMQ_SNDMORE);
+//     this->dataPtr->publisher->send(msg1, ZMQ_SNDMORE);
+//     this->dataPtr->publisher->send(msg2, ZMQ_SNDMORE);
+// #endif
+
+//     if (this->dataPtr->topicStatsEnabled)
+//     {
+//       // Create publication metadata.
+//       PublicationMetadata meta;
+//       // Send the sequence number, which can be used to detect dropped
+//       // messages.
+//       meta.seq = this->dataPtr->topicPubSeq[_topic]++;
+//       // Send the publication time.
+//       meta.stamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+//           std::chrono::steady_clock::now().time_since_epoch()).count();
+//       zmq::message_t msg4(&meta, sizeof(meta));
+// #ifdef GZ_ZMQ_POST_4_3_1
+//       this->dataPtr->publisher->send(msg3, zmq::send_flags::sndmore);
+//       this->dataPtr->publisher->send(msg4, zmq::send_flags::none);
+// #else
+//       this->dataPtr->publisher->send(msg3, ZMQ_SNDMORE);
+//       this->dataPtr->publisher->send(msg4, 0);
+// #endif
+//     }
+//     else
+//     {
+// #ifdef GZ_ZMQ_POST_4_3_1
+//       this->dataPtr->publisher->send(msg3, zmq::send_flags::none);
+// #else
+//       this->dataPtr->publisher->send(msg3, 0);
+// #endif
+//     }
+//   }
+//   catch(const zmq::error_t& ze)
+//   {
+//      std::cerr << "NodeShared::Publish() Error: " << ze.what() << std::endl;
+//      return false;
+//   }
 
   return true;
 }
@@ -432,86 +437,86 @@ bool NodeShared::Publish(
 //////////////////////////////////////////////////
 void NodeShared::RecvMsgUpdate()
 {
-  zmq::message_t msg(0);
-  std::string topic;
-  std::string sender;
-  std::string data;
-  std::string msgType;
-  HandlerInfo handlerInfo;
+//   zmq::message_t msg(0);
+//   std::string topic;
+//   std::string sender;
+//   std::string data;
+//   std::string msgType;
+//   HandlerInfo handlerInfo;
 
-  {
-    std::lock_guard<std::recursive_mutex> lock(this->mutex);
+//   {
+//     std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-    try
-    {
-#ifdef GZ_ZMQ_POST_4_3_1
-      if (!this->dataPtr->subscriber->recv(msg))
-#else
-      if (!this->dataPtr->subscriber->recv(&msg, 0))
-#endif
-        return;
-      topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+//     try
+//     {
+// #ifdef GZ_ZMQ_POST_4_3_1
+//       if (!this->dataPtr->subscriber->recv(msg))
+// #else
+//       if (!this->dataPtr->subscriber->recv(&msg, 0))
+// #endif
+//         return;
+//       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      // TODO(caguero): Use this as extra metadata for the subscriber.
-#ifdef GZ_ZMQ_POST_4_3_1
-      if (!this->dataPtr->subscriber->recv(msg))
-#else
-      if (!this->dataPtr->subscriber->recv(&msg, 0))
-#endif
-        return;
-      sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+//       // TODO(caguero): Use this as extra metadata for the subscriber.
+// #ifdef GZ_ZMQ_POST_4_3_1
+//       if (!this->dataPtr->subscriber->recv(msg))
+// #else
+//       if (!this->dataPtr->subscriber->recv(&msg, 0))
+// #endif
+//         return;
+//       sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
-      if (!this->dataPtr->subscriber->recv(msg))
-#else
-      if (!this->dataPtr->subscriber->recv(&msg, 0))
-#endif
-        return;
-      data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+// #ifdef GZ_ZMQ_POST_4_3_1
+//       if (!this->dataPtr->subscriber->recv(msg))
+// #else
+//       if (!this->dataPtr->subscriber->recv(&msg, 0))
+// #endif
+//         return;
+//       data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
-      if (!this->dataPtr->subscriber->recv(msg))
-#else
-      if (!this->dataPtr->subscriber->recv(&msg, 0))
-#endif
-        return;
-      msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
+// #ifdef GZ_ZMQ_POST_4_3_1
+//       if (!this->dataPtr->subscriber->recv(msg))
+// #else
+//       if (!this->dataPtr->subscriber->recv(&msg, 0))
+// #endif
+//         return;
+//       msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (this->dataPtr->topicStatsEnabled)
-      {
-#ifdef GZ_ZMQ_POST_4_3_1
-        if (!this->dataPtr->subscriber->recv(msg))
-#else
-        if (!this->dataPtr->subscriber->recv(&msg, 0))
-#endif
-          return;
-        PublicationMetadata *meta =
-          reinterpret_cast<PublicationMetadata *>(msg.data());
+//       if (this->dataPtr->topicStatsEnabled)
+//       {
+// #ifdef GZ_ZMQ_POST_4_3_1
+//         if (!this->dataPtr->subscriber->recv(msg))
+// #else
+//         if (!this->dataPtr->subscriber->recv(&msg, 0))
+// #endif
+//           return;
+//         PublicationMetadata *meta =
+//           reinterpret_cast<PublicationMetadata *>(msg.data());
 
-        // Update topic statistics.
-        if (this->dataPtr->enabledTopicStatistics.find(topic) !=
-            this->dataPtr->enabledTopicStatistics.end())
-        {
-          this->dataPtr->topicStats[topic].Update(sender,
-              meta->stamp, meta->seq);
-          this->dataPtr->enabledTopicStatistics[topic](
-              this->dataPtr->topicStats[topic]);
-        }
-      }
-    }
-    catch(const zmq::error_t &_error)
-    {
-      std::cerr << "Error: " << _error.what() << std::endl;
-      return;
-    }
+//         // Update topic statistics.
+//         if (this->dataPtr->enabledTopicStatistics.find(topic) !=
+//             this->dataPtr->enabledTopicStatistics.end())
+//         {
+//           this->dataPtr->topicStats[topic].Update(sender,
+//               meta->stamp, meta->seq);
+//           this->dataPtr->enabledTopicStatistics[topic](
+//               this->dataPtr->topicStats[topic]);
+//         }
+//       }
+//     }
+//     catch(const zmq::error_t &_error)
+//     {
+//       std::cerr << "Error: " << _error.what() << std::endl;
+//       return;
+//     }
 
-    handlerInfo = this->CheckHandlerInfo(topic);
-  }
+//     handlerInfo = this->CheckHandlerInfo(topic);
+//   }
 
-  MessageInfo info;
-  info.SetTopicAndPartition(topic);
-  info.SetType(msgType);
-  this->TriggerCallbacks(info, data, handlerInfo);
+//   MessageInfo info;
+//   info.SetTopicAndPartition(topic);
+//   info.SetType(msgType);
+//   this->TriggerCallbacks(info, data, handlerInfo);
 }
 
 //////////////////////////////////////////////////
@@ -548,6 +553,9 @@ NodeShared::SubscriberInfo NodeShared::CheckSubscriberInfo(
 
   info.haveRemote = this->remoteSubscribers.HasTopic(
         _topic, _msgType);
+
+  // For now we fake that there are always remote subscribers.
+  info.haveRemote = true;
 
   return info;
 }
@@ -1951,12 +1959,16 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
   return numVal;
 }
 
-void NodeShared::AddGlobalRelay(const std::string& _relayAddress) {
+/////////////////////////////////////////////////
+void NodeShared::AddGlobalRelay(const std::string& _relayAddress)
+{
   dataPtr->msgDiscovery->AddRelayAddress(_relayAddress);
   dataPtr->srvDiscovery->AddRelayAddress(_relayAddress);
 }
 
-std::vector<std::string> NodeShared::GlobalRelays() const {
+/////////////////////////////////////////////////
+std::vector<std::string> NodeShared::GlobalRelays() const
+{
   // Merge relays from message and service discovery. They should be identical
   // since they're typically build from the same sources.
   //
@@ -1968,4 +1980,10 @@ std::vector<std::string> NodeShared::GlobalRelays() const {
   srvRelaySet.merge(msgRelaySet);
 
   return std::vector<std::string>(srvRelaySet.cbegin(), srvRelaySet.cend());
+}
+
+/////////////////////////////////////////////////
+std::shared_ptr<zenoh::Session> NodeShared::Session()
+{
+  return this->dataPtr->session;
 }

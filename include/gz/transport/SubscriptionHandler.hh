@@ -38,6 +38,7 @@
 #include <utility>
 
 #include <gz/msgs/Factory.hh>
+#include <zenoh.hxx>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -95,6 +96,9 @@ namespace gz
       /// \brief If throttling is enabled, the minimum period for receiving a
       /// message in nanoseconds.
       protected: double periodNs;
+
+      /// \brief The zenoh subscriber handler.
+      protected: std::unique_ptr<zenoh::Subscriber<void>> zSub_;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -196,6 +200,29 @@ namespace gz
       public: void SetCallback(const MsgCallback<T> &_cb)
       {
         this->cb = _cb;
+      }
+
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback.
+      /// \param[in] _session The Zenoh session.
+      /// \param[in] _topic The topic associated to this callback.
+      public: void SetCallback(const MsgCallback<T> &_cb,
+                               std::shared_ptr<zenoh::Session> _session,
+                               const std::string &_topic)
+      {
+        zenoh::KeyExpr keyexpr(_topic);
+        auto dataHandler = [this](const zenoh::Sample &_sample)
+        {
+          auto output = this->CreateMsg(
+            _sample.get_payload().as_string(), this->TypeName());
+          this->RunLocalCallback(*output, MessageInfo());
+        };
+
+        this->zSub_ = std::make_unique<zenoh::Subscriber<void>>(
+          _session->declare_subscriber(
+            keyexpr, dataHandler, zenoh::closures::none));
+
+        this->SetCallback(std::move(_cb));
       }
 
       // Documentation inherited.
@@ -312,6 +339,38 @@ namespace gz
       public: void SetCallback(const MsgCallback<ProtoMsg> &_cb)
       {
         this->cb = _cb;
+      }
+
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback.
+      /// \param[in] _session The Zenoh session.
+      /// \param[in] _topic The topic associated to this callback.
+      public: void SetCallback(const MsgCallback<ProtoMsg> &_cb,
+                               std::shared_ptr<zenoh::Session> _session,
+                               const std::string &_topic)
+      {
+        zenoh::KeyExpr keyexpr(_topic);
+        auto dataHandler = [this](const zenoh::Sample &_sample)
+        {
+          auto attachment = _sample.get_attachment();
+          if (attachment.has_value())
+          {
+            auto output = this->CreateMsg(
+              _sample.get_payload().as_string(), attachment->get().as_string());
+            this->RunLocalCallback(*output, MessageInfo());
+          }
+          else
+          {
+            std::cerr << "SubscriptionHandler::SetCallback(): Unable to find "
+                      << "attachment. Ignoring message..." << std::endl;
+          }
+        };
+
+        this->zSub_ = std::make_unique<zenoh::Subscriber<void>>(
+          _session->declare_subscriber(
+            keyexpr, dataHandler, zenoh::closures::none));
+
+        this->SetCallback(std::move(_cb));
       }
 
       // Documentation inherited.

@@ -132,7 +132,8 @@ namespace gz
           new SubscriptionHandler<MessageT>(this->NodeUuid(), _opts));
 
       // Insert the callback into the handler.
-      subscrHandlerPtr->SetCallback(std::move(_cb));
+      subscrHandlerPtr->SetCallback(std::move(_cb),
+        this->Shared()->Session(), fullyQualifiedTopic);
 
       std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 

@@ -2,12 +2,12 @@
 
 
 add_library(ChirpParams STATIC ./ChirpParams.cc)
-target_link_libraries(ChirpParams PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}-log ${EXTRA_TEST_LIB_DEPS})
+target_link_libraries(ChirpParams PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}-log ${EXTRA_TEST_LIB_DEPS} zenohcxx::zenohc)
 target_compile_definitions(ChirpParams
   PRIVATE TOPIC_CHIRP_EXE="$<TARGET_FILE:topicChirp_aux>")
 
 gz_add_executable(topicChirp_aux topicChirp_aux.cc)
-target_link_libraries(topicChirp_aux ChirpParams)
+target_link_libraries(topicChirp_aux ChirpParams zenohcxx::zenohc)
 
 gz_build_tests(
   TYPE "INTEGRATION"
@@ -21,6 +21,7 @@ gz_build_tests(
     ${PROJECT_LIBRARY_TARGET_NAME}-log
     ${EXTRA_TEST_LIB_DEPS}
     test_config
+    zenohcxx::zenohc
   INCLUDE_DIRS
     ${CMAKE_BINARY_DIR}/test/
 )

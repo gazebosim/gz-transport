@@ -26,6 +26,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <zenoh.hxx>
+
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -110,7 +112,13 @@ namespace gz
 
         /// \brief Constructor.
         /// \param[in] _publisher A message publisher.
-        public: explicit Publisher(const MessagePublisher &_publisher);
+        public: explicit Publisher(const MessagePublisher &_publisher);  
+
+        /// \brief Constructor.
+        /// \param[in] _publisher A message publisher.
+        /// \param[in] _zPublisher The zenoh publisher.
+        public: explicit Publisher(const MessagePublisher &_publisher,
+                                   zenoh::Publisher _zPublisher);
 
         /// \brief Destructor.
         public: virtual ~Publisher();

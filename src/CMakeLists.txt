@@ -11,6 +11,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
     gz-msgs${GZ_MSGS_VER}::gz-msgs${GZ_MSGS_VER}
     CPPZMQ::CPPZMQ
+    zenohcxx::zenohc
   PRIVATE
     ${ZeroMQ_TARGET}
 )
@@ -31,7 +32,7 @@ endif()
 # Build the unit tests.
 gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   TEST_LIST test_list
-  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config)
+  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config zenohcxx::zenohc)
 
 foreach(test ${test_list})
   set(_env_vars)
