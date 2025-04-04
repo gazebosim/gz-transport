@@ -55,9 +55,9 @@ namespace gz
     {
       // Constructor
       public: NodeSharedPrivate() :
-                context(new zmq::context_t(1)),
                 session(new zenoh::Session(
                   zenoh::Session::open(zenoh::Config::create_default()))),
+                context(new zmq::context_t(1)),
                 publisher(new zmq::socket_t(*context, ZMQ_PUB)),
                 subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
                 requester(new zmq::socket_t(*context, ZMQ_ROUTER)),
@@ -86,6 +86,9 @@ namespace gz
       public: int NonNegativeEnvVar(const std::string &_envVar,
                                     int _defaultValue) const;
 
+      /// \Pointer to the Zenoh session.
+      public: std::shared_ptr<zenoh::Session> session;
+
       //////////////////////////////////////////////////
       ///////    Declare here the ZMQ Context    ///////
       //////////////////////////////////////////////////
@@ -93,10 +96,6 @@ namespace gz
       /// \brief 0MQ context. Always declare this object before any ZMQ socket
       /// to make sure that the context is destroyed after all sockets.
       public: std::unique_ptr<zmq::context_t> context;
-
-      // -- Zenoh prototype begin --
-      public: std::shared_ptr<zenoh::Session> session;
-      // -- Zenoh prototype end --
 
       //////////////////////////////////////////////////
       ///////     Declare here all ZMQ sockets   ///////

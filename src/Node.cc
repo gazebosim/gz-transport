@@ -118,6 +118,7 @@ namespace gz
 
       /// \brief Constructor
       /// \param[in] _publisher The message publisher.
+      /// \param[in] _zPub The zenoh publisher.
       public: explicit PublisherPrivate(const MessagePublisher &_publisher,
                                         zenoh::Publisher _zPub)
         : shared(NodeShared::Instance()),
@@ -1082,16 +1083,10 @@ Node::Publisher Node::Advertise(const std::string &_topic,
     return Publisher();
   }
 
-  // -- Zenoh prototype begin --
-  std::cout << "Declaring zenoh Publisher on '"
-            << fullyQualifiedTopic << "'..." << std::endl;
   auto zPub = this->Shared()->dataPtr->session->declare_publisher(
      zenoh::KeyExpr(fullyQualifiedTopic));
 
   return Publisher(publisher, std::move(zPub));
-  // -- Zenoh prototype end --
-
-  // return Publisher(publisher;
 }
 
 //////////////////////////////////////////////////

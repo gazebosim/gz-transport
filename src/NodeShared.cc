@@ -554,10 +554,8 @@ NodeShared::SubscriberInfo NodeShared::CheckSubscriberInfo(
   info.haveRemote = this->remoteSubscribers.HasTopic(
         _topic, _msgType);
 
-  // -- Zenoh prototype begin --
   // For now we fake that there are always remote subscribers.
   info.haveRemote = true;
-  // -- Zenoh prototype end --
 
   return info;
 }
