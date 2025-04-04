@@ -299,7 +299,8 @@ namespace gz
       /// \return The relay addresses.
       public: std::vector<std::string> GlobalRelays() const;
 
-      /// \brief ToDo.
+      /// \brief Get the current Zenoh session.
+      /// \return The Zenoh session.
       public: std::shared_ptr<zenoh::Session> Session();
 
       /// \brief Constructor.

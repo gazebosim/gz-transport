@@ -139,7 +139,7 @@ namespace gz
 
       // Store the subscription handler. Each subscription handler is
       // associated with a topic. When the receiving thread gets new data,
-      // it will recover the subscription  handler associated to the topic and
+      // it will recover the subscription handler associated to the topic and
       // will invoke the callback.
       this->Shared()->localSubscribers.normal.AddHandler(
         fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);

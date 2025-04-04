@@ -97,6 +97,9 @@ namespace gz
       /// message in nanoseconds.
       protected: double periodNs;
 
+      /// \brief The zenoh subscriber handler.
+      protected: std::unique_ptr<zenoh::Subscriber<void>> zSub_;
+
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::*
@@ -169,14 +172,6 @@ namespace gz
       }
 
       // Documentation inherited.
-      // public: explicit SubscriptionHandler(const std::string &_nUuid,
-      //   zenoh::Subscriber<void> _zSub = zenoh::Subscriber<void>())
-      //   : ISubscriptionHandler(_nUuid),
-      //     zSub(std::make_unique<zenoh::Subscriber<void>>(std::move(_zSub)))
-      // {
-      // }
-
-      // Documentation inherited.
       public: const std::shared_ptr<ProtoMsg> CreateMsg(
         const std::string &_data,
         const std::string &/*_type*/) const
@@ -208,7 +203,9 @@ namespace gz
       }
 
       /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback with the following parameters:
+      /// \param[in] _cb The callback.
+      /// \param[in] _session The Zenoh session.
+      /// \param[in] _topic The topic associated to this callback.
       public: void SetCallback(const MsgCallback<T> &_cb,
                                std::shared_ptr<zenoh::Session> _session,
                                const std::string &_topic)
@@ -280,8 +277,6 @@ namespace gz
 
       /// \brief Callback to the function registered for this handler.
       private: MsgCallback<T> cb;
-
-      private: std::unique_ptr<zenoh::Subscriber<void>> zSub_;
     };
 
     /// \brief Specialized template when the user prefers a callbacks that
@@ -347,7 +342,9 @@ namespace gz
       }
 
       /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback with the following parameters:
+      /// \param[in] _cb The callback.
+      /// \param[in] _session The Zenoh session.
+      /// \param[in] _topic The topic associated to this callback.
       public: void SetCallback(const MsgCallback<ProtoMsg> &_cb,
                                std::shared_ptr<zenoh::Session> _session,
                                const std::string &_topic)
@@ -355,19 +352,18 @@ namespace gz
         zenoh::KeyExpr keyexpr(_topic);
         auto dataHandler = [this](const zenoh::Sample &_sample)
         {
-          std::cout << "Generic Subscriber" << std::endl;
-
-          std::cout << ">> [Subscriber] Received "
-                    << " ('" << _sample.get_keyexpr().as_string_view() << "' : '"
-                    << _sample.get_payload().as_string() << "')";
-
           auto attachment = _sample.get_attachment();
           if (attachment.has_value())
-            std::cout << "Attachment:  (" << attachment->get().as_string() << ")";
-
-          auto output = this->CreateMsg(
-            _sample.get_payload().as_string(), attachment->get().as_string());
-          this->RunLocalCallback(*output, MessageInfo());
+          {
+            auto output = this->CreateMsg(
+              _sample.get_payload().as_string(), attachment->get().as_string());
+            this->RunLocalCallback(*output, MessageInfo());
+          }
+          else
+          {
+            std::cerr << "SubscriptionHandler::SetCallback(): Unable to find "
+                      << "attachment. Ignoring message..." << std::endl;
+          }
         };
 
         this->zSub_ = std::make_unique<zenoh::Subscriber<void>>(
@@ -399,8 +395,6 @@ namespace gz
 
       /// \brief Callback to the function registered for this handler.
       private: MsgCallback<ProtoMsg> cb;
-
-      private: std::unique_ptr<zenoh::Subscriber<void>> zSub_;
     };
 
     //////////////////////////////////////////////////
