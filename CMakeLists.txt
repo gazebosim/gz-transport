@@ -106,6 +106,22 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
   PKGCONFIG_IGNORE # NOTE: cppzmq does not seem to offer a pkg-config file
   PRETTY CppZMQ)
 
+########################################
+# Find Zenoh
+find_package(zenohc REQUIRED)
+find_package(zenohcxx REQUIRED)
+if (NOT zenohcxx_DIR)
+  message (STATUS "Looking for zenohcxx - not found")
+  set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
+elseif (NOT zenohc_DIR)
+  message (STATUS "Looking for zenohc - not found")
+  set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
+else ()
+  message (STATUS "Looking for zenohcxx and zenohc - found")
+  set (HAVE_ZENOH ON CACHE BOOL "HAVE ZENOH" FORCE)
+  list(APPEND EXTRA_TEST_LIB_DEPS "zenohcxx::zenohc")
+endif ()
+
 #--------------------------------------
 # Find uuid
 if (MSVC)
