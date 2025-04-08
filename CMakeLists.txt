@@ -108,8 +108,8 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
 
 ########################################
 # Find Zenoh
-find_package(zenohc REQUIRED)
-find_package(zenohcxx REQUIRED)
+find_package(zenohc)
+find_package(zenohcxx)
 if (NOT zenohcxx_DIR)
   message (STATUS "Looking for zenohcxx - not found")
   set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
