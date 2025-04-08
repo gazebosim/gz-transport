@@ -3,11 +3,17 @@
 
 add_library(ChirpParams STATIC ./ChirpParams.cc)
 target_link_libraries(ChirpParams PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}-log ${EXTRA_TEST_LIB_DEPS})
+if (HAVE_ZENOH)
+  target_link_libraries(ChirpParams PUBLIC zenohcxx::zenohc)
+endif()
 target_compile_definitions(ChirpParams
   PRIVATE TOPIC_CHIRP_EXE="$<TARGET_FILE:topicChirp_aux>")
 
 gz_add_executable(topicChirp_aux topicChirp_aux.cc)
 target_link_libraries(topicChirp_aux ChirpParams)
+if (HAVE_ZENOH)
+  target_link_libraries(topicChirp_aux zenohcxx::zenohc)
+endif()
 
 gz_build_tests(
   TYPE "INTEGRATION"

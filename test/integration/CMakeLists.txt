@@ -63,4 +63,11 @@ foreach(AUX_EXECUTABLE ${auxiliary_files})
       ${EXTRA_TEST_LIB_DEPS}
       test_config
   )
+
+  if (HAVE_ZENOH)
+    target_link_libraries(${AUX_EXECUTABLE}
+      PRIVATE
+        zenohcxx::zenohc
+    )
+  endif()
 endforeach(AUX_EXECUTABLE)
