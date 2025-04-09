@@ -26,7 +26,9 @@
 #include <vector>
 
 #include <zmq.hpp>
+#ifdef HAVE_ZENOH
 #include <zenoh.hxx>
+#endif
 
 #include "gz/transport/Discovery.hh"
 #include "gz/transport/Node.hh"
@@ -55,8 +57,10 @@ namespace gz
     {
       // Constructor
       public: NodeSharedPrivate() :
+#ifdef HAVE_ZENOH
                 session(new zenoh::Session(
                   zenoh::Session::open(zenoh::Config::create_default()))),
+#endif
                 context(new zmq::context_t(1)),
                 publisher(new zmq::socket_t(*context, ZMQ_PUB)),
                 subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
@@ -86,8 +90,10 @@ namespace gz
       public: int NonNegativeEnvVar(const std::string &_envVar,
                                     int _defaultValue) const;
 
+#ifdef HAVE_ZENOH
       /// \Pointer to the Zenoh session.
       public: std::shared_ptr<zenoh::Session> session;
+#endif
 
       //////////////////////////////////////////////////
       ///////    Declare here the ZMQ Context    ///////
@@ -208,6 +214,10 @@ namespace gz
       public: std::map<std::string,
               std::function<void(const TopicStatistics &_stats)>>
                 enabledTopicStatistics;
+
+      /// \brief Underlying middleware implementation.
+      /// Supported values are: [zenoh, zeromq].
+      public: std::string gzImplementation = "zeromq";
     };
     }
   }

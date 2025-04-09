@@ -38,7 +38,6 @@
 #include <utility>
 
 #include <gz/msgs/Factory.hh>
-#include <zenoh.hxx>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -46,6 +45,10 @@
 #include "gz/transport/SubscribeOptions.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
 
 namespace gz
 {
@@ -97,8 +100,10 @@ namespace gz
       /// message in nanoseconds.
       protected: double periodNs;
 
+#ifdef HAVE_ZENOH
       /// \brief The zenoh subscriber handler.
-      protected: std::unique_ptr<zenoh::Subscriber<void>> zSub_;
+      protected: std::unique_ptr<zenoh::Subscriber<void>> zSub;
+#endif
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -202,6 +207,7 @@ namespace gz
         this->cb = _cb;
       }
 
+#ifdef HAVE_ZENOH
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback.
       /// \param[in] _session The Zenoh session.
@@ -218,12 +224,13 @@ namespace gz
           this->RunLocalCallback(*output, MessageInfo());
         };
 
-        this->zSub_ = std::make_unique<zenoh::Subscriber<void>>(
+        this->zSub = std::make_unique<zenoh::Subscriber<void>>(
           _session->declare_subscriber(
             keyexpr, dataHandler, zenoh::closures::none));
 
         this->SetCallback(std::move(_cb));
       }
+#endif
 
       // Documentation inherited.
       public: bool RunLocalCallback(const ProtoMsg &_msg,
@@ -319,6 +326,7 @@ namespace gz
         this->cb = _cb;
       }
 
+#ifdef HAVE_ZENOH
       /// \brief Set the callback for this handler.
       /// \param[in] _cb The callback.
       /// \param[in] _session The Zenoh session.
@@ -344,12 +352,13 @@ namespace gz
           }
         };
 
-        this->zSub_ = std::make_unique<zenoh::Subscriber<void>>(
+        this->zSub = std::make_unique<zenoh::Subscriber<void>>(
           _session->declare_subscriber(
             keyexpr, dataHandler, zenoh::closures::none));
 
         this->SetCallback(std::move(_cb));
       }
+#endif
 
       // Documentation inherited.
       public: bool RunLocalCallback(const ProtoMsg &_msg,

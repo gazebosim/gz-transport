@@ -116,11 +116,13 @@ namespace gz
         /// \param[in] _publisher A message publisher.
         public: explicit Publisher(const MessagePublisher &_publisher);  
 
+#ifdef HAVE_ZENOH
         /// \brief Constructor.
         /// \param[in] _publisher A message publisher.
         /// \param[in] _zPublisher The zenoh publisher.
         public: explicit Publisher(const MessagePublisher &_publisher,
                                    zenoh::Publisher _zPublisher);
+#endif
 
         /// \brief Destructor.
         public: virtual ~Publisher();
