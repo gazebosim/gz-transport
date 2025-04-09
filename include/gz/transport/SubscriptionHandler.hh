@@ -46,6 +46,10 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
+
 namespace gz
 {
   namespace transport
@@ -95,6 +99,11 @@ namespace gz
       /// \brief If throttling is enabled, the minimum period for receiving a
       /// message in nanoseconds.
       protected: double periodNs;
+
+#ifdef HAVE_ZENOH
+      /// \brief The zenoh subscriber handler.
+      protected: std::unique_ptr<zenoh::Subscriber<void>> zSub;
+#endif
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -198,6 +207,34 @@ namespace gz
         this->cb = _cb;
       }
 
+#ifdef HAVE_ZENOH
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback.
+      /// \param[in] _session The Zenoh session.
+      /// \param[in] _topic The topic associated to this callback.
+      public: void SetCallback(const MsgCallback<T> &_cb,
+                               std::shared_ptr<zenoh::Session> _session,
+                               const std::string &_topic)
+      {
+        zenoh::KeyExpr keyexpr(_topic);
+        MessageInfo msgInfo;
+        msgInfo.SetTopic(_topic);
+        msgInfo.SetType(this->TypeName());
+        auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
+        {
+          auto output = this->CreateMsg(
+            _sample.get_payload().as_string(), this->TypeName());
+          this->RunLocalCallback(*output, msgInfo);
+        };
+
+        this->zSub = std::make_unique<zenoh::Subscriber<void>>(
+          _session->declare_subscriber(
+            keyexpr, dataHandler, zenoh::closures::none));
+
+        this->SetCallback(std::move(_cb));
+      }
+#endif
+
       // Documentation inherited.
       public: bool RunLocalCallback(const ProtoMsg &_msg,
                                     const MessageInfo &_info)
@@ -292,6 +329,43 @@ namespace gz
         this->cb = _cb;
       }
 
+#ifdef HAVE_ZENOH
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback.
+      /// \param[in] _session The Zenoh session.
+      /// \param[in] _topic The topic associated to this callback.
+      public: void SetCallback(const MsgCallback<ProtoMsg> &_cb,
+                               std::shared_ptr<zenoh::Session> _session,
+                               const std::string &_topic)
+      {
+        zenoh::KeyExpr keyexpr(_topic);
+        MessageInfo msgInfo;
+        msgInfo.SetTopic(_topic);
+        msgInfo.SetType("google::protobuf::Message");
+        auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
+        {
+          auto attachment = _sample.get_attachment();
+          if (attachment.has_value())
+          {
+            auto output = this->CreateMsg(
+              _sample.get_payload().as_string(), attachment->get().as_string());
+            this->RunLocalCallback(*output, msgInfo);
+          }
+          else
+          {
+            std::cerr << "SubscriptionHandler::SetCallback(): Unable to find "
+                      << "attachment. Ignoring message..." << std::endl;
+          }
+        };
+
+        this->zSub = std::make_unique<zenoh::Subscriber<void>>(
+          _session->declare_subscriber(
+            keyexpr, dataHandler, zenoh::closures::none));
+
+        this->SetCallback(std::move(_cb));
+      }
+#endif
+
       // Documentation inherited.
       public: bool RunLocalCallback(const ProtoMsg &_msg,
                                     const MessageInfo &_info)
@@ -339,6 +413,16 @@ namespace gz
       /// \param[in] _callback The callback function that will be triggered when
       /// a message is received.
       public: void SetCallback(const RawCallback &_callback);
+
+#ifdef HAVE_ZENOH
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback.
+      /// \param[in] _session The Zenoh session.
+      /// \param[in] _topic The topic associated to this callback.
+      public: void SetCallback(const RawCallback &_cb,
+                               std::shared_ptr<zenoh::Session> _session,
+                               const std::string &_topic);
+#endif
 
       /// \brief Executes the raw callback registered for this handler.
       /// \param[in] _msgData Serialized string of message data

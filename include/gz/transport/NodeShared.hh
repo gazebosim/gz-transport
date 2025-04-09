@@ -35,6 +35,10 @@
 #include <vector>
 #include <map>
 
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
+
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/HandlerStorage.hh"
@@ -296,6 +300,16 @@ namespace gz
       /// process.
       /// \return The relay addresses.
       public: std::vector<std::string> GlobalRelays() const;
+
+      /// \brief Gets the current implementation.
+      /// \return The current implementation (e.g.: zeromq, zenoh).
+      public: std::string GzImplementation() const;
+
+#ifdef HAVE_ZENOH
+      /// \brief Get the current Zenoh session.
+      /// \return The Zenoh session.
+      public: std::shared_ptr<zenoh::Session> Session();
+#endif
 
       /// \brief Constructor.
       protected: NodeShared();
