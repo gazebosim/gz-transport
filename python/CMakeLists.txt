@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 
 # Detect if we are doing a standalone build of the bindings, using an external gz-transport
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  cmake_minimum_required(VERSION 3.22.1)
   find_package(gz-cmake4 4.1.0 REQUIRED)
   gz_get_package_xml_version(${CMAKE_SOURCE_DIR}/../package.xml PACKAGE_XML)
   project(gz-transport${PACKAGE_XML_VERSION_MAJOR}-python VERSION ${PACKAGE_XML_VERSION})
