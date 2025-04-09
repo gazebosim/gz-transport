@@ -292,7 +292,7 @@ NodeShared::NodeShared()
     std::cout << "Identity for receiving srv. responses: ["
               << this->responseReceiverId.ToString() << "]" << std::endl;
   }
-  
+
   // Start the service thread.
   this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
 
