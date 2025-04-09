@@ -217,11 +217,14 @@ namespace gz
                                const std::string &_topic)
       {
         zenoh::KeyExpr keyexpr(_topic);
-        auto dataHandler = [this](const zenoh::Sample &_sample)
+        MessageInfo msgInfo;
+        msgInfo.SetTopic(_topic);
+        msgInfo.SetType(this->TypeName());
+        auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
         {
           auto output = this->CreateMsg(
             _sample.get_payload().as_string(), this->TypeName());
-          this->RunLocalCallback(*output, MessageInfo());
+          this->RunLocalCallback(*output, msgInfo);
         };
 
         this->zSub = std::make_unique<zenoh::Subscriber<void>>(
@@ -336,14 +339,17 @@ namespace gz
                                const std::string &_topic)
       {
         zenoh::KeyExpr keyexpr(_topic);
-        auto dataHandler = [this](const zenoh::Sample &_sample)
+        MessageInfo msgInfo;
+        msgInfo.SetTopic(_topic);
+        msgInfo.SetType("google::protobuf::Message");
+        auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
         {
           auto attachment = _sample.get_attachment();
           if (attachment.has_value())
           {
             auto output = this->CreateMsg(
               _sample.get_payload().as_string(), attachment->get().as_string());
-            this->RunLocalCallback(*output, MessageInfo());
+            this->RunLocalCallback(*output, msgInfo);
           }
           else
           {
