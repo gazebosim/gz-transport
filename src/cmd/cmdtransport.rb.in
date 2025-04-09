@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'open3'
+require 'pathname'
 
 # Constants.
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
@@ -31,10 +31,7 @@ class Cmd
     command = args[0]
     exe_name = COMMANDS[command]
 
-    if exe_name[0] == '/'
-      # If the first character is a slash, we'll assume that we've been given an
-      # absolute path to the executable. This is only used during test mode.
-    else
+    unless Pathname.new(exe_name).absolute?
       # We're assuming that the library path is relative to the current
       # location of this script.
       exe_name = File.expand_path(File.join(File.dirname(__FILE__), exe_name))
