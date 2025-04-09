@@ -4,7 +4,7 @@ list(APPEND sources cmd/LogCommandAPI.cc)
 gz_add_component(log SOURCES ${sources} GET_TARGET_NAME log_lib_target)
 
 target_link_libraries(${log_lib_target}
-  PRIVATE SQLite3::SQLite3 zenohcxx::zenohc)
+  PRIVATE SQLite3::SQLite3)
 
 if (HAVE_ZENOH)
   target_link_libraries(${log_lib_target}

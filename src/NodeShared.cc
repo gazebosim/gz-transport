@@ -267,17 +267,16 @@ NodeShared::NodeShared()
   Uuid uuid;
   this->pUuid = uuid.ToString();
 
-  
   // Initialize my discovery services.
   this->dataPtr->msgDiscovery.reset(
       new MsgDiscovery(this->pUuid, this->discoveryIP, this->msgDiscPort));
   this->dataPtr->srvDiscovery.reset(
       new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
-  
+
   // Initialize the 0MQ objects.
   if (!this->InitializeSockets())
     return;
-  
+
   if (this->verbose)
   {
     std::cout << "Current host address: " << this->hostAddr << std::endl;
@@ -296,33 +295,33 @@ NodeShared::NodeShared()
   
   // Start the service thread.
   this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
-  
+
   // Set the callback to notify discovery updates (new topics).
   this->dataPtr->msgDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewConnection, this, std::placeholders::_1));
-  
+
   // Set the callback to notify discovery updates (invalid topics).
   this->dataPtr->msgDiscovery->DisconnectionsCb(
       std::bind(&NodeShared::OnNewDisconnection, this, std::placeholders::_1));
-  
+
   this->dataPtr->msgDiscovery->RegistrationsCb(
       std::bind(&NodeShared::OnNewRegistration, this, std::placeholders::_1));
-  
+
   this->dataPtr->msgDiscovery->UnregistrationsCb(
       std::bind(&NodeShared::OnEndRegistration, this, std::placeholders::_1));
-  
+
   this->dataPtr->msgDiscovery->SubscribersCb(
       std::bind(&NodeShared::OnSubscribers, this));
-  
+
   // Set the callback to notify svc discovery updates (new services).
   this->dataPtr->srvDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
-  
+
   // Set the callback to notify svc discovery updates (invalid services).
   this->dataPtr->srvDiscovery->DisconnectionsCb(
       std::bind(&NodeShared::OnNewSrvDisconnection,
         this, std::placeholders::_1));
-  
+
   // Start the discovery services.
   if (gzImpl == "zeromq")
   {
