@@ -40,16 +40,16 @@ endif()
 
 if (NOT MSVC AND EXISTS "${CMAKE_SOURCE_DIR}/publisher_c.cc")
   add_executable(publisher_c publisher_c.cc)
-  target_link_libraries(publisher_c gz-transport::core zenohcxx::zenohc)
+  target_link_libraries(publisher_c gz-transport::core)
 endif()
 if (NOT MSVC AND EXISTS "${CMAKE_SOURCE_DIR}/publisher_c_fast.cc")
   add_executable(publisher_c_fast publisher_c_fast.cc)
-  target_link_libraries(publisher_c_fast gz-transport::core zenohcxx::zenohc)
+  target_link_libraries(publisher_c_fast gz-transport::core)
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c.cc")
   add_executable(subscriber_c subscriber_c.cc)
-  target_link_libraries(subscriber_c gz-transport::core zenohcxx::zenohc)
+  target_link_libraries(subscriber_c gz-transport::core)
 endif()
 
 if (NOT MSVC AND EXISTS "${CMAKE_SOURCE_DIR}/subscriber_c_slow.cc")
@@ -92,43 +92,50 @@ endif()
 if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async.cc")
   add_executable(requester_async requester_async.cc)
   target_link_libraries(requester_async
-    gz-transport::core zenohcxx::zenohc)
+    gz-transport::core
+    zenohcxx::zenohc)
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/responser_oneway.cc")
   add_executable(responser_oneway responser_oneway.cc)
   target_link_libraries(responser_oneway
-    gz-transport::core zenohcxx::zenohc)
+    gz-transport::core
+    zenohcxx::zenohc)
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/requester_oneway.cc")
   add_executable(requester_oneway requester_oneway.cc)
   target_link_libraries(requester_oneway
-    gz-transport::core zenohcxx::zenohc)
+    gz-transport::core
+    zenohcxx::zenohc)
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/requester_raw.cc")
   add_executable(requester_raw requester_raw.cc)
   target_link_libraries(requester_raw
-    gz-transport::core zenohcxx::zenohc)
+    gz-transport::core
+    zenohcxx::zenohc)
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/responser_no_input.cc")
   add_executable(responser_no_input responser_no_input.cc)
   target_link_libraries(responser_no_input
-    gz-transport::core zenohcxx::zenohc)
+    gz-transport::core
+    zenohcxx::zenohc)
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/requester_no_input.cc")
   add_executable(requester_no_input requester_no_input.cc)
   target_link_libraries(requester_no_input
-    gz-transport::core zenohcxx::zenohc)
+    gz-transport::core
+    zenohcxx::zenohc)
 endif()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/requester_async_no_input.cc")
   add_executable(requester_async_no_input requester_async_no_input.cc)
   target_link_libraries(requester_async_no_input
-    gz-transport::core zenohcxx::zenohc)
+    gz-transport::core
+    zenohcxx::zenohc)
 endif()
 
 # FIXME(chapulina) Linking failure on Windows:
