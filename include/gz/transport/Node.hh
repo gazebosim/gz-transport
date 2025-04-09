@@ -114,7 +114,7 @@ namespace gz
 
         /// \brief Constructor.
         /// \param[in] _publisher A message publisher.
-        public: explicit Publisher(const MessagePublisher &_publisher);  
+        public: explicit Publisher(const MessagePublisher &_publisher);
 
 #ifdef HAVE_ZENOH
         /// \brief Constructor.

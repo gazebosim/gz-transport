@@ -16,8 +16,6 @@
 */
 #include <gz/msgs/empty.pb.h>
 
-#include <zmq.hpp>
-
 #include <chrono>
 #include <cstring>
 #include <iostream>
