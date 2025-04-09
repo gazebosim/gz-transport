@@ -123,6 +123,31 @@ namespace gz
       pimpl->callback = _callback;
     }
 
+#ifdef HAVE_ZENOH
+    /////////////////////////////////////////////////
+    void RawSubscriptionHandler::SetCallback(
+      const RawCallback &_cb,
+      std::shared_ptr<zenoh::Session> _session,
+      const std::string &_topic)
+    {
+      zenoh::KeyExpr keyexpr(_topic);
+      MessageInfo msgInfo;
+      msgInfo.SetTopic(_topic);
+      msgInfo.SetType("google::protobuf::Message");
+      auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
+      {
+        auto payload = _sample.get_payload().as_string();
+        this->RunRawCallback(payload.c_str(), payload.size(), msgInfo);
+      };
+
+      this->zSub = std::make_unique<zenoh::Subscriber<void>>(
+        _session->declare_subscriber(
+          keyexpr, dataHandler, zenoh::closures::none));
+
+      this->SetCallback(std::move(_cb));
+    }
+#endif
+
     /////////////////////////////////////////////////
     bool RawSubscriptionHandler::RunRawCallback(
         const char *_msgData, const size_t _size,

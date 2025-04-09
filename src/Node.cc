@@ -844,7 +844,21 @@ bool Node::SubscribeRaw(
       std::make_shared<RawSubscriptionHandler>(
         this->dataPtr->nUuid, _msgType, _opts);
 
-  handlerPtr->SetCallback(_callback);
+  // Insert the callback into the handler.
+  std::string impl = this->Shared()->GzImplementation();
+  if (impl == "zeromq")
+  {
+    handlerPtr->SetCallback(_callback);
+  }
+#ifdef HAVE_ZENOH
+  else if (impl == "zenoh")
+  {
+    handlerPtr->SetCallback(std::move(_callback),
+      this->Shared()->Session(), fullyQualifiedTopic);
+  }
+#endif
+  else
+    return false;
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 

@@ -414,6 +414,16 @@ namespace gz
       /// a message is received.
       public: void SetCallback(const RawCallback &_callback);
 
+#ifdef HAVE_ZENOH
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback.
+      /// \param[in] _session The Zenoh session.
+      /// \param[in] _topic The topic associated to this callback.
+      public: void SetCallback(const RawCallback &_cb,
+                               std::shared_ptr<zenoh::Session> _session,
+                               const std::string &_topic);
+#endif
+
       /// \brief Executes the raw callback registered for this handler.
       /// \param[in] _msgData Serialized string of message data
       /// \param[in] _size Number of bytes in the serialized message data
