@@ -2005,8 +2005,10 @@ std::string NodeShared::GzImplementation() const
   return this->dataPtr->gzImplementation;
 }
 
+#ifdef HAVE_ZENOH
 /////////////////////////////////////////////////
 std::shared_ptr<zenoh::Session> NodeShared::Session()
 {
   return this->dataPtr->session;
 }
+#endif
