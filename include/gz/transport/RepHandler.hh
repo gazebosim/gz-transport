@@ -141,7 +141,12 @@ namespace gz
           return false;
         }
 
-#if GOOGLE_PROTOBUF_VERSION >= 4022000
+#if GOOGLE_PROTOBUF_VERSION >= 5028000
+        const auto msgReq =
+          google::protobuf::DynamicCastMessage<Req>(&_msgReq);
+        auto msgRep =
+          google::protobuf::DynamicCastMessage<Rep>(&_msgRep);
+#elif GOOGLE_PROTOBUF_VERSION >= 4022000
         auto msgReq =
           google::protobuf::internal::DownCast<const Req*>(&_msgReq);
         auto msgRep = google::protobuf::internal::DownCast<Rep*>(&_msgRep);
@@ -153,6 +158,45 @@ namespace gz
           google::protobuf::internal::down_cast<const Req*>(&_msgReq);
         auto msgRep = google::protobuf::internal::down_cast<Rep*>(&_msgRep);
 #endif
+
+        // Verify the dynamically casted messages are valid
+        if (msgReq == nullptr || msgRep == nullptr)
+        {
+          if (msgReq == nullptr)
+          {
+            if (_msgReq.GetDescriptor() != nullptr)
+            {
+              std::cerr << "RepHandler::RunLocalCallback() error: "
+                        << "Failed to cast the request of the type "
+                        << _msgReq.GetDescriptor()->full_name()
+                        << " to the specified type" << '\n';
+            }
+            else
+            {
+              std::cerr << "RepHandler::RunLocalCallback() error: "
+                        << "Failed to cast the request of an unknown type"
+                        << " to the specified type" << '\n';
+            }
+          }
+          if (msgRep == nullptr)
+          {
+            if (_msgRep.GetDescriptor() != nullptr)
+            {
+              std::cerr << "RepHandler::RunLocalCallback() error: "
+                        << "Failed to cast the response of the type "
+                        << _msgRep.GetDescriptor()->full_name()
+                        << " to the specified type" << '\n';
+            }
+            else
+            {
+              std::cerr << "RepHandler::RunLocalCallback() error: "
+                        << "Failed to cast the response of an unknown type"
+                        << " to the specified type" << '\n';
+            }
+          }
+          std::cerr.flush();
+          return false;
+        }
 
         return this->cb(*msgReq, *msgRep);
       }
