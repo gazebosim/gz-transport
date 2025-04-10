@@ -194,40 +194,6 @@ namespace gz
     }
 
     //////////////////////////////////////////////////
-    // template<typename MessageT>
-    // Node::Subscriber Node::CreateSubscriber(
-    //     const std::string &_topic,
-    //     std::function<void(const MessageT &_msg)> _cb,
-    //     const SubscribeOptions &_opts)
-    // {
-    //   std::function<void(const MessageT &, const MessageInfo &)> f =
-    //     [cb = std::move(_cb)](const MessageT & _internalMsg,
-    //           const MessageInfo &/*_internalInfo*/)
-    //   {
-    //     cb(_internalMsg);
-    //   };
-    //   return this->CreateSubscriber<MessageT>(_topic, f, _opts);
-    // }
-
-    //////////////////////////////////////////////////
-    // template<typename MessageT>
-    // Node::Subscriber Node::CreateSubscriber(
-    //     const std::string &_topic,
-    //     std::function<void(const MessageT &_msg,
-    //                        const MessageInfo &_info)> _cb,
-    //     const SubscribeOptions &_opts)
-    // {
-    //   std::shared_ptr<SubscriptionHandler<MessageT>> subscriptionHandler =
-    //       this->SubscribeImpl<MessageT>(_topic, _cb, _opts);
-    //   if (subscriptionHandler && !subscriptionHandler->HandlerUuid().empty())
-    //     return Node::Subscriber(_topic,
-    //                             subscriptionHandler->NodeUuid(),
-    //                             this->Options(),
-    //                             subscriptionHandler->HandlerUuid());
-    //   return Node::Subscriber();
-    // }
-
-    //////////////////////////////////////////////////
     template<typename RequestT, typename ReplyT>
     bool Node::Advertise(
       const std::string &_topic,

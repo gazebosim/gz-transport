@@ -942,6 +942,77 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
 }
 
 //////////////////////////////////////////////////
+/// \brief Test the bool operator of the Node::Subscriber class
+TEST(NodeSubTest, BoolOperatorTest)
+{
+  transport::Node node;
+  transport::Node::Subscriber sub;
+  EXPECT_FALSE(sub);
+
+  std::function<void(const msgs::Int32 &)> cb =
+    [](const msgs::Int32 &) {};
+  sub = node.CreateSubscriber(g_topic, cb);
+  EXPECT_TRUE(sub);
+}
+
+//////////////////////////////////////////////////
+/// \brief Subscribe to a topic using CreateSubscriber API
+TEST(NodeTest, PubSubWithCreateSubscriber)
+{
+  reset();
+
+  msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  std::mutex mutex;
+  std::condition_variable condition;
+
+  bool executed = false;
+  std::function<void(const msgs::Int32&)> subCb =
+    [&executed, &mutex, &condition](const msgs::Int32 &_msg)
+  {
+    EXPECT_EQ(_msg.data(), data);
+    std::lock_guard<std::mutex> lk(mutex);
+    executed = true;
+    condition.notify_all();
+  };
+
+  {
+    transport::Node::Subscriber sub = node.CreateSubscriber(g_topic, subCb);
+    EXPECT_TRUE(sub);
+
+    // Give some time to the subscribers.
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    // Publish a message.
+    EXPECT_TRUE(pub.Publish(msg));
+
+    // The local publish is asynchronous, which means we need to wait
+    // for the callback.
+    std::unique_lock<std::mutex> lk(mutex);
+    condition.wait(lk, [&executed]{return executed;});
+
+    EXPECT_TRUE(executed);
+  }
+
+  // Publish another message.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // The subscriber went out of scope so it should have already unsubscribed
+  // to the topic. The callback should not be invoked.
+  std::unique_lock<std::mutex> lk(mutex);
+  condition.wait_for(lk, std::chrono::milliseconds(300),
+                     [&executed]{return executed;});
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief Subscribe to a topic using dfferent Subscribe APIs
 TEST(NodeTest, PubSubWithMixedSubscribeAPIs)
 {
@@ -982,6 +1053,7 @@ TEST(NodeTest, PubSubWithMixedSubscribeAPIs)
     condition2.notify_all();
   };
   transport::Node::Subscriber sub2 = node.CreateSubscriber(g_topic, subCb2);
+  EXPECT_TRUE(sub2);
 
   // Subscriber3: Subscribe to topic using CreateSubscriber(...)
   std::mutex mutex3;
@@ -996,6 +1068,7 @@ TEST(NodeTest, PubSubWithMixedSubscribeAPIs)
     condition3.notify_all();
   };
   transport::Node::Subscriber sub3 = node.CreateSubscriber(g_topic, subCb3);
+  EXPECT_TRUE(sub3);
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -1079,61 +1152,6 @@ TEST(NodeTest, PubSubWithMixedSubscribeAPIs)
   reset();
 }
 
-//////////////////////////////////////////////////
-/// \brief Subscribe to a topic using CreateSubscriber API
-TEST(NodeTest, PubSubWithCreateSubscriber)
-{
-  reset();
-
-  msgs::Int32 msg;
-  msg.set_data(data);
-
-  transport::Node node;
-
-  auto pub = node.Advertise<msgs::Int32>(g_topic);
-  EXPECT_TRUE(pub);
-
-  std::mutex mutex;
-  std::condition_variable condition;
-
-  bool executed = false;
-  std::function<void(const msgs::Int32&)> subCb =
-    [&executed, &mutex, &condition](const msgs::Int32 &_msg)
-  {
-    EXPECT_EQ(_msg.data(), data);
-    std::lock_guard<std::mutex> lk(mutex);
-    executed = true;
-    condition.notify_all();
-  };
-
-  {
-    transport::Node::Subscriber sub = node.CreateSubscriber(g_topic, subCb);
-
-    // Give some time to the subscribers.
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    // Publish a message.
-    EXPECT_TRUE(pub.Publish(msg));
-
-    // The local publish is asynchronous, which means we need to wait
-    // for the callback.
-    std::unique_lock<std::mutex> lk(mutex);
-    condition.wait(lk, [&executed]{return executed;});
-
-    EXPECT_TRUE(executed);
-  }
-
-  // Publish another message.
-  EXPECT_TRUE(pub.Publish(msg));
-
-  // The subscriber went out of scope so it should have already unsubscribed
-  // to the topic. The callback should not be invoked.
-  std::unique_lock<std::mutex> lk(mutex);
-  condition.wait_for(lk, std::chrono::milliseconds(300),
-                     [&executed]{return executed;});
-
-  reset();
-}
 
 //////////////////////////////////////////////////
 /// \brief Advertise two topics with the same name. It's not possible to do it

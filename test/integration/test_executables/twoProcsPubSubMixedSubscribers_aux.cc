@@ -19,7 +19,6 @@
 
 #include <atomic>
 #include <chrono>
-#include <functional>
 #include <string>
 
 #include "gz/transport/Node.hh"
@@ -99,17 +98,10 @@ void runSubscriber()
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
   EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
                                 msgs::Vector3d().GetTypeName()));
-
-  std::function<void(const msgs::Vector3d &)> cbCreate =
-    std::bind(&cbCreateSub, std::placeholders::_1);
-
-  transport::Node::Subscriber sub = node.CreateSubscriber(g_topic, cbCreate);
+  transport::Node::Subscriber sub = node.CreateSubscriber(g_topic, cbCreateSub);
   EXPECT_TRUE(sub);
-
-  std::function<void(const msgs::Vector3d &)> cbCreate2 =
-    std::bind(&cbCreateSub2, std::placeholders::_1);
-
-  transport::Node::Subscriber sub2 = node.CreateSubscriber(g_topic, cbCreate2);
+  transport::Node::Subscriber sub2 = node.CreateSubscriber(g_topic,
+      cbCreateSub2);
   EXPECT_TRUE(sub2);
 
   int interval = 100;

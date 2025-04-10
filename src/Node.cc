@@ -272,6 +272,8 @@ Node::Subscriber::~Subscriber()
 //////////////////////////////////////////////////
 bool Node::Subscriber::Unsubscribe()
 {
+  if (!this->Valid())
+    return false;
   return this->dataPtr->shared->Unsubscribe(this->dataPtr->topic,
       this->dataPtr->nUuid, this->dataPtr->nOpts, this->dataPtr->hUuid);
 }
