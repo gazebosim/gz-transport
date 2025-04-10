@@ -258,6 +258,24 @@ namespace gz
         return counter > 0;
       }
 
+      /// \brief Remove a specific handler from a given node.
+      /// \param[in] _topic Topic name.
+      /// \param[in] _nUuid Node's unique identifier.
+      /// \return True when a handler was removed or false otherwise.
+      public: bool RemoveHandlerForNode(const std::string &_topic,
+                                        const std::string &_nUuid,
+                                        const std::string &_hUuid)
+      {
+        if (this->data.find(_topic) == this->data.end())
+          return false;
+
+        auto &m = this->data.at(_topic);
+        if (m.find(_nUuid) == m.end())
+          return false;
+
+        return m.at(_nUuid).erase(_hUuid) > 0;
+      }
+
       /// \brief Stores all the service call data for each topic. The key of
       /// _data is the topic name. The value is another map, where the key is
       /// the node UUID and the value is a smart pointer to the handler.

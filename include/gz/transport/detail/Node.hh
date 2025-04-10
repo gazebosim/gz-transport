@@ -115,6 +115,17 @@ namespace gz
                            const MessageInfo &_info)> _cb,
         const SubscribeOptions &_opts)
     {
+      return this->SubscribeImpl<MessageT>(_topic, _cb, _opts) != nullptr;
+    }
+
+    //////////////////////////////////////////////////
+    template<typename MessageT>
+    std::shared_ptr<SubscriptionHandler<MessageT>> Node::SubscribeImpl(
+        const std::string &_topic,
+        std::function<void(const MessageT &_msg,
+                           const MessageInfo &_info)> _cb,
+        const SubscribeOptions &_opts)
+    {
       // Topic remapping.
       std::string topic = _topic;
       this->Options().TopicRemap(_topic, topic);
@@ -124,7 +135,7 @@ namespace gz
         this->Options().NameSpace(), topic, fullyQualifiedTopic))
       {
         std::cerr << "Topic [" << topic << "] is not valid." << std::endl;
-        return false;
+        return nullptr;
       }
 
       // Create a new subscription handler.
@@ -143,7 +154,10 @@ namespace gz
       this->Shared()->localSubscribers.normal.AddHandler(
         fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
 
-      return this->SubscribeHelper(fullyQualifiedTopic);
+      if (!this->SubscribeHelper(fullyQualifiedTopic))
+        return nullptr;
+
+      return subscrHandlerPtr;
     }
 
     //////////////////////////////////////////////////
@@ -163,8 +177,53 @@ namespace gz
         cb(_internalMsg, _internalInfo);
       };
 
-      return this->Subscribe<MessageT>(_topic, f, _opts);
+      return this->SubscribeImpl<MessageT>(_topic, f, _opts) != nullptr;
     }
+
+    //////////////////////////////////////////////////
+    template<typename MessageT>
+    Node::Subscriber Node::CreateSubscriber(
+        const std::string &_topic,
+        std::function<void(const MessageT &_msg)> _cb,
+        const SubscribeOptions &_opts)
+    {
+      std::function<void(const MessageT &, const MessageInfo &)> f =
+        [cb = std::move(_cb)](const MessageT & _internalMsg,
+              const MessageInfo &/*_internalInfo*/)
+      {
+        cb(_internalMsg);
+      };
+      return this->CreateSubscriber<MessageT>(_topic, f, _opts);
+    }
+
+    //////////////////////////////////////////////////
+    template<typename MessageT>
+    Node::Subscriber Node::CreateSubscriber(
+        const std::string &_topic,
+        std::function<void(const MessageT &_msg,
+                           const MessageInfo &_info)> _cb,
+        const SubscribeOptions &_opts)
+    {
+      std::shared_ptr<SubscriptionHandler<MessageT>> subscriptionHandler =
+          this->SubscribeImpl<MessageT>(_topic, _cb, _opts);
+      if (subscriptionHandler && !subscriptionHandler->HandlerUuid().empty())
+        return Node::Subscriber(_topic,
+                                subscriptionHandler->NodeUuid(),
+                                this->Options(),
+                                subscriptionHandler->HandlerUuid());
+      return Node::Subscriber();
+    }
+
+    // template <typename ...Args>
+    // Subscriber Node::CreateSubscriber(Args && ...args)
+    // {
+    //   if (this->Subscribe(std::forward<Args>(args)...))
+    //   {
+    //     std::cerr << " success " << std::endl;
+    //   }
+    //   return Node::Subscriber();
+    //   // return Node::Subscriber();
+    // }
 
     //////////////////////////////////////////////////
     template<typename RequestT, typename ReplyT>

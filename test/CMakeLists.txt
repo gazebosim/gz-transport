@@ -20,6 +20,7 @@ target_compile_definitions(test_config INTERFACE
   "PUB_THROTTLED_EXE=\"$<TARGET_FILE:pub_aux_throttled>\""
   "SCOPED_TOPIC_SUBSCRIBER_EXE=\"$<TARGET_FILE:scopedTopicSubscriber_aux>\""
   "TWO_PROCS_PUBLISHER_EXE=\"$<TARGET_FILE:twoProcsPublisher_aux>\""
+  "TWO_PROCS_PUB_SUB_MIXED_SUBSCRIBERS_EXE=\"$<TARGET_FILE:twoProcsPubSubMixedSubscribers_aux>\""
   "TWO_PROCS_PUB_SUB_SINGLE_SUBSCRIBER_EXE=\"$<TARGET_FILE:twoProcsPubSubSingleSubscriber_aux>\""
   "TWO_PROCS_PUB_SUB_SUBSCRIBER_EXE=\"$<TARGET_FILE:twoProcsPubSubSubscriber_aux>\""
   "TWO_PROCS_SRV_CALL_REPLIER_EXE=\"$<TARGET_FILE:twoProcsSrvCallReplier_aux>\""

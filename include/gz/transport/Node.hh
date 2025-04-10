@@ -86,6 +86,7 @@ namespace gz
     class GZ_TRANSPORT_VISIBLE Node
     {
       class PublisherPrivate;
+      class SubscriberPrivate;
 
       /// \brief A class that is used to store information about an
       /// advertised publisher. An instance of this class is returned
@@ -193,6 +194,61 @@ namespace gz
 #pragma warning(disable: 4251)
 #endif
         private: std::shared_ptr<PublisherPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
+      };
+
+      public: class GZ_TRANSPORT_VISIBLE Subscriber
+      {
+        /// \brief Default constructor.
+        public: Subscriber();
+
+        /// \brief Constructor
+        /// \param[in] _topic Subscribed topic name
+        /// \param[in] _nUuid Node to which this subscriber belongs
+        /// \param[in] _nOpts Node options for the node
+        /// \param[in] _hUuid Subscriber's handler UUID
+        public: Subscriber(const std::string &_topic,
+                           const std::string &_nUuid,
+                           const NodeOptions &_nOpts,
+                           const std::string &_hUuid);
+
+        /// \brief Destructor.
+        /// Unsubscribe to the topic and remove the subcription handler
+        public: virtual ~Subscriber();
+
+        /// \brief Unsubscribe from the topic.
+        /// \return True if the topic was successfully unsubscribed
+        public: bool Unsubscribe();
+
+        /// \brief Allows this class to be evaluated as a boolean.
+        /// \return True if valid
+        /// \sa Valid
+        public: operator bool();
+
+        /// \brief Allows this class to be evaluated as a boolean (const).
+        /// \return True if valid
+        /// \sa Valid
+        public: operator bool() const;
+
+        /// \brief Return true if valid information, such as a non-empty
+        /// topic name, is present.
+        /// \return True if this object can be used in Publish() calls.
+        public: bool Valid() const;
+
+        /// \internal
+        /// \brief Smart pointer to private data.
+        /// This is std::shared_ptr because we want to trigger the destructor
+        /// only once: when all references to PublisherPrivate are out of scope.
+        /// The destructor of PublisherPrivate unadvertise the topic.
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::shared_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+        private: std::shared_ptr<SubscriberPrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -336,6 +392,33 @@ namespace gz
                                    const MessageInfo &_info),
           ClassT *_obj,
           const SubscribeOptions &_opts = SubscribeOptions());
+
+      /// \brief
+      /// TODO
+      // public: template <typename ...Args>
+      // Node::Subscriber CreateSubscriber(Args && ...args);
+
+      public: template<typename MessageT>
+      Node::Subscriber CreateSubscriber(
+          const std::string &_topic,
+          std::function<void(const MessageT &_msg)> _callback,
+          const SubscribeOptions &_opts = SubscribeOptions());
+
+      public: template<typename MessageT>
+      Node::Subscriber CreateSubscriber(
+          const std::string &_topic,
+          std::function<void(const MessageT &_msg,
+                             const MessageInfo &_info)> _callback,
+          const SubscribeOptions &_opts = SubscribeOptions());
+
+
+      private: template<typename MessageT>
+      std::shared_ptr<SubscriptionHandler<MessageT>> SubscribeImpl(
+          const std::string &_topic,
+          std::function<void(const MessageT &_msg,
+                             const MessageInfo &_info)> _callback,
+          const SubscribeOptions &_opts = SubscribeOptions());
+
 
       /// \brief Get the list of topics subscribed by this node. Note that
       /// we might be interested in one topic but we still don't know the
@@ -786,7 +869,7 @@ namespace gz
 
       /// \brief Get the set of topics subscribed by this node.
       /// \return The set of subscribed topics.
-      private: std::unordered_set<std::string> &TopicsSubscribed() const;
+      private: std::unordered_set<std::string> TopicsSubscribed() const;
 
       /// \brief Get the set of services advertised by this node.
       /// \return The set of advertised services.
