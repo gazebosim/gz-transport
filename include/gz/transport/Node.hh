@@ -233,15 +233,12 @@ namespace gz
         public: operator bool() const;
 
         /// \brief Return true if valid information, such as a non-empty
-        /// topic name, is present.
-        /// \return True if this object can be used in Publish() calls.
+        /// topic name, node and handler UUIDs.
+        /// \return True if this object has a valid subscription.
         public: bool Valid() const;
 
         /// \internal
         /// \brief Smart pointer to private data.
-        /// This is std::shared_ptr because we want to trigger the destructor
-        /// only once: when all references to PublisherPrivate are out of scope.
-        /// The destructor of PublisherPrivate unadvertise the topic.
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::shared_ptr

@@ -947,12 +947,18 @@ TEST(NodeSubTest, BoolOperatorTest)
 {
   transport::Node node;
   transport::Node::Subscriber sub;
+  const transport::Node::Subscriber sub_const;
   EXPECT_FALSE(sub);
+  EXPECT_FALSE(sub_const);
 
   std::function<void(const msgs::Int32 &)> cb =
     [](const msgs::Int32 &) {};
   sub = node.CreateSubscriber(g_topic, cb);
   EXPECT_TRUE(sub);
+
+  const transport::Node::Subscriber sub2_const =
+      node.CreateSubscriber(g_topic, cb);
+  EXPECT_TRUE(sub2_const);
 }
 
 //////////////////////////////////////////////////
@@ -1151,7 +1157,6 @@ TEST(NodeTest, PubSubWithMixedSubscribeAPIs)
 
   reset();
 }
-
 
 //////////////////////////////////////////////////
 /// \brief Advertise two topics with the same name. It's not possible to do it

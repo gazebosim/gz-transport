@@ -237,7 +237,7 @@ namespace gz
       /// \brief Node options
       public: NodeOptions nOpts;
 
-      /// \brief HandlerUUID
+      /// \brief Handler UUID
       public: std::string hUuid;
     };
     }
@@ -255,7 +255,7 @@ Node::Subscriber::Subscriber(const std::string &_topic,
                              const std::string &_nUuid,
                              const NodeOptions &_nOpts,
                              const std::string &_hUuid)
-  : dataPtr(std::make_unique<SubscriberPrivate>())
+  : dataPtr(std::make_shared<SubscriberPrivate>())
 {
   this->dataPtr->topic = _topic;
   this->dataPtr->nUuid = _nUuid;

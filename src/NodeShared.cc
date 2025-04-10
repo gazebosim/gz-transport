@@ -1598,11 +1598,8 @@ bool NodeShared::HandlerWrapper::RemoveHandlerForNode(
     const std::string &_nUuid,
     const std::string &_hUuid)
 {
-  bool removed = false;
-  removed |= this->normal.RemoveHandlerForNode(_fullyQualifiedTopic, _nUuid, _hUuid);
-  removed |= this->raw.RemoveHandlerForNode(_fullyQualifiedTopic, _nUuid, _hUuid);
-
-  return removed;
+  return this->normal.RemoveHandlerForNode(_fullyQualifiedTopic, _nUuid, _hUuid)
+      || this->raw.RemoveHandlerForNode(_fullyQualifiedTopic, _nUuid, _hUuid);
 }
 
 //////////////////////////////////////////////////
