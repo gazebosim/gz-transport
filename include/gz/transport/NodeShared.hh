@@ -34,6 +34,7 @@
 #include <thread>
 #include <vector>
 #include <map>
+#include <unordered_set>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
