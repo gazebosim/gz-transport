@@ -296,9 +296,7 @@ namespace gz
       /// \brief Subscribe to a topic registering a callback.
       /// This is function is overloaded with different variants of callback
       /// functions.
-      /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _callback Pointer to the callback function. The types
-      /// callbacks function supported are:
+      /// Supported function callbacks are:
       ///   * free function
       ///   * member function
       ///   * lambda function
@@ -306,7 +304,7 @@ namespace gz
       /// the following parameters:
       ///   * _msg Protobuf message containing a new topic update.
       ///   * _info Message information (e.g.: topic name).
-      /// \param[in] _opts Subscription options. This argument is optional.
+      /// \param[in] args Arguments to be forwarded to SubscribeImpl
       /// \return true when successfully subscribed or false otherwise.
       /// \sa SubscriberImpl
       public: template <typename ...Args>
@@ -319,9 +317,7 @@ namespace gz
       /// goes out of scope, it automatically unsubscribes to the topic,
       /// removing just one single subscription handler from the node that it
       /// belongs to.
-      /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _callback Pointer to the callback function. The types
-      /// callbacks function supported are:
+      /// Supported function callbacks are:
       ///   * free function
       ///   * member function
       ///   * lambda function
@@ -329,7 +325,7 @@ namespace gz
       /// the following parameters:
       ///   * _msg Protobuf message containing a new topic update.
       ///   * _info Message information (e.g.: topic name).
-      /// \param[in] _opts Subscription options. This argument is optional.
+      /// \param[in] args Arguments to be forwarded to SubscribeImpl
       /// \return true when successfully subscribed or false otherwise.
       /// \sa SubscriberImpl
       public: template <typename ...Args>
