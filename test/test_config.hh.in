@@ -55,6 +55,10 @@ constexpr const char * kScopedTopicSubscriber = SCOPED_TOPIC_SUBSCRIBER_EXE;
 constexpr const char * kTwoProcsPublisher = TWO_PROCS_PUBLISHER_EXE;
 #endif  // TWO_PROCS_PUBLISHER_EXE
 
+#ifdef TWO_PROCS_PUB_SUB_MIXED_SUBSCRIBERS_EXE
+constexpr const char * kTwoProcsPubSubMixedSubscribers = TWO_PROCS_PUB_SUB_MIXED_SUBSCRIBERS_EXE;
+#endif  // TWO_PROCS_PUB_SUB_MIXED_SUBSCRIBERS_EXE
+
 #ifdef TWO_PROCS_PUB_SUB_SINGLE_SUBSCRIBER_EXE
 constexpr const char * kTwoProcsPubSubSingleSubscriber = TWO_PROCS_PUB_SUB_SINGLE_SUBSCRIBER_EXE;
 #endif  // TWO_PROCS_PUB_SUB_SINGLE_SUBSCRIBER_EXE

@@ -44,21 +44,6 @@ namespace gz
       /// \brief Destructor.
       public: virtual ~NodePrivate() = default;
 
-      /// \brief Helper function for Subscribe.
-      /// \param[in] _fullyQualifiedTopic Fully qualified topic name
-      /// \return True on success.
-      /// \sa TopicUtils::FullyQualifiedName
-      public: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
-
-      /// \brief Helper function to remove handlers from the shared publish
-      /// queue. This is called when the node unsubscribes to a topic
-      /// \param[in] _topic Topic that the node unsubscribed to.
-      /// \return True on success.
-      public: bool RemoveHandlersFromPubQueue(const std::string &_topic);
-
-      /// \brief The list of topics subscribed by this node.
-      public: std::unordered_set<std::string> topicsSubscribed;
-
       /// \brief The list of service calls advertised by this node.
       public: std::unordered_set<std::string> srvsAdvertised;
 
