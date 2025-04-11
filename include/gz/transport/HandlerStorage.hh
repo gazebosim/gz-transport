@@ -261,6 +261,7 @@ namespace gz
       /// \brief Remove a specific handler from a given node.
       /// \param[in] _topic Topic name.
       /// \param[in] _nUuid Node's unique identifier.
+      /// \param[in] _hUuid Handler's unique identifier.
       /// \return True when a handler was removed or false otherwise.
       public: bool RemoveHandlerForNode(const std::string &_topic,
                                         const std::string &_nUuid,

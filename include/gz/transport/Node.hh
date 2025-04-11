@@ -325,6 +325,7 @@ namespace gz
       /// the following parameters:
       ///   * _msg Protobuf message containing a new topic update.
       ///   * _info Message information (e.g.: topic name).
+      /// \param[in] _topic Topic to be subscribed.
       /// \param[in] args Arguments to be forwarded to SubscribeImpl
       /// \return true when successfully subscribed or false otherwise.
       /// \sa SubscriberImpl
