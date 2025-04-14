@@ -113,7 +113,8 @@ class TimeRangeOption::Implementation
     if (!startCompare.empty())
     {
       sql.statement += "time_recv " + startCompare + " ?";
-      sql.parameters.emplace_back(static_cast<int64_t>(start.GetTime()->count()));
+      sql.parameters.emplace_back(static_cast<int64_t>(
+          start.GetTime()->count()));
 
       if (!finishCompare.empty())
         sql.statement += " AND ";
@@ -122,7 +123,8 @@ class TimeRangeOption::Implementation
     if (!finishCompare.empty())
     {
       sql.statement += "time_recv " + finishCompare + " ?";
-      sql.parameters.emplace_back(static_cast<int64_t>(finish.GetTime()->count()));
+      sql.parameters.emplace_back(static_cast<int64_t>(
+          finish.GetTime()->count()));
     }
 
     return sql;
