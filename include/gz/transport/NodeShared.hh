@@ -315,7 +315,7 @@ namespace gz
       /// \brief Get the set of topics subscribed by a node.
       /// \param[in] _nUuid Node UUID.
       /// \return The set of subscribed topics.
-      private: std::unordered_set<std::string> TopicsSubscribed(
+      private: std::unordered_set<std::string> &TopicsSubscribed(
                const std::string &_nUuid) const;
 
       /// \brief Remove a subscribed topic for a node

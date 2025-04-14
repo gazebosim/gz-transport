@@ -2078,16 +2078,11 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-std::unordered_set<std::string> NodeShared::TopicsSubscribed(
+std::unordered_set<std::string> &NodeShared::TopicsSubscribed(
     const std::string &_nUuid) const
 {
   std::lock_guard<std::recursive_mutex> lk(this->mutex);
-  if (this->dataPtr->topicsSubscribed.find(_nUuid) ==
-      this->dataPtr->topicsSubscribed.end())
-  {
-    return {};
-  }
-  return this->dataPtr->topicsSubscribed.at(_nUuid);
+  return this->dataPtr->topicsSubscribed[_nUuid];
 }
 
 //////////////////////////////////////////////////
