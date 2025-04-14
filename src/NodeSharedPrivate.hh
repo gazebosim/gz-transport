@@ -208,10 +208,6 @@ namespace gz
       /// \brief A map of node UUID and its subscribed topics
       public: std::unordered_map<std::string, std::unordered_set<std::string>>
               topicsSubscribed;
-
-      /// \brief An empty set of subscribed topics. This empty set is returned
-      /// a set of subscribed topics with the specified node UUID not available.
-      // public: const std::unordered_set<std::string> kEmptyTopicsSubscribed;
     };
     }
   }
