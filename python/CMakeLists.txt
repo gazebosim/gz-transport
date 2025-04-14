@@ -5,9 +5,9 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   cmake_minimum_required(VERSION 3.22.1)
   find_package(gz-cmake4 4.1.0 REQUIRED)
   gz_get_package_xml_version(${CMAKE_SOURCE_DIR}/../package.xml PACKAGE_XML)
-  project(gz-transport${PACKAGE_XML_VERSION_MAJOR}-python VERSION ${PACKAGE_XML_VERSION})
-  find_package(gz-transport${PROJECT_VERSION_MAJOR} REQUIRED)
-  set(PROJECT_LIBRARY_TARGET_NAME "gz-transport${PROJECT_VERSION_MAJOR}::gz-transport${PROJECT_VERSION_MAJOR}")
+  project(gz-transport-python VERSION ${PACKAGE_XML_VERSION})
+  find_package(gz-transport REQUIRED)
+  set(PROJECT_LIBRARY_TARGET_NAME "gz-transport::gz-transport")
   # require python dependencies to be found
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
   set(CMAKE_REQUIRE_FIND_PACKAGE_pybind11 TRUE)
@@ -48,7 +48,7 @@ set(GZ_PYTHON_INSTALL_PATH "${GZ_PYTHON_INSTALL_PATH}/gz")
 function(configure_build_install_location _library_name)
   # Install library for actual use
   install(TARGETS ${_library_name}
-    DESTINATION "${GZ_PYTHON_INSTALL_PATH}/transport${PROJECT_VERSION_MAJOR}"
+    DESTINATION "${GZ_PYTHON_INSTALL_PATH}/transport"
   )
 endfunction()
 
@@ -73,7 +73,7 @@ configure_build_install_location(${BINDINGS_MODULE_NAME})
 
 install(FILES
   src/__init__.py  
-  DESTINATION "${GZ_PYTHON_INSTALL_PATH}/transport${PROJECT_VERSION_MAJOR}"
+  DESTINATION "${GZ_PYTHON_INSTALL_PATH}/transport"
 )
 
 if (BUILD_TESTING AND NOT WIN32)

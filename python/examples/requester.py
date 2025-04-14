@@ -15,7 +15,7 @@
 
 #! [complete]
 from gz.msgs11.stringmsg_pb2 import StringMsg
-from gz.transport14 import Node
+from gz.transport import Node
 
 def main():
     node = Node()

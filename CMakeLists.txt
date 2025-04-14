@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-transport14 VERSION 14.0.1)
+project(gz-transport VERSION 15.0.0)
 
 #============================================================================
 # Find gz-cmake
@@ -33,7 +33,7 @@ cmake_dependent_option(USE_DIST_PACKAGES_FOR_PYTHON
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX)
+gz_configure_project(VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
