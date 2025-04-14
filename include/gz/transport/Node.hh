@@ -199,6 +199,19 @@ namespace gz
 #endif
       };
 
+      /// \brief A class that is used to store information about an
+      /// subscriber. An instance of this class is returned
+      /// from Node::CreateSubscribe. When the object is destroyed,
+      /// the corresponding subscription handler is removed from the node.
+      ///
+      /// ## Pseudo code example ##
+      ///
+      ///    std::function<void(const msgs::Int32 &)> cb =
+      ///      [](const msgs::Int32 &)
+      ///    {
+      ///      // Do something
+      ///    };
+      ///    Node::Subscriber sub = myNode.CreateSubscriber("topic_name", cb);
       public: class GZ_TRANSPORT_VISIBLE Subscriber
       {
         /// \brief Default constructor.
@@ -312,7 +325,7 @@ namespace gz
 
       /// \brief Create a subscriber to a topic registering a callback
       /// This is function is overloaded with different variants of callback
-      /// functions. It returns a Node::Subscriber object that maintiains the
+      /// functions. It returns a Node::Subscriber object that maintains the
       /// subscription while the object is alive. When the subscriber object
       /// goes out of scope, it automatically unsubscribes to the topic,
       /// removing just one single subscription handler from the node that it

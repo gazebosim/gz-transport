@@ -1593,13 +1593,13 @@ bool NodeShared::HandlerWrapper::RemoveHandlersForNode(
 }
 
 //////////////////////////////////////////////////
-bool NodeShared::HandlerWrapper::RemoveHandlerForNode(
+bool NodeShared::HandlerWrapper::RemoveHandler(
     const std::string &_fullyQualifiedTopic,
     const std::string &_nUuid,
     const std::string &_hUuid)
 {
-  return this->normal.RemoveHandlerForNode(_fullyQualifiedTopic, _nUuid, _hUuid)
-      || this->raw.RemoveHandlerForNode(_fullyQualifiedTopic, _nUuid, _hUuid);
+  return this->normal.RemoveHandler(_fullyQualifiedTopic, _nUuid, _hUuid)
+      || this->raw.RemoveHandler(_fullyQualifiedTopic, _nUuid, _hUuid);
 }
 
 //////////////////////////////////////////////////
@@ -2027,7 +2027,7 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
   }
   else
   {
-    this->localSubscribers.RemoveHandlerForNode(
+    this->localSubscribers.RemoveHandler(
           fullyQualifiedTopic, _nUuid, _hUuid);
   }
 

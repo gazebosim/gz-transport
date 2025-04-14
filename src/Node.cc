@@ -906,7 +906,6 @@ const std::string &Node::NodeUuid() const
 //////////////////////////////////////////////////
 std::unordered_set<std::string> Node::TopicsSubscribed() const
 {
-  // return this->dataPtr->topicsSubscribed;
   return this->dataPtr->shared->TopicsSubscribed(this->dataPtr->nUuid);
 }
 

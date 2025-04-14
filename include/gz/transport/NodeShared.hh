@@ -481,7 +481,7 @@ namespace gz
         /// removed.
         /// \param[in] _hUuid The UUID of the handler to remove.
         /// \return True if the subscriber was removed.
-        public: bool RemoveHandlerForNode(
+        public: bool RemoveHandler(
             const std::string &_fullyQualifiedTopic,
             const std::string &_nUuid,
             const std::string &_hUuid);
