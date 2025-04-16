@@ -475,8 +475,8 @@ namespace gz
 #ifdef HAVE_ZENOH
       else if (impl == "zenoh")
       {      
-      reqHandlerPtr->SetCallback(_cb,
-        this->Shared()->Session(), fullyQualifiedTopic);
+        reqHandlerPtr->SetCallback(_cb,
+          this->Shared()->Session(), fullyQualifiedTopic);
       }
 #endif
 
