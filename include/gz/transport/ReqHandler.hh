@@ -323,7 +323,6 @@ namespace gz
       // Documentation inherited.
       public: void NotifyResult(const std::string &_rep, const bool _result)
       {
-        std::cerr << "ReqHandler::NotifyResult()" << std::endl;
         // Execute the callback (if existing).
         if (this->cb)
         {
