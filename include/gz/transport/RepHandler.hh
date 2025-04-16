@@ -36,6 +36,10 @@
 #include <memory>
 #include <string>
 
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
+
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/TransportTypes.hh"
@@ -128,6 +132,32 @@ namespace gz
       {
         this->cb = _cb;
       }
+
+#ifdef HAVE_ZENOH
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback with the following parameters:
+      public: void SetCallback(
+        const std::function<bool(const Req &, Rep &)> &_cb,
+        std::shared_ptr<zenoh::Session> _session,
+        const std::string &_service)
+      {
+        auto onQuery = [this, _service](const zenoh::Query &_query)
+        {
+          std::string output;
+          this->RunCallback(_query.get_payload()->get().as_string(), output);
+          _query.reply(_service, output);
+        };
+
+        auto onDropQueryable = []() {};
+
+        zenoh::Session::QueryableOptions opts;
+        this->zQueryable = std::make_unique<zenoh::Queryable<void>>(
+          _session->declare_queryable(
+            _service, onQuery, onDropQueryable, std::move(opts)));
+
+        this->SetCallback(std::move(_cb));
+      }
+#endif
 
       // Documentation inherited.
       public: bool RunLocalCallback(const transport::ProtoMsg &_msgReq,
@@ -222,6 +252,11 @@ namespace gz
 
       /// \brief Callback to the function registered for this handler.
       private: std::function<bool(const Req &, Rep &)> cb;
+
+#ifdef HAVE_ZENOH
+      /// \brief Zenoh queriable to receive requests.
+      private: std::unique_ptr<zenoh::Queryable<void>> zQueryable;
+#endif
     };
     }
   }
