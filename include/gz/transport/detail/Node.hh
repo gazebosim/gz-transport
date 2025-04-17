@@ -266,7 +266,7 @@ namespace gz
         repHandlerPtr->SetCallback(_cb);
 #ifdef HAVE_ZENOH
       else if (impl == "zenoh")
-      {      
+      {
         repHandlerPtr->SetCallback(_cb,
           this->Shared()->Session(), fullyQualifiedTopic);
       }
@@ -474,7 +474,7 @@ namespace gz
         reqHandlerPtr->SetCallback(_cb);
 #ifdef HAVE_ZENOH
       else if (impl == "zenoh")
-      {      
+      {
         reqHandlerPtr->SetCallback(_cb,
           this->Shared()->Session(), fullyQualifiedTopic);
       }

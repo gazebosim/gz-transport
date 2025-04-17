@@ -35,6 +35,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
