@@ -31,6 +31,11 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
+
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -223,6 +228,61 @@ namespace gz
       {
         this->cb = _cb;
       }
+
+#ifdef HAVE_ZENOH
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback with the following parameters:
+      /// * _rep Protobuf message containing the service response.
+      /// * _result True when the service request was successful or
+      /// false otherwise.
+      public: void SetCallback(const std::function <void(
+        const Rep &_rep, const bool _result)> &_cb,
+        std::shared_ptr<zenoh::Session> _session,
+        const std::string &_service)
+      {
+        this->SetCallback(std::move(_cb));
+
+        std::mutex m;
+        std::condition_variable doneSignal;
+        bool done = false;
+        auto onReply = [this](const zenoh::Reply &reply)
+        {
+          if (reply.is_ok())
+          {
+            const auto &sample = reply.get_ok();
+            auto msg = this->CreateMsg(sample.get_payload().as_string());
+            this->cb(*msg, true);
+          }
+          else
+          {
+            std::cout << "Received an error :"
+                      << reply.get_err().get_payload().as_string() << "\n";
+          }
+        };
+
+        auto onDone = [&m, &done, &doneSignal]()
+        {
+          std::lock_guard lock(m);
+          done = true;
+          doneSignal.notify_all();
+        };
+
+        zenoh::Session::GetOptions options;
+        std::string payload;
+        this->Serialize(payload);
+
+        if (!payload.empty())
+          options.payload = payload;
+
+        // TODO(caguero): Remove.
+        options.timeout_ms = 2000u;
+        _session->get(_service, "",
+                    onReply, onDone, std::move(options));
+
+        std::unique_lock lock(m);
+        doneSignal.wait(lock, [&done] { return done; });
+      }
+#endif
 
       /// \brief Set the REQ protobuf message for this handler.
       /// \param[in] _reqMsg Protobuf message containing the input parameters of
