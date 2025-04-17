@@ -1,5 +1,3 @@
-# The zenoh formulae are non-standard and download precompiled binaries using
-# a release.json file stored in its tap. In order for brew bundle to work,
-# the tap needs to be placed in a separate brewfile so that the install commands
-# can find the release.json file.
 tap "eclipse-zenoh/zenoh"
+brew "eclipse-zenoh/zenoh/libzenohc"
+brew "eclipse-zenoh/zenoh/libzenohcpp"
