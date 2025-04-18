@@ -108,12 +108,20 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
 
 ########################################
 # Find Zenoh
-find_package(zenohc)
-find_package(zenohcxx)
-if (NOT zenohcxx_DIR)
+
+find_package(zenohc QUIET)
+find_package(zenohcxx QUIET)
+
+# If both zenohc and zenohcpp packages are not found then
+# look for zenoh_cpp_vendor from ROS 2
+if (NOT zenohc_FOUND AND NOT zenohcxx_FOUND)
+  find_package(zenoh_cpp_vendor)
+endif ()
+
+if (NOT zenohcxx_FOUND)
   message (STATUS "Looking for zenohcxx - not found")
   set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
-elseif (NOT zenohc_DIR)
+elseif (NOT zenohc_FOUND)
   message (STATUS "Looking for zenohc - not found")
   set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
 else ()
