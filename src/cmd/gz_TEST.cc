@@ -142,7 +142,7 @@ TEST(gzTest, TopicListSub)
   transport::Node node;
   node.Subscribe("/foo", topicCB);
   node.Subscribe("/bar", genericCb);
-  node.SubscribeRaw("/baz", cbRaw, msgs::StringMsg().GetTypeName());
+  node.SubscribeRaw("/baz", cbRaw, std::string(msgs::StringMsg().GetTypeName()));
   node.Subscribe("/no", topicCB);
   node.Unsubscribe("/no");
 

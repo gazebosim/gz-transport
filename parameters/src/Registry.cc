@@ -144,7 +144,7 @@ bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
       auto * decl = _res.add_parameter_declarations();
       decl->set_name(paramPair.first);
       decl->set_type(addGzMsgsPrefix(
-        paramPair.second->GetDescriptor()->name()));
+        std::string(paramPair.second->GetDescriptor()->name())));
     }
   }
   return true;
@@ -238,7 +238,7 @@ ParametersRegistry::DeclareParameter(
   const std::string & _parameterName,
   const google::protobuf::Message & _msg)
 {
-  auto protoType = addGzMsgsPrefix(_msg.GetDescriptor()->name());
+  auto protoType = addGzMsgsPrefix(std::string(_msg.GetDescriptor()->name()));
   auto newParam = gz::msgs::Factory::New(protoType);
   if (!newParam) {
     return ParameterResult{
@@ -270,7 +270,7 @@ ParametersRegistry::Parameter(
     return ParameterResult{
       ParameterResultType::InvalidType,
       _parameterName,
-      addGzMsgsPrefix(protoType)};
+      addGzMsgsPrefix(std::string(protoType))};
   }
   _parameter.CopyFrom(*it->second);
   return ParameterResult{ParameterResultType::Success};
@@ -290,12 +290,12 @@ ParametersRegistry::Parameter(
       _parameterName};
   }
   const auto & protoType = it->second->GetDescriptor()->name();
-  _parameter = gz::msgs::Factory::New(protoType);
+  _parameter = gz::msgs::Factory::New(std::string(protoType));
   if (!_parameter) {
     return ParameterResult{
       ParameterResultType::InvalidType,
       _parameterName,
-      addGzMsgsPrefix(protoType)};
+      addGzMsgsPrefix(std::string(protoType))};
 
   }
   _parameter->CopyFrom(*it->second);
@@ -320,7 +320,7 @@ ParametersRegistry::SetParameter(
     return ParameterResult{
       ParameterResultType::InvalidType,
       _parameterName,
-      addGzMsgsPrefix(it->second->GetDescriptor()->name())};
+      std::string(addGzMsgsPrefix(std::string(it->second->GetDescriptor()->name())))};
   }
   it->second = std::move(_value);
   return ParameterResult{ParameterResultType::Success};
