@@ -320,7 +320,8 @@ ParametersRegistry::SetParameter(
     return ParameterResult{
       ParameterResultType::InvalidType,
       _parameterName,
-      std::string(addGzMsgsPrefix(std::string(it->second->GetDescriptor()->name())))};
+      std::string(addGzMsgsPrefix(
+            std::string(it->second->GetDescriptor()->name())))};
   }
   it->second = std::move(_value);
   return ParameterResult{ParameterResultType::Success};

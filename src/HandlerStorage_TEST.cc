@@ -234,7 +234,8 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   EXPECT_FALSE(subs.FirstHandler(topic, "incorrect type", handler));
 
   // Now try to retrieve the first callback with the correct type.
-  EXPECT_TRUE(subs.FirstHandler(topic, std::string(msg.GetTypeName()), handler));
+  EXPECT_TRUE(subs.FirstHandler(topic,
+        std::string(msg.GetTypeName()), handler));
 
   // Verify the handler.
   EXPECT_EQ(handler->TypeName(), sub1HandlerPtr->TypeName());

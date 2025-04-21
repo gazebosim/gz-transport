@@ -166,7 +166,8 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
   // Publish messages for a few seconds
   for (auto i = 0; i < 10; ++i)
   {
-    EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), std::string(msg.GetTypeName())));
+    EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
+          std::string(msg.GetTypeName())));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 }
