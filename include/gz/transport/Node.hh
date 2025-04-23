@@ -795,7 +795,7 @@ namespace gz
 
       /// \brief Get the set of topics subscribed by this node.
       /// \return The set of subscribed topics.
-      private: std::unordered_set<std::string> TopicsSubscribed() const;
+      private: std::unordered_set<std::string> &TopicsSubscribed() const;
 
       /// \brief Get the set of services advertised by this node.
       /// \return The set of advertised services.
