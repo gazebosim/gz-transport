@@ -50,7 +50,6 @@ namespace gz
         /// \brief Destructor;
         public: ~MsgIter();
 
-
         /// \cond
         /// \brief Copy-assignment operator
         /// \param[in] _orig the instance being copied
