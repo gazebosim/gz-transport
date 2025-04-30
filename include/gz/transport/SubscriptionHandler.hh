@@ -185,7 +185,7 @@ namespace ignition
       // Documentation inherited.
       public: std::string TypeName()
       {
-        return T().GetTypeName();
+        return std::string(T().GetTypeName());
       }
 
       /// \brief Set the callback for this handler.

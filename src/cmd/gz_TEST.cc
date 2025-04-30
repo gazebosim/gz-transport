@@ -77,8 +77,103 @@ void topicCB(const msgs::StringMsg &_msg)
 }
 
 //////////////////////////////////////////////////
+<<<<<<< HEAD
 /// \brief Check 'ign topic -l' running the advertiser on a different process.
 TEST(ignTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TopicList))
+=======
+/// \brief A generic callback.
+void genericCb(const transport::ProtoMsg &/*_msg*/)
+{
+}
+
+//////////////////////////////////////////////////
+/// \brief A raw callback.
+void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
+           const transport::MessageInfo &/*_info*/)
+{
+}
+
+//////////////////////////////////////////////////
+struct ProcessOutput
+{
+  int code {-1};
+  std::string cout;
+  std::string cerr;
+};
+
+//////////////////////////////////////////////////
+ProcessOutput custom_exec_str(const std::vector<std::string> &_args)
+{
+  auto fullArgs = std::vector<std::string>{test_executables::kGzExe};
+  std::copy(std::begin(_args), std::end(_args), std::back_inserter(fullArgs));
+  fullArgs.emplace_back("--force-version");
+  fullArgs.emplace_back(kGzVersion);
+  auto proc = gz::utils::Subprocess(fullArgs);
+  auto return_code = proc.Join();
+  return {return_code, proc.Stdout(), proc.Stderr()};
+}
+
+//////////////////////////////////////////////////
+std::optional<ProcessOutput>
+exec_with_retry(const std::vector<std::string> &_args,
+                const std::function<bool(ProcessOutput)> &_condition)
+{
+  bool success = false;
+  int retries = 0;
+
+  while (!success && retries++ < 10)
+  {
+    auto output = custom_exec_str(_args);
+    success = _condition(output);
+    if (success)
+      return output;
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  }
+  return {};
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz topic -l' running the advertiser on a different process.
+TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
+{
+  auto proc = gz::utils::Subprocess({
+    test_executables::kTwoProcsPublisher, g_partition});
+
+  auto output = exec_with_retry({"topic", "-l"},
+    [](auto procOut){
+      return procOut.cout == "/foo\n";
+    });
+
+  EXPECT_TRUE(output);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz topic -l' running a subscriber on a different process.
+TEST(gzTest, TopicListSub)
+{
+  transport::Node node;
+  node.Subscribe("/foo", topicCB);
+  node.Subscribe("/bar", genericCb);
+  node.SubscribeRaw("/baz", cbRaw,
+      std::string(msgs::StringMsg().GetTypeName()));
+  node.Subscribe("/no", topicCB);
+  node.Unsubscribe("/no");
+
+  auto output = exec_with_retry({"topic", "-l"},
+    [](auto procOut){
+      return procOut.cout.find("/foo\n") != std::string::npos &&
+             procOut.cout.find("/bar\n") != std::string::npos &&
+             procOut.cout.find("/baz\n") != std::string::npos &&
+             procOut.cout.find("/no\n") == std::string::npos;
+    });
+
+  EXPECT_TRUE(output);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz topic -i' running the advertiser on a different process.
+TEST(gzTest, TopicInfo)
+>>>>>>> 2fde00d (Fix compatibility with protobuf v30 (cpp 6.30.0) - similar to gz-msgs #499 (#615))
 {
   // Launch a new publisher process that advertises a topic.
   std::string publisher_path = testing::portablePathUnion(
