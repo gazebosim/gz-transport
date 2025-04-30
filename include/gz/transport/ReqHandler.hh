@@ -284,13 +284,13 @@ namespace ignition
       // Documentation inherited.
       public: virtual std::string ReqTypeName() const
       {
-        return Req().GetTypeName();
+        return std::string(Req().GetTypeName());
       }
 
       // Documentation inherited.
       public: virtual std::string RepTypeName() const
       {
-        return Rep().GetTypeName();
+        return std::string(Rep().GetTypeName());
       }
 
       /// \brief Protobuf message containing the request's parameters.
@@ -381,7 +381,7 @@ namespace ignition
       public: virtual std::string ReqTypeName() const
       {
         if (this->reqMsg)
-          return this->reqMsg->GetTypeName();
+          return std::string(this->reqMsg->GetTypeName());
         else
         {
           std::cerr << "ReqHandler::ReqTypeName() Warning: Using ReqTypeName() "
@@ -394,7 +394,7 @@ namespace ignition
       public: virtual std::string RepTypeName() const
       {
         if (this->repMsg)
-          return this->repMsg->GetTypeName();
+          return std::string(this->repMsg->GetTypeName());
         else
         {
           std::cerr << "ReqHandler::RepTypeName() Warning: Using RepTypeName() "

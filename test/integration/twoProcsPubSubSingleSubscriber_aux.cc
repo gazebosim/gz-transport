@@ -69,7 +69,7 @@ void runSubscriber()
 
   // Add a raw subscription to `node`
   EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
-                                msgs::Vector3d().GetTypeName()));
+                                std::string(msgs::Vector3d().GetTypeName())));
 
   int interval = 100;
 
