@@ -139,11 +139,10 @@ bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
   // though it's also not wrong.
   {
     std::lock_guard guard{this->parametersMapMutex};
-    for (const auto & paramPair : this->parametersMap)
-    {
+    for (const auto & paramPair : this->parametersMap) {
       auto * decl = _res.add_parameter_declarations();
       decl->set_name(paramPair.first);
-      decl->set_type(addGzMsgsPrefix(
+      decl->set_type(addIgnMsgsPrefix(
         std::string(paramPair.second->GetDescriptor()->name())));
     }
   }
@@ -238,8 +237,8 @@ ParametersRegistry::DeclareParameter(
   const std::string & _parameterName,
   const google::protobuf::Message & _msg)
 {
-  auto protoType = addGzMsgsPrefix(std::string(_msg.GetDescriptor()->name()));
-  auto newParam = gz::msgs::Factory::New(protoType);
+  auto protoType = addIgnMsgsPrefix(std::string(_msg.GetDescriptor()->name()));
+  auto newParam = ignition::msgs::Factory::New(protoType);
   if (!newParam) {
     return ParameterResult{
       ParameterResultType::Unexpected,
@@ -270,7 +269,7 @@ ParametersRegistry::Parameter(
     return ParameterResult{
       ParameterResultType::InvalidType,
       _parameterName,
-      addGzMsgsPrefix(std::string(protoType))};
+      addIgnMsgsPrefix(std::string(protoType))};
   }
   _parameter.CopyFrom(*it->second);
   return ParameterResult{ParameterResultType::Success};
@@ -290,13 +289,12 @@ ParametersRegistry::Parameter(
       _parameterName};
   }
   const auto & protoType = it->second->GetDescriptor()->name();
-  _parameter = gz::msgs::Factory::New(std::string(protoType));
-  if (!_parameter)
-  {
+  _parameter = ignition::msgs::Factory::New(std::string(protoType));
+  if (!_parameter) {
     return ParameterResult{
       ParameterResultType::InvalidType,
       _parameterName,
-      addGzMsgsPrefix(std::string(protoType))};
+      addIgnMsgsPrefix(std::string(protoType))};
   }
   _parameter->CopyFrom(*it->second);
   return ParameterResult{ParameterResultType::Success};
@@ -320,7 +318,7 @@ ParametersRegistry::SetParameter(
     return ParameterResult{
       ParameterResultType::InvalidType,
       _parameterName,
-      std::string(addGzMsgsPrefix(
+      std::string(addIgnMsgsPrefix(
             std::string(it->second->GetDescriptor()->name())))};
   }
   it->second = std::move(_value);
