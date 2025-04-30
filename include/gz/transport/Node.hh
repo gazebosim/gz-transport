@@ -319,7 +319,7 @@ namespace gz
       ///   * _info Message information (e.g.: topic name).
       /// \param[in] args Arguments to be forwarded to SubscribeImpl
       /// \return true when successfully subscribed or false otherwise.
-      /// \sa SubscriberImpl
+      /// \sa SubscribeImpl
       public: template <typename ...Args>
       bool Subscribe(Args && ...args);
 
@@ -341,7 +341,7 @@ namespace gz
       /// \param[in] _topic Topic to be subscribed.
       /// \param[in] args Arguments to be forwarded to SubscribeImpl
       /// \return true when successfully subscribed or false otherwise.
-      /// \sa SubscriberImpl
+      /// \sa SubscribeImpl
       public: template <typename ...Args>
       Node::Subscriber CreateSubscriber(const std::string &_topic,
                                         Args && ...args);
