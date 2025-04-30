@@ -8,5 +8,4 @@ ROS_SETUP_SCRIPT="/opt/ros/${ROS_DISTRO}/setup.bash"
   set -a
   . ${ROS_SETUP_SCRIPT}
   set +a
-  env | grep ROS
 fi
