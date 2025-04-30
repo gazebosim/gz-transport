@@ -115,8 +115,11 @@ find_package(zenohcxx QUIET)
 # If both zenohc and zenohcpp packages are not found then
 # look for zenoh_cpp_vendor from ROS 2
 if (NOT zenohc_FOUND AND NOT zenohcxx_FOUND)
-  list(PREPEND CMAKE_PREFIX_PATH "/opt/ros/$ENV{ROS_DISTRO}")
-  message( "cmake prefix path ${CMAKE_PREFIX_PATH}")
+  set(ros2_zenoh_cmake_path "/opt/ros/$ENV{ROS_DISTRO}/share/zenoh_cpp_vendor/cmake")
+  if (EXISTS ${ros2_zenoh_cmake_path})
+    list(PREPEND CMAKE_PREFIX_PATH ${ros2_zenoh_cmake_path})
+    message( "cmake prefix path ${CMAKE_PREFIX_PATH}")
+  endif()
   find_package(zenoh_cpp_vendor)
 endif ()
 
