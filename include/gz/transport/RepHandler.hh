@@ -237,13 +237,13 @@ namespace gz
       // Documentation inherited.
       public: virtual std::string ReqTypeName() const
       {
-        return Req().GetTypeName();
+        return std::string(Req().GetTypeName());
       }
 
       // Documentation inherited.
       public: virtual std::string RepTypeName() const
       {
-        return Rep().GetTypeName();
+        return std::string(Rep().GetTypeName());
       }
 
       /// \brief Create a specific protobuf message given its serialized data.
