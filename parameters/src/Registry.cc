@@ -139,16 +139,12 @@ bool ParametersRegistryPrivate::ListParameters(const msgs::Empty &,
   // though it's also not wrong.
   {
     std::lock_guard guard{this->parametersMapMutex};
-    for (const auto & paramPair : this->parametersMap) {
+    for (const auto & paramPair : this->parametersMap)
+    {
       auto * decl = _res.add_parameter_declarations();
       decl->set_name(paramPair.first);
-<<<<<<< HEAD
-      decl->set_type(addIgnMsgsPrefix(
-        paramPair.second->GetDescriptor()->name()));
-=======
       decl->set_type(addGzMsgsPrefix(
         std::string(paramPair.second->GetDescriptor()->name())));
->>>>>>> 2fde00d (Fix compatibility with protobuf v30 (cpp 6.30.0) - similar to gz-msgs #499 (#615))
     }
   }
   return true;
@@ -242,13 +238,8 @@ ParametersRegistry::DeclareParameter(
   const std::string & _parameterName,
   const google::protobuf::Message & _msg)
 {
-<<<<<<< HEAD
-  auto protoType = addIgnMsgsPrefix(_msg.GetDescriptor()->name());
-  auto newParam = ignition::msgs::Factory::New(protoType);
-=======
   auto protoType = addGzMsgsPrefix(std::string(_msg.GetDescriptor()->name()));
   auto newParam = gz::msgs::Factory::New(protoType);
->>>>>>> 2fde00d (Fix compatibility with protobuf v30 (cpp 6.30.0) - similar to gz-msgs #499 (#615))
   if (!newParam) {
     return ParameterResult{
       ParameterResultType::Unexpected,
@@ -279,11 +270,7 @@ ParametersRegistry::Parameter(
     return ParameterResult{
       ParameterResultType::InvalidType,
       _parameterName,
-<<<<<<< HEAD
-      addIgnMsgsPrefix(protoType)};
-=======
       addGzMsgsPrefix(std::string(protoType))};
->>>>>>> 2fde00d (Fix compatibility with protobuf v30 (cpp 6.30.0) - similar to gz-msgs #499 (#615))
   }
   _parameter.CopyFrom(*it->second);
   return ParameterResult{ParameterResultType::Success};
@@ -303,21 +290,13 @@ ParametersRegistry::Parameter(
       _parameterName};
   }
   const auto & protoType = it->second->GetDescriptor()->name();
-<<<<<<< HEAD
-  _parameter = ignition::msgs::Factory::New(protoType);
-=======
   _parameter = gz::msgs::Factory::New(std::string(protoType));
->>>>>>> 2fde00d (Fix compatibility with protobuf v30 (cpp 6.30.0) - similar to gz-msgs #499 (#615))
-  if (!_parameter) {
+  if (!_parameter)
+  {
     return ParameterResult{
       ParameterResultType::InvalidType,
       _parameterName,
-<<<<<<< HEAD
-      addIgnMsgsPrefix(protoType)};
-=======
       addGzMsgsPrefix(std::string(protoType))};
->>>>>>> 2fde00d (Fix compatibility with protobuf v30 (cpp 6.30.0) - similar to gz-msgs #499 (#615))
-
   }
   _parameter->CopyFrom(*it->second);
   return ParameterResult{ParameterResultType::Success};
@@ -341,12 +320,8 @@ ParametersRegistry::SetParameter(
     return ParameterResult{
       ParameterResultType::InvalidType,
       _parameterName,
-<<<<<<< HEAD
-      addIgnMsgsPrefix(it->second->GetDescriptor()->name())};
-=======
       std::string(addGzMsgsPrefix(
             std::string(it->second->GetDescriptor()->name())))};
->>>>>>> 2fde00d (Fix compatibility with protobuf v30 (cpp 6.30.0) - similar to gz-msgs #499 (#615))
   }
   it->second = std::move(_value);
   return ParameterResult{ParameterResultType::Success};
