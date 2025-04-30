@@ -423,7 +423,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     };
 
     if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
-          msgBuffer, msgSize, myDeallocator, _msg.GetTypeName()))
+          msgBuffer, msgSize, myDeallocator, std::string(_msg.GetTypeName())))
     {
       return false;
     }

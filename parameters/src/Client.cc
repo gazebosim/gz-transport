@@ -215,7 +215,7 @@ ParametersClient::DeclareParameter(
     return ParameterResult{
       ParameterResultType::InvalidType,
       _parameterName,
-      _msg.GetDescriptor()->name()};
+      std::string(_msg.GetDescriptor()->name())};
   }
   return ParameterResult{ParameterResultType::Unexpected, _parameterName};
 }
