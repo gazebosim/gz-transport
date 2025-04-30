@@ -346,8 +346,9 @@ class MyTestClass
     // Request a valid service using RequestRaw.
     std::string reqStr, repStr, repTypeName;
     req.SerializeToString(&reqStr);
-    EXPECT_TRUE(this->node.RequestRaw(g_topic, reqStr, req.GetTypeName(),
-          rep.GetTypeName(), timeout, repStr, result));
+    EXPECT_TRUE(this->node.RequestRaw(g_topic, reqStr,
+          std::string(req.GetTypeName()),
+          std::string(rep.GetTypeName()), timeout, repStr, result));
     rep.ParseFromString(repStr);
     ASSERT_TRUE(result);
     EXPECT_EQ(rep.data(), data);
@@ -558,7 +559,7 @@ TEST(NodeTest, PubWithoutAdvertise)
   EXPECT_TRUE(node1.SubscribedTopics().empty());
   EXPECT_TRUE(node1.AdvertisedServices().empty());
 
-  auto pub1 = node1.Advertise(g_topic, msg.GetTypeName());
+  auto pub1 = node1.Advertise(g_topic, std::string(msg.GetTypeName()));
   EXPECT_TRUE(pub1);
 
   auto advertisedTopics = node1.AdvertisedTopics();
@@ -747,7 +748,8 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
-  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
+        std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -758,7 +760,8 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
   reset();
 
   // Publish a second message on topic.
-  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
+        std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -787,7 +790,8 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
-  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
+        std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -798,7 +802,8 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
   reset();
 
   // Publish a second message on topic.
-  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
+        std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));

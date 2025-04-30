@@ -166,7 +166,8 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
   // Publish messages for a few seconds
   for (auto i = 0; i < 10; ++i)
   {
-    EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+    EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
+          std::string(msg.GetTypeName())));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 }
@@ -204,7 +205,7 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 
   transport::Node node;
   EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
-                                msgs::Int32().GetTypeName()));
+                                std::string(msgs::Int32().GetTypeName())));
 
   // Wait some time before publishing.
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
@@ -290,7 +291,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
   transport::Node node3;
   EXPECT_TRUE(node1.SubscribeRaw(g_topic, wrongCb, "wrong.msg.type"));
   EXPECT_TRUE(node2.SubscribeRaw(g_topic, correctCb,
-                                 msgs::Vector3d().GetTypeName()));
+                                 std::string(msgs::Vector3d().GetTypeName())));
   EXPECT_TRUE(node3.SubscribeRaw(g_topic, genericCb));
 
 
