@@ -113,9 +113,16 @@ find_package(zenohc QUIET)
 find_package(zenohcxx QUIET)
 
 # If both zenohc and zenohcpp packages are not found then
-# look for zenoh_cpp_vendor from ROS 2
+# look for these pacakages installed by ROS 2 zenoh_cpp_vendor package
 if (NOT zenohc_FOUND AND NOT zenohcxx_FOUND)
-  find_package(zenoh_cpp_vendor)
+  # Set CMAKE_PREFIX_PATH in order to find ROS 2 packages from plain cmake
+  # package, see https://github.com/ament/ament_cmake/issues/304
+  set(ros2_zenoh_cmake_path "/opt/ros/$ENV{ROS_DISTRO}/opt/zenoh_cpp_vendor/lib/cmake")
+  if (EXISTS ${ros2_zenoh_cmake_path})
+    list(PREPEND CMAKE_PREFIX_PATH ${ros2_zenoh_cmake_path})
+    find_package(zenohc QUIET)
+    find_package(zenohcxx QUIET)
+  endif()
 endif ()
 
 if (NOT zenohcxx_FOUND)
