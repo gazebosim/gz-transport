@@ -22,6 +22,18 @@ mkdir ~/gz_transport_tutorial
 cd ~/gz_transport_tutorial
 ```
 
+## Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+- python3-gz-transport15
+
+To install the required package in Linux, run:
+
+```bash
+sudo apt install python3-gz-transport15
+```
+
 ## Publisher
 
 Download the [publisher.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/publisher.py) file within the `gz_transport_tutorial`
@@ -240,8 +252,7 @@ in several places (publisher and subscribers).
 
 We developed a couple of examples that demonstrate this particular issue. Take
 a look at a publisher and subscriber (within the same node) that have race
-conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/data_race_without_mutex.py) file. The proposed solution to this
-issue is to use the `threading` library, you can see the same example with a mutex
+conditions triggered in the [data_race_without_mutex.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/data_race_without_mutex.py) file. The proposed solution to this issue is to use the `threading` library, you can see the same example with a mutex
 in the [data_race_with_mutex.py](https://github.com/gazebosim/gz-transport/blob/main/python/examples/data_race_with_mutex.py) file.
 
 You can run any of those examples by just doing the following in a terminal:

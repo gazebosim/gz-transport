@@ -34,7 +34,8 @@ namespace gz
         const std::string &_topic,
         const AdvertiseMessageOptions &_options)
     {
-      return this->Advertise(_topic, MessageT().GetTypeName(), _options);
+      return this->Advertise(_topic,
+          std::string(MessageT().GetTypeName()), _options);
     }
 
     //////////////////////////////////////////////////
@@ -267,7 +268,8 @@ namespace gz
         this->Shared()->myReplierAddress,
         this->Shared()->replierId.ToString(),
         this->Shared()->pUuid, this->NodeUuid(),
-        RequestT().GetTypeName(), ReplyT().GetTypeName(), _options);
+        std::string(RequestT().GetTypeName()),
+        std::string(ReplyT().GetTypeName()), _options);
 
       if (!this->Shared()->AdvertisePublisher(publisher))
       {
@@ -420,8 +422,8 @@ namespace gz
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
         localResponserFound = this->Shared()->repliers.FirstHandler(
               fullyQualifiedTopic,
-              RequestT().GetTypeName(),
-              ReplyT().GetTypeName(),
+              std::string(RequestT().GetTypeName()),
+              std::string(ReplyT().GetTypeName()),
               repHandler);
       }
 
@@ -458,7 +460,8 @@ namespace gz
         if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
         {
           this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-            RequestT().GetTypeName(), ReplyT().GetTypeName());
+            std::string(RequestT().GetTypeName()),
+            std::string(ReplyT().GetTypeName()));
         }
         else
         {
@@ -551,7 +554,8 @@ namespace gz
       // If the responser is within my process.
       IRepHandlerPtr repHandler;
       if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
-        _request.GetTypeName(), _reply.GetTypeName(), repHandler))
+        std::string(_request.GetTypeName()),
+        std::string(_reply.GetTypeName()), repHandler))
       {
         // There is a responser in my process, let's use it.
         _result = repHandler->RunLocalCallback(_request, _reply);
@@ -567,7 +571,8 @@ namespace gz
       if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
       {
         this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-          _request.GetTypeName(), _reply.GetTypeName());
+          std::string(_request.GetTypeName()),
+          std::string(_reply.GetTypeName()));
       }
       else
       {
