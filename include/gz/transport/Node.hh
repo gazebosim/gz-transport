@@ -26,6 +26,10 @@
 #include <unordered_set>
 #include <vector>
 
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
+
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"

@@ -106,6 +106,37 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
   PKGCONFIG_IGNORE # NOTE: cppzmq does not seem to offer a pkg-config file
   PRETTY CppZMQ)
 
+########################################
+# Find Zenoh
+
+find_package(zenohc QUIET)
+find_package(zenohcxx QUIET)
+
+# If both zenohc and zenohcpp packages are not found then
+# look for these pacakages installed by ROS 2 zenoh_cpp_vendor package
+if (NOT zenohc_FOUND AND NOT zenohcxx_FOUND)
+  # Set CMAKE_PREFIX_PATH in order to find ROS 2 packages from plain cmake
+  # package, see https://github.com/ament/ament_cmake/issues/304
+  set(ros2_zenoh_cmake_path "/opt/ros/$ENV{ROS_DISTRO}/opt/zenoh_cpp_vendor/lib/cmake")
+  if (EXISTS ${ros2_zenoh_cmake_path})
+    list(PREPEND CMAKE_PREFIX_PATH ${ros2_zenoh_cmake_path})
+    find_package(zenohc QUIET)
+    find_package(zenohcxx QUIET)
+  endif()
+endif ()
+
+if (NOT zenohcxx_FOUND)
+  message (STATUS "Looking for zenohcxx - not found")
+  set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
+elseif (NOT zenohc_FOUND)
+  message (STATUS "Looking for zenohc - not found")
+  set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
+else ()
+  message (STATUS "Looking for zenohcxx and zenohc - found")
+  set (HAVE_ZENOH ON CACHE BOOL "HAVE ZENOH" FORCE)
+  list(APPEND EXTRA_TEST_LIB_DEPS "zenohcxx::zenohc")
+endif ()
+
 #--------------------------------------
 # Find uuid
 if (MSVC)

@@ -10,6 +10,11 @@ target_link_libraries(${param_lib_target}
   PUBLIC
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER})
 
+if (HAVE_ZENOH)
+target_link_libraries(${param_lib_target}
+  PUBLIC zenohcxx::zenohc)
+endif()
+
 # Unit tests
 gz_build_tests(
   TYPE "UNIT"
