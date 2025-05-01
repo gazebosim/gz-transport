@@ -45,13 +45,10 @@ library and rebuilding dependencies due to the use of c++11. For
 purposes of this documentation, assuming OS X 10.9 or greater is in
 use. Here are the instructions:
 
-Install homebrew, which should also prompt you to install the XCode
-command-line tools:
-```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
+After installing the [Homebrew package manager](https://brew.sh),
+which should also prompt you to install the XCode command-line tools
+add OSRF packages and run the install command:
 
-Run the following commands:
 ```
 brew tap osrf/simulation
 brew install gz-transport<#>
@@ -81,7 +78,9 @@ which version you need.
 
 # Source Install
 
-## Ubuntu Linux
+## Install Prerequisites
+
+### Ubuntu Linux
 
 For compiling the latest version of Gazebo Transport you will need an
 Ubuntu distribution equal to 24.04 (Noble) or newer.
@@ -97,10 +96,29 @@ Install prerequisites. A clean Ubuntu system will need:
 sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs11-dev libgz-utils3-cli-dev
 ```
 
+### macOS
+
+After installing the [Homebrew package manager](https://brew.sh),
+which should also prompt you to install the XCode command-line tools
+add OSRF packages and run the command to install dependencies:
+
+```
+brew tap osrf/simulation
+brew install --only-dependencies gz-transport<#>
+```
+
+Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
+which version you need.
+
+## Clone, Configure, and Build
+
 Clone the repository
 ```
-git clone https://github.com/gazebosim/gz-transport
+git clone https://github.com/gazebosim/gz-transport -b gz-transport<#>
 ```
+Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
+which version you need. From version 12 use `gz-transport<#>` for lower versions
+use `ign-transport<#>`
 
 Configure and build
 ```
@@ -110,6 +128,13 @@ cd build
 cmake ..
 make
 ```
+
+Optionally, install
+```
+sudo make install
+```
+
+### Configuration options
 
 Configure Gazebo Transport (choose either method a or b below):
 
@@ -159,6 +184,28 @@ modify your `LD_LIBRARY_PATH`:
 echo "export LD_LIBRARY_PATH=<install_path>/local/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
 ```
 
+### Build python bindings separately from main library
+
+If you want to build Python bindings separately from the main gz-transport library
+(for example if you want to build Python bindings for multiple versions of Python),
+you can invoke cmake on the `python` folder instead of the root folder.
+Specify the path to the python executable with which you wish to build bindings
+in the `Python3_EXECUTABLE` cmake variable.
+Specify the install path for the bindings in the `CMAKE_INSTALL_PREFIX`
+variable, and be sure to set your `PYTHONPATH` accordingly after install.
+
+```bash
+cd sdformat
+mkdir build_python3
+cd build_python3
+cmake ../python \
+    -DPython3_EXECUTABLE=/usr/local/bin/python3.12 \
+    -DCMAKE_INSTALL_PREFIX=<prefix>
+```
+
+See the homebrew [sdformat15 formula](https://github.com/osrf/homebrew-simulation/blob/027d06f5be49da1e40d01180aedae7f76dc7ff47/Formula/sdformat15.rb#L12-L56)
+for an example of building bindings for multiple versions of Python.
+
 ### Uninstalling Source-based Install
 
 If you need to uninstall Gazebo Transport or switch back to a
@@ -169,37 +216,6 @@ source, navigate to your source code directory's build folders and run
 cd /tmp/gz-transport/build
 sudo make uninstall
 ```
-
-### macOS
-
-1. Clone the repository
-  ```
-  git clone https://github.com/gazebosim/gz-transport -b gz-transport<#>
-  ```
-  Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
-  which version you need. From version 12 use `gz-transport<#>` for lower versions
-  use `ign-transport<#>`
-
-2. Install dependencies
-  ```
-  brew install --only-dependencies gz-transport<#>
-  ```
-  Be sure to replace `<#>` with a number value, such as 10 or 11, depending on
-  which version you need.
-
-3. Configure and build
-  ```
-  cd gz-transport
-  mkdir build
-  cd build
-  cmake ..
-  make
-  ```
-
-4. Optionally, install
-  ```
-  sudo make install
-  ```
 
 ## Windows
 
