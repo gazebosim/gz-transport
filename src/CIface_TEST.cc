@@ -96,7 +96,7 @@ TEST(CIfaceTest, PubSub)
   msg.SerializeToArray(buffer, size);
 
   EXPECT_EQ(0,
-    gzTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(node, topic, buffer, msg.GetTypeName().data()));
 
   EXPECT_EQ(2, count);
 
@@ -105,7 +105,7 @@ TEST(CIfaceTest, PubSub)
   // Unsubscribe
   ASSERT_EQ(0, gzTransportUnsubscribe(node, topic));
   EXPECT_EQ(0,
-    gzTransportPublish(node, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(node, topic, buffer, msg.GetTypeName().data()));
   EXPECT_EQ(0, count);
 
   free(buffer);
@@ -153,12 +153,12 @@ TEST(CIfaceTest, PubSubPartitions)
 
   // Publish on "bar" partition
   EXPECT_EQ(0,
-    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().data()));
   EXPECT_EQ(1, count);
 
   // Publish on default partition
   EXPECT_EQ(0,
-    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().data()));
   EXPECT_EQ(2, count);
 
   count = 0;
@@ -166,7 +166,7 @@ TEST(CIfaceTest, PubSubPartitions)
   // Unsubscribe
   ASSERT_EQ(0, gzTransportUnsubscribe(nodeBar, topic));
   EXPECT_EQ(0,
-    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().c_str()));
+    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().data()));
   EXPECT_EQ(0, count);
 
   free(buffer);

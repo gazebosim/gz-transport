@@ -67,8 +67,8 @@ TEST(RepStorageTest, RepStorageAPI)
   msgs::Int32 rep1Msg;
   bool result;
   msgs::Vector3d reqMsg;
-  std::string reqType = reqMsg.GetTypeName();
-  std::string rep1Type = rep1Msg.GetTypeName();
+  std::string reqType = std::string(reqMsg.GetTypeName());
+  std::string rep1Type = std::string(rep1Msg.GetTypeName());
 
   reqMsg.set_x(1.0);
   reqMsg.set_y(2.0);
@@ -234,7 +234,8 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   EXPECT_FALSE(subs.FirstHandler(topic, "incorrect type", handler));
 
   // Now try to retrieve the first callback with the correct type.
-  EXPECT_TRUE(subs.FirstHandler(topic, msg.GetTypeName(), handler));
+  EXPECT_TRUE(subs.FirstHandler(topic,
+        std::string(msg.GetTypeName()), handler));
 
   // Verify the handler.
   EXPECT_EQ(handler->TypeName(), sub1HandlerPtr->TypeName());

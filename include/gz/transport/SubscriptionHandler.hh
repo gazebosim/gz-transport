@@ -197,7 +197,7 @@ namespace gz
       // Documentation inherited.
       public: std::string TypeName()
       {
-        return T().GetTypeName();
+        return std::string(T().GetTypeName());
       }
 
       /// \brief Set the callback for this handler.
@@ -251,13 +251,35 @@ namespace gz
         if (!this->UpdateThrottling())
           return true;
 
-#if GOOGLE_PROTOBUF_VERSION >= 4022000
+#if GOOGLE_PROTOBUF_VERSION >= 5028000
+        auto msgPtr = google::protobuf::DynamicCastMessage<T>(&_msg);
+#elif GOOGLE_PROTOBUF_VERSION >= 4022000
         auto msgPtr = google::protobuf::internal::DownCast<const T*>(&_msg);
 #elif GOOGLE_PROTOBUF_VERSION >= 3000000
         auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
 #else
         auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
 #endif
+
+        // Verify the dynamically casted message is valid
+        if (msgPtr == nullptr)
+        {
+          if (_msg.GetDescriptor() != nullptr)
+          {
+            std::cerr << "SubscriptionHandler::RunLocalCallback() error: "
+                      << "Failed to cast the message of the type "
+                      << _msg.GetDescriptor()->full_name()
+                      << " to the specified type" << '\n';
+          }
+          else
+          {
+            std::cerr << "SubscriptionHandler::RunLocalCallback() error: "
+                      << "Failed to cast the message of an unknown type"
+                      << " to the specified type" << '\n';
+          }
+          std::cerr.flush();
+          return false;
+        }
 
         this->cb(*msgPtr, _info);
         return true;
