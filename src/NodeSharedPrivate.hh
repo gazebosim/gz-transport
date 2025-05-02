@@ -30,6 +30,8 @@
 #include <zenoh.hxx>
 #endif
 
+#include "gz/transport/config.hh"
+
 #include "gz/transport/Discovery.hh"
 #include "gz/transport/Node.hh"
 
@@ -217,7 +219,8 @@ namespace gz
 
       /// \brief Underlying middleware implementation.
       /// Supported values are: [zenoh, zeromq].
-      public: std::string gzImplementation = "zeromq";
+      public: std::string gzImplementation =
+                  std::string(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION);
     };
     }
   }

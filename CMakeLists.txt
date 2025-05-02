@@ -72,6 +72,7 @@ gz_find_package(GzProtobuf
 #--------------------------------------
 # Find ZeroMQ
 gz_find_package(ZeroMQ VERSION 4 REQUIRED PRIVATE)
+list(APPEND GZ_TRANSPORT_IMPLEMENTATION_LIST "zeromq")
 
 if (UNIX AND NOT APPLE)
   execute_process(COMMAND lsb_release -cs
@@ -97,7 +98,6 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
 
 ########################################
 # Find Zenoh
-
 gz_find_package(zenohc PRIVATE QUIET)
 gz_find_package(zenohcxx PRIVATE QUIET)
 
@@ -124,6 +124,7 @@ else ()
   message (STATUS "Looking for zenohcxx and zenohc - found")
   set (HAVE_ZENOH ON CACHE BOOL "HAVE ZENOH" FORCE)
   list(APPEND EXTRA_TEST_LIB_DEPS "zenohcxx::zenohc")
+  list(APPEND GZ_TRANSPORT_IMPLEMENTATION_LIST "zenoh")
 endif ()
 
 #--------------------------------------
@@ -169,6 +170,13 @@ gz_find_package(SQLite3
   PRIVATE_FOR log
   PRETTY sqlite3)
 
+#--------------------------------------
+# Check GZ_TRANSPORT_DEFAULT_IMPLEMENTATION value
+set(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION "zeromq" CACHE
+    STRING "Set default gz-transport implementation")
+if (NOT ${GZ_TRANSPORT_DEFAULT_IMPLEMENTATION} IN_LIST GZ_TRANSPORT_IMPLEMENTATION_LIST)
+  message(FATAL_ERROR "Invalid GZ_TRANSPORT_DEFAULT_IMPLMENTATION value: ${GZ_TRANSPORT_DEFAULT_IMPLEMENTATION}")
+endif()
 
 #============================================================================
 # Configure the build
