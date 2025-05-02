@@ -175,7 +175,7 @@ gz_find_package(SQLite3
 set(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION "zeromq" CACHE
     STRING "Set default gz-transport implementation")
 if (NOT ${GZ_TRANSPORT_DEFAULT_IMPLEMENTATION} IN_LIST GZ_TRANSPORT_IMPLEMENTATION_LIST)
-  message(FATAL_ERROR "Invalid GZ_TRANSPORT_DEFAULT_IMPLMENTATION value: ${GZ_TRANSPORT_DEFAULT_IMPLEMENTATION}")
+  message(FATAL_ERROR "Invalid GZ_TRANSPORT_DEFAULT_IMPLEMENTATION value: ${GZ_TRANSPORT_DEFAULT_IMPLEMENTATION}")
 endif()
 
 #============================================================================
