@@ -7,8 +7,6 @@ on:
       - 'ign-transport[0-9]?'
       - 'gz-transport[0-9]?'
       - 'main'
-      # update branch before merging"
-      - 'iche033/zenoh_main_pub_sub'
 
 jobs:
   noble-ci:
