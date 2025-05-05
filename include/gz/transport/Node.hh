@@ -307,21 +307,101 @@ namespace gz
       public: std::vector<std::string> AdvertisedTopics() const;
 
       /// \brief Subscribe to a topic registering a callback.
-      /// This is function is overloaded with different variants of callback
-      /// functions.
-      /// Supported function callbacks are:
-      ///   * free function
-      ///   * member function
-      ///   * lambda function
-      /// The callback function can contain one (_msg) or both (_msg, _info) of
-      /// the following parameters:
+      /// Note that this callback does not include any message information.
+      /// In this version the callback is a free function.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _callback Pointer to the callback function with the
+      /// following parameters:
+      ///   * _msg Protobuf message containing a new topic update.
+      /// \param[in] _opts Subscription options.
+      /// \return true when successfully subscribed or false otherwise.
+      public: template<typename MessageT>
+      bool Subscribe(
+          const std::string &_topic,
+          void(*_callback)(const MessageT &_msg),
+          const SubscribeOptions &_opts = SubscribeOptions());
+
+      /// \brief Subscribe to a topic registering a callback.
+      /// Note that this callback does not include any message information.
+      /// In this version the callback is a lambda function.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _callback Lambda function with the following parameters:
+      ///   * _msg Protobuf message containing a new topic update.
+      /// \param[in] _opts Subscription options.
+      /// \return true when successfully subscribed or false otherwise.
+      public: template<typename MessageT>
+      bool Subscribe(
+          const std::string &_topic,
+          std::function<void(const MessageT &_msg)> _callback,
+          const SubscribeOptions &_opts = SubscribeOptions());
+
+      /// \brief Subscribe to a topic registering a callback.
+      /// Note that this callback does not include any message information.
+      /// In this version the callback is a member function.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _callback Pointer to the callback function with the
+      /// following parameters:
+      ///   * _msg Protobuf message containing a new topic update.
+      /// \param[in] _obj Instance containing the member function.
+      /// \param[in] _opts Subscription options.
+      /// \return true when successfully subscribed or false otherwise.
+      public: template<typename ClassT, typename MessageT>
+      bool Subscribe(
+          const std::string &_topic,
+          void(ClassT::*_callback)(const MessageT &_msg),
+          ClassT *_obj,
+          const SubscribeOptions &_opts = SubscribeOptions());
+
+      /// \brief Subscribe to a topic registering a callback.
+      /// Note that this callback includes message information.
+      /// In this version the callback is a free function.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _callback Pointer to the callback function with the
+      /// following parameters:
       ///   * _msg Protobuf message containing a new topic update.
       ///   * _info Message information (e.g.: topic name).
-      /// \param[in] args Arguments to be forwarded to SubscribeImpl
+      /// \param[in] _opts Subscription options.
       /// \return true when successfully subscribed or false otherwise.
-      /// \sa SubscribeImpl
-      public: template <typename ...Args>
-      bool Subscribe(Args && ...args);
+      public: template<typename MessageT>
+      bool Subscribe(
+          const std::string &_topic,
+          void(*_callback)(const MessageT &_msg, const MessageInfo &_info),
+          const SubscribeOptions &_opts = SubscribeOptions());
+
+      /// \brief Subscribe to a topic registering a callback.
+      /// Note that this callback includes message information.
+      /// In this version the callback is a lambda function.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _callback Lambda function with the following parameters:
+      ///   * _msg Protobuf message containing a new topic update.
+      ///   * _info Message information (e.g.: topic name).
+      /// \param[in] _opts Subscription options.
+      /// \return true when successfully subscribed or false otherwise.
+      public: template<typename MessageT>
+      bool Subscribe(
+          const std::string &_topic,
+          std::function<void(const MessageT &_msg,
+                             const MessageInfo &_info)> _callback,
+          const SubscribeOptions &_opts = SubscribeOptions());
+
+      /// \brief Subscribe to a topic registering a callback.
+      /// Note that this callback includes message information.
+      /// In this version the callback is a member function.
+      /// \param[in] _topic Topic to be subscribed.
+      /// \param[in] _callback Pointer to the callback function with the
+      /// following parameters:
+      ///   * _msg Protobuf message containing a new topic update.
+      ///   * _info Message information (e.g.: topic name).
+      /// \param[in] _obj Instance containing the member function.
+      /// \param[in] _opts Subscription options.
+      /// \return true when successfully subscribed or false otherwise.
+      public: template<typename ClassT, typename MessageT>
+      bool Subscribe(
+          const std::string &_topic,
+          void(ClassT::*_callback)(const MessageT &_msg,
+                                   const MessageInfo &_info),
+          ClassT *_obj,
+          const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Create a subscriber to a topic registering a callback
       /// This is function is overloaded with different variants of callback

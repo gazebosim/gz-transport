@@ -2090,7 +2090,7 @@ bool NodeShared::SubscribeHelper(const std::string &_fullyQualifiedTopic,
   }
 
   // Discover the list of nodes that publish on the topic.
-  return !this->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic);
+  return this->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic);
 }
 
 //////////////////////////////////////////////////
