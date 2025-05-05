@@ -39,10 +39,66 @@ namespace gz
     }
 
     //////////////////////////////////////////////////
-    template <typename ...Args>
-    bool Node::Subscribe(Args && ...args)
+    template<typename MessageT>
+    bool Node::Subscribe(
+        const std::string &_topic,
+        void(*_cb)(const MessageT &_msg),
+        const SubscribeOptions &_opts)
     {
-      return this->SubscribeImpl(std::forward<Args>(args)...) != nullptr;
+      return this->SubscribeImpl(_topic, _cb, _opts) != nullptr;
+    }
+
+    //////////////////////////////////////////////////
+    template<typename MessageT>
+    bool Node::Subscribe(
+        const std::string &_topic,
+        std::function<void(const MessageT &_msg)> _cb,
+        const SubscribeOptions &_opts)
+    {
+      return this->SubscribeImpl(_topic, _cb, _opts) != nullptr;
+    }
+
+    //////////////////////////////////////////////////
+    template<typename ClassT, typename MessageT>
+    bool Node::Subscribe(
+        const std::string &_topic,
+        void(ClassT::*_cb)(const MessageT &_msg),
+        ClassT *_obj,
+        const SubscribeOptions &_opts)
+    {
+      return this->SubscribeImpl(_topic, _cb, _obj, _opts) != nullptr;
+    }
+
+    //////////////////////////////////////////////////
+    template<typename MessageT>
+    bool Node::Subscribe(
+        const std::string &_topic,
+        void(*_cb)(const MessageT &_msg, const MessageInfo &_info),
+        const SubscribeOptions &_opts)
+    {
+      return this->SubscribeImpl(_topic, _cb, _opts) != nullptr;
+    }
+
+    //////////////////////////////////////////////////
+    template<typename MessageT>
+    bool Node::Subscribe(
+        const std::string &_topic,
+        std::function<void(const MessageT &_msg,
+                           const MessageInfo &_info)> _cb,
+        const SubscribeOptions &_opts)
+    {
+      return this->SubscribeImpl(_topic, _cb, _opts) != nullptr;
+    }
+
+    //////////////////////////////////////////////////
+    template<typename ClassT, typename MessageT>
+    bool Node::Subscribe(
+        const std::string &_topic,
+        void(ClassT::*_cb)(const MessageT &_msg, const MessageInfo &_info),
+        ClassT *_obj,
+        const SubscribeOptions &_opts)
+    {
+      return this->SubscribeImpl(_topic, _cb, _obj, _opts) != nullptr;
     }
 
     //////////////////////////////////////////////////

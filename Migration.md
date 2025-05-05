@@ -6,31 +6,6 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
-## Gazebo Transport 14.X to 15.X
-
-### Breaking Changes
-
-1. All variants of the `bool Node::Subscribe` functions are combined into
-   one `bool Subscribe(Args && ...args)` function that forwards arguments to
-   various `Node::SubscribeImpl` private helper functions. All existing
-   `Node::Subscribe` calls should continue to work without code changes.
-   One exception is when the subscribe callback function is an overloaded
-   function, e.g.
-   ```cpp
-   void cb(const msgs::StringMsg_V &_msg);
-   void cb(const msgs::StringMsg_V &_res, const bool _result);
-   ...
-   bool res = node.Subscribe(topic, cb);
-   ```
-   This will now result in a compile error. The fix is to use unique callback
-   function names, eg.
-   ```cpp
-   void topicCb(const msgs::StringMsg_V &_msg);
-   void serviceCb(const msgs::StringMsg_V &_res, const bool _result);
-   ...
-   bool res = node.Subscribe(topic, topicCb);
-   ```
-
 ## Gazebo Transport 11.X to 12.X
 
 ### Deprecated
