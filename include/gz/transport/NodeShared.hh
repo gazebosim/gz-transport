@@ -34,6 +34,7 @@
 #include <thread>
 #include <vector>
 #include <map>
+#include <unordered_set>
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
@@ -42,6 +43,7 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/HandlerStorage.hh"
+#include "gz/transport/NodeOptions.hh"
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/ReqHandler.hh"
@@ -311,6 +313,61 @@ namespace gz
       public: std::shared_ptr<zenoh::Session> Session();
 #endif
 
+      /// \brief Unsubscribe a node from a topic.
+      /// If the handler UUID argument is empty, all subscription handlers in
+      /// the node for the specified topic are removed
+      /// \param[in] _topic Topic name to be unsubscribed.
+      /// \param[in] _nUuid Node UUID.
+      /// \param[in] _nOpt Node options.
+      /// \param[in] _hUuid Hander UUID.
+      /// \return True when successfully unsubscribed or false otherwise.
+      public: bool Unsubscribe(const std::string &_topic,
+                               const std::string &_nUuid,
+                               const NodeOptions &_nOpt,
+                               const std::string &_hUuid = "");
+
+      /// \brief Get the set of topics subscribed by a node.
+      /// \param[in] _nUuid Node UUID.
+      /// \return The set of subscribed topics.
+      private: std::unordered_set<std::string> &TopicsSubscribed(
+               const std::string &_nUuid) const;
+
+      /// \brief Remove a subscribed topic for a node
+      /// \param[in] _topic Topic to remove.
+      /// \param[in] _nUuid Node UUID.
+      /// \return True if the topic is successfully removed, false otherwise.
+      private: bool RemoveSubscribedTopic(const std::string &_topic,
+                                          const std::string &_nUuid);
+
+      /// \brief Helper function to remove handlers from the shared publish
+      /// queue for a node. This is called when the node unsubscribes to a topic
+      /// \param[in] _topic Topic that the node unsubscribed to.
+      /// \param[in] _nUuid Node UUID.
+      /// \return True on success.
+      public: bool RemoveHandlersFromPubQueue(const std::string &_topic,
+                                              const std::string &_nUuid);
+
+      /// \brief Helper function to remove one handler from the shared publish
+      /// queue for a node. This is called when the node unsubscribes to a
+      /// topic for a single handler.
+      /// \param[in] _topic Topic that the node unsubscribed to.
+      /// \param[in] _nUuid Node UUID.
+      /// \param[in] _hUuid Handler UUID.
+      /// \return True on success.
+      public: bool RemoveHandlerFromPubQueue(const std::string &_topic,
+                                             const std::string &_nUuid,
+                                             const std::string &_hUuid);
+
+      /// \brief Helper function for Subscribe. This adds the fully qualified
+      /// topic name to a map of node to topic names, which helps track
+      /// a list of topics subscribed by a node.
+      /// \param[in] _fullyQualifiedTopic Fully qualified topic name
+      /// \param[in] _nUuid Node UUID.
+      /// \return True on success.
+      /// \sa TopicUtils::FullyQualifiedName
+      public: bool SubscribeHelper(const std::string &_fullyQualifiedTopic,
+                                   const std::string &_nUuid);
+
       /// \brief Constructor.
       protected: NodeShared();
 
@@ -398,6 +455,16 @@ namespace gz
         public: bool HasSubscriber(
             const std::string &_fullyQualifiedTopic) const;
 
+        /// \brief Returns true if this wrapper contains any subscriber that
+        /// matches the given fully-qualified topic name and node UUID.
+        /// The message type name of the subscriber is irrelevant.
+        /// \param[in] _fullyQualifiedTopic Fully-qualified topic name
+        /// \param[in] _nUuid Node UUID
+        /// \return True if this contains a matching subscriber, otherwise false
+        public: bool HasSubscriberForNode(
+            const std::string &_fullyQualifiedTopic, const std::string &_nUuid)
+            const;
+
         /// \brief Get a set of node UUIDs for subscribers in this wrapper that
         /// match the topic and message type criteria.
         /// \param[in] _fullyQualifiedTopic Fully-qualified topic name that the
@@ -419,6 +486,19 @@ namespace gz
         public: bool RemoveHandlersForNode(
             const std::string &_fullyQualifiedTopic,
             const std::string &_nUuid);
+
+        /// \brief Remove one handler for the given topic name that belong to
+        /// a specific node.
+        /// \param[in] _fullyQualifiedTopic The fully-qualified name of the
+        /// topic whose subscribers should be removed.
+        /// \param[in] _nUuid The UUID of the node whose subscribers should be
+        /// removed.
+        /// \param[in] _hUuid The UUID of the handler to remove.
+        /// \return True if the subscriber was removed.
+        public: bool RemoveHandler(
+            const std::string &_fullyQualifiedTopic,
+            const std::string &_nUuid,
+            const std::string &_hUuid);
 
         /// \brief Convert all the HandlerStorages into a vector of publishers.
         /// \param[in] _addr The pub/sub address.
