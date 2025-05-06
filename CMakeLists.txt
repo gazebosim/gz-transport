@@ -97,9 +97,8 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
 
 ########################################
 # Find Zenoh
-
-find_package(zenohc QUIET)
-find_package(zenohcxx QUIET)
+gz_find_package(zenohc PRIVATE)
+gz_find_package(zenohcxx PRIVATE)
 
 # If both zenohc and zenohcpp packages are not found then
 # look for these pacakages installed by ROS 2 zenoh_cpp_vendor package
