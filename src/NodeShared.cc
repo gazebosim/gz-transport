@@ -2154,7 +2154,12 @@ bool NodeShared::SubscribeHelper(const std::string &_fullyQualifiedTopic,
   }
 
   // Discover the list of nodes that publish on the topic.
-  return !this->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic);
+  std::string impl = this->GzImplementation();
+  if (impl == "zeromq")
+  {
+    return this->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic);
+  }
+  return true;
 }
 
 //////////////////////////////////////////////////
