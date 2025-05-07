@@ -21,6 +21,9 @@
 #include <climits>
 #include <random>
 #include <string>
+#include <unordered_set>
+
+#include "gz/transport/Helpers.hh"
 
 namespace testing
 {
@@ -38,5 +41,12 @@ namespace testing
     return std::to_string(d(randGenerator));
   }
 }  // namespace testing
+
+#define CHECK_UNSUPPORTED_IMPLEMENTATION(...) \
+if(std::unordered_set<std::string>({__VA_ARGS__}).count(\
+    gz::transport::getTransportImplementation()) != 0) \
+  GTEST_SKIP() << "gz-transport implementation '" \
+      << gz::transport::getTransportImplementation() << "' unsupported";
+
 
 #endif  // GZ_TRANSPORT_TEST_UTILS_HH_

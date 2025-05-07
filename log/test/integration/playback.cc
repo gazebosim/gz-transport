@@ -102,6 +102,8 @@ bool ExpectSameMessages(
 /// the original.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLog))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
@@ -202,6 +204,8 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayNoSuchTopic))
 /// the original.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
@@ -269,6 +273,8 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
 /// that the playback matches the original.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(RemoveTopic))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
@@ -378,6 +384,8 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(RemoveTopic))
 /// the original.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogMoveInstances))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
@@ -448,6 +456,8 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogMoveInstances))
 /// methods to control the playback flow.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
@@ -570,6 +580,8 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
 /// the playback workflow.
 TEST(playback, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ReplayStep))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
@@ -686,6 +698,8 @@ TEST(playback, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ReplayStep))
 /// the playback workflow.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
