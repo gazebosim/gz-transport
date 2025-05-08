@@ -72,6 +72,10 @@ namespace gz
     /// \returns id of current process
     unsigned int GZ_TRANSPORT_VISIBLE getProcessId();
 
+    /// \brief Get the name of the underlying transport implementation
+    /// \returns Name of the transport implementation, e.g. "zeromq", "zenoh"
+    std::string GZ_TRANSPORT_VISIBLE getTransportImplementation();
+
     // Use safer functions on Windows
     #ifdef _MSC_VER
       #define gz_strcat strcat_s

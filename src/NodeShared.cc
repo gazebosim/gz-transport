@@ -307,17 +307,14 @@ NodeShared::NodeShared()
         this, std::placeholders::_1));
 
   // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
-  std::string gzImpl;
-  if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
+  std::string gzImpl = getTransportImplementation();
+  std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
+  if (gzImpl == "zeromq" || gzImpl == "zenoh")
+    this->dataPtr->gzImplementation = gzImpl;
+  else
   {
-    std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
-    if (gzImpl == "zeromq" || gzImpl == "zenoh")
-      this->dataPtr->gzImplementation = gzImpl;
-    else
-    {
-      std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
-                << gzImpl << "]. Ignoring this value" << std::endl;
-    }
+    std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
+              << gzImpl << "]. Ignoring this value" << std::endl;
   }
 
   // Start the discovery services.

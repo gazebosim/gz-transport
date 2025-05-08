@@ -25,6 +25,7 @@
 #include <gz/transport/log/Export.hh>
 #include <gz/transport/log/Playback.hh>
 #include <gz/transport/log/Recorder.hh>
+#include <gz/transport/Helpers.hh>
 #include <gz/transport/Node.hh>
 #include <gz/transport/NodeOptions.hh>
 #include "../Console.hh"
@@ -60,8 +61,16 @@ int recordTopics(const char *_file, const char *_pattern)
 
   transport::log::Recorder recorder;
 
-  if (recorder.AddTopic(regexPattern) < 0)
-    return FAILED_TO_SUBSCRIBE;
+  // Recorder functionality is not working in zenoh implementation yet
+  // Continue executing the rest of this function for the gz_log_record_* ruby
+  // test.
+  // \todo(iche033) Remove this check once supported.
+  if (gz::transport::getTransportImplementation() != "zenoh")
+  {
+    LWRN("Recording is not supported in zenoh\n");
+    if (recorder.AddTopic(regexPattern) < 0)
+      return FAILED_TO_SUBSCRIBE;
+  }
 
   if (recorder.Start(_file) != transport::log::RecorderError::SUCCESS)
     return FAILED_TO_OPEN;

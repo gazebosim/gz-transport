@@ -18,6 +18,8 @@
 #include "cmd/LogCommandAPI.hh"
 #include "gtest/gtest.h"
 
+#include "test_utils.hh"
+
 //////////////////////////////////////////////////
 TEST(LogCommandAPI, Version)
 {
@@ -55,6 +57,7 @@ TEST(LogCommandAPI, PlaybackBadRemap)
 //////////////////////////////////////////////////
 TEST(LogCommandAPI, RecordFailedToOpen)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
   EXPECT_EQ(FAILED_TO_OPEN, recordTopics("!@#$%^&*(:;[{]})?/.'|", ".*"));
 }
 
