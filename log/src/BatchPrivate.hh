@@ -23,28 +23,37 @@
 #include "gz/transport/log/SqlStatement.hh"
 #include "raii-sqlite3.hh"
 
-using namespace gz::transport;
-using namespace gz::transport::log;
-
-/// \brief Private implementation for Batch
-/// \internal
-class gz::transport::log::BatchPrivate
+namespace gz
 {
-  /// \brief constructor
-  /// \param[in] _db an open sqlite3 database handle wrapper
-  /// \param[in] _statements a list of statements to be executed to get messages
-  public: explicit BatchPrivate(
-      const std::shared_ptr<raii_sqlite3::Database> &_db,
-      std::vector<SqlStatement> &&_statements);  // NOLINT(build/c++11)
+  namespace transport
+  {
+    namespace log
+    {
+      // Inline bracket to help doxygen filtering.
+      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+      /// \brief Private implementation for Batch
+      /// \internal
+      class GZ_TRANSPORT_LOG_VISIBLE BatchPrivate
+      {
+        /// \brief constructor
+        /// \param[in] _db an open sqlite3 database handle wrapper
+        /// \param[in] _statements a list of statements to be executed to get messages
+        public: explicit BatchPrivate(
+            const std::shared_ptr<raii_sqlite3::Database> &_db,
+            std::vector<SqlStatement> &&_statements);  // NOLINT(build/c++11)
 
-  /// \brief destructor
-  public: ~BatchPrivate();
+        /// \brief destructor
+        public: ~BatchPrivate();
 
-  /// \brief topic names that should be queried
-  public: std::shared_ptr<std::vector<SqlStatement>> statements;
+        /// \brief topic names that should be queried
+        public: std::shared_ptr<std::vector<SqlStatement>> statements;
 
-  /// \brief SQLite3 database pointer wrapper
-  public: std::shared_ptr<raii_sqlite3::Database> db;
-};
+        /// \brief SQLite3 database pointer wrapper
+        public: std::shared_ptr<raii_sqlite3::Database> db;
+      };
+      }
+    }
+  }
+}
 
 #endif
