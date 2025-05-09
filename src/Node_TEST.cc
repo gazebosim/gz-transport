@@ -963,7 +963,7 @@ TEST(NodeSubTest, BoolOperatorTest)
   EXPECT_TRUE(sub);
 
   EXPECT_TRUE(sub.Unsubscribe());
-  EXPECT_TRUE(sub);
+  EXPECT_FALSE(sub);
 
   const transport::Node::Subscriber sub2_const =
       node.CreateSubscriber(g_topic, cb);
