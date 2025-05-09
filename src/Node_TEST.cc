@@ -958,7 +958,11 @@ TEST(NodeSubTest, BoolOperatorTest)
 
   std::function<void(const msgs::Int32 &)> cb =
     [](const msgs::Int32 &) {};
+
   sub = node.CreateSubscriber(g_topic, cb);
+  EXPECT_TRUE(sub);
+
+  EXPECT_TRUE(sub.Unsubscribe());
   EXPECT_TRUE(sub);
 
   const transport::Node::Subscriber sub2_const =
@@ -994,7 +998,8 @@ TEST(NodeTest, PubSubWithCreateSubscriber)
   };
 
   {
-    transport::Node::Subscriber sub = node.CreateSubscriber(g_topic, subCb);
+    transport::Node::Subscriber sub;
+    sub = node.CreateSubscriber(g_topic, subCb);
     EXPECT_TRUE(sub);
 
     // Give some time to the subscribers.

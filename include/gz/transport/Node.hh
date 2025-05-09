@@ -245,6 +245,11 @@ namespace gz
         /// \sa Valid
         public: operator bool() const;
 
+        /// \brief Move assignment operator
+        /// \param[in] _other The other Node::Subscriber
+        /// \return Reference to this
+        public: Node::Subscriber &operator=(Subscriber &&_other);
+
         /// \brief Return true if valid information, such as a non-empty
         /// topic name, node and handler UUIDs.
         /// \return True if this object has a valid subscription.
