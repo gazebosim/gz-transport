@@ -87,7 +87,7 @@ cc_binary(
         "@gz-msgs//:gzmsgs_proto",
     ],
     deps = [
-        ":transport",
+        ":gz-transport",
         "@gz-utils//cli",
     ],
 )
@@ -103,7 +103,7 @@ cc_binary(
         "@gz-msgs//:gzmsgs_proto",
     ],
     deps = [
-        ":transport",
+        ":gz-transport",
         "@gz-utils//cli",
     ],
 )

@@ -7,7 +7,7 @@ module(
 bazel_dep(name = "cppzmq", version = "4.10.0")
 bazel_dep(name = "googletest", version = "1.14.0")
 bazel_dep(name = "libuuid", version = "2.39.3.bcr.1")
-bazel_dep(name = "libzmq", version = "4.3.5.bcr.1")
+bazel_dep(name = "libzmq", version = "4.3.5.bcr.2")
 bazel_dep(name = "protobuf", version = "29.4", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_proto", version = "7.1.0")
@@ -31,12 +31,8 @@ archive_override(
     urls = ["https://github.com/gazebosim/gz-utils/archive/refs/heads/gz-utils3.tar.gz"],
 )
 
-local_path_override(
+archive_override(
     module_name = "gz-msgs",
-    path = "/usr/local/google/home/shameek/bazel-ws/gz-msgs",
-)
-
-local_path_override(
-    module_name = "libzmq",
-    path = "/usr/local/google/home/shameek/bazel-ws/libzmq",
+    strip_prefix = "gz-msgs-gz-msgs11",
+    urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/gz-msgs11.tar.gz"],
 )
