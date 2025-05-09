@@ -120,6 +120,7 @@ namespace gz
       /// \brief Constructor
       /// \param[in] _publisher The message publisher.
       /// \param[in] _zPub The zenoh publisher.
+      /// \param[in] _zToken The zenoh liveliness token.
       public: explicit PublisherPrivate(const MessagePublisher &_publisher,
                                         zenoh::Publisher _zPub,
                                         zenoh::LivelinessToken _zToken)
