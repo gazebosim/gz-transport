@@ -26,9 +26,6 @@ gz_configure_header(
     name = "Config",
     src = "include/gz/transport/config.hh.in",
     out = "include/gz/transport/config.hh",
-    defines = [
-        "PROJECT_VERSION=14.0.1",
-    ],
     package_xml = "package.xml",
 )
 
