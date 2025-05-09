@@ -1,23 +1,18 @@
-load(
-    "@gz//bazel/skylark:build_defs.bzl",
-    "GZ_FEATURES",
-    "GZ_ROOT",
-    "GZ_VISIBILITY",
-    "cmake_configure_file",
-    "gz_configure_header",
-    "gz_export_header",
-    "gz_include_header",
-)
-load(
-    "@gz//bazel/lint:lint.bzl",
-    "add_lint_tests",
+load("@rules_gazebo//gazebo:headers.bzl", "gz_export_header")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    features = [
+        "layering_check",
+        "parse_headers",
+    ],
 )
 
 gz_export_header(
-    name = "include/gz/transport/parameters/Export.hh",
+    name = "Export",
+    out = "include/gz/transport/parameters/Export.hh",
     export_base = "GZ_TRANSPORT_PARAMETERS",
     lib_name = "gz-transport-parameters",
-    visibility = ["//visibility:private"],
 )
 
 public_headers_no_gen = glob([
@@ -43,9 +38,9 @@ cc_library(
     srcs = sources + private_headers,
     hdrs = public_headers,
     includes = ["include"],
-    visibility = GZ_VISIBILITY,
+    visibility = ["//visibility:public"],
     deps = [
-        GZ_ROOT + "transport",
+        "//:gz-transport",
         "@sqlite3",
     ],
 )
@@ -57,16 +52,9 @@ test_sources = glob(
 [cc_test(
     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
     srcs = [src],
-    env = {
-        "GZ_BAZEL": "1",
-        "GZ_BAZEL_PATH": "transport",
-    },
     deps = [
         ":parameters",
-        GZ_ROOT + "transport/test:utils",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "//test:utils",
+        "@googletest//:gtest_main",
     ],
 ) for src in test_sources]
-
-add_lint_tests()
