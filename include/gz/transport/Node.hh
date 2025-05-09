@@ -245,6 +245,10 @@ namespace gz
         /// \sa Valid
         public: operator bool() const;
 
+        /// \brief Move constructor
+        /// \param[in] _other The other Node::Subscriber
+        public: Subscriber(Subscriber &&_other);
+
         /// \brief Move assignment operator
         /// \param[in] _other The other Node::Subscriber
         /// \return Reference to this

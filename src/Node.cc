@@ -298,6 +298,12 @@ bool Node::Subscriber::Valid() const
 }
 
 //////////////////////////////////////////////////
+Node::Subscriber::Subscriber(Node::Subscriber &&_other)
+{
+  *this = std::move(_other);
+}
+
+//////////////////////////////////////////////////
 Node::Subscriber &Node::Subscriber::operator=(Node::Subscriber &&_other)
 {
   this->dataPtr->topic = _other.dataPtr->topic;
