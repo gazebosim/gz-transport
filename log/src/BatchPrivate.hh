@@ -37,7 +37,8 @@ namespace gz
       {
         /// \brief constructor
         /// \param[in] _db an open sqlite3 database handle wrapper
-        /// \param[in] _statements a list of statements to be executed to get messages
+        /// \param[in] _statements a list of statements to be executed to get
+        ///   messages
         public: explicit BatchPrivate(
             const std::shared_ptr<raii_sqlite3::Database> &_db,
             std::vector<SqlStatement> &&_statements);  // NOLINT(build/c++11)
