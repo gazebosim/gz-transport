@@ -236,6 +236,7 @@ namespace gz
 
         this->zToken = std::make_unique<zenoh::LivelinessToken>(
           _session->liveliness_declare_token(
+            "gz" +
             _topic + "@" +
             "ProcessUUID" + "@" +
             "NodeUUID" + "@" +

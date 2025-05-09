@@ -117,7 +117,7 @@ bool TopicUtils::FullyQualifiedName(const std::string &_partition,
     _name = ns + topic;
 
   // Add the partition prefix.
-  _name.insert(0, "_" + partition + "_");
+  _name.insert(0, "@" + partition + "@");
 
   // Too long string is not valid.
   if (_name.size() > kMaxNameLength)
@@ -132,8 +132,8 @@ bool TopicUtils::DecomposeFullyQualifiedTopic(
     std::string &_partition,
     std::string &_namespaceAndTopic)
 {
-  const std::size_t firstAt = _fullyQualifiedName.find_first_of("_");
-  const std::size_t lastAt = _fullyQualifiedName.find_last_of("_");
+  const std::size_t firstAt = _fullyQualifiedName.find_first_of("@");
+  const std::size_t lastAt = _fullyQualifiedName.find_last_of("@");
 
   if ( firstAt != 0
     || firstAt == lastAt
