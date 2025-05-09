@@ -103,6 +103,9 @@ namespace gz
 #ifdef HAVE_ZENOH
       /// \brief The zenoh subscriber handler.
       protected: std::unique_ptr<zenoh::Subscriber<void>> zSub;
+
+      /// \brief The liveliness token.
+      protected: std::unique_ptr<zenoh::LivelinessToken> zToken;
 #endif
 
 #ifdef _WIN32
@@ -294,9 +297,6 @@ namespace gz
 
       /// \brief Callback to the function registered for this handler.
       private: MsgCallback<T> cb;
-
-      /// \brief The liveliness token.
-      private: std::unique_ptr<zenoh::LivelinessToken> zToken;
     };
 
     /// \brief Specialized template when the user prefers a callbacks that

@@ -95,8 +95,6 @@ namespace gz
 #ifdef HAVE_ZENOH
       /// \Pointer to the Zenoh session.
       public: std::shared_ptr<zenoh::Session> session;
-
-      // public: std::shared_ptr<zenoh.Liveliness> zLivelinessSub;
 #endif
 
       //////////////////////////////////////////////////

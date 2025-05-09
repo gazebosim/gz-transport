@@ -327,11 +327,6 @@ NodeShared::NodeShared()
     this->dataPtr->srvDiscovery->Start();
   }
 
-  // std::cout << "Declaring Liveliness Subscriber on '" << keyexpr.as_string_view() << "'..." << std::endl;
-  // Session::LivelinessSubscriberOptions opts;
-  // opts.history = history;
-  // auto subscriber = session.liveliness_declare_subscriber(keyexpr, &data_handler, closures::none, std::move(opts));
-
   // Create the local publish thread.
   this->dataPtr->pubThread = std::thread(&NodeSharedPrivate::PublishThread,
       this->dataPtr.get());
