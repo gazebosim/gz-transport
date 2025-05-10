@@ -15,10 +15,7 @@ gz_export_header(
     lib_name = "gz-transport-parameters",
 )
 
-public_headers_no_gen = glob([
-    "include/gz/transport/parameters/*.hh",
-    "include/gz/transport/parameters/detail/*.hh",
-])
+public_headers_no_gen = glob(["include/gz/transport/parameters/*.hh"])
 
 private_headers = glob(["src/*.hh"])
 
