@@ -1178,7 +1178,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     this->dataPtr->SecurityOnNewConnection();
 
     // I am not connected to the process.
-    if (!this->connections.HasPublisher(addr))
+    if (!this->connections.HasPublisher(addr) && this->dataPtr->subscriber)
       this->dataPtr->subscriber->connect(addr.c_str());
 
     // Add a new filter for the topic.

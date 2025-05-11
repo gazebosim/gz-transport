@@ -391,6 +391,7 @@ namespace gz
         msgInfo.SetType("google::protobuf::Message");
         auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
         {
+          std::cerr << "dataHandler()" << std::endl;
           auto attachment = _sample.get_attachment();
           if (attachment.has_value())
           {
@@ -409,7 +410,18 @@ namespace gz
           _session->declare_subscriber(
             keyexpr, dataHandler, zenoh::closures::none));
 
+        this->zToken = std::make_unique<zenoh::LivelinessToken>(
+          _session->liveliness_declare_token(
+            "gz" +
+            _topic + "@" +
+            this->ProcUuid() + "@" +
+            this->NodeUuid() + "@" +
+            "sub@" +
+            this->TypeName()));
+
         this->SetCallback(std::move(_cb));
+
+        std::cout << "SetCallback()" << std::endl;
       }
 #endif
 
@@ -417,6 +429,7 @@ namespace gz
       public: bool RunLocalCallback(const ProtoMsg &_msg,
                                     const MessageInfo &_info)
       {
+        std::cout << "RunLocalCallback()" << std::endl;
         // No callback stored.
         if (!this->cb)
         {
