@@ -25,16 +25,24 @@ namespace gz
     {
     /////////////////////////////////////////////////
     SubscriptionHandlerBase::SubscriptionHandlerBase(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const SubscribeOptions &_opts)
       : opts(_opts),
         periodNs(0.0),
         hUuid(Uuid().ToString()),
         lastCbTimestamp(std::chrono::seconds{0}),
+        pUuid(_pUuid),
         nUuid(_nUuid)
     {
       if (this->opts.Throttled())
         this->periodNs = 1e9 / this->opts.MsgsPerSec();
+    }
+
+    /////////////////////////////////////////////////
+    std::string SubscriptionHandlerBase::ProcUuid() const
+    {
+      return this->pUuid;
     }
 
     /////////////////////////////////////////////////
@@ -79,9 +87,10 @@ namespace gz
 
     /////////////////////////////////////////////////
     ISubscriptionHandler::ISubscriptionHandler(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const SubscribeOptions &_opts)
-      : SubscriptionHandlerBase(_nUuid, _opts)
+      : SubscriptionHandlerBase(_pUuid, _nUuid, _opts)
     {
       // Do nothing
     }
@@ -102,10 +111,11 @@ namespace gz
 
     /////////////////////////////////////////////////
     RawSubscriptionHandler::RawSubscriptionHandler(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const std::string &_msgType,
         const SubscribeOptions &_opts)
-      : SubscriptionHandlerBase(_nUuid, _opts),
+      : SubscriptionHandlerBase(_pUuid, _nUuid, _opts),
         pimpl(new Implementation(_msgType))
     {
       // Do nothing

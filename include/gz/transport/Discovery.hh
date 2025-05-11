@@ -78,6 +78,10 @@
 #include "gz/transport/TopicStorage.hh"
 #include "gz/transport/TransportTypes.hh"
 
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
+
 namespace gz
 {
   namespace transport
@@ -277,6 +281,21 @@ namespace gz
         }
       }
 
+      //////////////////////////////////////////////////
+      private: void LivelinessDataHandler(const zenoh::Sample &_sample)
+      {
+        if (_sample.get_kind() == Z_SAMPLE_KIND_PUT)
+        {
+          std::cerr << ">> [LivelinessSubscriber] New alive token ('"
+                    << _sample.get_keyexpr().as_string_view() << "')\n";
+        }
+        else if (_sample.get_kind() == Z_SAMPLE_KIND_DELETE)
+        {
+          std::cerr << ">> [LivelinessSubscriber] Dropped token ('"
+                    << _sample.get_keyexpr().as_string_view() << "')\n";
+        }
+      }
+
       /// \brief Start the discovery service. You probably want to register the
       /// callbacks for receiving discovery notifications before starting the
       /// service.
@@ -298,6 +317,20 @@ namespace gz
 
         // Start the thread that receives discovery information.
         this->threadReception = std::thread(&Discovery::RecvMessages, this);
+      }
+
+      /// \brief Start the graph cache.
+      public: void Start(std::shared_ptr<zenoh::Session> _session)
+      {
+        zenoh::Session::LivelinessSubscriberOptions opts;
+        opts.history = true;
+        this->livelinessSubscriber = std::make_unique<zenoh::Subscriber<void>>(
+          _session->liveliness_declare_subscriber(
+            "**", std::bind(&Discovery::LivelinessDataHandler,
+            this, std::placeholders::_1), zenoh::closures::none,
+            std::move(opts)));
+
+        std::cerr << "Graph Cache initialized" << std::endl;
       }
 
       /// \brief Advertise a new message.
@@ -1585,6 +1618,9 @@ namespace gz
 
       /// \brief When true, the service is enabled.
       private: bool enabled;
+
+      /// \brief The liveliness subscriber.
+      private: std::unique_ptr<zenoh::Subscriber<void>> livelinessSubscriber;
     };
 
     /// \def MsgDiscovery

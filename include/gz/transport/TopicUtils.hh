@@ -129,6 +129,17 @@ namespace gz
         std::string &_partition,
         std::string &_namespaceAndTopic);
 
+      /// \brief ToDo
+      public: static bool DecomposeLivelinessToken(
+        const std::string &_token,
+        std::string &_prefix,
+        std::string &_partition,
+        std::string &_namespaceAndTopic,
+        std::string &_pUUID,
+        std::string &_nUUID,
+        std::string &_entityType,
+        std::string &_msgType);
+
       /// \brief Convert a topic name to a valid topic. The input topic is
       /// modified by:
       /// * turning white space into `_`.

@@ -247,6 +247,20 @@ NodeShared::NodeShared()
     this->dataPtr->topicStatsEnabled = (gzStats == "1");
   }
 
+  // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
+  std::string gzImpl;
+  if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
+  {
+    std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
+    if (gzImpl == "zeromq" || gzImpl == "zenoh")
+      this->dataPtr->gzImplementation = gzImpl;
+    else
+    {
+      std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
+                << gzImpl << "]. Ignoring this value" << std::endl;
+    }
+  }
+
   // My process UUID.
   Uuid uuid;
   this->pUuid = uuid.ToString();
@@ -254,8 +268,12 @@ NodeShared::NodeShared()
   // Initialize my discovery services.
   this->dataPtr->msgDiscovery.reset(
       new MsgDiscovery(this->pUuid, this->discoveryIP, this->msgDiscPort));
-  this->dataPtr->srvDiscovery.reset(
+
+  if (this->GzImplementation() == "zeromq")
+  {
+    this->dataPtr->srvDiscovery.reset(
       new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
+  }
 
   // Initialize the 0MQ objects.
   if (!this->InitializeSockets())
@@ -297,34 +315,24 @@ NodeShared::NodeShared()
   this->dataPtr->msgDiscovery->SubscribersCb(
       std::bind(&NodeShared::OnSubscribers, this));
 
-  // Set the callback to notify svc discovery updates (new services).
-  this->dataPtr->srvDiscovery->ConnectionsCb(
-      std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
-
-  // Set the callback to notify svc discovery updates (invalid services).
-  this->dataPtr->srvDiscovery->DisconnectionsCb(
-      std::bind(&NodeShared::OnNewSrvDisconnection,
-        this, std::placeholders::_1));
-
-  // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
-  std::string gzImpl;
-  if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
-  {
-    std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
-    if (gzImpl == "zeromq" || gzImpl == "zenoh")
-      this->dataPtr->gzImplementation = gzImpl;
-    else
-    {
-      std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
-                << gzImpl << "]. Ignoring this value" << std::endl;
-    }
-  }
-
-  // Start the discovery services.
   if (this->GzImplementation() == "zeromq")
   {
+    // Set the callback to notify svc discovery updates (new services).
+    this->dataPtr->srvDiscovery->ConnectionsCb(
+        std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
+
+    // Set the callback to notify svc discovery updates (invalid services).
+    this->dataPtr->srvDiscovery->DisconnectionsCb(
+        std::bind(&NodeShared::OnNewSrvDisconnection,
+          this, std::placeholders::_1));
+
+    // Start the discovery services.
     this->dataPtr->msgDiscovery->Start();
     this->dataPtr->srvDiscovery->Start();
+  }
+  else if (this->GzImplementation() == "zenoh")
+  {
+    this->dataPtr->msgDiscovery->Start(this->Session());
   }
 
   // Create the local publish thread.

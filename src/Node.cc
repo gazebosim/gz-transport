@@ -569,7 +569,6 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       zenoh::Publisher::PutOptions options;
       // Add message type as an attachment.
       options.attachment =
-        "gz" +
         this->dataPtr->publisher.Topic() + "@" +
         this->dataPtr->publisher.PUuid() + "@" +
         this->dataPtr->publisher.NUuid() + "@" +
@@ -881,7 +880,7 @@ bool Node::SubscribeRaw(
 
   const std::shared_ptr<RawSubscriptionHandler> handlerPtr =
       std::make_shared<RawSubscriptionHandler>(
-        this->dataPtr->nUuid, _msgType, _opts);
+        this->Shared()->pUuid, this->dataPtr->nUuid, _msgType, _opts);
 
   // Insert the callback into the handler.
   std::string impl = this->Shared()->GzImplementation();
@@ -1164,9 +1163,11 @@ Node::Publisher Node::Advertise(const std::string &_topic,
      zenoh::KeyExpr(fullyQualifiedTopic));
 
     auto zToken = this->Shared()->dataPtr->session->liveliness_declare_token(
+      "gz" +
       fullyQualifiedTopic + "@" +
       this->Shared()->pUuid + "@" +
       this->NodeUuid() + "@" +
+      "pub@" +
       _msgTypeName);
 
     return Publisher(publisher, std::move(zPub), std::move(zToken));
