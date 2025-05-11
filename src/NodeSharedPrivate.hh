@@ -33,7 +33,6 @@
 #endif
 
 #include "gz/transport/Discovery.hh"
-#include "gz/transport/GraphCache.hh"
 #include "gz/transport/Node.hh"
 
 namespace gz
@@ -71,7 +70,6 @@ namespace gz
                 responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
                 replier(new zmq::socket_t(*context, ZMQ_ROUTER))
       {
-        // this->graphCache = std::make_unique<GraphCache>(this->session);
       }
 
       /// \brief Initialize security
@@ -226,9 +224,6 @@ namespace gz
       /// \brief Underlying middleware implementation.
       /// Supported values are: [zenoh, zeromq].
       public: std::string gzImplementation = "zeromq";
-
-      /// \brief Graph cache.
-      // public: std::unique_ptr<GraphCache> graphCache;
     };
     }
   }
