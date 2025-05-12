@@ -54,7 +54,6 @@ class PubSubTEST(unittest.TestCase):
     # Check that the publisher publishes a message of the appropriate type
     # but doesn't publish when the message is not the appropriate type.
     def test_publish_msg(self):
-        # if transport_implementation() == "zenoh":
         string_msg = StringMsg()
         string_msg.data = "Hello"
         self.assertTrue(self.pub.publish(self.vector3d_msg))

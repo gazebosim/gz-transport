@@ -43,7 +43,7 @@ namespace testing
 }  // namespace testing
 
 #define CHECK_UNSUPPORTED_IMPLEMENTATION(...) \
-if(std::unordered_set<std::string>({__VA_ARGS__}).count(\
+if (std::unordered_set<std::string>({__VA_ARGS__}).count(\
     gz::transport::getTransportImplementation()) != 0) \
   GTEST_SKIP() << "gz-transport implementation '" \
       << gz::transport::getTransportImplementation() << "' unsupported";
