@@ -34,10 +34,18 @@ cc_library(
     name = "parameters",
     srcs = sources + private_headers,
     hdrs = public_headers,
+    features = [
+        # Layering check fails for clang build due to no module exporting
+        # `google/protobuf/any.h`. Unfortunately, the bazel target that exports
+        # this header in protobuf is private.
+        "-layering_check",
+    ],
     includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [
         "//:gz-transport",
+        "@com_google_protobuf//:protobuf",
+        "@gz-msgs//:gzmsgs_cc_proto",
         "@sqlite3",
     ],
 )
@@ -49,9 +57,14 @@ test_sources = glob(
 [cc_test(
     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
     srcs = [src],
+    copts = [
+        "-Wno-private-header",  # Required for Utils_TEST
+    ],
     deps = [
         ":parameters",
         "//test:utils",
+        "@googletest//:gtest",
         "@googletest//:gtest_main",
+        "@gz-msgs//:gzmsgs_cc_proto",
     ],
 ) for src in test_sources]
