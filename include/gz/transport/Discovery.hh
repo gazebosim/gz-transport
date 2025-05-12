@@ -337,8 +337,8 @@ namespace gz
             }
             else if (entityType == "sub" && this->pUuid != pUUID)
             {
-              this->remoteSubscribers.DelPublisherByNode("@" + partition + "@" + pub.Topic(),
-                pub.PUuid(), pub.NUuid());
+              this->remoteSubscribers.DelPublisherByNode("@" + partition + "@" +
+                pub.Topic(), pub.PUuid(), pub.NUuid());
               if (this->unregistrationCb)
                 this->unregistrationCb(pub);
             }
