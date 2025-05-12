@@ -124,6 +124,8 @@ exec_with_retry(const std::vector<std::string> &_args,
 /// \brief Check 'gz topic -l' running the advertiser on a different process.
 TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   auto proc = gz::utils::Subprocess({
     test_executables::kTwoProcsPublisher, g_partition});
 
@@ -139,6 +141,8 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 /// \brief Check 'gz topic -l' running a subscriber on a different process.
 TEST(gzTest, TopicListSub)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
   node.Subscribe("/foo", topicCB);
   node.Subscribe("/bar", genericCb);
@@ -162,6 +166,8 @@ TEST(gzTest, TopicListSub)
 /// \brief Check 'gz topic -i' running the advertiser on a different process.
 TEST(gzTest, TopicInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   // Launch a new publisher process that advertises a topic.
   auto proc = gz::utils::Subprocess({
     test_executables::kTwoProcsPublisher, g_partition});
@@ -183,6 +189,8 @@ TEST(gzTest, TopicInfo)
 /// process.
 TEST(gzTest, ServiceList)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   // Launch a new responser process that advertises a service.
   auto proc = gz::utils::Subprocess({
     test_executables::kTwoProcsSrvCallReplier, g_partition});
@@ -199,6 +207,8 @@ TEST(gzTest, ServiceList)
 /// \brief Check 'gz service -i' running the advertiser on a different process.
 TEST(gzTest, ServiceInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   // Launch a new responser process that advertises a service.
   auto proc = gz::utils::Subprocess(
     {test_executables::kTwoProcsSrvCallReplier, g_partition});
@@ -216,6 +226,8 @@ TEST(gzTest, ServiceInfo)
 /// \brief Check 'gz topic -l' running the advertiser on the same process.
 TEST(gzTest, TopicListSameProc)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
 
   msgs::Vector3d msg;
@@ -239,6 +251,8 @@ TEST(gzTest, TopicListSameProc)
 /// \brief Check 'gz topic -i' running the advertiser on the same process.
 TEST(gzTest, TopicInfoSameProc)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
 
   msgs::Vector3d msg;
@@ -263,6 +277,8 @@ TEST(gzTest, TopicInfoSameProc)
 /// \brief Check 'gz service -l' running the advertiser on the same process.
 TEST(gzTest, ServiceListSameProc)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
@@ -278,6 +294,8 @@ TEST(gzTest, ServiceListSameProc)
 /// \brief Check 'gz service -i' running the advertiser on the same process.
 TEST(gzTest, ServiceInfoSameProc)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
   EXPECT_TRUE(node.Advertise("/foo", srvEcho));
 
@@ -294,6 +312,8 @@ TEST(gzTest, ServiceInfoSameProc)
 /// \brief Check 'gz topic -p' to send a message.
 TEST(gzTest, TopicPublish)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
   g_topicCBStr = "bad_value";
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
@@ -346,6 +366,8 @@ TEST(gzTest, TopicPublish)
 /// \brief Check 'gz service -r' to request a two-way service.
 TEST(gzTest, ServiceRequest)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
 
   // Advertise a service.
@@ -370,6 +392,8 @@ TEST(gzTest, ServiceRequest)
 /// \brief Check 'gz service -r' to request a two-way service without timeout.
 TEST(gzTest, ServiceRequestNoTimeout)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
 
   // Advertise a service.
@@ -393,6 +417,8 @@ TEST(gzTest, ServiceRequestNoTimeout)
 /// \brief Check 'gz service -r' to request a one-way service.
 TEST(gzTest, ServiceOnewayRequest)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   g_topicCBStr = "bad_value";
   transport::Node node;
 
@@ -416,6 +442,8 @@ TEST(gzTest, ServiceOnewayRequest)
 /// \brief Check 'gz service -r' to request a service without input args.
 TEST(gzTest, ServiceRequestNoInput)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   // Advertise a service.
   transport::Node node;
   std::string service = "/no_input";
@@ -433,6 +461,8 @@ TEST(gzTest, ServiceRequestNoInput)
 /// \brief Check 'gz topic -e' running the publisher on a separate process.
 TEST(gzTest, TopicEcho)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   // Launch a new publisher process that advertises a topic.
   auto proc = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, g_partition});
@@ -450,6 +480,8 @@ TEST(gzTest, TopicEcho)
 /// process.
 TEST(gzTest, TopicEchoNum)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   // Launch a new publisher process that advertises a topic.
   auto proc = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, g_partition});
@@ -484,6 +516,8 @@ TEST(gzTest, TopicEchoNum)
 /// consistent flags
 TEST(gzTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ServiceHelpVsCompletionFlags))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   // Flags in help message
   auto helpOutput = custom_exec_str({"service",  "--help"});
 
@@ -517,6 +551,8 @@ TEST(gzTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ServiceHelpVsCompletionFlags))
 /// consistent flags
 TEST(gzTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(TopicHelpVsCompletionFlags))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   // Flags in help message
   auto helpOutput = custom_exec_str({"topic",  "--help"});
 

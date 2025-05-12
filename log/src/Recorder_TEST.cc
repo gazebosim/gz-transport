@@ -21,6 +21,8 @@
 #include "gz/transport/log/Recorder.hh"
 #include "gtest/gtest.h"
 
+#include "test_utils.hh"
+
 using namespace gz;
 
 //////////////////////////////////////////////////
@@ -85,6 +87,8 @@ TEST(Record, AddInvalidTopic)
 //////////////////////////////////////////////////
 TEST(Record, AddTopicRegex)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::log::Recorder recorder;
   EXPECT_EQ(0, recorder.AddTopic(std::regex("////")));
 }
