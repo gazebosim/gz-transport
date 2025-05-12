@@ -391,7 +391,6 @@ namespace gz
         msgInfo.SetType("google::protobuf::Message");
         auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
         {
-          std::cerr << "dataHandler()" << std::endl;
           auto attachment = _sample.get_attachment();
           if (attachment.has_value())
           {
@@ -420,8 +419,6 @@ namespace gz
             this->TypeName()));
 
         this->SetCallback(std::move(_cb));
-
-        std::cout << "SetCallback()" << std::endl;
       }
 #endif
 

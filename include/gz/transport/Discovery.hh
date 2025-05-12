@@ -282,6 +282,7 @@ namespace gz
         }
       }
 
+#ifdef HAVE_ZENOH
       //////////////////////////////////////////////////
       private: void LivelinessDataHandler(const zenoh::Sample &_sample)
       {
@@ -349,6 +350,7 @@ namespace gz
           }
         }
       }
+#endif
 
       /// \brief Start the discovery service. You probably want to register the
       /// callbacks for receiving discovery notifications before starting the
@@ -373,6 +375,7 @@ namespace gz
         this->threadReception = std::thread(&Discovery::RecvMessages, this);
       }
 
+#ifdef HAVE_ZENOH
       /// \brief Start the graph cache.
       public: void Start(std::shared_ptr<zenoh::Session> _session)
       {
@@ -387,6 +390,7 @@ namespace gz
         this->initialized = true;
         this->useZenoh = true;
       }
+#endif
 
       /// \brief Advertise a new message.
       /// \param[in] _publisher Publisher's information to advertise.
@@ -1675,10 +1679,12 @@ namespace gz
       /// \brief When true, the service is enabled.
       private: bool enabled;
 
+#ifdef HAVE_ZENOH
       /// \brief The liveliness subscriber.
       private: std::unique_ptr<zenoh::Subscriber<void>> livelinessSubscriber;
+#endif
 
-      /// \brief ToDo: remove
+      /// \brief ToDo: Find a better way.
       private: bool useZenoh = false;
     };
 

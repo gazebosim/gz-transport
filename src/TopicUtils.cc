@@ -15,7 +15,7 @@
  *
 */
 
-#include <iostream>
+#include <algorithm>
 #include <regex>
 #include <string>
 
@@ -168,7 +168,8 @@ bool TopicUtils::DecomposeLivelinessToken(
     std::string &_entityType,
     std::string &_msgType)
 {
-  auto nDelims = static_cast<int>(std::count(_token.begin(), _token.end(), '@'));
+  auto nDelims = static_cast<int>(
+    std::count(_token.begin(), _token.end(), '@'));
   if (nDelims != 6)
     return false;
 
