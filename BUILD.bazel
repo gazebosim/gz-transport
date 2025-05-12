@@ -63,11 +63,20 @@ cc_library(
     copts = [
         "-Wno-deprecated-declarations",
     ],
+    features = [
+        # Layering check fails for clang build due to no module exporting
+        # `google/protobuf/stubs/common.h`. Unfortunately, the bazel target that
+        # exports this header in protobuf is private.
+        "-layering_check",
+    ],
     includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [
+        "@com_google_protobuf//:protobuf",
         "@cppzmq",
         "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-utils//:SuppressWarning",
         "@libuuid",
         "@libzmq",
     ],
@@ -85,7 +94,10 @@ cc_binary(
     ],
     deps = [
         ":gz-transport",
-        "@gz-utils//cli",
+        "@com_google_protobuf//:json_util",
+        "@gz-msgs",
+        "@gz-utils//cli:GzFormatter",
+        "@gz-utils//cli:cli11",
     ],
 )
 
@@ -101,7 +113,10 @@ cc_binary(
     ],
     deps = [
         ":gz-transport",
-        "@gz-utils//cli",
+        "@com_google_protobuf//:json_util",
+        "@gz-msgs",
+        "@gz-utils//cli:GzFormatter",
+        "@gz-utils//cli:cli11",
     ],
 )
 
