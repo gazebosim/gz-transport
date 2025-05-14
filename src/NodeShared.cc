@@ -319,12 +319,12 @@ NodeShared::NodeShared()
   {
     // Set the callback to notify svc discovery updates (new services).
     this->dataPtr->srvDiscovery->ConnectionsCb(
-        std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
+      std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
 
     // Set the callback to notify svc discovery updates (invalid services).
     this->dataPtr->srvDiscovery->DisconnectionsCb(
-        std::bind(&NodeShared::OnNewSrvDisconnection,
-          this, std::placeholders::_1));
+      std::bind(&NodeShared::OnNewSrvDisconnection,
+        this, std::placeholders::_1));
 
     // Start the discovery services.
     this->dataPtr->msgDiscovery->Start();

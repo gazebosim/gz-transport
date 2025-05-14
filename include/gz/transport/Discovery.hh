@@ -66,6 +66,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <gz/msgs/Utility.hh>

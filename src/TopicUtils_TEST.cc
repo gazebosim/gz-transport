@@ -130,7 +130,7 @@ TEST(TopicUtilsTest, decomposeLivelinessToken)
 
   EXPECT_TRUE(transport::TopicUtils::DecomposeLivelinessToken(
     "gz@/cold:caguero@/foo@ProcessUUID@NodeUUID@pub@gz.msgs.StringMsg",
-    prefix, partition, topic, pUUID, nUUID,entityType, msgType));
+    prefix, partition, topic, pUUID, nUUID, entityType, msgType));
   EXPECT_EQ(std::string("gz"), prefix);
   EXPECT_EQ(std::string("/cold:caguero"), partition);
   EXPECT_EQ(std::string("/foo"), topic);
