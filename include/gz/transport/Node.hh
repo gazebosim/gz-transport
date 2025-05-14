@@ -26,10 +26,6 @@
 #include <unordered_set>
 #include <vector>
 
-#ifdef HAVE_ZENOH
-#include <zenoh.hxx>
-#endif
-
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -43,6 +39,13 @@
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
+
+namespace zenoh
+{
+  // Forward declaration.
+  class LivelinessToken;
+  class Publisher;
+}
 
 namespace gz
 {
@@ -123,8 +126,8 @@ namespace gz
         /// \param[in] _zPublisher The zenoh publisher.
         /// \param[in] _zToken The zenoh liveliness token.
         public: explicit Publisher(const MessagePublisher &_publisher,
-                                   zenoh::Publisher _zPublisher,
-                                   zenoh::LivelinessToken _zToken);
+                                   zenoh::Publisher &&_zPublisher,
+                                   zenoh::LivelinessToken &&_zToken);
 #endif
 
         /// \brief Destructor.

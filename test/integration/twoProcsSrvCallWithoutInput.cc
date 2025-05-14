@@ -107,6 +107,8 @@ void wrongResponse(const msgs::Vector3d &/*_rep*/, bool /*_result*/)
 /// calls.
 TEST_F(twoProcSrvCallWithoutInput, SrvTwoProcs)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   transport::Node node;
@@ -148,6 +150,8 @@ TEST_F(twoProcSrvCallWithoutInput, SrvTwoProcs)
 /// should verify that the service call does not succeed.
 TEST_F(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   msgs::Vector3d wrongRep;
   bool result;
   unsigned int timeout = 1000;
@@ -174,6 +178,8 @@ TEST_F(twoProcSrvCallWithoutInput, SrvRequestWrongRep)
 /// are used.
 TEST_F(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   msgs::Int32 goodRep;
   msgs::Vector3d badRep;
   bool result;
@@ -208,6 +214,8 @@ TEST_F(twoProcSrvCallWithoutInput, SrvTwoRequestsOneWrong)
 /// getting the list of available services.
 TEST_F(twoProcSrvCallWithoutInput, ServiceList)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   transport::Node node;
@@ -250,6 +258,8 @@ TEST_F(twoProcSrvCallWithoutInput, ServiceList)
 /// getting information about the service.
 TEST_F(twoProcSrvCallWithoutInput, ServiceInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   transport::Node node;

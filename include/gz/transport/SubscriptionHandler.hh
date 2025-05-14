@@ -46,9 +46,11 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
-#ifdef HAVE_ZENOH
-#include <zenoh.hxx>
-#endif
+namespace zenoh
+{
+  // Forward declaration.
+  class Session;
+}
 
 namespace gz
 {
@@ -57,6 +59,9 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
+    /// Forward declaration;
+    class SubscriptionHandlerBasePrivate;
+
     /// \brief SubscriptionHandlerBase contains functions and data which are
     /// common to all SubscriptionHandler types.
     class GZ_TRANSPORT_VISIBLE SubscriptionHandlerBase
@@ -66,12 +71,12 @@ namespace gz
       /// \param[in] _nUuid UUID of the node registering the handler.
       /// \param[in] _opts Subscription options.
       public: explicit SubscriptionHandlerBase(
-        const std::string &_procUuid,
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Destructor.
-      public: virtual ~SubscriptionHandlerBase() = default;
+      public: ~SubscriptionHandlerBase();
 
       /// \brief Get the type of the messages from which this subscriber
       /// handler is subscribed.
@@ -99,38 +104,14 @@ namespace gz
       /// \return true if the callback should be executed or false otherwise.
       protected: bool UpdateThrottling();
 
-      /// \brief Subscribe options.
-      protected: SubscribeOptions opts;
-
-      /// \brief If throttling is enabled, the minimum period for receiving a
-      /// message in nanoseconds.
-      protected: double periodNs;
-
-#ifdef HAVE_ZENOH
-      /// \brief The zenoh subscriber handler.
-      protected: std::unique_ptr<zenoh::Subscriber<void>> zSub;
-
-      /// \brief The liveliness token.
-      protected: std::unique_ptr<zenoh::LivelinessToken> zToken;
-#endif
-
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::*
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-      /// \brief Unique handler's UUID.
-      protected: std::string hUuid;
-
-      /// \brief Timestamp of the last callback executed.
-      protected: Timestamp lastCbTimestamp;
-
-      /// \brief Process UUID.
-      private: std::string pUuid;
-
-      /// \brief Node UUID.
-      private: std::string nUuid;
+      /// \brief Private data.
+      protected: SubscriptionHandlerBasePrivate *dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -174,6 +155,13 @@ namespace gz
       public: virtual const std::shared_ptr<ProtoMsg> CreateMsg(
         const std::string &_data,
         const std::string &_type) const = 0;
+
+      /// \brief Create a Zenoh subscriber
+      /// \param[in] _session Zenoh session.
+      /// \param[in] _topic The topic.
+      public: void CreateGenericZenohSubscriber(
+        std::shared_ptr<zenoh::Session> _session,
+        const std::string &_topic);
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh
@@ -231,31 +219,8 @@ namespace gz
                                std::shared_ptr<zenoh::Session> _session,
                                const std::string &_topic)
       {
-        zenoh::KeyExpr keyexpr(_topic);
-        MessageInfo msgInfo;
-        msgInfo.SetTopic(_topic);
-        msgInfo.SetType(this->TypeName());
-        auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
-        {
-          auto output = this->CreateMsg(
-            _sample.get_payload().as_string(), this->TypeName());
-          this->RunLocalCallback(*output, msgInfo);
-        };
-
-        this->zSub = std::make_unique<zenoh::Subscriber<void>>(
-          _session->declare_subscriber(
-            keyexpr, dataHandler, zenoh::closures::none));
-
-        this->zToken = std::make_unique<zenoh::LivelinessToken>(
-          _session->liveliness_declare_token(
-            "gz" +
-            _topic + "@" +
-            this->ProcUuid() + "@" +
-            this->NodeUuid() + "@" +
-            "sub@" +
-            this->TypeName()));
-
         this->SetCallback(std::move(_cb));
+        this->CreateGenericZenohSubscriber(_session, _topic);
       }
 #endif
 
@@ -385,40 +350,8 @@ namespace gz
                                std::shared_ptr<zenoh::Session> _session,
                                const std::string &_topic)
       {
-        zenoh::KeyExpr keyexpr(_topic);
-        MessageInfo msgInfo;
-        msgInfo.SetTopic(_topic);
-        msgInfo.SetType("google::protobuf::Message");
-        auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
-        {
-          auto attachment = _sample.get_attachment();
-          if (attachment.has_value())
-          {
-            auto output = this->CreateMsg(
-              _sample.get_payload().as_string(), attachment->get().as_string());
-            this->RunLocalCallback(*output, msgInfo);
-          }
-          else
-          {
-            std::cerr << "SubscriptionHandler::SetCallback(): Unable to find "
-                      << "attachment. Ignoring message..." << std::endl;
-          }
-        };
-
-        this->zSub = std::make_unique<zenoh::Subscriber<void>>(
-          _session->declare_subscriber(
-            keyexpr, dataHandler, zenoh::closures::none));
-
-        this->zToken = std::make_unique<zenoh::LivelinessToken>(
-          _session->liveliness_declare_token(
-            "gz" +
-            _topic + "@" +
-            this->ProcUuid() + "@" +
-            this->NodeUuid() + "@" +
-            "sub@" +
-            this->TypeName()));
-
         this->SetCallback(std::move(_cb));
+        this->CreateGenericZenohSubscriber(_session, _topic);
       }
 #endif
 
@@ -426,7 +359,6 @@ namespace gz
       public: bool RunLocalCallback(const ProtoMsg &_msg,
                                     const MessageInfo &_info)
       {
-        std::cout << "RunLocalCallback()" << std::endl;
         // No callback stored.
         if (!this->cb)
         {

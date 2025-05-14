@@ -24,6 +24,7 @@
 #include <unistd.h>
 #endif
 
+#include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
 
 namespace gz
@@ -74,6 +75,14 @@ namespace gz
 #else
       return ::getpid();
 #endif
+    }
+
+    //////////////////////////////////////////////////
+    std::string getTransportImplementation()
+    {
+      if (const char* implEnv = std::getenv("GZ_TRANSPORT_IMPLEMENTATION"))
+        return std::string(implEnv);
+      return std::string(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION);
     }
     }
   }

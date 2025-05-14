@@ -15,7 +15,12 @@
  *
 */
 
+#include "gz/transport/config.hh"
 #include "gz/transport/SubscriptionHandler.hh"
+
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
 
 namespace gz
 {
@@ -23,8 +28,12 @@ namespace gz
   {
     inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     {
-    /////////////////////////////////////////////////
-    SubscriptionHandlerBase::SubscriptionHandlerBase(
+    /// \internal
+    /// \brief Private data for SubscriptionHandlerBase class.
+    class SubscriptionHandlerBasePrivate
+    {
+      /// \brief Default constructor.
+      public: SubscriptionHandlerBasePrivate(
         const std::string &_pUuid,
         const std::string &_nUuid,
         const SubscribeOptions &_opts)
@@ -34,54 +43,104 @@ namespace gz
         lastCbTimestamp(std::chrono::seconds{0}),
         pUuid(_pUuid),
         nUuid(_nUuid)
+      {
+        if (this->opts.Throttled())
+          this->periodNs = 1e9 / this->opts.MsgsPerSec();
+      }
+
+      /// \brief Destructor.
+      public: virtual ~SubscriptionHandlerBasePrivate() = default;
+
+      /// \brief Subscribe options.
+      public: SubscribeOptions opts;
+
+      /// \brief If throttling is enabled, the minimum period for receiving a
+      /// message in nanoseconds.
+      public: double periodNs;
+
+      /// \brief Partition name.
+      public: std::string partition;
+
+      /// \brief Unique handler's UUID.
+      public: std::string hUuid;
+
+      /// \brief Timestamp of the last callback executed.
+      public: Timestamp lastCbTimestamp;
+
+      /// \brief Process UUID.
+      public: std::string pUuid;
+
+      /// \brief Node UUID.
+      public: std::string nUuid;
+
+#ifdef HAVE_ZENOH
+      /// \brief The zenoh subscriber handler.
+      public: std::unique_ptr<zenoh::Subscriber<void>> zSub;
+
+      /// \brief The liveliness token.
+      public: std::unique_ptr<zenoh::LivelinessToken> zToken;
+#endif
+    };
+
+    /////////////////////////////////////////////////
+    SubscriptionHandlerBase::SubscriptionHandlerBase(
+        const std::string &_pUuid,
+        const std::string &_nUuid,
+        const SubscribeOptions &_opts)
+      : dataPtr(new SubscriptionHandlerBasePrivate(_pUuid, _nUuid, _opts))
     {
-      if (this->opts.Throttled())
-        this->periodNs = 1e9 / this->opts.MsgsPerSec();
+    }
+
+    /////////////////////////////////////////////////
+    SubscriptionHandlerBase::~SubscriptionHandlerBase()
+    {
+      if (dataPtr)
+        delete dataPtr;
     }
 
     /////////////////////////////////////////////////
     std::string SubscriptionHandlerBase::ProcUuid() const
     {
-      return this->pUuid;
+      return this->dataPtr->pUuid;
     }
 
     /////////////////////////////////////////////////
     std::string SubscriptionHandlerBase::NodeUuid() const
     {
-      return this->nUuid;
+      return this->dataPtr->nUuid;
     }
 
     /////////////////////////////////////////////////
     std::string SubscriptionHandlerBase::HandlerUuid() const
     {
-      return this->hUuid;
+      return this->dataPtr->hUuid;
     }
 
     /////////////////////////////////////////////////
     bool SubscriptionHandlerBase::IgnoreLocalMessages() const
     {
-      return this->opts.IgnoreLocalMessages();
+      return this->dataPtr->opts.IgnoreLocalMessages();
     }
 
     /////////////////////////////////////////////////
     bool SubscriptionHandlerBase::UpdateThrottling()
     {
-      if (!this->opts.Throttled())
+      if (!this->dataPtr->opts.Throttled())
         return true;
 
       Timestamp now = std::chrono::steady_clock::now();
 
       // Elapsed time since the last callback execution.
-      auto elapsed = now - this->lastCbTimestamp;
+      auto elapsed = now - this->dataPtr->lastCbTimestamp;
 
       if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-            elapsed).count() < this->periodNs)
+            elapsed).count() < this->dataPtr->periodNs)
       {
         return false;
       }
 
       // Update the last callback execution.
-      this->lastCbTimestamp = now;
+      this->dataPtr->lastCbTimestamp = now;
       return true;
     }
 
@@ -94,6 +153,46 @@ namespace gz
     {
       // Do nothing
     }
+
+#ifdef HAVE_ZENOH
+    /////////////////////////////////////////////////
+    void ISubscriptionHandler::CreateGenericZenohSubscriber(
+      std::shared_ptr<zenoh::Session> _session,
+      const std::string &_topic)
+    {
+        MessageInfo msgInfo;
+        msgInfo.SetTopic(_topic);
+        msgInfo.SetType(this->TypeName());
+        auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
+        {
+          auto attachment = _sample.get_attachment();
+          if (attachment.has_value())
+          {
+            auto output = this->CreateMsg(
+              _sample.get_payload().as_string(), attachment->get().as_string());
+            this->RunLocalCallback(*output, msgInfo);
+          }
+          else
+          {
+            std::cerr << "SubscriptionHandler::SetCallback(): Unable to find "
+                      << "attachment. Ignoring message..." << std::endl;
+          }
+        };
+
+        this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
+          _session->declare_subscriber(
+            _topic, dataHandler, zenoh::closures::none));
+
+        this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
+          _session->liveliness_declare_token(
+            "gz" +
+            _topic + "@" +
+            this->ProcUuid() + "@" +
+            this->NodeUuid() + "@" +
+            "sub@" +
+            this->TypeName()));
+    }
+#endif
 
     /////////////////////////////////////////////////
     class RawSubscriptionHandler::Implementation
@@ -150,9 +249,18 @@ namespace gz
         this->RunRawCallback(payload.c_str(), payload.size(), msgInfo);
       };
 
-      this->zSub = std::make_unique<zenoh::Subscriber<void>>(
+      this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
         _session->declare_subscriber(
           keyexpr, dataHandler, zenoh::closures::none));
+
+      this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
+          _session->liveliness_declare_token(
+            "gz" +
+            _topic + "@" +
+            this->ProcUuid() + "@" +
+            this->NodeUuid() + "@" +
+            "sub@" +
+            this->TypeName()));
 
       this->SetCallback(std::move(_cb));
     }

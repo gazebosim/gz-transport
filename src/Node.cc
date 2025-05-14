@@ -340,8 +340,8 @@ Node::Publisher::Publisher(const MessagePublisher &_publisher)
 #ifdef HAVE_ZENOH
 //////////////////////////////////////////////////
 Node::Publisher::Publisher(const MessagePublisher &_publisher,
-                           zenoh::Publisher _zPub,
-                           zenoh::LivelinessToken _zToken)
+                           zenoh::Publisher &&_zPub,
+                           zenoh::LivelinessToken &&_zToken)
   : dataPtr(std::make_shared<PublisherPrivate>(
     _publisher, std::move(_zPub), std::move(_zToken)))
 {

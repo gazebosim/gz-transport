@@ -16,7 +16,7 @@
 from gz.msgs11.stringmsg_pb2 import StringMsg
 from gz.msgs11.vector3d_pb2 import Vector3d
 from gz.transport import Node, AdvertiseMessageOptions, SubscribeOptions, TopicStatistics
-
+from gz.transport import transport_implementation
 from threading import Lock
 
 import time
@@ -35,6 +35,8 @@ class PubSubTEST(unittest.TestCase):
             self.msg_counter += 1
             self.received_msg = msg.data
 
+    @unittest.skipIf(transport_implementation() == "zenoh",
+                     "transport implementation 'zenoh' is not supported")
     def setUp(self):
         # Publisher set up
         self.pub_node = Node()
