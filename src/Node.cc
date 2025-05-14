@@ -334,7 +334,7 @@ Node::Publisher::Publisher(const MessagePublisher &_publisher)
 #ifdef HAVE_ZENOH
 //////////////////////////////////////////////////
 Node::Publisher::Publisher(const MessagePublisher &_publisher,
-                           zenoh::Publisher _zPub)
+                           zenoh::Publisher &&_zPub)
   : dataPtr(std::make_shared<PublisherPrivate>(_publisher, std::move(_zPub)))
 {
   if (this->dataPtr->publisher.Options().Throttled())

@@ -36,10 +36,6 @@
 #include <map>
 #include <unordered_set>
 
-#ifdef HAVE_ZENOH
-#include <zenoh.hxx>
-#endif
-
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/HandlerStorage.hh"
@@ -52,6 +48,12 @@
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+
+namespace zenoh
+{
+  // Forward declaration.
+  class Session;
+}
 
 namespace gz
 {
