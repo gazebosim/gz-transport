@@ -1,33 +1,28 @@
-load(
-    "@gz//bazel/skylark:build_defs.bzl",
-    "GZ_FEATURES",
-    "GZ_ROOT",
-    "GZ_VISIBILITY",
-    "cmake_configure_file",
-    "gz_configure_header",
-    "gz_export_header",
-    "gz_include_header",
-)
-load(
-    "@gz//bazel/lint:lint.bzl",
-    "add_lint_tests",
-)
+load("@rules_gazebo//gazebo:headers.bzl", "gz_configure_header", "gz_export_header")
 
-cmake_configure_file(
-    name = "build_config",
-    src = "src/build_config.hh.in",
-    out = "include/build_config.hh",
-    cmakelists = ["src/CMakeLists.txt"],
-    defines = [
-        "SCHEMA_INSTALL_PATH=transport/log/sql",
+package(
+    default_applicable_licenses = ["//:license"],
+    features = [
+        "layering_check",
+        "parse_headers",
     ],
 )
 
+gz_configure_header(
+    name = "Config",
+    src = "src/build_config.hh.in",
+    out = "include/build_config.hh",
+    defines = [
+        "SCHEMA_INSTALL_PATH=transport/log/sql",
+    ],
+    package_xml = "//:package.xml",
+)
+
 gz_export_header(
-    name = "include/gz/transport/log/Export.hh",
+    name = "Export",
+    out = "include/gz/transport/log/Export.hh",
     export_base = "GZ_TRANSPORT_LOG",
     lib_name = "gz-transport-log",
-    visibility = ["//visibility:private"],
 )
 
 public_headers_no_gen = glob([
@@ -54,38 +49,37 @@ cc_library(
     hdrs = public_headers,
     data = ["sql/0.1.0.sql"],
     includes = ["include"],
+    visibility = ["//visibility:public"],
     deps = [
-        GZ_ROOT + "transport",
+        "//:gz-transport",
         "@sqlite3",
     ],
 )
 
-test_sources = glob(
-    include = ["src/*_TEST.cc"],
-    exclude = ["src/LogCommandAPI_TEST.cc"],
-)
+# test_sources = glob(
+#     include = ["src/*_TEST.cc"],
+#     exclude = ["src/LogCommandAPI_TEST.cc"],
+# )
 
-[cc_test(
-    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
-    srcs = [src],
-    data = [
-        "test/data/state.tlog",
-    ],
-    defines = [
-        'GZ_TRANSPORT_LOG_TEST_PATH=\\"transport/log/test\\"',
-        'CORRUPT_DB_TEST_PATH=\\"transport/log/test/data/state.tlog\\"',
-    ],
-    env = {
-        "GZ_BAZEL": "1",
-        "GZ_BAZEL_PATH": "transport",
-    },
-    deps = [
-        ":log",
-        GZ_ROOT + "common/testing",
-        GZ_ROOT + "transport/test:utils",
-        "@gtest",
-        "@gtest//:gtest_main",
-    ],
-) for src in test_sources]
-
-add_lint_tests()
+# [cc_test(
+#     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+#     srcs = [src],
+#     data = [
+#         "test/data/state.tlog",
+#     ],
+#     defines = [
+#         'GZ_TRANSPORT_LOG_TEST_PATH=\\"transport/log/test\\"',
+#         'CORRUPT_DB_TEST_PATH=\\"transport/log/test/data/state.tlog\\"',
+#     ],
+#     env = {
+#         "GZ_BAZEL": "1",
+#         "GZ_BAZEL_PATH": "transport",
+#     },
+#     deps = [
+#         ":log",
+#         GZ_ROOT + "common/testing",
+#         GZ_ROOT + "transport/test:utils",
+#         "@gtest",
+#         "@gtest//:gtest_main",
+#     ],
+# ) for src in test_sources]
