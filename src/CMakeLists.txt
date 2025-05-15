@@ -8,8 +8,8 @@ gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 # Link the libraries that we always need.
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
-    gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
-    gz-msgs${GZ_MSGS_VER}::gz-msgs${GZ_MSGS_VER}
+    gz-utils::gz-utils
+    gz-msgs::gz-msgs
     CPPZMQ::CPPZMQ
   PRIVATE
     ${ZeroMQ_TARGET}
