@@ -1,15 +1,17 @@
-load(
-    "@gz//bazel/skylark:build_defs.bzl",
-    "GZ_ROOT",
-    "GZ_VISIBILITY",
+package(
+    default_applicable_licenses = ["//:license"],
+    features = [
+        "layering_check",
+        "parse_headers",
+    ],
 )
 
 cc_library(
     name = "utils",
     hdrs = ["test_utils.hh"],
     includes = ["."],
-    visibility = GZ_VISIBILITY,
+    visibility = ["//:__subpackages__"],
     deps = [
-        GZ_ROOT + "utils",
+        "@gz-utils",
     ],
 )

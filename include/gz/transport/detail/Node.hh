@@ -24,6 +24,8 @@
 #include <string>
 #include <utility>
 
+#include "gz/transport/Node.hh"
+
 namespace gz
 {
   namespace transport
