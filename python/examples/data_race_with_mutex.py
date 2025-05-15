@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-from gz.msgs11.vector3d_pb2 import Vector3d
+from gz.msgs.vector3d_pb2 import Vector3d
 from gz.transport import Node
 
 from threading import Lock

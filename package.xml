@@ -10,12 +10,12 @@
 
   <buildtool_depend>cmake</buildtool_depend>
 
-  <build_depend>gz-cmake4</build_depend>
+  <build_depend>gz-cmake</build_depend>
 
-  <depend>gz-math8</depend>
-  <depend>gz-msgs11</depend>
+  <depend>gz-math</depend>
+  <depend>gz-msgs</depend>
   <depend>gz-tools2</depend>
-  <depend>gz-utils3</depend>
+  <depend>gz-utils</depend>
   <depend>libsqlite3-dev</depend>
   <depend>libzmq3-dev</depend>
   <depend>pkg-config</depend>

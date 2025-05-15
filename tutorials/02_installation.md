@@ -93,7 +93,7 @@ sudo apt-get remove libgz-transport.*-dev
 
 Install prerequisites. A clean Ubuntu system will need:
 ```
-sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs11-dev libgz-utils3-cli-dev
+sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs12-dev libgz-utils4-cli-dev
 ```
 
 ### macOS
