@@ -310,14 +310,14 @@ namespace gz
       // associated with a topic. When the receiving thread gets new requests,
       // it will recover the replier handler associated to the topic and
       // will invoke the service call.
-      this->Shared()->repliers.AddHandler(
+      this->Shared()->Repliers().AddHandler(
         fullyQualifiedTopic, this->NodeUuid(), repHandlerPtr);
 
       if (impl == "zeromq")
       {
         // Notify the discovery service to register and advertise my responser.
         ServicePublisher publisher(fullyQualifiedTopic,
-          this->Shared()->myReplierAddress,
+          this->Shared()->ReplierAddress(),
           this->Shared()->replierId.ToString(),
           this->Shared()->pUuid, this->NodeUuid(),
           std::string(RequestT().GetTypeName()),
@@ -473,7 +473,7 @@ namespace gz
       IRepHandlerPtr repHandler;
       {
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-        localResponserFound = this->Shared()->repliers.FirstHandler(
+        localResponserFound = this->Shared()->Repliers().FirstHandler(
               fullyQualifiedTopic,
               std::string(RequestT().GetTypeName()),
               std::string(ReplyT().GetTypeName()),
@@ -514,7 +514,7 @@ namespace gz
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // Store the request handler.
-        this->Shared()->requests.AddHandler(
+        this->Shared()->Requests().AddHandler(
           fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
 
         // If the responser's address is known, make the request.
@@ -618,7 +618,7 @@ namespace gz
 
       // If the responser is within my process.
       IRepHandlerPtr repHandler;
-      if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
+      if (this->Shared()->Repliers().FirstHandler(fullyQualifiedTopic,
         std::string(_request.GetTypeName()),
         std::string(_reply.GetTypeName()), repHandler))
       {
@@ -628,7 +628,7 @@ namespace gz
       }
 
       // Store the request handler.
-      this->Shared()->requests.AddHandler(
+      this->Shared()->Requests().AddHandler(
         fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
 
       // If the responser's address is known, make the request.

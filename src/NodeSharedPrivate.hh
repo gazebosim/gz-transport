@@ -222,6 +222,30 @@ namespace gz
       public: std::unordered_map<std::string, std::unordered_set<std::string>>
               topicsSubscribed;
 
+      /// \brief Local subscribers information.
+      // public: HandlerWrapper localSubscribers;
+
+      /// \brief Service call repliers.
+      public: HandlerStorage<IRepHandler> repliers;
+
+      /// \brief Pending service call requests.
+      public: HandlerStorage<IReqHandler> requests;
+
+      /// \brief Print activity to stdout.
+      public: int verbose = false;
+
+      /// \brief My pub/sub address.
+      public: std::string myAddress;
+
+      /// \brief My requester service call address.
+      public: std::string myRequesterAddress;
+
+      /// \brief My replier service call address.
+      public: std::string myReplierAddress;
+
+      /// \brief IP address of this host.
+      public: std::string hostAddr;
+
       /// \brief Underlying middleware implementation.
       /// Supported values are: [zenoh, zeromq].
       public: std::string gzImplementation =

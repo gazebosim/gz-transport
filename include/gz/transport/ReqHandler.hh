@@ -77,6 +77,26 @@ namespace gz
       public: virtual void NotifyResult(const std::string &_rep,
                                         const bool _result) = 0;
 
+      /// \brief Serialize the Req protobuf message stored.
+      /// \param[out] _buffer The serialized data.
+      /// \return True if the serialization succeed or false otherwise.
+      public: virtual bool Serialize(std::string &_buffer) const = 0;
+
+      /// \brief Get the message type name used in the service request.
+      /// \return Message type name.
+      public: virtual std::string ReqTypeName() const = 0;
+
+      /// \brief Get the message type name used in the service response.
+      /// \return Message type name.
+      public: virtual std::string RepTypeName() const = 0;
+
+      /// \brief Returns the unique handler UUID.
+      /// \return The handler's UUID.
+      public: std::string HandlerUuid() const
+      {
+        return this->hUuid;
+      }
+
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
       public: std::string NodeUuid() const
@@ -112,18 +132,6 @@ namespace gz
         this->requested = _value;
       }
 
-      /// \brief Serialize the Req protobuf message stored.
-      /// \param[out] _buffer The serialized data.
-      /// \return True if the serialization succeed or false otherwise.
-      public: virtual bool Serialize(std::string &_buffer) const = 0;
-
-      /// \brief Returns the unique handler UUID.
-      /// \return The handler's UUID.
-      public: std::string HandlerUuid() const
-      {
-        return this->hUuid;
-      }
-
       /// \brief Block the current thread until the response to the
       /// service request is available or until the timeout expires.
       /// This method uses a condition variable to notify when the response is
@@ -142,14 +150,6 @@ namespace gz
             return this->repAvailable;
           });
       }
-
-      /// \brief Get the message type name used in the service request.
-      /// \return Message type name.
-      public: virtual std::string ReqTypeName() const = 0;
-
-      /// \brief Get the message type name used in the service response.
-      /// \return Message type name.
-      public: virtual std::string RepTypeName() const = 0;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
