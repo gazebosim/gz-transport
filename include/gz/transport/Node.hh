@@ -32,7 +32,6 @@
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/Publisher.hh"
-#include "gz/transport/RepHandler.hh"
 #include "gz/transport/ReqHandler.hh"
 #include "gz/transport/SubscribeOptions.hh"
 #include "gz/transport/SubscriptionHandler.hh"

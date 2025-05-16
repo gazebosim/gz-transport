@@ -63,6 +63,7 @@ namespace gz
     inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
     // Forward declarations.
+    class IRepHandler;
     class Node;
     class NodePrivate;
 
@@ -370,6 +371,22 @@ namespace gz
       public: bool SubscribeHelper(const std::string &_fullyQualifiedTopic,
                                    const std::string &_nUuid);
 
+      /// \brief Return my replier service call address.
+      /// \return my replier service call address.
+      public: std::string ReplierAddress() const;
+
+      /// \brief My pub/sub address.
+      /// \return My pub/sub address.
+      public: std::string MyAddress() const;
+
+      /// \brief Pending service call requests.
+      /// \return A reference to the pending service call requests.
+      public: HandlerStorage<IReqHandler> &Requests();
+
+      /// \brief Service call repliers.
+      /// \return A reference to the service call repliers.
+      public: HandlerStorage<IRepHandler> &Repliers();
+
       /// \brief Constructor.
       protected: NodeShared();
 
@@ -526,30 +543,6 @@ namespace gz
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-      /// \brief Service call repliers.
-      public: HandlerStorage<IRepHandler> repliers;
-
-      /// \brief Pending service call requests.
-      public: HandlerStorage<IReqHandler> requests;
-
-      /// \brief Print activity to stdout.
-      public: int verbose;
-
-      /// \brief My pub/sub address.
-      public: std::string myAddress;
-
-      /// \brief My pub/sub control address.
-      public: std::string myControlAddress;
-
-      /// \brief My requester service call address.
-      public: std::string myRequesterAddress;
-
-      /// \brief My replier service call address.
-      public: std::string myReplierAddress;
-
-      /// \brief IP address of this host.
-      public: std::string hostAddr;
-
       /// \brief Internal data pointer.
       private: std::unique_ptr<NodeSharedPrivate> dataPtr;
 #ifdef _WIN32

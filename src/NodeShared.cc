@@ -201,14 +201,13 @@ NodeShared *NodeShared::Instance()
 
 //////////////////////////////////////////////////
 NodeShared::NodeShared()
-  : verbose(false),
-    dataPtr(new NodeSharedPrivate)
+  : dataPtr(new NodeSharedPrivate)
 {
   // If GZ_VERBOSE=1 enable the verbose mode.
   std::string gzVerbose;
   if (env("GZ_VERBOSE", gzVerbose) && !gzVerbose.empty())
   {
-    this->verbose = (gzVerbose == "1");
+    this->dataPtr->verbose = (gzVerbose == "1");
   }
 
   // Set the multicast IP used for discovery.
@@ -276,16 +275,17 @@ NodeShared::NodeShared()
   if (!this->InitializeSockets())
     return;
 
-  if (this->verbose)
+  if (this->dataPtr->verbose)
   {
-    std::cout << "Current host address: " << this->hostAddr << std::endl;
+    std::cout << "Host address: " << this->dataPtr->hostAddr << std::endl;
     std::cout << "Process UUID: " << this->pUuid << std::endl;
     std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
               << this->msgDiscPort << "] for msg discovery\n";
     std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
               << this->srvDiscPort << "] for srv discovery\n";
-    std::cout << "Bind at: [" << this->myAddress << "] for pub/sub\n";
-    std::cout << "Bind at: [" << this->myReplierAddress << "] for srv. calls\n";
+    std::cout << "Bind at: [" << this->dataPtr->myAddress << "] for pub/sub\n";
+    std::cout << "Bind at: [" << this->dataPtr->myReplierAddress << "]"
+              << " for srv. calls\n";
     std::cout << "Identity for receiving srv. requests: ["
               << this->replierId.ToString() << "]" << std::endl;
     std::cout << "Identity for receiving srv. responses: ["
@@ -400,7 +400,8 @@ bool NodeShared::Publish(
     // Create the messages.
     // Note that we use zero copy for passing the message data (msg2).
     zmq::message_t msg0(_topic.data(), _topic.size()),
-                   msg1(this->myAddress.data(), this->myAddress.size()),
+                   msg1(this->dataPtr->myAddress.data(),
+                        this->dataPtr->myAddress.size()),
                    msg2(_data, _dataSize, _ffn, nullptr),
                    msg3(_msgType.data(), _msgType.size());
 
@@ -662,7 +663,7 @@ void NodeShared::TriggerCallbacks(
 //////////////////////////////////////////////////
 void NodeShared::RecvSrvRequest()
 {
-  if (verbose)
+  if (dataPtr->verbose)
     std::cout << "Message received requesting a service call" << std::endl;
 
   zmq::message_t msg(0);
@@ -764,7 +765,7 @@ void NodeShared::RecvSrvRequest()
     }
 
     hasHandler =
-      this->repliers.FirstHandler(topic, reqType, repType, repHandler);
+      this->dataPtr->repliers.FirstHandler(topic, reqType, repType, repHandler);
   }
 
   // Get the REP handler.
@@ -795,7 +796,7 @@ void NodeShared::RecvSrvRequest()
         this->srvConnections.push_back(sender);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-        if (this->verbose)
+        if (this->dataPtr->verbose)
         {
           std::cout << "\t* Connected to [" << sender
                     << "] for sending a response" << std::endl;
@@ -872,7 +873,7 @@ void NodeShared::RecvSrvRequest()
 //////////////////////////////////////////////////
 void NodeShared::RecvSrvResponse()
 {
-  if (verbose)
+  if (dataPtr->verbose)
     std::cout << "Message received containing a service call REP" << std::endl;
 
   zmq::message_t msg(0);
@@ -947,7 +948,7 @@ void NodeShared::RecvSrvResponse()
     }
 
     hasHandler =
-      this->requests.Handler(topic, nodeUuid, reqUuid, reqHandlerPtr);
+      this->dataPtr->requests.Handler(topic, nodeUuid, reqUuid, reqHandlerPtr);
   }
 
   if (hasHandler)
@@ -958,7 +959,7 @@ void NodeShared::RecvSrvResponse()
     // Remove the handler.
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
     {
-      if (!this->requests.RemoveHandler(topic, nodeUuid, reqUuid))
+      if (!this->dataPtr->requests.RemoveHandler(topic, nodeUuid, reqUuid))
       {
         std::cerr << "NodeShare::RecvSrvResponse(): "
                   << "Error removing request handler" << std::endl;
@@ -1006,7 +1007,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
   if (!found)
     return;
 
-  if (verbose)
+  if (dataPtr->verbose)
   {
     std::cout << "Found a service call responser at ["
               << responserAddr << "]" << std::endl;
@@ -1021,7 +1022,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
     this->dataPtr->requester->connect(responserAddr.c_str());
     this->srvConnections.push_back(responserAddr);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    if (this->verbose)
+    if (this->dataPtr->verbose)
     {
       std::cout << "\t* Connected to [" << responserAddr
                 << "] for service requests" << std::endl;
@@ -1030,7 +1031,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
   // Send all the pending REQs.
   IReqHandler_M reqs;
-  if (!this->requests.Handlers(_topic, reqs))
+  if (!this->dataPtr->requests.Handlers(_topic, reqs))
     return;
 
   for (auto &node : reqs)
@@ -1078,9 +1079,9 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
         this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
 #endif
 
-        msg.rebuild(this->myRequesterAddress.size());
-        memcpy(msg.data(), this->myRequesterAddress.data(),
-          this->myRequesterAddress.size());
+        msg.rebuild(this->dataPtr->myRequesterAddress.size());
+        memcpy(msg.data(), this->dataPtr->myRequesterAddress.data(),
+          this->dataPtr->myRequesterAddress.size());
 #ifdef GZ_ZMQ_POST_4_3_1
         this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
 #else
@@ -1146,7 +1147,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
       // receive a response because this is a oneway request.
       if (_repType == msgs::Empty().GetTypeName())
       {
-        this->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
+        this->dataPtr->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
       }
     }
   }
@@ -1159,7 +1160,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   std::string addr = _pub.Addr();
   std::string procUuid = _pub.PUuid();
 
-  if (this->verbose)
+  if (this->dataPtr->verbose)
   {
     std::cout << "Connection callback" << std::endl;
     std::cout << _pub;
@@ -1189,7 +1190,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     // Register the new connection with the publisher.
     this->connections.AddPublisher(_pub);
 
-    if (this->verbose)
+    if (this->dataPtr->verbose)
       std::cout << "\t* Connected to [" << addr << "] for data\n";
 
     MessagePublisher pub(_pub);
@@ -1220,7 +1221,7 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
   std::string procUuid = _pub.PUuid();
   std::string nUuid = _pub.NUuid();
 
-  if (this->verbose)
+  if (this->dataPtr->verbose)
   {
     std::cout << "New disconnection detected " << std::endl;
     std::cout << "\tProcess UUID: " << procUuid << std::endl;
@@ -1264,7 +1265,7 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
 
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-  if (this->verbose)
+  if (this->dataPtr->verbose)
   {
     std::cout << "Service call connection callback" << std::endl;
     std::cout << _pub;
@@ -1277,7 +1278,7 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
     this->dataPtr->requester->connect(addr.c_str());
     this->srvConnections.push_back(addr);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    if (this->verbose)
+    if (this->dataPtr->verbose)
     {
       std::cout << "\t* Connected to [" << addr
                 << "] for service requests" << std::endl;
@@ -1287,7 +1288,7 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
   // Check if there's a pending service request with this specific combination
   // of request and response types.
   IReqHandlerPtr handler;
-  if (this->requests.FirstHandler(topic, reqType, repType, handler))
+  if (this->dataPtr->requests.FirstHandler(topic, reqType, repType, handler))
   {
     // Request all pending service calls for this topic and req/rep types.
     this->SendPendingRemoteReqs(topic, reqType, repType);
@@ -1306,7 +1307,7 @@ void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
     std::end(this->srvConnections), addr.c_str()),
     std::end(this->srvConnections));
 
-  if (this->verbose)
+  if (this->dataPtr->verbose)
   {
     std::cout << "Service call disconnection callback" << std::endl;
     std::cout << _pub;
@@ -1323,7 +1324,7 @@ void NodeShared::OnNewRegistration(const MessagePublisher &_pub)
   std::string procUuid = _pub.PUuid();
   std::string nodeUuid = _pub.NUuid();
 
-  if (this->verbose)
+  if (this->dataPtr->verbose)
   {
     std::cout << "Registering a new remote connection" << std::endl;
     std::cout << "\tProc UUID: [" << procUuid << "]" << std::endl;
@@ -1346,7 +1347,7 @@ void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
   std::string procUuid = _pub.PUuid();
   std::string nodeUuid = _pub.NUuid();
 
-  if (this->verbose)
+  if (this->dataPtr->verbose)
   {
     std::cout << "Registering the end of a remote connection" << std::endl;
     std::cout << "\tProc UUID: " << procUuid << std::endl;
@@ -1363,7 +1364,8 @@ void NodeShared::OnSubscribers()
 {
   // Get the list of local subscribers.
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
-  auto pubs = this->localSubscribers.Convert(this->myAddress, this->pUuid);
+  auto pubs = this->localSubscribers.Convert(
+    this->dataPtr->myAddress, this->pUuid);
 
   // Reply to the SUBSCRIBERS_REQ with multiple SUBSCRIBERS_REP.
   for (auto const &publisher : pubs)
@@ -1376,10 +1378,10 @@ bool NodeShared::InitializeSockets()
   try
   {
     // Set the hostname's ip address.
-    this->hostAddr = this->dataPtr->msgDiscovery->HostAddr();
+    this->dataPtr->hostAddr = this->dataPtr->msgDiscovery->HostAddr();
 
     // Publisher socket listening in a random port.
-    std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
+    std::string anyTcpEp = "tcp://" + this->dataPtr->hostAddr + ":*";
 
     // Initialize security
     this->dataPtr->SecurityInit();
@@ -1411,14 +1413,14 @@ bool NodeShared::InitializeSockets()
     this->dataPtr->publisher->set(zmq::sockopt::sndhwm, sndQueueVal);
 
     this->dataPtr->publisher->bind(anyTcpEp.c_str());
-    this->myAddress =
+    this->dataPtr->myAddress =
         this->dataPtr->publisher->get(zmq::sockopt::last_endpoint);
 
     // ResponseReceiver socket listening in a random port.
     std::string id = this->responseReceiverId.ToString();
     this->dataPtr->responseReceiver->set(zmq::sockopt::routing_id, id);
     this->dataPtr->responseReceiver->bind(anyTcpEp.c_str());
-    this->myRequesterAddress = this->dataPtr->responseReceiver->get(
+    this->dataPtr->myRequesterAddress = this->dataPtr->responseReceiver->get(
         zmq::sockopt::last_endpoint);
 
     // Replier socket listening in a random port.
@@ -1428,7 +1430,7 @@ bool NodeShared::InitializeSockets()
     this->dataPtr->replier->set(zmq::sockopt::linger, lingerVal);
     this->dataPtr->replier->set(zmq::sockopt::router_mandatory, routeOn);
     this->dataPtr->replier->bind(anyTcpEp.c_str());
-    this->myReplierAddress =
+    this->dataPtr->myReplierAddress =
         this->dataPtr->replier->get(zmq::sockopt::last_endpoint);
 
     this->dataPtr->requester->set(zmq::sockopt::linger, lingerVal);
@@ -2110,14 +2112,14 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
   for (auto &proc : addresses)
   {
     std::string dstPUuid = proc.first;
-    MessagePublisher pub(fullyQualifiedTopic, this->myAddress,
+    MessagePublisher pub(fullyQualifiedTopic, this->dataPtr->myAddress,
       dstPUuid, this->pUuid, _nUuid,
       kGenericMessageType, AdvertiseMessageOptions());
 
     this->dataPtr->msgDiscovery->Unregister(pub);
   }
 
-  MessagePublisher pub(fullyQualifiedTopic, this->myAddress,
+  MessagePublisher pub(fullyQualifiedTopic, this->dataPtr->myAddress,
     "", this->pUuid, _nUuid,
     kGenericMessageType, AdvertiseMessageOptions());
 
@@ -2253,4 +2255,28 @@ bool NodeShared::RemoveHandlerFromPubQueue(const std::string &_topic,
     }
   }
   return true;
+}
+
+//////////////////////////////////////////////////
+std::string NodeShared::ReplierAddress() const
+{
+  return this->dataPtr->myReplierAddress;
+}
+
+//////////////////////////////////////////////////
+std::string NodeShared::MyAddress() const
+{
+  return this->dataPtr->myAddress;
+}
+
+//////////////////////////////////////////////////
+HandlerStorage<IReqHandler> &NodeShared::Requests()
+{
+  return this->dataPtr->requests;
+}
+
+//////////////////////////////////////////////////
+HandlerStorage<IRepHandler> &NodeShared::Repliers()
+{
+  return this->dataPtr->repliers;
 }

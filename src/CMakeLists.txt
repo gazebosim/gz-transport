@@ -17,7 +17,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
 
 if (HAVE_ZENOH)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
-    PRIVATE
+    PUBLIC
       zenohcxx::zenohc
   )
 endif()
