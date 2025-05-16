@@ -269,11 +269,8 @@ NodeShared::NodeShared()
   this->dataPtr->msgDiscovery.reset(
       new MsgDiscovery(this->pUuid, this->discoveryIP, this->msgDiscPort));
 
-  if (this->GzImplementation() == "zeromq")
-  {
-    this->dataPtr->srvDiscovery.reset(
+  this->dataPtr->srvDiscovery.reset(
       new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
-  }
 
   // Initialize the 0MQ objects.
   if (!this->InitializeSockets())
