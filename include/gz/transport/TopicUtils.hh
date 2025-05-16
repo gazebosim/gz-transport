@@ -151,8 +151,8 @@ namespace gz
       /// \param[out] _namespaceAndTopic The namespace and topic name component.
       /// Note that there is no way to distinguish between where a namespace
       /// ends and a topic name begins, since topic names may contain slashes.
-      /// \param[out] _pUuid The process UUID component.
-      /// \param[out] _nUuid The node UUID component.
+      /// \param[out] _pUUID The process UUID component.
+      /// \param[out] _nUUID The node UUID component.
       /// \param[out] _entityType The entity type (pub, sub) component.
       /// \param[out] _msgType The message type component.
       /// \return True if all the components were set.
