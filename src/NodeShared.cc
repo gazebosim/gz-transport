@@ -34,7 +34,6 @@
 #include <zmq.hpp>
 
 #include "gz/transport/AdvertiseOptions.hh"
-#include "gz/transport/Discovery.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/RepHandler.hh"
@@ -43,6 +42,7 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
+#include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
 
 using namespace std::chrono_literals;
