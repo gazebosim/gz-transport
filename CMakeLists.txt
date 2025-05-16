@@ -58,20 +58,9 @@ if (SKIP_PYBIND11)
   message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
   find_package(Python3 COMPONENTS Interpreter)
 else()
-  find_package(Python3 COMPONENTS Interpreter Development)
-  if (NOT Python3_Development_FOUND)
-    GZ_BUILD_WARNING("Python development libraries are missing: Python interfaces are disabled.")
-  else()
-    set(PYBIND11_PYTHON_VERSION 3)
-    find_package(pybind11 2.4 CONFIG QUIET)
-
-    if (pybind11_FOUND)
-      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-    else()
-      GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-      message (STATUS "Searching for pybind11 - not found.")
-    endif()
-  endif()
+  find_package(Python3
+    COMPONENTS Interpreter
+    OPTIONAL_COMPONENTS Development)
 endif()
 
 #--------------------------------------
@@ -83,6 +72,7 @@ gz_find_package(GzProtobuf
 #--------------------------------------
 # Find ZeroMQ
 gz_find_package(ZeroMQ VERSION 4 REQUIRED PRIVATE)
+list(APPEND GZ_TRANSPORT_IMPLEMENTATION_LIST "zeromq")
 
 if (UNIX AND NOT APPLE)
   execute_process(COMMAND lsb_release -cs
@@ -108,18 +98,33 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
 
 ########################################
 # Find Zenoh
-gz_find_package(zenohc PRIVATE)
-gz_find_package(zenohcxx PRIVATE)
-if (NOT zenohcxx_DIR)
+gz_find_package(zenohc PRIVATE QUIET)
+gz_find_package(zenohcxx PRIVATE QUIET)
+
+# If both zenohc and zenohcpp packages are not found then
+# look for these pacakages installed by ROS 2 zenoh_cpp_vendor package
+if (NOT zenohc_FOUND AND NOT zenohcxx_FOUND)
+  # Set CMAKE_PREFIX_PATH in order to find ROS 2 packages from plain cmake
+  # package, see https://github.com/ament/ament_cmake/issues/304
+  set(ros2_zenoh_cmake_path "/opt/ros/$ENV{ROS_DISTRO}/opt/zenoh_cpp_vendor/lib/cmake")
+  if (EXISTS ${ros2_zenoh_cmake_path})
+    list(PREPEND CMAKE_PREFIX_PATH ${ros2_zenoh_cmake_path})
+    gz_find_package(zenohc PRIVATE QUIET)
+    gz_find_package(zenohcxx PRIVATE QUIET)
+  endif()
+endif ()
+
+if (NOT zenohcxx_FOUND)
   message (STATUS "Looking for zenohcxx - not found")
   set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
-elseif (NOT zenohc_DIR)
+elseif (NOT zenohc_FOUND)
   message (STATUS "Looking for zenohc - not found")
   set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
 else ()
   message (STATUS "Looking for zenohcxx and zenohc - found")
   set (HAVE_ZENOH ON CACHE BOOL "HAVE ZENOH" FORCE)
   list(APPEND EXTRA_TEST_LIB_DEPS "zenohcxx::zenohc")
+  list(APPEND GZ_TRANSPORT_IMPLEMENTATION_LIST "zenoh")
 endif ()
 
 #--------------------------------------
@@ -165,6 +170,13 @@ gz_find_package(SQLite3
   PRIVATE_FOR log
   PRETTY sqlite3)
 
+#--------------------------------------
+# Check GZ_TRANSPORT_DEFAULT_IMPLEMENTATION value
+set(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION "zeromq" CACHE
+    STRING "Set default gz-transport implementation")
+if (NOT ${GZ_TRANSPORT_DEFAULT_IMPLEMENTATION} IN_LIST GZ_TRANSPORT_IMPLEMENTATION_LIST)
+  message(FATAL_ERROR "Invalid GZ_TRANSPORT_DEFAULT_IMPLEMENTATION value: ${GZ_TRANSPORT_DEFAULT_IMPLEMENTATION}")
+endif()
 
 #============================================================================
 # Configure the build
@@ -180,8 +192,12 @@ add_subdirectory(conf)
 #============================================================================
 # gz transport python bindings
 #============================================================================
-if (pybind11_FOUND AND NOT SKIP_PYBIND11)
-  add_subdirectory(python)
+if (NOT SKIP_PYBIND11)
+  if (Python3_Development_FOUND)
+    add_subdirectory(python)
+  else ()
+    message(WARNING "Python development libraries are missing: Python interfaces are disabled.")
+  endif()
 endif()
 
 #============================================================================

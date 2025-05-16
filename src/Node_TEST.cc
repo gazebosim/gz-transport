@@ -346,8 +346,9 @@ class MyTestClass
     // Request a valid service using RequestRaw.
     std::string reqStr, repStr, repTypeName;
     req.SerializeToString(&reqStr);
-    EXPECT_TRUE(this->node.RequestRaw(g_topic, reqStr, req.GetTypeName(),
-          rep.GetTypeName(), timeout, repStr, result));
+    EXPECT_TRUE(this->node.RequestRaw(g_topic, reqStr,
+          std::string(req.GetTypeName()),
+          std::string(rep.GetTypeName()), timeout, repStr, result));
     rep.ParseFromString(repStr);
     ASSERT_TRUE(result);
     EXPECT_EQ(rep.data(), data);
@@ -538,6 +539,8 @@ TEST(NodePubTest, BoolOperatorTest)
 /// \brief A message should not be published if it is not advertised before.
 TEST(NodeTest, PubWithoutAdvertise)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 msg;
@@ -558,7 +561,7 @@ TEST(NodeTest, PubWithoutAdvertise)
   EXPECT_TRUE(node1.SubscribedTopics().empty());
   EXPECT_TRUE(node1.AdvertisedServices().empty());
 
-  auto pub1 = node1.Advertise(g_topic, msg.GetTypeName());
+  auto pub1 = node1.Advertise(g_topic, std::string(msg.GetTypeName()));
   EXPECT_TRUE(pub1);
 
   auto advertisedTopics = node1.AdvertisedTopics();
@@ -648,6 +651,8 @@ TEST(NodeTest, PubSubSameThread)
 /// \brief A thread can create a node, and send and receive messages.
 TEST(NodeTest, PubSubSameThreadGenericCb)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 msg;
@@ -692,6 +697,8 @@ TEST(NodeTest, PubSubSameThreadGenericCb)
 /// information.
 TEST(NodeTest, PubSubSameThreadMessageInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 msg;
@@ -747,7 +754,8 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
-  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
+        std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -758,7 +766,8 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
   reset();
 
   // Publish a second message on topic.
-  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
+        std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -772,6 +781,8 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
 //////////////////////////////////////////////////
 TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 msg;
@@ -787,7 +798,8 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Publish a first message.
-  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
+        std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -798,7 +810,8 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
   reset();
 
   // Publish a second message on topic.
-  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(), msg.GetTypeName()));
+  EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
+        std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -812,6 +825,8 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
 //////////////////////////////////////////////////
 TEST(NodeTest, PubRawSubSameThreadMessageInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 msg;
@@ -900,6 +915,8 @@ TEST(NodeTest, PubSubSameThreadLambda)
 /// information.
 TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 msg;
@@ -942,10 +959,231 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
 }
 
 //////////////////////////////////////////////////
+/// \brief Test the bool operator of the Node::Subscriber class
+TEST(NodeSubTest, BoolOperatorTest)
+{
+  transport::Node node;
+  transport::Node::Subscriber sub;
+  const transport::Node::Subscriber sub_const;
+  EXPECT_FALSE(sub);
+  EXPECT_FALSE(sub_const);
+
+  std::function<void(const msgs::Int32 &)> cb =
+    [](const msgs::Int32 &) {};
+  sub = node.CreateSubscriber(g_topic, cb);
+  EXPECT_TRUE(sub);
+
+  const transport::Node::Subscriber sub2_const =
+      node.CreateSubscriber(g_topic, cb);
+  EXPECT_TRUE(sub2_const);
+}
+
+//////////////////////////////////////////////////
+/// \brief Subscribe to a topic using CreateSubscriber API
+TEST(NodeTest, PubSubWithCreateSubscriber)
+{
+  reset();
+
+  msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  std::mutex mutex;
+  std::condition_variable condition;
+
+  bool executed = false;
+  std::function<void(const msgs::Int32&)> subCb =
+    [&executed, &mutex, &condition](const msgs::Int32 &_msg)
+  {
+    EXPECT_EQ(_msg.data(), data);
+    std::lock_guard<std::mutex> lk(mutex);
+    executed = true;
+    condition.notify_all();
+  };
+
+  {
+    transport::Node::Subscriber sub = node.CreateSubscriber(g_topic, subCb);
+    EXPECT_TRUE(sub);
+
+    // Give some time to the subscribers.
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    // Publish a message.
+    EXPECT_TRUE(pub.Publish(msg));
+
+    // The local publish is asynchronous, which means we need to wait
+    // for the callback.
+    std::unique_lock<std::mutex> lk(mutex);
+    condition.wait(lk, [&executed]{return executed;});
+
+    EXPECT_TRUE(executed);
+  }
+
+  // Publish another message.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // The subscriber went out of scope so it should have already unsubscribed
+  // to the topic. The callback should not be invoked.
+  std::unique_lock<std::mutex> lk(mutex);
+  condition.wait_for(lk, std::chrono::milliseconds(300),
+                     [&executed]{return executed;});
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief Subscribe to a topic using dfferent Subscribe APIs
+TEST(NodeTest, PubSubWithMixedSubscribeAPIs)
+{
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
+  reset();
+
+  msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  // Subscriber1: Subscribe to topic using Subscribe(...)
+  std::mutex mutex;
+  std::condition_variable condition;
+  bool executed = false;
+  std::function<void(const msgs::Int32&)> subCb =
+    [&executed, &mutex, &condition](const msgs::Int32 &_msg)
+  {
+    EXPECT_EQ(_msg.data(), data);
+    std::lock_guard<std::mutex> lk(mutex);
+    executed = true;
+    condition.notify_all();
+  };
+  EXPECT_TRUE(node.Subscribe(g_topic, subCb));
+
+  // Subscriber2: Subscribe to topic using CreateSubscriber(...)
+  std::mutex mutex2;
+  std::condition_variable condition2;
+  bool executed2 = false;
+  std::function<void(const msgs::Int32&)> subCb2 =
+    [&executed2, &mutex2, &condition2](const msgs::Int32 &_msg)
+  {
+    EXPECT_EQ(_msg.data(), data);
+    std::lock_guard<std::mutex> lk2(mutex2);
+    executed2 = true;
+    condition2.notify_all();
+  };
+  transport::Node::Subscriber sub2 = node.CreateSubscriber(g_topic, subCb2);
+  EXPECT_TRUE(sub2);
+
+  // Subscriber3: Subscribe to topic using CreateSubscriber(...)
+  std::mutex mutex3;
+  std::condition_variable condition3;
+  bool executed3 = false;
+  std::function<void(const msgs::Int32&)> subCb3 =
+    [&executed3, &mutex3, &condition3](const msgs::Int32 &_msg)
+  {
+    EXPECT_EQ(_msg.data(), data);
+    std::lock_guard<std::mutex> lk2(mutex3);
+    executed3 = true;
+    condition3.notify_all();
+  };
+  transport::Node::Subscriber sub3 = node.CreateSubscriber(g_topic, subCb3);
+  EXPECT_TRUE(sub3);
+
+  // Give some time to the subscribers.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // Publish a message.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // The local publish is asynchronous, which means we need to wait
+  // for the callback.
+  {
+    std::unique_lock<std::mutex> lk(mutex);
+    condition.wait(lk, [&executed]{return executed;});
+    EXPECT_TRUE(executed);
+
+    std::unique_lock<std::mutex> lk2(mutex2);
+    condition2.wait(lk2, [&executed2]{return executed2;});
+    EXPECT_TRUE(executed2);
+
+    std::unique_lock<std::mutex> lk3(mutex3);
+    condition3.wait(lk3, [&executed3]{return executed3;});
+    EXPECT_TRUE(executed3);
+  }
+
+  executed = false;
+  executed2 = false;
+  executed3 = false;
+
+  // Manually unsubscribe Subscriber2 and verify that the other subscribers
+  // still receive messages
+  EXPECT_TRUE(sub2.Unsubscribe());
+
+  // Publish another message.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  {
+    // Subscriber1 should still receive msgs
+    std::unique_lock<std::mutex> lk(mutex);
+    condition.wait(lk, [&executed]{return executed;});
+    EXPECT_TRUE(executed);
+
+    // Subscriber2 should no longer receive msgs
+    std::unique_lock<std::mutex> lk2(mutex2);
+    condition2.wait_for(lk2, std::chrono::milliseconds(300),
+                        [&executed2]{return executed2;});
+    EXPECT_FALSE(executed2);
+
+    // Subscriber3 should still receive msgs
+    std::unique_lock<std::mutex> lk3(mutex3);
+    condition.wait(lk3, [&executed3]{return executed3;});
+    EXPECT_TRUE(executed3);
+  }
+
+  executed = false;
+  executed2 = false;
+  executed3 = false;
+
+  // Unsubscribe node from topic and verify all subscribers no longer receive
+  // messages
+  EXPECT_TRUE(node.Unsubscribe(g_topic));
+
+  // Publish another message.
+  EXPECT_TRUE(pub.Publish(msg));
+
+  {
+    std::unique_lock<std::mutex> lk(mutex);
+    condition.wait_for(lk, std::chrono::milliseconds(300),
+                       [&executed]{return executed;});
+    EXPECT_FALSE(executed);
+
+    std::unique_lock<std::mutex> lk2(mutex2);
+    condition2.wait_for(lk2, std::chrono::milliseconds(300),
+                        [&executed2]{return executed2;});
+    EXPECT_FALSE(executed2);
+
+    std::unique_lock<std::mutex> lk3(mutex3);
+    condition3.wait_for(lk3, std::chrono::milliseconds(300),
+                        [&executed3]{return executed3;});
+    EXPECT_FALSE(executed3);
+  }
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief Advertise two topics with the same name. It's not possible to do it
 /// within the same node but it's valid on separate nodes.
 TEST(NodeTest, AdvertiseTwoEqualTopics)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node1;
   transport::Node node2;
 
@@ -1137,6 +1375,8 @@ TEST(NodeTest, ClassMemberCallbackMessage)
 /// publish. This test uses a callback that accepts message information.
 TEST(NodeTest, ClassMemberCallbackMessageInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   MyTestClass client;
   client.SubscribeWithMessageInfo();
 
@@ -1155,6 +1395,8 @@ TEST(NodeTest, ClassMemberCallbackMessageInfo)
 /// function.
 TEST(NodeTest, ClassMemberCallbackService)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   MyTestClass client;
   client.TestServiceCall();
 }
@@ -1164,6 +1406,8 @@ TEST(NodeTest, ClassMemberCallbackService)
 /// using member function.
 TEST(NodeTest, ClassMemberCallbackServiceWithoutInput)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   MyTestClass client;
   client.TestServiceCallWithoutInput();
 }
@@ -1172,6 +1416,8 @@ TEST(NodeTest, ClassMemberCallbackServiceWithoutInput)
 /// \brief Make an asynchronous service call, and then, advertise the service.
 TEST(NodeTest, ClassMemberRequestServiceBeforeAdvertise)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   MyTestClass client;
   client.TestServiceCallRequestingBeforeAdvertising();
 }
@@ -1204,6 +1450,8 @@ TEST(NodeTest, TypeMismatch)
 /// \brief Make an asynchronous service call using free function.
 TEST(NodeTest, ServiceCallAsync)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 req;
@@ -1268,6 +1516,8 @@ TEST(NodeTest, ServiceCallAsync)
 /// \brief Make an asynchronous service call without input using free function.
 TEST(NodeTest, ServiceCallWithoutInputAsync)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   transport::Node node;
@@ -1330,6 +1580,8 @@ TEST(NodeTest, ServiceCallWithoutInputAsync)
 /// \using free function.
 TEST(NodeTest, ServiceWithoutOutputCallAsync)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   transport::Node node;
@@ -1373,6 +1625,8 @@ TEST(NodeTest, ServiceWithoutOutputCallAsync)
 /// \brief Make an asynchronous service call using lambdas.
 TEST(NodeTest, ServiceCallAsyncLambda)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   std::function<bool(const msgs::Int32 &, msgs::Int32 &)>
@@ -1411,6 +1665,8 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 /// \brief Make an asynchronous service call without input using lambdas.
 TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   std::function<bool(msgs::Int32 &)> advCb =
@@ -1444,6 +1700,8 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 /// \lambdas.
 TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   bool executed = false;
 
   std::function<void(const msgs::Int32 &)> advCb =
@@ -1467,6 +1725,8 @@ TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
 /// \brief Request multiple service calls at the same time.
 TEST(NodeTest, MultipleServiceCallAsync)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 req;
@@ -1527,6 +1787,8 @@ TEST(NodeTest, MultipleServiceCallAsync)
 /// \brief Request multiple service calls without input at the same time.
 TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   transport::Node node;
@@ -1584,6 +1846,8 @@ TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
 /// \ at the same time.
 TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   transport::Node node;
@@ -1638,6 +1902,8 @@ TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
 /// \brief Make a synchronous service call.
 TEST(NodeTest, ServiceCallSync)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 req;
@@ -1666,6 +1932,8 @@ TEST(NodeTest, ServiceCallSync)
 /// \brief Make a synchronous service call without input.
 TEST(NodeTest, ServiceCallWithoutInputSync)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 rep;
@@ -1691,6 +1959,8 @@ TEST(NodeTest, ServiceCallWithoutInputSync)
 /// \brief Check a timeout in a synchronous service call.
 TEST(NodeTest, ServiceCallSyncTimeout)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 req;
@@ -1724,6 +1994,8 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 /// \brief Check a timeout in a synchronous service call without input.
 TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 rep;
@@ -1882,6 +2154,8 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
 /// the advertised types.
 TEST(NodeTest, PubSubWrongTypesOnSubscription)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Vector3d msgV;
@@ -1914,6 +2188,8 @@ TEST(NodeTest, PubSubWrongTypesOnSubscription)
 /// advertised type). Check that only the good callback is executed.
 TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 msg;
@@ -1988,6 +2264,8 @@ TEST(NodeTest, SubThrottled)
 /// publishes at a throttled frequency .
 TEST(NodeTest, PubThrottled)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 msg;
@@ -2026,6 +2304,8 @@ TEST(NodeTest, PubThrottled)
 /// is set to true.
 TEST(NodeTest, IgnoreLocalMessages)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 msg;
@@ -2061,6 +2341,8 @@ TEST(NodeTest, IgnoreLocalMessages)
 /// that the service call does not succeed.
 TEST(NodeTest, SrvRequestWrongReq)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Vector3d wrongReq;
@@ -2092,6 +2374,8 @@ TEST(NodeTest, SrvRequestWrongReq)
 /// verify that the service call does not succeed.
 TEST(NodeTest, SrvRequestWrongRep)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 req;
@@ -2121,6 +2405,8 @@ TEST(NodeTest, SrvRequestWrongRep)
 /// should verify that the service call does not succeed.
 TEST(NodeTest, SrvWithoutInputRequestWrongRep)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Vector3d wrongRep;
@@ -2148,6 +2434,8 @@ TEST(NodeTest, SrvWithoutInputRequestWrongRep)
 /// are used.
 TEST(NodeTest, SrvTwoRequestsOneWrong)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 req;
@@ -2183,6 +2471,8 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
 /// are used.
 TEST(NodeTest, SrvWithoutInputTwoRequestsOneWrong)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   reset();
 
   msgs::Int32 goodRep;
@@ -2213,6 +2503,8 @@ TEST(NodeTest, SrvWithoutInputTwoRequestsOneWrong)
 /// verifies that TopicList() returns the list of all the topics advertised.
 TEST(NodeTest, TopicList)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics;
   transport::Node node1;
   transport::Node node2;
@@ -2243,6 +2535,8 @@ TEST(NodeTest, TopicList)
 /// Topic remapping is enabled.
 TEST(NodeTest, TopicListRemap)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics;
   transport::NodeOptions nodeOptions;
   nodeOptions.AddTopicRemap(g_topic, g_topic_remap);
@@ -2262,6 +2556,8 @@ TEST(NodeTest, TopicListRemap)
 /// verifies that ServiceList() returns the list of all the services advertised.
 TEST(NodeTest, ServiceList)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> services;
   transport::Node node;
 
@@ -2290,6 +2586,8 @@ TEST(NodeTest, ServiceList)
 /// Topic remapping is enabled.
 TEST(NodeTest, ServiceListRemap)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> services;
   transport::NodeOptions nodeOptions;
   nodeOptions.AddTopicRemap(g_topic, g_topic_remap);

@@ -23,7 +23,6 @@
 #include <thread>
 
 #include "gz/transport/AdvertiseOptions.hh"
-#include "gz/transport/Discovery.hh"
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
@@ -31,6 +30,8 @@
 #include "test_utils.hh"
 #include "gz/utils/Environment.hh"
 #include "gz/utils/ExtraTestMacros.hh"
+
+#include "Discovery.hh"
 
 using namespace gz;
 using namespace transport;

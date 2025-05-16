@@ -31,6 +31,7 @@ using namespace gz;
 
 // Global variables used for multiple tests.
 std::string topic   = "foo"; // NOLINT(*)
+std::string pUuid1  = "process-UUID-1"; // NOLINT(*)
 std::string nUuid1  = "node-UUID-1"; // NOLINT(*)
 std::string nUuid2  = "node-UUID-2"; // NOLINT(*)
 std::string hUuid   = "handler-UUID"; // NOLINT(*)
@@ -67,8 +68,8 @@ TEST(RepStorageTest, RepStorageAPI)
   msgs::Int32 rep1Msg;
   bool result;
   msgs::Vector3d reqMsg;
-  std::string reqType = reqMsg.GetTypeName();
-  std::string rep1Type = rep1Msg.GetTypeName();
+  std::string reqType = std::string(reqMsg.GetTypeName());
+  std::string rep1Type = std::string(rep1Msg.GetTypeName());
 
   reqMsg.set_x(1.0);
   reqMsg.set_y(2.0);
@@ -219,7 +220,7 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   // Create a Subscription handler.
   std::shared_ptr<transport::SubscriptionHandler<msgs::Int32>>
     sub1HandlerPtr(new transport::SubscriptionHandler
-      <msgs::Int32>(nUuid1));
+      <msgs::Int32>(pUuid1, nUuid1));
 
   // Insert the handler and check operations.
   subs.AddHandler(topic, nUuid1, sub1HandlerPtr);
@@ -234,7 +235,8 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   EXPECT_FALSE(subs.FirstHandler(topic, "incorrect type", handler));
 
   // Now try to retrieve the first callback with the correct type.
-  EXPECT_TRUE(subs.FirstHandler(topic, msg.GetTypeName(), handler));
+  EXPECT_TRUE(subs.FirstHandler(topic,
+        std::string(msg.GetTypeName()), handler));
 
   // Verify the handler.
   EXPECT_EQ(handler->TypeName(), sub1HandlerPtr->TypeName());

@@ -46,9 +46,11 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
-#ifdef HAVE_ZENOH
-#include <zenoh.hxx>
-#endif
+namespace zenoh
+{
+  // Forward declaration.
+  class Session;
+}
 
 namespace gz
 {
@@ -57,24 +59,33 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
+    /// Forward declaration;
+    class SubscriptionHandlerBasePrivate;
+
     /// \brief SubscriptionHandlerBase contains functions and data which are
     /// common to all SubscriptionHandler types.
     class GZ_TRANSPORT_VISIBLE SubscriptionHandlerBase
     {
       /// \brief Constructor.
+      /// \param[in] _pUuid UUID of the process registering the handler.
       /// \param[in] _nUuid UUID of the node registering the handler.
       /// \param[in] _opts Subscription options.
       public: explicit SubscriptionHandlerBase(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Destructor.
-      public: virtual ~SubscriptionHandlerBase() = default;
+      public: ~SubscriptionHandlerBase();
 
       /// \brief Get the type of the messages from which this subscriber
       /// handler is subscribed.
       /// \return String representation of the message type.
       public: virtual std::string TypeName() = 0;
+
+      /// \brief Get the process UUID.
+      /// \return The string representation of the process UUID.
+      public: std::string ProcUuid() const;
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
@@ -93,32 +104,14 @@ namespace gz
       /// \return true if the callback should be executed or false otherwise.
       protected: bool UpdateThrottling();
 
-      /// \brief Subscribe options.
-      protected: SubscribeOptions opts;
-
-      /// \brief If throttling is enabled, the minimum period for receiving a
-      /// message in nanoseconds.
-      protected: double periodNs;
-
-#ifdef HAVE_ZENOH
-      /// \brief The zenoh subscriber handler.
-      protected: std::unique_ptr<zenoh::Subscriber<void>> zSub;
-#endif
-
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::*
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-      /// \brief Unique handler's UUID.
-      protected: std::string hUuid;
-
-      /// \brief Timestamp of the last callback executed.
-      protected: Timestamp lastCbTimestamp;
-
-      /// \brief Node UUID.
-      private: std::string nUuid;
+      /// \brief Private data.
+      protected: SubscriptionHandlerBasePrivate *dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -136,9 +129,11 @@ namespace gz
         : public SubscriptionHandlerBase
     {
       /// \brief Constructor.
+      /// \param[in] _pUuid UUID of the process registering the handler.
       /// \param[in] _nUuid UUID of the node registering the handler.
       /// \param[in] _opts Subscription options.
       public: explicit ISubscriptionHandler(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const SubscribeOptions &_opts = SubscribeOptions());
 
@@ -160,6 +155,13 @@ namespace gz
       public: virtual const std::shared_ptr<ProtoMsg> CreateMsg(
         const std::string &_data,
         const std::string &_type) const = 0;
+
+      /// \brief Create a Zenoh subscriber
+      /// \param[in] _session Zenoh session.
+      /// \param[in] _topic The topic.
+      public: void CreateGenericZenohSubscriber(
+        std::shared_ptr<zenoh::Session> _session,
+        const std::string &_topic);
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh
@@ -170,9 +172,10 @@ namespace gz
       : public ISubscriptionHandler
     {
       // Documentation inherited.
-      public: explicit SubscriptionHandler(const std::string &_nUuid,
+      public: explicit SubscriptionHandler(const std::string &_pUuid,
+        const std::string &_nUuid,
         const SubscribeOptions &_opts = SubscribeOptions())
-        : ISubscriptionHandler(_nUuid, _opts)
+        : ISubscriptionHandler(_pUuid, _nUuid, _opts)
       {
       }
 
@@ -197,7 +200,7 @@ namespace gz
       // Documentation inherited.
       public: std::string TypeName()
       {
-        return T().GetTypeName();
+        return std::string(T().GetTypeName());
       }
 
       /// \brief Set the callback for this handler.
@@ -216,22 +219,8 @@ namespace gz
                                std::shared_ptr<zenoh::Session> _session,
                                const std::string &_topic)
       {
-        zenoh::KeyExpr keyexpr(_topic);
-        MessageInfo msgInfo;
-        msgInfo.SetTopic(_topic);
-        msgInfo.SetType(this->TypeName());
-        auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
-        {
-          auto output = this->CreateMsg(
-            _sample.get_payload().as_string(), this->TypeName());
-          this->RunLocalCallback(*output, msgInfo);
-        };
-
-        this->zSub = std::make_unique<zenoh::Subscriber<void>>(
-          _session->declare_subscriber(
-            keyexpr, dataHandler, zenoh::closures::none));
-
         this->SetCallback(std::move(_cb));
+        this->CreateGenericZenohSubscriber(_session, _topic);
       }
 #endif
 
@@ -251,13 +240,35 @@ namespace gz
         if (!this->UpdateThrottling())
           return true;
 
-#if GOOGLE_PROTOBUF_VERSION >= 4022000
+#if GOOGLE_PROTOBUF_VERSION >= 5028000
+        auto msgPtr = google::protobuf::DynamicCastMessage<T>(&_msg);
+#elif GOOGLE_PROTOBUF_VERSION >= 4022000
         auto msgPtr = google::protobuf::internal::DownCast<const T*>(&_msg);
 #elif GOOGLE_PROTOBUF_VERSION >= 3000000
         auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
 #else
         auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
 #endif
+
+        // Verify the dynamically casted message is valid
+        if (msgPtr == nullptr)
+        {
+          if (_msg.GetDescriptor() != nullptr)
+          {
+            std::cerr << "SubscriptionHandler::RunLocalCallback() error: "
+                      << "Failed to cast the message of the type "
+                      << _msg.GetDescriptor()->full_name()
+                      << " to the specified type" << '\n';
+          }
+          else
+          {
+            std::cerr << "SubscriptionHandler::RunLocalCallback() error: "
+                      << "Failed to cast the message of an unknown type"
+                      << " to the specified type" << '\n';
+          }
+          std::cerr.flush();
+          return false;
+        }
 
         this->cb(*msgPtr, _info);
         return true;
@@ -273,9 +284,10 @@ namespace gz
       : public ISubscriptionHandler
     {
       // Documentation inherited.
-      public: explicit SubscriptionHandler(const std::string &_nUuid,
+      public: explicit SubscriptionHandler(const std::string &_pUuid,
+        const std::string &_nUuid,
         const SubscribeOptions &_opts = SubscribeOptions())
-        : ISubscriptionHandler(_nUuid, _opts)
+        : ISubscriptionHandler(_pUuid, _nUuid, _opts)
       {
       }
 
@@ -338,31 +350,8 @@ namespace gz
                                std::shared_ptr<zenoh::Session> _session,
                                const std::string &_topic)
       {
-        zenoh::KeyExpr keyexpr(_topic);
-        MessageInfo msgInfo;
-        msgInfo.SetTopic(_topic);
-        msgInfo.SetType("google::protobuf::Message");
-        auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
-        {
-          auto attachment = _sample.get_attachment();
-          if (attachment.has_value())
-          {
-            auto output = this->CreateMsg(
-              _sample.get_payload().as_string(), attachment->get().as_string());
-            this->RunLocalCallback(*output, msgInfo);
-          }
-          else
-          {
-            std::cerr << "SubscriptionHandler::SetCallback(): Unable to find "
-                      << "attachment. Ignoring message..." << std::endl;
-          }
-        };
-
-        this->zSub = std::make_unique<zenoh::Subscriber<void>>(
-          _session->declare_subscriber(
-            keyexpr, dataHandler, zenoh::closures::none));
-
         this->SetCallback(std::move(_cb));
+        this->CreateGenericZenohSubscriber(_session, _topic);
       }
 #endif
 
@@ -396,12 +385,14 @@ namespace gz
     class RawSubscriptionHandler : public SubscriptionHandlerBase
     {
       /// \brief Constructor
+      /// \param[in] _pUuid UUID of the process registering the handler
       /// \param[in] _nUuid UUID of the node registering the handler
       /// \param[in] _msgType Name of message type that this handler should
       /// listen for. Setting this to kGenericMessageType will tell this handler
       /// to listen for all message types.
       /// \param[in] _opts Subscription options.
       public: explicit RawSubscriptionHandler(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const std::string &_msgType = kGenericMessageType,
         const SubscribeOptions &_opts = SubscribeOptions());

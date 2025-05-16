@@ -23,6 +23,8 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <zmq.hpp>
@@ -30,8 +32,9 @@
 #include <zenoh.hxx>
 #endif
 
-#include "gz/transport/Discovery.hh"
+#include "gz/transport/config.hh"
 #include "gz/transport/Node.hh"
+#include "Discovery.hh"
 
 namespace gz
 {
@@ -215,9 +218,14 @@ namespace gz
               std::function<void(const TopicStatistics &_stats)>>
                 enabledTopicStatistics;
 
+      /// \brief A map of node UUID and its subscribed topics
+      public: std::unordered_map<std::string, std::unordered_set<std::string>>
+              topicsSubscribed;
+
       /// \brief Underlying middleware implementation.
       /// Supported values are: [zenoh, zeromq].
-      public: std::string gzImplementation = "zeromq";
+      public: std::string gzImplementation =
+                  std::string(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION);
     };
     }
   }

@@ -5,11 +5,6 @@ project(gz-transport-examples)
 # Find the Gazebo Transport library
 find_package(gz-transport QUIET REQUIRED OPTIONAL_COMPONENTS log)
 
-#--------------------------------------
-# Find zenoh-cpp and its backend.
-find_package(zenohc REQUIRED)
-find_package(zenohcxx REQUIRED)
-
 if (EXISTS "${CMAKE_SOURCE_DIR}/msgs/")
   # Message generation. Only required when using custom Protobuf messages.
   find_package(Protobuf REQUIRED)

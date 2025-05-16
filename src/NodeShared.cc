@@ -34,7 +34,6 @@
 #include <zmq.hpp>
 
 #include "gz/transport/AdvertiseOptions.hh"
-#include "gz/transport/Discovery.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/RepHandler.hh"
@@ -43,6 +42,7 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
+#include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
 
 using namespace std::chrono_literals;
@@ -247,6 +247,20 @@ NodeShared::NodeShared()
     this->dataPtr->topicStatsEnabled = (gzStats == "1");
   }
 
+  // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
+  std::string gzImpl;
+  if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
+  {
+    std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
+    if (gzImpl == "zeromq" || gzImpl == "zenoh")
+      this->dataPtr->gzImplementation = gzImpl;
+    else
+    {
+      std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
+                << gzImpl << "]. Ignoring this value" << std::endl;
+    }
+  }
+
   // My process UUID.
   Uuid uuid;
   this->pUuid = uuid.ToString();
@@ -254,6 +268,7 @@ NodeShared::NodeShared()
   // Initialize my discovery services.
   this->dataPtr->msgDiscovery.reset(
       new MsgDiscovery(this->pUuid, this->discoveryIP, this->msgDiscPort));
+
   this->dataPtr->srvDiscovery.reset(
       new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
 
@@ -297,34 +312,24 @@ NodeShared::NodeShared()
   this->dataPtr->msgDiscovery->SubscribersCb(
       std::bind(&NodeShared::OnSubscribers, this));
 
-  // Set the callback to notify svc discovery updates (new services).
-  this->dataPtr->srvDiscovery->ConnectionsCb(
+  if (this->GzImplementation() == "zeromq")
+  {
+    // Set the callback to notify svc discovery updates (new services).
+    this->dataPtr->srvDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
 
-  // Set the callback to notify svc discovery updates (invalid services).
-  this->dataPtr->srvDiscovery->DisconnectionsCb(
+    // Set the callback to notify svc discovery updates (invalid services).
+    this->dataPtr->srvDiscovery->DisconnectionsCb(
       std::bind(&NodeShared::OnNewSrvDisconnection,
         this, std::placeholders::_1));
 
-  // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
-  std::string gzImpl;
-  if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
-  {
-    std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
-    if (gzImpl == "zeromq" || gzImpl == "zenoh")
-      this->dataPtr->gzImplementation = gzImpl;
-    else
-    {
-      std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
-                << gzImpl << "]. Ignoring this value" << std::endl;
-    }
-  }
-
-  // Start the discovery services.
-  if (this->GzImplementation() == "zeromq")
-  {
+    // Start the discovery services.
     this->dataPtr->msgDiscovery->Start();
     this->dataPtr->srvDiscovery->Start();
+  }
+  else if (this->GzImplementation() == "zenoh")
+  {
+    this->dataPtr->msgDiscovery->Start(this->Session());
   }
 
   // Create the local publish thread.
@@ -1170,7 +1175,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     this->dataPtr->SecurityOnNewConnection();
 
     // I am not connected to the process.
-    if (!this->connections.HasPublisher(addr))
+    if (!this->connections.HasPublisher(addr) && this->dataPtr->subscriber)
       this->dataPtr->subscriber->connect(addr.c_str());
 
     // Add a new filter for the topic.
@@ -1561,6 +1566,14 @@ bool NodeShared::HandlerWrapper::HasSubscriber(
 }
 
 //////////////////////////////////////////////////
+bool NodeShared::HandlerWrapper::HasSubscriberForNode(
+    const std::string &_fullyQualifiedTopic, const std::string &_nUuid) const
+{
+  return this->normal.HasHandlersForNode(_fullyQualifiedTopic, _nUuid)
+      || this->raw.HasHandlersForNode(_fullyQualifiedTopic, _nUuid);
+}
+
+//////////////////////////////////////////////////
 template <typename HandlerT>
 static void AppendNodeUuids(const HandlerStorage<HandlerT> &_handlerStorage,
                             const std::string &_fullyQualifiedTopic,
@@ -1608,6 +1621,16 @@ bool NodeShared::HandlerWrapper::RemoveHandlersForNode(
   removed |= this->raw.RemoveHandlersForNode(_fullyQualifiedTopic, _nUuid);
 
   return removed;
+}
+
+//////////////////////////////////////////////////
+bool NodeShared::HandlerWrapper::RemoveHandler(
+    const std::string &_fullyQualifiedTopic,
+    const std::string &_nUuid,
+    const std::string &_hUuid)
+{
+  return this->normal.RemoveHandler(_fullyQualifiedTopic, _nUuid, _hUuid)
+      || this->raw.RemoveHandler(_fullyQualifiedTopic, _nUuid, _hUuid);
 }
 
 //////////////////////////////////////////////////
@@ -2013,3 +2036,221 @@ std::shared_ptr<zenoh::Session> NodeShared::Session()
   return this->dataPtr->session;
 }
 #endif
+
+//////////////////////////////////////////////////
+bool NodeShared::Unsubscribe(const std::string &_topic,
+  const std::string &_nUuid,
+  const NodeOptions &_nOpt,
+  const std::string &_hUuid)
+{
+  // Topic remapping.
+  std::string topic = _topic;
+  _nOpt.TopicRemap(_topic, topic);
+
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::FullyQualifiedName(_nOpt.Partition(),
+    _nOpt.NameSpace(), _topic, fullyQualifiedTopic))
+  {
+    std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
+    return false;
+  }
+
+  // Remove handlers from shared pubQueue to avoid invoking callbacks after
+  // unsuscribing to the topic
+  if ((_hUuid.empty() && !this->RemoveHandlersFromPubQueue(topic, _nUuid)) ||
+      (!_hUuid.empty() &&
+       !this->RemoveHandlerFromPubQueue(topic, _nUuid, _hUuid)))
+  {
+    std::cerr << "Error removing subscription handlers from publish queue "
+              << "when unsubscribing from Topic [" << _topic << "]"
+              <<  std::endl;
+  }
+
+  std::lock_guard<std::recursive_mutex> lk(this->mutex);
+
+  // Remove the subscribers for the given topic that belong to this node.
+  if (_hUuid.empty())
+  {
+    this->localSubscribers.RemoveHandlersForNode(
+          fullyQualifiedTopic, _nUuid);
+  }
+  else
+  {
+    this->localSubscribers.RemoveHandler(
+          fullyQualifiedTopic, _nUuid, _hUuid);
+  }
+
+  // Check if there are still local subscribers in this node. If so then we
+  // are done here. Otherwise, let others know that this node is no longer
+  // interested in the topic
+  if (this->localSubscribers.HasSubscriberForNode(fullyQualifiedTopic, _nUuid))
+    return true;
+
+  // No more susbcribers so remove the topic from the list of subscribed topics
+  // in this node.
+  this->RemoveSubscribedTopic(fullyQualifiedTopic, _nUuid);
+
+  // Remove the filter for this topic if I am the last subscriber.
+  if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
+  {
+#ifdef GZ_CPPZMQ_POST_4_7_0
+    this->dataPtr->subscriber->set(
+      zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+#else
+    this->dataPtr->subscriber->setsockopt(
+      ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(), fullyQualifiedTopic.size());
+#endif
+  }
+
+  // Notify to the publishers that I am no longer interested in the topic.
+  MsgAddresses_M addresses;
+  this->dataPtr->msgDiscovery->Publishers(
+    fullyQualifiedTopic, addresses);
+
+  for (auto &proc : addresses)
+  {
+    std::string dstPUuid = proc.first;
+    MessagePublisher pub(fullyQualifiedTopic, this->myAddress,
+      dstPUuid, this->pUuid, _nUuid,
+      kGenericMessageType, AdvertiseMessageOptions());
+
+    this->dataPtr->msgDiscovery->Unregister(pub);
+  }
+
+  MessagePublisher pub(fullyQualifiedTopic, this->myAddress,
+    "", this->pUuid, _nUuid,
+    kGenericMessageType, AdvertiseMessageOptions());
+
+  this->dataPtr->msgDiscovery->Unregister(pub);
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+std::unordered_set<std::string> &NodeShared::TopicsSubscribed(
+    const std::string &_nUuid) const
+{
+  std::lock_guard<std::recursive_mutex> lk(this->mutex);
+  return this->dataPtr->topicsSubscribed[_nUuid];
+}
+
+//////////////////////////////////////////////////
+bool NodeShared::RemoveSubscribedTopic(
+    const std::string &_topic,
+    const std::string &_nUuid)
+{
+  std::lock_guard<std::recursive_mutex> lk(this->mutex);
+  if (this->dataPtr->topicsSubscribed.find(_nUuid) ==
+      this->dataPtr->topicsSubscribed.end())
+  {
+    return false;
+  }
+  return this->dataPtr->topicsSubscribed.at(_nUuid).erase(_topic) > 0;
+}
+
+//////////////////////////////////////////////////
+bool NodeShared::SubscribeHelper(const std::string &_fullyQualifiedTopic,
+                                 const std::string &_nUuid)
+{
+  {
+    std::lock_guard<std::recursive_mutex> lk(this->mutex);
+    // Add the topic to the list of subscribed topics (if it was not before).
+    this->dataPtr->topicsSubscribed[_nUuid].insert(_fullyQualifiedTopic);
+  }
+
+  // Discover the list of nodes that publish on the topic.
+  std::string impl = this->GzImplementation();
+  if (impl == "zeromq")
+  {
+    return this->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic);
+  }
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool NodeShared::RemoveHandlersFromPubQueue(const std::string &_topic,
+                                            const std::string &_nUuid)
+{
+  // Remove from pubQueue
+  std::unique_lock<std::mutex> queueLock(
+      this->dataPtr->pubThreadMutex);
+  for (auto &msgDetails : this->dataPtr->pubQueue)
+  {
+    // check if there is a pub queue with message details that has topic
+    // which the node unsubscribes to
+    if (msgDetails->info.Topic() != _topic)
+      continue;
+
+    // remove local handler if it is a handler for this node
+    for (auto handlerIt = msgDetails->localHandlers.begin();
+         handlerIt != msgDetails->localHandlers.end();)
+    {
+      if ((*handlerIt)->NodeUuid() == _nUuid)
+      {
+        msgDetails->localHandlers.erase(handlerIt);
+      }
+      else
+        ++handlerIt;
+    }
+
+    // remove raw handler if it is a handler for this node
+    for (auto handlerIt = msgDetails->rawHandlers.begin();
+         handlerIt != msgDetails->rawHandlers.end();)
+    {
+      if ((*handlerIt)->NodeUuid() == _nUuid)
+        msgDetails->rawHandlers.erase(handlerIt);
+      else
+        ++handlerIt;
+    }
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool NodeShared::RemoveHandlerFromPubQueue(const std::string &_topic,
+                                           const std::string &_nUuid,
+                                           const std::string &_hUuid)
+{
+  // Remove from pubQueue
+  std::unique_lock<std::mutex> queueLock(
+      this->dataPtr->pubThreadMutex);
+  for (auto &msgDetails : this->dataPtr->pubQueue)
+  {
+    // check if there is a pub queue with message details that has topic
+    // which the node unsubscribes to
+    if (msgDetails->info.Topic() != _topic)
+      continue;
+
+    // remove local handler if it is a handler for this node
+    for (auto handlerIt = msgDetails->localHandlers.begin();
+         handlerIt != msgDetails->localHandlers.end();)
+    {
+      if ((*handlerIt)->NodeUuid() == _nUuid &&
+          _hUuid == (*handlerIt)->HandlerUuid())
+      {
+        msgDetails->localHandlers.erase(handlerIt);
+      }
+      else
+      {
+        ++handlerIt;
+      }
+    }
+
+    // remove raw handler if it is a handler for this node
+    for (auto handlerIt = msgDetails->rawHandlers.begin();
+         handlerIt != msgDetails->rawHandlers.end();)
+    {
+      if ((*handlerIt)->NodeUuid() == _nUuid &&
+          _hUuid == (*handlerIt)->HandlerUuid())
+      {
+        msgDetails->rawHandlers.erase(handlerIt);
+      }
+      else
+      {
+        ++handlerIt;
+      }
+    }
+  }
+  return true;
+}

@@ -19,7 +19,7 @@ endif()
 gz_build_tests(
   TYPE "UNIT"
   SOURCES ${gtest_sources}
-  LIB_DEPS ${param_lib_target} ${EXTRA_TEST_LIB_DEPS}
+  LIB_DEPS ${param_lib_target} ${EXTRA_TEST_LIB_DEPS} test_config
 )
 
 if(NOT WIN32)

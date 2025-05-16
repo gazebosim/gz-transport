@@ -29,7 +29,6 @@
 #include <thread>
 
 #include <gz/transport/Clock.hh>
-#include <gz/transport/Discovery.hh>
 #include <gz/transport/log/Log.hh>
 #include <gz/transport/log/Recorder.hh>
 #include <gz/transport/MessageInfo.hh>
@@ -37,6 +36,7 @@
 #include <gz/transport/TransportTypes.hh>
 
 #include "Console.hh"
+#include "../../src/Discovery.hh"
 #include "raii-sqlite3.hh"
 #include "build_config.hh"
 

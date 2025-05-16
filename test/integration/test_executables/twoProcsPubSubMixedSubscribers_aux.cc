@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2025 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <gz/msgs/statistic.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
+#include <atomic>
 #include <chrono>
 #include <string>
 
@@ -29,10 +30,10 @@
 
 using namespace gz;
 
-static bool cbExecuted;
-static bool cbStatsExecuted;
-static bool cbRawExecuted;
-static bool cb2Executed;
+static std::atomic<bool> cbExecuted;
+static std::atomic<bool> cbRawExecuted;
+static std::atomic<bool> cbCreateSubExecuted;
+static std::atomic<bool> cbCreateSub2Executed;
 static std::string g_topic = "/foo"; // NOLINT(*)
 static std::string data = "bar"; // NOLINT(*)
 
@@ -65,83 +66,96 @@ void cbRaw(const char *_msgData, const size_t _size,
 
 //////////////////////////////////////////////////
 /// \brief Function is called every time a topic update is received.
-void cb2(const msgs::Vector3d &_msg)
+void cbCreateSub(const msgs::Vector3d &_msg)
 {
   EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
   EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
   EXPECT_DOUBLE_EQ(_msg.z(), 3.0);
-  cb2Executed = true;
+  cbCreateSubExecuted = true;
 }
 
 //////////////////////////////////////////////////
-void statsCb(const msgs::Metric & /*_msg*/)
+/// \brief Function is called every time a topic update is received.
+void cbCreateSub2(const msgs::Vector3d &_msg)
 {
-  cbStatsExecuted = true;
+  EXPECT_DOUBLE_EQ(_msg.x(), 1.0);
+  EXPECT_DOUBLE_EQ(_msg.y(), 2.0);
+  EXPECT_DOUBLE_EQ(_msg.z(), 3.0);
+  cbCreateSub2Executed = true;
 }
 
 //////////////////////////////////////////////////
 void runSubscriber()
 {
   cbExecuted = false;
-  cbStatsExecuted = false;
   cbRawExecuted = false;
-  cb2Executed = false;
+  cbCreateSubExecuted = false;
+  cbCreateSub2Executed = false;
 
   transport::Node node;
-  transport::Node node2;
 
-  // Add some normal subscriptions to `node` and `node2`
+  // Subscribe to topic using a mix of Subscribe / CreateSubscriber APIs
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
-  EXPECT_TRUE(node2.Subscribe(g_topic, cb2));
-
-  // Turn on statistics for the first node.
-  EXPECT_TRUE(node.EnableStats(g_topic, true, "/statistics", 1000));
-  EXPECT_TRUE(node.Subscribe("/statistics", statsCb));
-
-  // Add a raw subscription to `node`
   EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
-                                std::string(msgs::Vector3d().GetTypeName())));
+                                msgs::Vector3d().GetTypeName()));
+  transport::Node::Subscriber sub = node.CreateSubscriber(g_topic, cbCreateSub);
+  EXPECT_TRUE(sub);
+  transport::Node::Subscriber sub2 = node.CreateSubscriber(g_topic,
+      cbCreateSub2);
+  EXPECT_TRUE(sub2);
 
   int interval = 100;
 
-  // Wait until we've received at least one message.
-  while (!cbExecuted || !cb2Executed || !cbRawExecuted)
+  // Wait until we've received at least one message in each callback.
+  while (!cbExecuted || !cbRawExecuted ||
+         !cbCreateSubExecuted || !cbCreateSub2Executed)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    interval--;
-
-    if (interval == 0)
+    if (--interval == 0)
       break;
   }
 
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
   EXPECT_TRUE(cbRawExecuted);
-  EXPECT_TRUE(cb2Executed);
-  EXPECT_TRUE(cbStatsExecuted);
+  EXPECT_TRUE(cbCreateSubExecuted);
+  EXPECT_TRUE(cbCreateSub2Executed);
 
   // Reset the test flags
   cbExecuted = false;
   cbRawExecuted = false;
-  cb2Executed = false;
+  cbCreateSubExecuted = false;
+  cbCreateSub2Executed = false;
 
-  // Only unsubscribe `node`, leaving `node2` subscribed. Note that the
-  // SubscribeRaw is attached to `node`, so that will also be removed.
-  EXPECT_TRUE(node.Unsubscribe(g_topic));
+  // Only unsubscribe 'sub'
+  EXPECT_TRUE(sub.Unsubscribe());
 
   // Wait a small amount of time so that the master process can send some new
   // messages.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  // Check that the message was only received in node2
-  EXPECT_FALSE(cbExecuted);
-  EXPECT_FALSE(cbRawExecuted);
-  EXPECT_TRUE(cb2Executed);
+  // Check that messages are received by subscribers except sub
+  EXPECT_TRUE(cbExecuted);
+  EXPECT_TRUE(cbRawExecuted);
+  EXPECT_FALSE(cbCreateSubExecuted);
+  EXPECT_TRUE(cbCreateSub2Executed);
 
-  // Reset flags
+  // Reset the test flags
   cbExecuted = false;
   cbRawExecuted = false;
-  cb2Executed = false;
+  cbCreateSubExecuted = false;
+  cbCreateSub2Executed = false;
+
+  // Unsubscribe from all topics
+  EXPECT_TRUE(node.Unsubscribe(g_topic));
+
+  // Wait for messages
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+  EXPECT_FALSE(cbExecuted);
+  EXPECT_FALSE(cbRawExecuted);
+  EXPECT_FALSE(cbCreateSubExecuted);
+  EXPECT_FALSE(cbCreateSub2Executed);
 }
 
 //////////////////////////////////////////////////
