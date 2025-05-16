@@ -136,7 +136,7 @@ namespace gz
       /// \<PREFIX\>\@\<PARTITION\>\@\<NAMESPACE\>/\<TOPIC\>@\<ProcUUID\>
       /// \@\<NodeUUID\>\@\<EntityType\>\@\<MsgType\>
       ///
-      /// The _prefix output argument will be set to \<PREFIX\>, the _partition 
+      /// The _prefix output argument will be set to \<PREFIX\>, the _partition
       /// output argument will be set to \<PARTITION\>, the
       /// _namespaceAndTopic output argument will be set to
       /// \<NAMESPACE\>/\<TOPIC\>, the _pUUID output argument will be set to
