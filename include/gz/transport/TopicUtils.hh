@@ -133,7 +133,8 @@ namespace gz
       ///
       /// Given a Zenoh liveliness token with the following syntax:
       ///
-      /// \<PREFIX\>\@\<PARTITION\>\@\<NAMESPACE\>/\<TOPIC\>@\<ProcUUID\>\@\<NodeUUID\>\@\<EntityType\>\@\<MsgType\>
+      /// \<PREFIX\>\@\<PARTITION\>\@\<NAMESPACE\>/\<TOPIC\>@\<ProcUUID\>
+      /// \@\<NodeUUID\>\@\<EntityType\>\@\<MsgType\>
       ///
       /// The _prefix output argument will be set to \<PREFIX\>, the _partition 
       /// output argument will be set to \<PARTITION\>, the
