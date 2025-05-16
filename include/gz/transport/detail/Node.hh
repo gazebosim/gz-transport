@@ -157,7 +157,20 @@ namespace gz
           new SubscriptionHandler<MessageT>(this->NodeUuid(), _opts));
 
       // Insert the callback into the handler.
-      subscrHandlerPtr->SetCallback(std::move(_cb));
+      std::string impl = this->Shared()->GzImplementation();
+      if (impl == "zeromq")
+      {
+        subscrHandlerPtr->SetCallback(std::move(_cb));
+      }
+#ifdef HAVE_ZENOH
+      else if (impl == "zenoh")
+      {
+        subscrHandlerPtr->SetCallback(std::move(_cb),
+          this->Shared()->Session(), fullyQualifiedTopic);
+      }
+#endif
+      else
+        return nullptr;
 
       std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 

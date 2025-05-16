@@ -49,6 +49,12 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
+namespace zenoh
+{
+  // Forward declaration.
+  class Session;
+}
+
 namespace gz
 {
   namespace transport
@@ -298,6 +304,16 @@ namespace gz
       /// process.
       /// \return The relay addresses.
       public: std::vector<std::string> GlobalRelays() const;
+
+      /// \brief Gets the current implementation.
+      /// \return The current implementation (e.g.: zeromq, zenoh).
+      public: std::string GzImplementation() const;
+
+#ifdef HAVE_ZENOH
+      /// \brief Get the current Zenoh session.
+      /// \return The Zenoh session.
+      public: std::shared_ptr<zenoh::Session> Session();
+#endif
 
       /// \brief Unsubscribe a node from a topic.
       /// If the handler UUID argument is empty, all subscription handlers in

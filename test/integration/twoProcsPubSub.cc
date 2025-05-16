@@ -107,6 +107,8 @@ void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
 /// node receives the message.
 TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
   auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
@@ -140,6 +142,8 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 /// of Publish(~).
 TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
   auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
@@ -177,6 +181,8 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 /// the advertised types.
 TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -198,6 +204,8 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 /// \brief Same as above, but using a raw subscription.
 TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -224,6 +232,8 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 /// (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -257,6 +267,8 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 /// callbacks are executed (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -380,6 +392,8 @@ TEST(twoProcPubSub, PubThrottled)
 /// using a callback that accepts message information.
 TEST(twoProcPubSub, PubSubMessageInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
   reset();
@@ -402,6 +416,8 @@ TEST(twoProcPubSub, PubSubMessageInfo)
 /// available topics.
 TEST(twoProcPubSub, TopicList)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -448,6 +464,8 @@ TEST(twoProcPubSub, TopicList)
 /// about the topic.
 TEST(twoProcPubSub, TopicInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -484,6 +502,8 @@ TEST(twoProcPubSub, TopicInfo)
 /// check returns the correct result.
 TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
 
   for (auto j = 0; j < 2; ++j)
@@ -529,6 +549,8 @@ TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
 /// After that check that only one remaining subscriber receives the message.
 TEST(twoProcPubSub, PubSubTwoProcsMixedSubscribers)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   transport::Node node;
   auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);

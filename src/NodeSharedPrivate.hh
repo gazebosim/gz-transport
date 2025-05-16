@@ -18,8 +18,6 @@
 #ifndef GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 #define GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 
-#include <zmq.hpp>
-
 #include <atomic>
 #include <list>
 #include <map>
@@ -28,6 +26,13 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+#include <zmq.hpp>
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
+
+#include "gz/transport/config.hh"
 
 #include "gz/transport/Discovery.hh"
 #include "gz/transport/Node.hh"
@@ -56,6 +61,10 @@ namespace gz
     {
       // Constructor
       public: NodeSharedPrivate() :
+#ifdef HAVE_ZENOH
+                session(new zenoh::Session(
+                  zenoh::Session::open(zenoh::Config::create_default()))),
+#endif
                 context(new zmq::context_t(1)),
                 publisher(new zmq::socket_t(*context, ZMQ_PUB)),
                 subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
@@ -84,6 +93,11 @@ namespace gz
       /// value if the validation wasn't succeed.
       public: int NonNegativeEnvVar(const std::string &_envVar,
                                     int _defaultValue) const;
+
+#ifdef HAVE_ZENOH
+      /// \Pointer to the Zenoh session.
+      public: std::shared_ptr<zenoh::Session> session;
+#endif
 
       //////////////////////////////////////////////////
       ///////    Declare here the ZMQ Context    ///////
@@ -208,6 +222,11 @@ namespace gz
       /// \brief A map of node UUID and its subscribed topics
       public: std::unordered_map<std::string, std::unordered_set<std::string>>
               topicsSubscribed;
+
+      /// \brief Underlying middleware implementation.
+      /// Supported values are: [zenoh, zeromq].
+      public: std::string gzImplementation =
+                  std::string(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION);
     };
     }
   }

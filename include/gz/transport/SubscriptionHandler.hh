@@ -46,6 +46,12 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
+namespace zenoh
+{
+  // Forward declaration.
+  class Session;
+}
+
 namespace gz
 {
   namespace transport
@@ -53,6 +59,9 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
+    /// Forward declaration;
+    class SubscriptionHandlerBasePrivate;
+
     /// \brief SubscriptionHandlerBase contains functions and data which are
     /// common to all SubscriptionHandler types.
     class GZ_TRANSPORT_VISIBLE SubscriptionHandlerBase
@@ -65,7 +74,7 @@ namespace gz
         const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Destructor.
-      public: virtual ~SubscriptionHandlerBase() = default;
+      public: ~SubscriptionHandlerBase();
 
       /// \brief Get the type of the messages from which this subscriber
       /// handler is subscribed.
@@ -89,27 +98,14 @@ namespace gz
       /// \return true if the callback should be executed or false otherwise.
       protected: bool UpdateThrottling();
 
-      /// \brief Subscribe options.
-      protected: SubscribeOptions opts;
-
-      /// \brief If throttling is enabled, the minimum period for receiving a
-      /// message in nanoseconds.
-      protected: double periodNs;
-
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::*
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-      /// \brief Unique handler's UUID.
-      protected: std::string hUuid;
-
-      /// \brief Timestamp of the last callback executed.
-      protected: Timestamp lastCbTimestamp;
-
-      /// \brief Node UUID.
-      private: std::string nUuid;
+      /// \brief Private data.
+      protected: SubscriptionHandlerBasePrivate *dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -151,6 +147,13 @@ namespace gz
       public: virtual const std::shared_ptr<ProtoMsg> CreateMsg(
         const std::string &_data,
         const std::string &_type) const = 0;
+
+      /// \brief Create a Zenoh subscriber
+      /// \param[in] _session Zenoh session.
+      /// \param[in] _topic The topic.
+      public: void CreateGenericZenohSubscriber(
+        std::shared_ptr<zenoh::Session> _session,
+        const std::string &_topic);
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh
@@ -197,6 +200,20 @@ namespace gz
       {
         this->cb = _cb;
       }
+
+#ifdef HAVE_ZENOH
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback.
+      /// \param[in] _session The Zenoh session.
+      /// \param[in] _topic The topic associated to this callback.
+      public: void SetCallback(const MsgCallback<T> &_cb,
+                               std::shared_ptr<zenoh::Session> _session,
+                               const std::string &_topic)
+      {
+        this->SetCallback(std::move(_cb));
+        this->CreateGenericZenohSubscriber(_session, _topic);
+      }
+#endif
 
       // Documentation inherited.
       public: bool RunLocalCallback(const ProtoMsg &_msg,
@@ -314,6 +331,20 @@ namespace gz
         this->cb = _cb;
       }
 
+#ifdef HAVE_ZENOH
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback.
+      /// \param[in] _session The Zenoh session.
+      /// \param[in] _topic The topic associated to this callback.
+      public: void SetCallback(const MsgCallback<ProtoMsg> &_cb,
+                               std::shared_ptr<zenoh::Session> _session,
+                               const std::string &_topic)
+      {
+        this->SetCallback(std::move(_cb));
+        this->CreateGenericZenohSubscriber(_session, _topic);
+      }
+#endif
+
       // Documentation inherited.
       public: bool RunLocalCallback(const ProtoMsg &_msg,
                                     const MessageInfo &_info)
@@ -361,6 +392,16 @@ namespace gz
       /// \param[in] _callback The callback function that will be triggered when
       /// a message is received.
       public: void SetCallback(const RawCallback &_callback);
+
+#ifdef HAVE_ZENOH
+      /// \brief Set the callback for this handler.
+      /// \param[in] _cb The callback.
+      /// \param[in] _session The Zenoh session.
+      /// \param[in] _topic The topic associated to this callback.
+      public: void SetCallback(const RawCallback &_cb,
+                               std::shared_ptr<zenoh::Session> _session,
+                               const std::string &_topic);
+#endif
 
       /// \brief Executes the raw callback registered for this handler.
       /// \param[in] _msgData Serialized string of message data

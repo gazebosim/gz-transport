@@ -16,8 +16,6 @@
 */
 #include <gz/msgs/empty.pb.h>
 
-#include <zmq.hpp>
-
 #include <chrono>
 #include <cstring>
 #include <iostream>
@@ -29,6 +27,11 @@
 #include <thread>
 #include <vector>
 #include <unordered_map>
+
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
+#include <zmq.hpp>
 
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Discovery.hh"
@@ -303,9 +306,23 @@ NodeShared::NodeShared()
       std::bind(&NodeShared::OnNewSrvDisconnection,
         this, std::placeholders::_1));
 
+  // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
+  std::string gzImpl = getTransportImplementation();
+  std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
+  if (gzImpl == "zeromq" || gzImpl == "zenoh")
+    this->dataPtr->gzImplementation = gzImpl;
+  else
+  {
+    std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
+              << gzImpl << "]. Ignoring this value" << std::endl;
+  }
+
   // Start the discovery services.
-  this->dataPtr->msgDiscovery->Start();
-  this->dataPtr->srvDiscovery->Start();
+  if (this->GzImplementation() == "zeromq")
+  {
+    this->dataPtr->msgDiscovery->Start();
+    this->dataPtr->srvDiscovery->Start();
+  }
 
   // Create the local publish thread.
   this->dataPtr->pubThread = std::thread(&NodeSharedPrivate::PublishThread,
@@ -548,6 +565,12 @@ NodeShared::SubscriberInfo NodeShared::CheckSubscriberInfo(
 
   info.haveRemote = this->remoteSubscribers.HasTopic(
         _topic, _msgType);
+
+  if (this->GzImplementation() == "zenoh")
+  {
+    // For now we fake that there are always remote subscribers.
+    info.haveRemote = true;
+  }
 
   return info;
 }
@@ -1969,12 +1992,16 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
   return numVal;
 }
 
-void NodeShared::AddGlobalRelay(const std::string& _relayAddress) {
+/////////////////////////////////////////////////
+void NodeShared::AddGlobalRelay(const std::string& _relayAddress)
+{
   dataPtr->msgDiscovery->AddRelayAddress(_relayAddress);
   dataPtr->srvDiscovery->AddRelayAddress(_relayAddress);
 }
 
-std::vector<std::string> NodeShared::GlobalRelays() const {
+/////////////////////////////////////////////////
+std::vector<std::string> NodeShared::GlobalRelays() const
+{
   // Merge relays from message and service discovery. They should be identical
   // since they're typically build from the same sources.
   //
@@ -1987,6 +2014,20 @@ std::vector<std::string> NodeShared::GlobalRelays() const {
 
   return std::vector<std::string>(srvRelaySet.cbegin(), srvRelaySet.cend());
 }
+
+/////////////////////////////////////////////////
+std::string NodeShared::GzImplementation() const
+{
+  return this->dataPtr->gzImplementation;
+}
+
+#ifdef HAVE_ZENOH
+/////////////////////////////////////////////////
+std::shared_ptr<zenoh::Session> NodeShared::Session()
+{
+  return this->dataPtr->session;
+}
+#endif
 
 //////////////////////////////////////////////////
 bool NodeShared::Unsubscribe(const std::string &_topic,
@@ -2110,7 +2151,12 @@ bool NodeShared::SubscribeHelper(const std::string &_fullyQualifiedTopic,
   }
 
   // Discover the list of nodes that publish on the topic.
-  return !this->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic);
+  std::string impl = this->GzImplementation();
+  if (impl == "zeromq")
+  {
+    return this->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic);
+  }
+  return true;
 }
 
 //////////////////////////////////////////////////

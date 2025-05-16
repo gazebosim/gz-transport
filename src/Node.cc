@@ -116,6 +116,19 @@ namespace gz
       {
       }
 
+#ifdef HAVE_ZENOH
+      /// \brief Constructor
+      /// \param[in] _publisher The message publisher.
+      /// \param[in] _zPub The zenoh publisher.
+      public: explicit PublisherPrivate(const MessagePublisher &_publisher,
+                                        zenoh::Publisher _zPub)
+        : shared(NodeShared::Instance()),
+          publisher(_publisher),
+          zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub)))
+      {
+      }
+#endif
+
       /// \brief Check if this Publisher is ready to send an update based on
       /// publication settings and the clock.
       ///
@@ -193,6 +206,11 @@ namespace gz
 
       /// \brief The message publisher.
       public: MessagePublisher publisher;
+
+#ifdef HAVE_ZENOH
+      /// \brief The zenoh publisher.
+      public: std::unique_ptr<zenoh::Publisher> zPub;
+#endif
 
       /// \brief Timestamp of the last callback executed.
       public: Timestamp lastCbTimestamp;
@@ -312,6 +330,20 @@ Node::Publisher::Publisher(const MessagePublisher &_publisher)
       1e9 / this->dataPtr->publisher.Options().MsgsPerSec();
   }
 }
+
+#ifdef HAVE_ZENOH
+//////////////////////////////////////////////////
+Node::Publisher::Publisher(const MessagePublisher &_publisher,
+                           zenoh::Publisher &&_zPub)
+  : dataPtr(std::make_shared<PublisherPrivate>(_publisher, std::move(_zPub)))
+{
+  if (this->dataPtr->publisher.Options().Throttled())
+  {
+    this->dataPtr->periodNs =
+      1e9 / this->dataPtr->publisher.Options().MsgsPerSec();
+  }
+}
+#endif
 
 //////////////////////////////////////////////////
 Node::Publisher::~Publisher()
@@ -498,25 +530,43 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   }
 
   // Handle remote subscribers.
-  if (subscribers.haveRemote)
+  std::string impl = this->dataPtr->shared->GzImplementation();
+  if (impl == "zeromq")
   {
-    // Zmq will call this lambda when the message is published.
-    // We use it to deallocate the buffer.
-    auto myDeallocator = [](void *_buffer, void *)
+    if (subscribers.haveRemote)
     {
-      delete[] reinterpret_cast<char*>(_buffer);
-    };
+      // Zmq will call this lambda when the message is published.
+      // We use it to deallocate the buffer.
+      auto myDeallocator = [](void *_buffer, void *)
+      {
+        delete[] reinterpret_cast<char*>(_buffer);
+      };
 
-    if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
-          msgBuffer, msgSize, myDeallocator, std::string(_msg.GetTypeName())))
+      if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
+            msgBuffer, msgSize, myDeallocator, std::string(_msg.GetTypeName())))
+      {
+        return false;
+      }
+    }
+    else
     {
-      return false;
+      delete[] msgBuffer;
     }
   }
-  else
+#ifdef HAVE_ZENOH
+  else if (impl == "zenoh")
   {
-    delete[] msgBuffer;
+    if (subscribers.haveRemote)
+    {
+      zenoh::Publisher::PutOptions options;
+      // Add message type as an attachment.
+      options.attachment = _msg.GetTypeName();
+      this->dataPtr->zPub->put(msgBuffer, std::move(options));
+    }
   }
+#endif
+  else
+    return false;
 
   return true;
 }
@@ -819,7 +869,21 @@ bool Node::SubscribeRaw(
       std::make_shared<RawSubscriptionHandler>(
         this->dataPtr->nUuid, _msgType, _opts);
 
-  handlerPtr->SetCallback(_callback);
+  // Insert the callback into the handler.
+  std::string impl = this->Shared()->GzImplementation();
+  if (impl == "zeromq")
+  {
+    handlerPtr->SetCallback(_callback);
+  }
+#ifdef HAVE_ZENOH
+  else if (impl == "zenoh")
+  {
+    handlerPtr->SetCallback(std::move(_callback),
+      this->Shared()->Session(), fullyQualifiedTopic);
+  }
+#endif
+  else
+    return false;
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
@@ -1065,16 +1129,31 @@ Node::Publisher Node::Advertise(const std::string &_topic,
       "unused",
       this->Shared()->pUuid, this->NodeUuid(), _msgTypeName, _options);
 
-  if (!this->Shared()->dataPtr->msgDiscovery->Advertise(publisher))
+  std::string impl = this->dataPtr->shared->GzImplementation();
+  if (impl == "zeromq")
   {
-    std::cerr << "Node::Advertise(): Error advertising topic ["
-      << topic
-      << "]. Did you forget to start the discovery service?"
-      << std::endl;
-    return Publisher();
-  }
+    if (!this->Shared()->dataPtr->msgDiscovery->Advertise(publisher))
+    {
+      std::cerr << "Node::Advertise(): Error advertising topic ["
+        << topic
+        << "]. Did you forget to start the discovery service?"
+        << std::endl;
+      return Publisher();
+    }
 
-  return Publisher(publisher);
+    return Publisher(publisher);
+  }
+#ifdef HAVE_ZENOH
+  else if (impl == "zenoh")
+  {
+    auto zPub = this->Shared()->dataPtr->session->declare_publisher(
+     zenoh::KeyExpr(fullyQualifiedTopic));
+
+    return Publisher(publisher, std::move(zPub));
+  }
+#endif
+  else
+    return Publisher();
 }
 
 /////////////////////////////////////////////////
