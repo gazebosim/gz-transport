@@ -568,11 +568,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     {
       zenoh::Publisher::PutOptions options;
       // Add message type as an attachment.
-      options.attachment =
-        this->dataPtr->publisher.Topic() + "@" +
-        this->dataPtr->publisher.PUuid() + "@" +
-        this->dataPtr->publisher.NUuid() + "@" +
-        this->dataPtr->publisher.MsgTypeName();
+      options.attachment = this->dataPtr->publisher.MsgTypeName();
 
       this->dataPtr->zPub->put(msgBuffer, std::move(options));
     }
