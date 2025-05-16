@@ -67,9 +67,11 @@ namespace gz
     class GZ_TRANSPORT_VISIBLE SubscriptionHandlerBase
     {
       /// \brief Constructor.
+      /// \param[in] _pUuid UUID of the process registering the handler.
       /// \param[in] _nUuid UUID of the node registering the handler.
       /// \param[in] _opts Subscription options.
       public: explicit SubscriptionHandlerBase(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const SubscribeOptions &_opts = SubscribeOptions());
 
@@ -80,6 +82,10 @@ namespace gz
       /// handler is subscribed.
       /// \return String representation of the message type.
       public: virtual std::string TypeName() = 0;
+
+      /// \brief Get the process UUID.
+      /// \return The string representation of the process UUID.
+      public: std::string ProcUuid() const;
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
@@ -123,9 +129,11 @@ namespace gz
         : public SubscriptionHandlerBase
     {
       /// \brief Constructor.
+      /// \param[in] _pUuid UUID of the process registering the handler.
       /// \param[in] _nUuid UUID of the node registering the handler.
       /// \param[in] _opts Subscription options.
       public: explicit ISubscriptionHandler(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const SubscribeOptions &_opts = SubscribeOptions());
 
@@ -164,9 +172,10 @@ namespace gz
       : public ISubscriptionHandler
     {
       // Documentation inherited.
-      public: explicit SubscriptionHandler(const std::string &_nUuid,
+      public: explicit SubscriptionHandler(const std::string &_pUuid,
+        const std::string &_nUuid,
         const SubscribeOptions &_opts = SubscribeOptions())
-        : ISubscriptionHandler(_nUuid, _opts)
+        : ISubscriptionHandler(_pUuid, _nUuid, _opts)
       {
       }
 
@@ -275,9 +284,10 @@ namespace gz
       : public ISubscriptionHandler
     {
       // Documentation inherited.
-      public: explicit SubscriptionHandler(const std::string &_nUuid,
+      public: explicit SubscriptionHandler(const std::string &_pUuid,
+        const std::string &_nUuid,
         const SubscribeOptions &_opts = SubscribeOptions())
-        : ISubscriptionHandler(_nUuid, _opts)
+        : ISubscriptionHandler(_pUuid, _nUuid, _opts)
       {
       }
 
@@ -375,12 +385,14 @@ namespace gz
     class RawSubscriptionHandler : public SubscriptionHandlerBase
     {
       /// \brief Constructor
+      /// \param[in] _pUuid UUID of the process registering the handler
       /// \param[in] _nUuid UUID of the node registering the handler
       /// \param[in] _msgType Name of message type that this handler should
       /// listen for. Setting this to kGenericMessageType will tell this handler
       /// to listen for all message types.
       /// \param[in] _opts Subscription options.
       public: explicit RawSubscriptionHandler(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const std::string &_msgType = kGenericMessageType,
         const SubscribeOptions &_opts = SubscribeOptions());

@@ -19,7 +19,7 @@
 
 #include <vector>
 
-#include "gz/transport/Discovery.hh"
+#include "Discovery.hh"
 
 // Compatibility macro for ZMQ_FD_T
 #if (ZMQ_VERSION >= 40303)

@@ -34,12 +34,14 @@ namespace gz
     {
       /// \brief Default constructor.
       public: SubscriptionHandlerBasePrivate(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const SubscribeOptions &_opts)
       : opts(_opts),
         periodNs(0.0),
         hUuid(Uuid().ToString()),
         lastCbTimestamp(std::chrono::seconds{0}),
+        pUuid(_pUuid),
         nUuid(_nUuid)
       {
         if (this->opts.Throttled())
@@ -65,20 +67,27 @@ namespace gz
       /// \brief Timestamp of the last callback executed.
       public: Timestamp lastCbTimestamp;
 
+      /// \brief Process UUID.
+      public: std::string pUuid;
+
       /// \brief Node UUID.
       public: std::string nUuid;
 
 #ifdef HAVE_ZENOH
       /// \brief The zenoh subscriber handler.
       public: std::unique_ptr<zenoh::Subscriber<void>> zSub;
+
+      /// \brief The liveliness token.
+      public: std::unique_ptr<zenoh::LivelinessToken> zToken;
 #endif
     };
 
     /////////////////////////////////////////////////
     SubscriptionHandlerBase::SubscriptionHandlerBase(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const SubscribeOptions &_opts)
-      : dataPtr(new SubscriptionHandlerBasePrivate(_nUuid, _opts))
+      : dataPtr(new SubscriptionHandlerBasePrivate(_pUuid, _nUuid, _opts))
     {
     }
 
@@ -87,6 +96,12 @@ namespace gz
     {
       if (dataPtr)
         delete dataPtr;
+    }
+
+    /////////////////////////////////////////////////
+    std::string SubscriptionHandlerBase::ProcUuid() const
+    {
+      return this->dataPtr->pUuid;
     }
 
     /////////////////////////////////////////////////
@@ -131,9 +146,10 @@ namespace gz
 
     /////////////////////////////////////////////////
     ISubscriptionHandler::ISubscriptionHandler(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const SubscribeOptions &_opts)
-      : SubscriptionHandlerBase(_nUuid, _opts)
+      : SubscriptionHandlerBase(_pUuid, _nUuid, _opts)
     {
       // Do nothing
     }
@@ -166,6 +182,15 @@ namespace gz
         this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
           _session->declare_subscriber(
             _topic, dataHandler, zenoh::closures::none));
+
+        this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
+          _session->liveliness_declare_token(
+            "gz" +
+            _topic + "@" +
+            this->ProcUuid() + "@" +
+            this->NodeUuid() + "@" +
+            "sub@" +
+            this->TypeName()));
     }
 #endif
 
@@ -185,10 +210,11 @@ namespace gz
 
     /////////////////////////////////////////////////
     RawSubscriptionHandler::RawSubscriptionHandler(
+        const std::string &_pUuid,
         const std::string &_nUuid,
         const std::string &_msgType,
         const SubscribeOptions &_opts)
-      : SubscriptionHandlerBase(_nUuid, _opts),
+      : SubscriptionHandlerBase(_pUuid, _nUuid, _opts),
         pimpl(new Implementation(_msgType))
     {
       // Do nothing
@@ -226,6 +252,15 @@ namespace gz
       this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
         _session->declare_subscriber(
           keyexpr, dataHandler, zenoh::closures::none));
+
+      this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
+          _session->liveliness_declare_token(
+            "gz" +
+            _topic + "@" +
+            this->ProcUuid() + "@" +
+            this->NodeUuid() + "@" +
+            "sub@" +
+            this->TypeName()));
 
       this->SetCallback(std::move(_cb));
     }
