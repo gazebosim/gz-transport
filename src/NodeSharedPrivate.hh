@@ -222,9 +222,6 @@ namespace gz
       public: std::unordered_map<std::string, std::unordered_set<std::string>>
               topicsSubscribed;
 
-      /// \brief Local subscribers information.
-      // public: HandlerWrapper localSubscribers;
-
       /// \brief Service call repliers.
       public: HandlerStorage<IRepHandler> repliers;
 

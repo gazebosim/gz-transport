@@ -69,7 +69,7 @@ namespace gz
     {
       return this->dataPtr->hUuid;
     }
-  
+
 #ifdef HAVE_ZENOH
     /////////////////////////////////////////////////
     void IRepHandler::CreateZenohQueriable(

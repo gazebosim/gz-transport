@@ -63,7 +63,7 @@ namespace gz
     {
       /// \brief Constructor.
       public: IRepHandler();
-      
+
       /// \brief Destructor.
       public: virtual ~IRepHandler();
 
