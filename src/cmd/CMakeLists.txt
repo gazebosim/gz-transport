@@ -23,7 +23,7 @@ set(topic_executable gz-transport-topic)
 add_executable(${topic_executable} topic_main.cc)
 target_link_libraries(${topic_executable}
   gz
-  gz-utils${GZ_UTILS_VER}::cli
+  gz-utils::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 install(TARGETS ${topic_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
@@ -33,7 +33,7 @@ set(service_executable gz-transport-service)
 add_executable(${service_executable} service_main.cc)
 target_link_libraries(${service_executable}
   gz
-  gz-utils${GZ_UTILS_VER}::cli
+  gz-utils::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 install(TARGETS ${service_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
@@ -43,7 +43,7 @@ gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   TEST_LIST test_list
   LIB_DEPS
     gz
-    gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
+    gz-utils::gz-utils
     ${EXTRA_TEST_LIB_DEPS} test_config)
 
 foreach(test ${test_list})

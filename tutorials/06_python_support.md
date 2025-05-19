@@ -44,15 +44,15 @@ folder and open it with your favorite editor:
 ### Walkthrough
 
 ```{.py}
-    from gz.msgs11.stringmsg_pb2 import StringMsg
-    from gz.msgs11.vector3d_pb2 import Vector3d
+    from gz.msgs.stringmsg_pb2 import StringMsg
+    from gz.msgs.vector3d_pb2 import Vector3d
     from gz.transport import Node
 ```
 
 The library `gz.transport` contains all the Gazebo Transport elements that can be
 used in Python. The final API we will use is contained inside the class `Node`.
 
-The lines `from gz.msgs11.stringmsg_pb2 import StringMsg` and `from gz.msgs11.vector3d_pb2 import Vector3d`
+The lines `from gz.msgs.stringmsg_pb2 import StringMsg` and `from gz.msgs.vector3d_pb2 import Vector3d`
 include the generated protobuf code that we are going to use for our messages.
 We are going to publish two types of messages: `StringMsg` and `Vector3d` protobuf
 messages.
@@ -109,8 +109,8 @@ file into the `gz_transport_tutorial` folder and open it with your favorite edit
 ### Walkthrough
 
 ```{.py}
-    from gz.msgs11.stringmsg_pb2 import StringMsg
-    from gz.msgs11.vector3d_pb2 import Vector3d
+    from gz.msgs.stringmsg_pb2 import StringMsg
+    from gz.msgs.vector3d_pb2 import Vector3d
     from gz.transport import Node
 ```
 
@@ -276,7 +276,7 @@ of messages published per topic.
 We can declare the throttling option using the following code :
 
 ```{.py}
-    from gz.msgs11.stringmsg_pb2 import StringMsg
+    from gz.msgs.stringmsg_pb2 import StringMsg
     from gz.transport import Node, AdvertiseMessageOptions
 
     # Create a transport node and advertise a topic with throttling enabled.
@@ -320,7 +320,7 @@ second from that particular topic.
 We can declare the throttling option using the following code :
 
 ```{.py}
-    from gz.msgs11.stringmsg_pb2 import StringMsg
+    from gz.msgs.stringmsg_pb2 import StringMsg
     from gz.transport import Node, SubscribeOptions
 
     def stringmsg_cb(msg: StringMsg):
@@ -399,7 +399,7 @@ file into the `gz_transport_tutorial` folder and open it with your favorite edit
 ### Walkthrough
 
 ```{.py}
-    from gz.msgs11.stringmsg_pb2 import StringMsg
+    from gz.msgs.stringmsg_pb2 import StringMsg
     from gz.transport import Node
 ```
 
