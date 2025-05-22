@@ -15,6 +15,7 @@
  *
 */
 
+#include <algorithm>
 #include <regex>
 #include <string>
 
@@ -153,6 +154,89 @@ bool TopicUtils::DecomposeFullyQualifiedTopic(
 
   _partition = possiblePartition;
   _namespaceAndTopic = possibleTopic;
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::DecomposeLivelinessToken(
+    const std::string &_token,
+    std::string &_prefix,
+    std::string &_partition,
+    std::string &_namespaceAndTopic,
+    std::string &_pUUID,
+    std::string &_nUUID,
+    std::string &_entityType,
+    std::string &_msgType)
+{
+  auto nDelims = static_cast<int>(
+    std::count(_token.begin(), _token.end(), '@'));
+  if (nDelims != 6)
+    return false;
+
+  std::string token = _token;
+
+  std::size_t firstAt = token.find_first_of("@");
+  if ( firstAt == 0)
+    return false;
+
+  std::string possiblePrefix = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  firstAt = token.find_first_of("@");
+  if ( firstAt == 0)
+    return false;
+
+  // Partition
+  std::string possiblePartition = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  firstAt = token.find_first_of("@");
+  if ( firstAt == 0)
+    return false;
+
+  // Topic
+  std::string possibleTopic = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  firstAt = token.find_first_of("@");
+  if ( firstAt == 0)
+    return false;
+
+  // Process UUID
+  std::string possibleProcUUID = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  firstAt = token.find_first_of("@");
+  if ( firstAt == 0)
+    return false;
+
+  // Node UUID
+  std::string possibleNodeUUID = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  firstAt = token.find_first_of("@");
+  if ( firstAt == 0)
+    return false;
+
+  // Entity type
+  std::string possibleEntityType = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  // MsgType
+  std::string possibleMsgType = token;
+
+  if (!IsValidPartition(possiblePartition) || !IsValidTopic(possibleTopic))
+  {
+    return false;
+  }
+
+  _prefix = possiblePrefix;
+  _partition = possiblePartition;
+  _namespaceAndTopic = possibleTopic;
+  _pUUID = possibleProcUUID;
+  _nUUID = possibleNodeUUID;
+  _entityType = possibleEntityType;
+  _msgType = possibleMsgType;
   return true;
 }
 

@@ -83,7 +83,7 @@ TEST(TopicUtilsTest, testNamespaces)
 
 
 //////////////////////////////////////////////////
-/// \brief Check the namespace.
+/// \brief Decompose a topic.
 TEST(TopicUtilsTest, decomposeFullyQualifiedTopic)
 {
   std::string partition;
@@ -114,6 +114,30 @@ TEST(TopicUtilsTest, decomposeFullyQualifiedTopic)
     "@@", partition, topic)) << partition << "|" << topic;
   EXPECT_FALSE(transport::TopicUtils::DecomposeFullyQualifiedTopic(
     "@/foo@/", partition, topic)) << partition << "|" << topic;
+}
+
+//////////////////////////////////////////////////
+/// \brief Decompose liveliness token.
+TEST(TopicUtilsTest, decomposeLivelinessToken)
+{
+  std::string prefix;
+  std::string partition;
+  std::string topic;
+  std::string pUUID;
+  std::string nUUID;
+  std::string entityType;
+  std::string msgType;
+
+  EXPECT_TRUE(transport::TopicUtils::DecomposeLivelinessToken(
+    "gz@/cold:caguero@/foo@ProcessUUID@NodeUUID@pub@gz.msgs.StringMsg",
+    prefix, partition, topic, pUUID, nUUID, entityType, msgType));
+  EXPECT_EQ(std::string("gz"), prefix);
+  EXPECT_EQ(std::string("/cold:caguero"), partition);
+  EXPECT_EQ(std::string("/foo"), topic);
+  EXPECT_EQ(std::string("ProcessUUID"), pUUID);
+  EXPECT_EQ(std::string("NodeUUID"), nUUID);
+  EXPECT_EQ(std::string("pub"), entityType);
+  EXPECT_EQ(std::string("gz.msgs.StringMsg"), msgType);
 }
 
 //////////////////////////////////////////////////

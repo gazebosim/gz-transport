@@ -43,6 +43,7 @@
 namespace zenoh
 {
   // Forward declaration.
+  class LivelinessToken;
   class Publisher;
 }
 
@@ -123,8 +124,10 @@ namespace gz
         /// \brief Constructor.
         /// \param[in] _publisher A message publisher.
         /// \param[in] _zPublisher The zenoh publisher.
+        /// \param[in] _zToken The zenoh liveliness token.
         public: explicit Publisher(const MessagePublisher &_publisher,
-                                   zenoh::Publisher &&_zPublisher);
+                                   zenoh::Publisher &&_zPublisher,
+                                   zenoh::LivelinessToken &&_zToken);
 #endif
 
         /// \brief Destructor.

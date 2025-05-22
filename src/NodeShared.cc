@@ -34,7 +34,6 @@
 #include <zmq.hpp>
 
 #include "gz/transport/AdvertiseOptions.hh"
-#include "gz/transport/Discovery.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/RepHandler.hh"
@@ -43,6 +42,7 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
+#include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
 
 using namespace std::chrono_literals;
@@ -247,6 +247,20 @@ NodeShared::NodeShared()
     this->dataPtr->topicStatsEnabled = (gzStats == "1");
   }
 
+  // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
+  std::string gzImpl;
+  if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
+  {
+    std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
+    if (gzImpl == "zeromq" || gzImpl == "zenoh")
+      this->dataPtr->gzImplementation = gzImpl;
+    else
+    {
+      std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
+                << gzImpl << "]. Ignoring this value" << std::endl;
+    }
+  }
+
   // My process UUID.
   Uuid uuid;
   this->pUuid = uuid.ToString();
@@ -254,6 +268,7 @@ NodeShared::NodeShared()
   // Initialize my discovery services.
   this->dataPtr->msgDiscovery.reset(
       new MsgDiscovery(this->pUuid, this->discoveryIP, this->msgDiscPort));
+
   this->dataPtr->srvDiscovery.reset(
       new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
 
@@ -297,32 +312,27 @@ NodeShared::NodeShared()
   this->dataPtr->msgDiscovery->SubscribersCb(
       std::bind(&NodeShared::OnSubscribers, this));
 
-  // Set the callback to notify svc discovery updates (new services).
-  this->dataPtr->srvDiscovery->ConnectionsCb(
+  if (this->GzImplementation() == "zeromq")
+  {
+    // Set the callback to notify svc discovery updates (new services).
+    this->dataPtr->srvDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
 
-  // Set the callback to notify svc discovery updates (invalid services).
-  this->dataPtr->srvDiscovery->DisconnectionsCb(
+    // Set the callback to notify svc discovery updates (invalid services).
+    this->dataPtr->srvDiscovery->DisconnectionsCb(
       std::bind(&NodeShared::OnNewSrvDisconnection,
         this, std::placeholders::_1));
 
-  // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
-  std::string gzImpl = getTransportImplementation();
-  std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
-  if (gzImpl == "zeromq" || gzImpl == "zenoh")
-    this->dataPtr->gzImplementation = gzImpl;
-  else
-  {
-    std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
-              << gzImpl << "]. Ignoring this value" << std::endl;
-  }
-
-  // Start the discovery services.
-  if (this->GzImplementation() == "zeromq")
-  {
+    // Start the discovery services.
     this->dataPtr->msgDiscovery->Start();
     this->dataPtr->srvDiscovery->Start();
   }
+#ifdef HAVE_ZENOH
+  else if (this->GzImplementation() == "zenoh")
+  {
+    this->dataPtr->msgDiscovery->Start(this->Session());
+  }
+#endif
 
   // Create the local publish thread.
   this->dataPtr->pubThread = std::thread(&NodeSharedPrivate::PublishThread,
@@ -1167,7 +1177,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     this->dataPtr->SecurityOnNewConnection();
 
     // I am not connected to the process.
-    if (!this->connections.HasPublisher(addr))
+    if (!this->connections.HasPublisher(addr) && this->dataPtr->subscriber)
       this->dataPtr->subscriber->connect(addr.c_str());
 
     // Add a new filter for the topic.
