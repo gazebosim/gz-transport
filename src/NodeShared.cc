@@ -327,10 +327,12 @@ NodeShared::NodeShared()
     this->dataPtr->msgDiscovery->Start();
     this->dataPtr->srvDiscovery->Start();
   }
+#ifdef HAVE_ZENOH
   else if (this->GzImplementation() == "zenoh")
   {
     this->dataPtr->msgDiscovery->Start(this->Session());
   }
+#endif
 
   // Create the local publish thread.
   this->dataPtr->pubThread = std::thread(&NodeSharedPrivate::PublishThread,
