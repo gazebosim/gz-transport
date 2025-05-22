@@ -76,7 +76,7 @@ namespace gz
         const SubscribeOptions &_opts = SubscribeOptions());
 
       /// \brief Destructor.
-      public: ~SubscriptionHandlerBase();
+      public: virtual ~SubscriptionHandlerBase();
 
       /// \brief Get the type of the messages from which this subscriber
       /// handler is subscribed.
@@ -156,12 +156,14 @@ namespace gz
         const std::string &_data,
         const std::string &_type) const = 0;
 
+#ifdef HAVE_ZENOH
       /// \brief Create a Zenoh subscriber
       /// \param[in] _session Zenoh session.
       /// \param[in] _topic The topic.
       public: void CreateGenericZenohSubscriber(
         std::shared_ptr<zenoh::Session> _session,
         const std::string &_topic);
+#endif
     };
 
     /// \class SubscriptionHandler SubscriptionHandler.hh

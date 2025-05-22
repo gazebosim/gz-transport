@@ -160,37 +160,37 @@ namespace gz
       std::shared_ptr<zenoh::Session> _session,
       const std::string &_topic)
     {
-        MessageInfo msgInfo;
-        msgInfo.SetTopic(_topic);
-        msgInfo.SetType(this->TypeName());
-        auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
+      MessageInfo msgInfo;
+      msgInfo.SetTopic(_topic);
+      msgInfo.SetType(this->TypeName());
+      auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
+      {
+        auto attachment = _sample.get_attachment();
+        if (attachment.has_value())
         {
-          auto attachment = _sample.get_attachment();
-          if (attachment.has_value())
-          {
-            auto output = this->CreateMsg(
-              _sample.get_payload().as_string(), attachment->get().as_string());
-            this->RunLocalCallback(*output, msgInfo);
-          }
-          else
-          {
-            std::cerr << "SubscriptionHandler::SetCallback(): Unable to find "
-                      << "attachment. Ignoring message..." << std::endl;
-          }
-        };
+          auto output = this->CreateMsg(
+            _sample.get_payload().as_string(), attachment->get().as_string());
+          this->RunLocalCallback(*output, msgInfo);
+        }
+        else
+        {
+          std::cerr << "SubscriptionHandler::SetCallback(): Unable to find "
+                    << "attachment. Ignoring message..." << std::endl;
+        }
+      };
 
-        this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
-          _session->declare_subscriber(
-            _topic, dataHandler, zenoh::closures::none));
+      this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
+        _session->declare_subscriber(
+          _topic, dataHandler, zenoh::closures::none));
 
-        this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
-          _session->liveliness_declare_token(
-            "gz" +
-            _topic + "@" +
-            this->ProcUuid() + "@" +
-            this->NodeUuid() + "@" +
-            "sub@" +
-            this->TypeName()));
+      this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
+        _session->liveliness_declare_token(
+          "gz" +
+          _topic + "@" +
+          this->ProcUuid() + "@" +
+          this->NodeUuid() + "@" +
+          "sub@" +
+          this->TypeName()));
     }
 #endif
 
