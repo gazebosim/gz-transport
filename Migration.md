@@ -10,7 +10,7 @@ release will remove the deprecated code.
 
 ### Removed
 
-1. The `Discovery.hh` file is not longer installed.
+1. The `Discovery.hh` file is no longer installed.
     * [GitHub pull request 630](https://github.com/gazebosim/gz-transport/pull/630)
 
 ### Breaking Changes
