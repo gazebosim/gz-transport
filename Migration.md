@@ -8,7 +8,22 @@ release will remove the deprecated code.
 
 ## Gazebo Transport 14.X to 15.X
 
+### Removed
+
+1. The `Discovery.hh` file is not longer installed.
+    * [GitHub pull request 630](https://github.com/gazebosim/gz-transport/pull/630)
+
 ### Breaking Changes
+
+1. The `SubscriptionHandler.hh::SubscriptionHandlerBase` constructor now
+   requires a new parameter (process UUID). The new signature is:
+   ```cpp
+   SubscriptionHandlerBase(
+     const std::string &_pUuid,
+     const std::string &_nUuid,
+     const SubscribeOptions &_opts = SubscribeOptions());
+   ```
+   * [GitHub pull request 630](https://github.com/gazebosim/gz-transport/pull/630)
 
 1. All variants of the `bool Node::Subscribe` functions are combined into
    one `bool Subscribe(Args && ...args)` function that forwards arguments to
