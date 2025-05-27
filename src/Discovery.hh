@@ -66,6 +66,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <gz/msgs/Utility.hh>
@@ -76,7 +77,12 @@
 #include "gz/transport/NetUtils.hh"
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/TopicStorage.hh"
+#include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
+
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
 
 namespace gz
 {
@@ -277,6 +283,76 @@ namespace gz
         }
       }
 
+#ifdef HAVE_ZENOH
+      //////////////////////////////////////////////////
+      private: void LivelinessDataHandler(const zenoh::Sample &_sample)
+      {
+        std::string token{_sample.get_keyexpr().as_string_view()};
+        std::string prefix;
+        std::string partition;
+        std::string topic;
+        std::string pUUID;
+        std::string nUUID;
+        std::string entityType;
+        std::string msgType;
+        if (!TopicUtils::DecomposeLivelinessToken(
+          token, prefix, partition, topic, pUUID, nUUID, entityType, msgType))
+        {
+          std::cerr << "Unable to decompose liveliness token ["
+                    << token << "]" << std::endl;
+          return;
+        };
+
+        MessagePublisher pub(
+          "@" + partition + "@" + topic, "", "", pUUID, nUUID, msgType,
+          AdvertiseMessageOptions());
+
+        {
+          std::lock_guard<std::mutex> lock(this->mutex);
+
+          if (_sample.get_kind() == Z_SAMPLE_KIND_PUT)
+          {
+            if (entityType == "pub")
+            {
+              this->info.AddPublisher(pub);
+            }
+            else if (entityType == "sub" && this->pUuid != pUUID)
+            {
+              this->remoteSubscribers.AddPublisher(pub);
+              if (this->registrationCb)
+                this->registrationCb(pub);
+            }
+
+            if (this->verbose)
+            {
+              std::cout << ">> [LivelinessSubscriber] New alive token ('"
+                        << _sample.get_keyexpr().as_string_view() << "')\n";
+            }
+          }
+          else if (_sample.get_kind() == Z_SAMPLE_KIND_DELETE)
+          {
+            if (entityType == "pub")
+            {
+              this->info.DelPublisherByNode("@" + partition + "@" + pub.Topic(),
+                pub.PUuid(), pub.NUuid());
+            }
+            else if (entityType == "sub" && this->pUuid != pUUID)
+            {
+              this->remoteSubscribers.DelPublisherByNode("@" + partition + "@" +
+                pub.Topic(), pub.PUuid(), pub.NUuid());
+              if (this->unregistrationCb)
+                this->unregistrationCb(pub);
+            }
+            if (this->verbose)
+            {
+              std::cout << ">> [LivelinessSubscriber] Dropped token ('"
+                        << _sample.get_keyexpr().as_string_view() << "')\n";
+            }
+          }
+        }
+      }
+#endif
+
       /// \brief Start the discovery service. You probably want to register the
       /// callbacks for receiving discovery notifications before starting the
       /// service.
@@ -299,6 +375,23 @@ namespace gz
         // Start the thread that receives discovery information.
         this->threadReception = std::thread(&Discovery::RecvMessages, this);
       }
+
+#ifdef HAVE_ZENOH
+      /// \brief Start the graph cache.
+      public: void Start(std::shared_ptr<zenoh::Session> _session)
+      {
+        zenoh::Session::LivelinessSubscriberOptions opts;
+        opts.history = true;
+        this->livelinessSubscriber = std::make_unique<zenoh::Subscriber<void>>(
+          _session->liveliness_declare_subscriber(
+            "**", std::bind(&Discovery::LivelinessDataHandler,
+            this, std::placeholders::_1), zenoh::closures::none,
+            std::move(opts)));
+
+        this->initialized = true;
+        this->useZenoh = true;
+      }
+#endif
 
       /// \brief Advertise a new message.
       /// \param[in] _publisher Publisher's information to advertise.
@@ -459,7 +552,7 @@ namespace gz
         {
           std::lock_guard<std::mutex> lock(this->mutex);
 
-          if (!this->enabled)
+          if (!this->enabled && !useZenoh)
             return false;
 
           // Don't do anything if the topic is not advertised by any of my nodes
@@ -641,6 +734,7 @@ namespace gz
       /// \param[out] _topics List of advertised topics.
       public: void TopicList(std::vector<std::string> &_topics)
       {
+        if (!this->useZenoh)
         {
           std::lock_guard<std::mutex> lock(this->mutex);
           this->remoteSubscribers.Clear();
@@ -1585,6 +1679,14 @@ namespace gz
 
       /// \brief When true, the service is enabled.
       private: bool enabled;
+
+#ifdef HAVE_ZENOH
+      /// \brief The liveliness subscriber.
+      private: std::unique_ptr<zenoh::Subscriber<void>> livelinessSubscriber;
+#endif
+
+      /// \brief ToDo: Find a better way.
+      private: bool useZenoh = false;
     };
 
     /// \def MsgDiscovery

@@ -129,6 +129,43 @@ namespace gz
         std::string &_partition,
         std::string &_namespaceAndTopic);
 
+      /// \brief Decompose a Zenoh liveliness token into its components.
+      ///
+      /// Given a Zenoh liveliness token with the following syntax:
+      ///
+      /// \<PREFIX\>\@\<PARTITION\>\@\<NAMESPACE\>/\<TOPIC\>@\<ProcUUID\>
+      /// \@\<NodeUUID\>\@\<EntityType\>\@\<MsgType\>
+      ///
+      /// The _prefix output argument will be set to \<PREFIX\>, the _partition
+      /// output argument will be set to \<PARTITION\>, the
+      /// _namespaceAndTopic output argument will be set to
+      /// \<NAMESPACE\>/\<TOPIC\>, the _pUUID output argument will be set to
+      /// \<ProcUUID\>, the _nUUID output argument will be set to
+      /// \<NodeUUID\>, the _entityType output argument will be set to
+      /// \<EntityType\>, the _msgType output argument will be set to
+      /// \<MsgType\>.
+      ///
+      /// \param[in] _token The Zenoh liveliness token.
+      /// \param[out] _prefix The prefix component.
+      /// \param[out] _partition The partition component.
+      /// \param[out] _namespaceAndTopic The namespace and topic name component.
+      /// Note that there is no way to distinguish between where a namespace
+      /// ends and a topic name begins, since topic names may contain slashes.
+      /// \param[out] _pUUID The process UUID component.
+      /// \param[out] _nUUID The node UUID component.
+      /// \param[out] _entityType The entity type (pub, sub) component.
+      /// \param[out] _msgType The message type component.
+      /// \return True if all the components were set.
+      public: static bool DecomposeLivelinessToken(
+        const std::string &_token,
+        std::string &_prefix,
+        std::string &_partition,
+        std::string &_namespaceAndTopic,
+        std::string &_pUUID,
+        std::string &_nUUID,
+        std::string &_entityType,
+        std::string &_msgType);
+
       /// \brief Convert a topic name to a valid topic. The input topic is
       /// modified by:
       /// * turning white space into `_`.

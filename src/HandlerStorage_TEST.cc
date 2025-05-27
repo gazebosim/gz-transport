@@ -31,6 +31,7 @@ using namespace gz;
 
 // Global variables used for multiple tests.
 std::string topic   = "foo"; // NOLINT(*)
+std::string pUuid1  = "process-UUID-1"; // NOLINT(*)
 std::string nUuid1  = "node-UUID-1"; // NOLINT(*)
 std::string nUuid2  = "node-UUID-2"; // NOLINT(*)
 std::string hUuid   = "handler-UUID"; // NOLINT(*)
@@ -219,7 +220,7 @@ TEST(RepStorageTest, SubStorageNoCallbacks)
   // Create a Subscription handler.
   std::shared_ptr<transport::SubscriptionHandler<msgs::Int32>>
     sub1HandlerPtr(new transport::SubscriptionHandler
-      <msgs::Int32>(nUuid1));
+      <msgs::Int32>(pUuid1, nUuid1));
 
   // Insert the handler and check operations.
   subs.AddHandler(topic, nUuid1, sub1HandlerPtr);

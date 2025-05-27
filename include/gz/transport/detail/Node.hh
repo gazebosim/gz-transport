@@ -154,7 +154,8 @@ namespace gz
 
       // Create a new subscription handler.
       std::shared_ptr<SubscriptionHandler<MessageT>> subscrHandlerPtr(
-          new SubscriptionHandler<MessageT>(this->NodeUuid(), _opts));
+          new SubscriptionHandler<MessageT>(
+            this->Shared()->pUuid, this->NodeUuid(), _opts));
 
       // Insert the callback into the handler.
       std::string impl = this->Shared()->GzImplementation();

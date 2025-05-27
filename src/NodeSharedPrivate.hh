@@ -33,9 +33,8 @@
 #endif
 
 #include "gz/transport/config.hh"
-
-#include "gz/transport/Discovery.hh"
 #include "gz/transport/Node.hh"
+#include "Discovery.hh"
 
 namespace gz
 {
