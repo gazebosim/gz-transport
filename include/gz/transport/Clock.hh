@@ -26,10 +26,20 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
+<<<<<<< HEAD
 namespace ignition
+=======
+namespace gz::transport
+>>>>>>> 6f371d3 (Clean up namespaces - part1 (#637))
 {
-  namespace transport
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  //
+  //////////////////////////////////////////////////
+  /// \brief A Clock interface for time tracking
+  class GZ_TRANSPORT_VISIBLE Clock
   {
+<<<<<<< HEAD
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
       //
@@ -40,15 +50,21 @@ namespace ignition
         /// \brief Gets clock time
         /// \return Current clock time, in nanoseconds
         public: virtual std::chrono::nanoseconds Time() const = 0;
+=======
+    /// \brief Gets clock time
+    /// \return Current clock time, in nanoseconds
+    public: virtual std::chrono::nanoseconds Time() const = 0;
+>>>>>>> 6f371d3 (Clean up namespaces - part1 (#637))
 
-        /// \brief Checks whether the clock is ready to be used or not.
-        /// \return True if clock is ready to be used, false otherwise
-        public: virtual bool IsReady() const = 0;
+    /// \brief Checks whether the clock is ready to be used or not.
+    /// \return True if clock is ready to be used, false otherwise
+    public: virtual bool IsReady() const = 0;
 
-        /// \brief Virtual destructor
-        public: virtual ~Clock() = default;
-      };
+    /// \brief Virtual destructor
+    public: virtual ~Clock() = default;
+  };
 
+<<<<<<< HEAD
       ////////////////////////////////////////////////////////////////
       /// \brief A Clock interface implementation that uses
       /// gz::msgs::Clock messages distributed across
@@ -62,32 +78,48 @@ namespace ignition
           SIM,   ///< Use Clock message `sim` time field as time base
           SYS    ///< Use Clock message `sys` time field as time base
         };
+=======
+  ////////////////////////////////////////////////////////////////
+  /// \brief A Clock interface implementation that uses
+  /// gz::msgs::Clock messages distributed across
+  /// the network
+  class GZ_TRANSPORT_VISIBLE NetworkClock : public Clock
+  {
+    /// \brief Network clock time bases
+    public: enum class TimeBase : int64_t
+    {
+      REAL,  ///< Use Clock message `real` time field as time base
+      SIM,   ///< Use Clock message `sim` time field as time base
+      SYS    ///< Use Clock message `sys` time field as time base
+    };
+>>>>>>> 6f371d3 (Clean up namespaces - part1 (#637))
 
-        /// \brief Constructor that sets the initial time range option
-        /// \param[in] _topicName Name of the gz::msgs::Clock type
-        /// topic to be used
-        /// \param[in] _timeBase Time base for this clock, defaults to
-        /// simulation time
-        public: explicit NetworkClock(const std::string &_topicName,
-                                      const TimeBase _timeBase = TimeBase::SIM);
+    /// \brief Constructor that sets the initial time range option
+    /// \param[in] _topicName Name of the gz::msgs::Clock type
+    /// topic to be used
+    /// \param[in] _timeBase Time base for this clock, defaults to
+    /// simulation time
+    public: explicit NetworkClock(const std::string &_topicName,
+                                  const TimeBase _timeBase = TimeBase::SIM);
 
-        /// \brief Destructor
-        public: ~NetworkClock() override;
+    /// \brief Destructor
+    public: ~NetworkClock() override;
 
-        // Documentation inherited
-        public: std::chrono::nanoseconds Time() const override;
+    // Documentation inherited
+    public: std::chrono::nanoseconds Time() const override;
 
-        /// \brief Sets and distributes the given clock time
-        /// \param[in] _time The clock time to be set
-        /// \remarks No clock arbitration is performed
-        public: void SetTime(const std::chrono::nanoseconds _time);
+    /// \brief Sets and distributes the given clock time
+    /// \param[in] _time The clock time to be set
+    /// \remarks No clock arbitration is performed
+    public: void SetTime(const std::chrono::nanoseconds _time);
 
-        // Documentation inherited
-        public: bool IsReady() const override;
+    // Documentation inherited
+    public: bool IsReady() const override;
 
-        /// \internal Implementation of this class
-        private: class Implementation;
+    /// \internal Implementation of this class
+    private: class Implementation;
 
+<<<<<<< HEAD
         /// \internal Pointer to the implementation of this class
         IGN_UTILS_WARN_IGNORE__DLL_INTERFACE_MISSING
         private: std::unique_ptr<Implementation> dataPtr;
@@ -101,28 +133,51 @@ namespace ignition
         /// \brief Returns system wall clock interface
         /// \return The sole wall clock instance (a singleton)
         public: static WallClock* Instance();
+=======
+    /// \internal Pointer to the implementation of this class
+    GZ_UTILS_WARN_IGNORE__DLL_INTERFACE_MISSING
+    private: std::unique_ptr<Implementation> dataPtr;
+    GZ_UTILS_WARN_RESUME__DLL_INTERFACE_MISSING
+  };
 
-        // Documentation inherited
-        public: std::chrono::nanoseconds Time() const override;
+  //////////////////////////////////////////////////
+  /// \brief A Clock implementation that leverages host OS time APIs
+  class GZ_TRANSPORT_VISIBLE WallClock : public Clock
+  {
+    /// \brief Returns system wall clock interface
+    /// \return The sole wall clock instance (a singleton)
+    public: static WallClock* Instance();
+>>>>>>> 6f371d3 (Clean up namespaces - part1 (#637))
 
-        // Documentation inherited
-        public: bool IsReady() const override;
+    // Documentation inherited
+    public: std::chrono::nanoseconds Time() const override;
 
-        /// \internal Private singleton constructor
-        private: WallClock();
+    // Documentation inherited
+    public: bool IsReady() const override;
 
-        /// \brief Destructor
-        private: ~WallClock() override;
+    /// \internal Private singleton constructor
+    private: WallClock();
 
-        /// \internal Implementation of this class
-        private: class Implementation;
+    /// \brief Destructor
+    private: ~WallClock() override;
 
+    /// \internal Implementation of this class
+    private: class Implementation;
+
+<<<<<<< HEAD
         /// \internal Pointer to the implementation of this class
         IGN_UTILS_WARN_IGNORE__DLL_INTERFACE_MISSING
         private: std::unique_ptr<Implementation> dataPtr;
         IGN_UTILS_WARN_RESUME__DLL_INTERFACE_MISSING
       };
     }
+=======
+    /// \internal Pointer to the implementation of this class
+    GZ_UTILS_WARN_IGNORE__DLL_INTERFACE_MISSING
+    private: std::unique_ptr<Implementation> dataPtr;
+    GZ_UTILS_WARN_RESUME__DLL_INTERFACE_MISSING
+  };
+>>>>>>> 6f371d3 (Clean up namespaces - part1 (#637))
   }
 }
 
