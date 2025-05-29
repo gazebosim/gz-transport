@@ -129,111 +129,12 @@ namespace gz::transport
       /// \return True if this object can be used in Publish() calls.
       public: bool Valid() const;
 
-<<<<<<< HEAD
-      /// \brief Subscribe to a topic registering a callback.
-      /// Note that this callback does not include any message information.
-      /// In this version the callback is a free function.
-      /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _callback Pointer to the callback function with the
-      /// following parameters:
-      ///   * _msg Protobuf message containing a new topic update.
-      /// \param[in] _opts Subscription options.
-      /// \return true when successfully subscribed or false otherwise.
-      public: template<typename MessageT>
-      bool Subscribe(
-          const std::string &_topic,
-          void(*_callback)(const MessageT &_msg),
-          const SubscribeOptions &_opts = SubscribeOptions());
-
-      /// \brief Subscribe to a topic registering a callback.
-      /// Note that this callback does not include any message information.
-      /// In this version the callback is a lambda function.
-      /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _callback Lambda function with the following parameters:
-      ///   * _msg Protobuf message containing a new topic update.
-      /// \param[in] _opts Subscription options.
-      /// \return true when successfully subscribed or false otherwise.
-      public: template<typename MessageT>
-      bool Subscribe(
-          const std::string &_topic,
-          std::function<void(const MessageT &_msg)> _callback,
-          const SubscribeOptions &_opts = SubscribeOptions());
-
-      /// \brief Subscribe to a topic registering a callback.
-      /// Note that this callback does not include any message information.
-      /// In this version the callback is a member function.
-      /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _callback Pointer to the callback function with the
-      /// following parameters:
-      ///   * _msg Protobuf message containing a new topic update.
-      /// \param[in] _obj Instance containing the member function.
-      /// \param[in] _opts Subscription options.
-      /// \return true when successfully subscribed or false otherwise.
-      public: template<typename ClassT, typename MessageT>
-      bool Subscribe(
-          const std::string &_topic,
-          void(ClassT::*_callback)(const MessageT &_msg),
-          ClassT *_obj,
-          const SubscribeOptions &_opts = SubscribeOptions());
-
-      /// \brief Subscribe to a topic registering a callback.
-      /// Note that this callback includes message information.
-      /// In this version the callback is a free function.
-      /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _callback Pointer to the callback function with the
-      /// following parameters:
-      ///   * _msg Protobuf message containing a new topic update.
-      ///   * _info Message information (e.g.: topic name).
-      /// \param[in] _opts Subscription options.
-      /// \return true when successfully subscribed or false otherwise.
-      public: template<typename MessageT>
-      bool Subscribe(
-          const std::string &_topic,
-          void(*_callback)(const MessageT &_msg, const MessageInfo &_info),
-          const SubscribeOptions &_opts = SubscribeOptions());
-
-      /// \brief Subscribe to a topic registering a callback.
-      /// Note that this callback includes message information.
-      /// In this version the callback is a lambda function.
-      /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _callback Lambda function with the following parameters:
-      ///   * _msg Protobuf message containing a new topic update.
-      ///   * _info Message information (e.g.: topic name).
-      /// \param[in] _opts Subscription options.
-      /// \return true when successfully subscribed or false otherwise.
-      public: template<typename MessageT>
-      bool Subscribe(
-          const std::string &_topic,
-          std::function<void(const MessageT &_msg,
-                             const MessageInfo &_info)> _callback,
-          const SubscribeOptions &_opts = SubscribeOptions());
-
-      /// \brief Subscribe to a topic registering a callback.
-      /// Note that this callback includes message information.
-      /// In this version the callback is a member function.
-      /// \param[in] _topic Topic to be subscribed.
-      /// \param[in] _callback Pointer to the callback function with the
-      /// following parameters:
-      ///   * _msg Protobuf message containing a new topic update.
-      ///   * _info Message information (e.g.: topic name).
-      /// \param[in] _obj Instance containing the member function.
-      /// \param[in] _opts Subscription options.
-      /// \return true when successfully subscribed or false otherwise.
-      public: template<typename ClassT, typename MessageT>
-      bool Subscribe(
-          const std::string &_topic,
-          void(ClassT::*_callback)(const MessageT &_msg,
-                                   const MessageInfo &_info),
-          ClassT *_obj,
-          const SubscribeOptions &_opts = SubscribeOptions());
-=======
       /// \brief Publish a message. This function will copy the message
       /// when publishing to interprocess subscribers. This copy is
       /// necessary to facilitate asynchronous publication.
       /// \param[in] _msg A google::protobuf message.
       /// \return true when success.
       public: bool Publish(const ProtoMsg &_msg);
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
       /// \brief Publish a raw pre-serialized message.
       ///
@@ -379,144 +280,6 @@ namespace gz::transport
     /// \brief Destructor.
     public: virtual ~Node();
 
-<<<<<<< HEAD
-      /// \brief Request a new service without input parameter using a
-      /// non-blocking call.
-      /// In this version the callback is a member function.
-      /// \param[in] _topic Service name requested.
-      /// \param[in] _callback Pointer to the callback function executed when
-      /// the response arrives. The callback has the following parameters:
-      ///   * _reply Protobuf message containing the response.
-      ///   * _result Result of the service call. If false, there was
-      ///   a problem executing your request.
-      /// \param[in] _obj Instance containing the member function.
-      /// \return true when the service call was successfully requested.
-      public: template<typename ClassT, typename ReplyT>
-      bool Request(
-          const std::string &_topic,
-          void(ClassT::*_callback)(const ReplyT &_reply, const bool _result),
-          ClassT *_obj);
-
-      /// \brief Request a new service using a blocking call.
-      /// \param[in] _topic Service name requested.
-      /// \param[in] _request Protobuf message containing the request's
-      /// parameters.
-      /// \param[in] _timeout The request will timeout after '_timeout' ms.
-      /// \param[out] _reply Protobuf message containing the response.
-      /// \param[out] _result Result of the service call.
-      /// \return true when the request was executed or false if the timeout
-      /// expired.
-      public: template<typename RequestT, typename ReplyT>
-      bool Request(
-          const std::string &_topic,
-          const RequestT &_request,
-          const unsigned int &_timeout,
-          ReplyT &_reply,
-          bool &_result);
-
-      /// \brief Request a new service without input parameter using a blocking
-      /// call.
-      /// \param[in] _topic Service name requested.
-      /// \param[in] _timeout The request will timeout after '_timeout' ms.
-      /// \param[out] _reply Protobuf message containing the response.
-      /// \param[out] _result Result of the service call.
-      /// \return true when the request was executed or false if the timeout
-      /// expired.
-      public: template<typename ReplyT>
-      bool Request(
-          const std::string &_topic,
-          const unsigned int &_timeout,
-          ReplyT &_reply,
-          bool &_result);
-
-      /// \brief Request a new service without waiting for response.
-      /// \param[in] _topic Topic requested.
-      /// \param[in] _request Protobuf message containing the request's
-      /// parameters.
-      /// \return true when the service call was successfully requested.
-      public: template<typename RequestT>
-      bool Request(const std::string &_topic, const RequestT &_request);
-
-      /// \brief Request a new service using a blocking call. This request
-      /// function expects a serialized protobuf message as the request and
-      /// returns a serialized protobuf message as the response.
-      /// \param[in] _topic Service name requested.
-      /// \param[in] _request Protobuf message serialized into a string
-      /// containing the request's parameters.
-      /// \param[in] _requestType Message type of the request.
-      /// \param[in] _responseType Message type of the response.
-      /// \param[in] _timeout The request will timeout after '_timeout' ms.
-      /// \param[out] _response Serialized protobuf message containing the
-      ///  response.
-      /// \param[out] _result Result of the service call.
-      /// \return true when the request was executed or false if the timeout
-      /// expired.
-      public: bool RequestRaw(const std::string &_topic,
-                  const std::string &_request, const std::string &_requestType,
-                  const std::string &_responseType, unsigned int _timeout,
-                  std::string &_response,
-                  bool &_result);
-
-      /// \brief Unadvertise a service.
-      /// \param[in] _topic Service name to be unadvertised.
-      /// \return true if the service was successfully unadvertised.
-      public: bool UnadvertiseSrv(const std::string &_topic);
-
-      /// \brief Get the list of topics currently advertised in the network.
-      /// Note that this function can block for some time if the
-      /// discovery is in its initialization phase.
-      /// The value of the "heartbeatInterval" constant, with a default
-      /// value of 1000 ms, sets the maximum blocking time period.
-      /// \param[out] _topics List of advertised topics.
-      public: void TopicList(std::vector<std::string> &_topics) const;
-
-      /// \brief Get the information about a topic.
-      /// \param[in] _topic Name of the topic.
-      /// \param[out] _publishers List of publishers on the topic
-      /// \return False if unable to get topic info
-      public: bool GZ_DEPRECATED(13) TopicInfo(const std::string &_topic,
-                             std::vector<MessagePublisher> &_publishers) const;
-
-      /// \brief Get the information about a topic.
-      /// \param[in] _topic Name of the topic.
-      /// \param[out] _publishers List of publishers on the topic.
-      /// \param[out] _subscribers List of subscribers on the topic.
-      /// \return False if unable to get topic info.
-      public: bool TopicInfo(const std::string &_topic,
-                             std::vector<MessagePublisher> &_publishers,
-                             std::vector<MessagePublisher> &_subscribers) const;
-
-      /// \brief Get the list of topics currently advertised in the network.
-      /// Note that this function can block for some time if the
-      /// discovery is in its initialization phase.
-      /// The value of the "heartbeatInterval" constant, with a default
-      /// value of 1000ms, sets the maximum blocking time period.
-      /// \param[out] _services List of advertised services.
-      public: void ServiceList(std::vector<std::string> &_services) const;
-
-      /// \brief Get the information about a service.
-      /// \param[in] _service Name of the service.
-      /// \param[out] _publishers List of publishers on the service.
-      /// \return False if unable to get service info.
-      public: bool ServiceInfo(
-          const std::string &_service,
-          std::vector<ServicePublisher> &_publishers) const;
-
-      /// \brief Subscribe to a topic registering a callback. The callback must
-      /// accept a std::string to represent the message data, and a MessageInfo
-      /// which provides metadata about the message.
-      /// \param[in] _topic Name of the topic to subscribe to
-      /// \param[in] _callback A function pointer or std::function object that
-      /// has a void return value and accepts two arguments:
-      /// (const std::string &_msgData, const MessageInfo &_info).
-      /// \param[in] _msgType The type of message to subscribe to. Using
-      /// kGenericMessageType (the default) will allow this subscriber to listen
-      /// to all message types. The callback function can identify the type for
-      /// each message by inspecting its const MessageInfo& input argument.
-      /// \param[in] _opts Options for subscribing.
-      /// \return True if subscribing was successful.
-      public: bool SubscribeRaw(
-=======
     /// \brief Advertise a new topic. If a topic is currently advertised,
     /// you cannot advertise it a second time (regardless of its type).
     /// \param[in] _topic Topic name to be advertised.
@@ -527,7 +290,6 @@ namespace gz::transport
     /// \sa AdvertiseOptions.
     public: template<typename MessageT>
     Node::Publisher Advertise(
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
         const std::string &_topic,
         const AdvertiseMessageOptions &_options = AdvertiseMessageOptions());
 
@@ -552,21 +314,101 @@ namespace gz::transport
     public: std::vector<std::string> AdvertisedTopics() const;
 
     /// \brief Subscribe to a topic registering a callback.
-    /// This is function is overloaded with different variants of callback
-    /// functions.
-    /// Supported function callbacks are:
-    ///   * free function
-    ///   * member function
-    ///   * lambda function
-    /// The callback function can contain one (_msg) or both (_msg, _info) of
-    /// the following parameters:
+    /// Note that this callback does not include any message information.
+    /// In this version the callback is a free function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Pointer to the callback function with the
+    /// following parameters:
+    ///   * _msg Protobuf message containing a new topic update.
+    /// \param[in] _opts Subscription options.
+    /// \return true when successfully subscribed or false otherwise.
+    public: template<typename MessageT>
+    bool Subscribe(
+        const std::string &_topic,
+        void(*_callback)(const MessageT &_msg),
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+    /// \brief Subscribe to a topic registering a callback.
+    /// Note that this callback does not include any message information.
+    /// In this version the callback is a lambda function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Lambda function with the following parameters:
+    ///   * _msg Protobuf message containing a new topic update.
+    /// \param[in] _opts Subscription options.
+    /// \return true when successfully subscribed or false otherwise.
+    public: template<typename MessageT>
+    bool Subscribe(
+        const std::string &_topic,
+        std::function<void(const MessageT &_msg)> _callback,
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+    /// \brief Subscribe to a topic registering a callback.
+    /// Note that this callback does not include any message information.
+    /// In this version the callback is a member function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Pointer to the callback function with the
+    /// following parameters:
+    ///   * _msg Protobuf message containing a new topic update.
+    /// \param[in] _obj Instance containing the member function.
+    /// \param[in] _opts Subscription options.
+    /// \return true when successfully subscribed or false otherwise.
+    public: template<typename ClassT, typename MessageT>
+    bool Subscribe(
+        const std::string &_topic,
+        void(ClassT::*_callback)(const MessageT &_msg),
+        ClassT *_obj,
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+    /// \brief Subscribe to a topic registering a callback.
+    /// Note that this callback includes message information.
+    /// In this version the callback is a free function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Pointer to the callback function with the
+    /// following parameters:
     ///   * _msg Protobuf message containing a new topic update.
     ///   * _info Message information (e.g.: topic name).
-    /// \param[in] args Arguments to be forwarded to SubscribeImpl
+    /// \param[in] _opts Subscription options.
     /// \return true when successfully subscribed or false otherwise.
-    /// \sa SubscribeImpl
-    public: template <typename ...Args>
-    bool Subscribe(Args && ...args);
+    public: template<typename MessageT>
+    bool Subscribe(
+        const std::string &_topic,
+        void(*_callback)(const MessageT &_msg, const MessageInfo &_info),
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+    /// \brief Subscribe to a topic registering a callback.
+    /// Note that this callback includes message information.
+    /// In this version the callback is a lambda function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Lambda function with the following parameters:
+    ///   * _msg Protobuf message containing a new topic update.
+    ///   * _info Message information (e.g.: topic name).
+    /// \param[in] _opts Subscription options.
+    /// \return true when successfully subscribed or false otherwise.
+    public: template<typename MessageT>
+    bool Subscribe(
+        const std::string &_topic,
+        std::function<void(const MessageT &_msg,
+                           const MessageInfo &_info)> _callback,
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+    /// \brief Subscribe to a topic registering a callback.
+    /// Note that this callback includes message information.
+    /// In this version the callback is a member function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Pointer to the callback function with the
+    /// following parameters:
+    ///   * _msg Protobuf message containing a new topic update.
+    ///   * _info Message information (e.g.: topic name).
+    /// \param[in] _obj Instance containing the member function.
+    /// \param[in] _opts Subscription options.
+    /// \return true when successfully subscribed or false otherwise.
+    public: template<typename ClassT, typename MessageT>
+    bool Subscribe(
+        const std::string &_topic,
+        void(ClassT::*_callback)(const MessageT &_msg,
+                                 const MessageInfo &_info),
+        ClassT *_obj,
+        const SubscribeOptions &_opts = SubscribeOptions());
 
     /// \brief Create a subscriber to a topic registering a callback
     /// This is function is overloaded with different variants of callback
@@ -941,6 +783,13 @@ namespace gz::transport
     /// value of 1000 ms, sets the maximum blocking time period.
     /// \param[out] _topics List of advertised topics.
     public: void TopicList(std::vector<std::string> &_topics) const;
+
+    /// \brief Get the information about a topic.
+    /// \param[in] _topic Name of the topic.
+    /// \param[out] _publishers List of publishers on the topic
+    /// \return False if unable to get topic info
+    public: bool GZ_DEPRECATED(13) TopicInfo(const std::string &_topic,
+                           std::vector<MessagePublisher> &_publishers) const;
 
     /// \brief Get the information about a topic.
     /// \param[in] _topic Name of the topic.
