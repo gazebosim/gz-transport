@@ -950,14 +950,6 @@ std::unordered_set<std::string> &Node::SrvsAdvertised() const
 
 //////////////////////////////////////////////////
 bool Node::TopicInfo(const std::string &_topic,
-                     std::vector<MessagePublisher> &_publishers) const
-{
-  std::vector<MessagePublisher> unused;
-  return this->TopicInfo(_topic, _publishers, unused);
-}
-
-//////////////////////////////////////////////////
-bool Node::TopicInfo(const std::string &_topic,
                      std::vector<MessagePublisher> &_publishers,
                      std::vector<MessagePublisher> &_subscribers) const
 {

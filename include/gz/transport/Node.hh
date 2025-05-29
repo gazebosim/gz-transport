@@ -706,13 +706,6 @@ namespace gz::transport
 
     /// \brief Get the information about a topic.
     /// \param[in] _topic Name of the topic.
-    /// \param[out] _publishers List of publishers on the topic
-    /// \return False if unable to get topic info
-    public: bool GZ_DEPRECATED(13) TopicInfo(const std::string &_topic,
-                           std::vector<MessagePublisher> &_publishers) const;
-
-    /// \brief Get the information about a topic.
-    /// \param[in] _topic Name of the topic.
     /// \param[out] _publishers List of publishers on the topic.
     /// \param[out] _subscribers List of subscribers on the topic.
     /// \return False if unable to get topic info.
