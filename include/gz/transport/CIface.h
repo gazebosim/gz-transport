@@ -119,16 +119,6 @@ extern "C" {
   /// function if you want to manage yourself SIGINT/SIGTERM.
   void GZ_TRANSPORT_VISIBLE gzTransportWaitForShutdown();
 
-  const auto GZ_DEPRECATED(12) ignTransportNodeCreate = gzTransportNodeCreate;
-  const auto GZ_DEPRECATED(12) ignTransportNodeDestroy = gzTransportNodeDestroy;
-  const auto GZ_DEPRECATED(12) ignTransportAdvertise = gzTransportAdvertise;
-  const auto GZ_DEPRECATED(12) ignTransportPublish = gzTransportPublish;
-  const auto GZ_DEPRECATED(12) ignTransportSubscribe = gzTransportSubscribe;
-  const auto GZ_DEPRECATED(12) ignTransportSubscribeOptions = gzTransportSubscribeOptions;
-  const auto GZ_DEPRECATED(12) ignTransportSubscribeNonConst = gzTransportSubscribeNonConst;
-  const auto GZ_DEPRECATED(12) ignTransportUnsubscribe = gzTransportUnsubscribe;
-  const auto GZ_DEPRECATED(12) ignTransportWaitForShutdown = gzTransportWaitForShutdown;
-
 #ifdef __cplusplus
 }
 #endif
