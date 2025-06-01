@@ -39,8 +39,8 @@ TEST(ParametersUtils, getGzTypeFromAnyProto)
 
   gz::msgs::Boolean boolMsg;
   any.PackFrom(boolMsg);
-  EXPECT_EQ(*getGzTypeFromAnyProto(any), "Boolean");
+  EXPECT_EQ(*getGzTypeFromAnyProto(any), "gz.msgs.Boolean");
   gz::msgs::StringMsg strMsg;
   any.PackFrom(strMsg);
-  EXPECT_EQ(*getGzTypeFromAnyProto(any), "StringMsg");
+  EXPECT_EQ(*getGzTypeFromAnyProto(any), "gz.msgs.StringMsg");
 }

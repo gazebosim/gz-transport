@@ -170,7 +170,7 @@ bool ParametersRegistryPrivate::SetParameter(
       return true;
     }
     auto requestedGzType = *requestedGzTypeOpt;
-    if (it->second->GetDescriptor()->name() != requestedGzType) {
+    if (it->second->GetDescriptor()->full_name() != requestedGzType) {
       _res.set_data(msgs::ParameterError::INVALID_TYPE);
       return true;
     }
@@ -192,7 +192,7 @@ bool ParametersRegistryPrivate::DeclareParameter(
     _res.set_data(msgs::ParameterError::INVALID_TYPE);
     return true;
   }
-  auto gzType = addGzMsgsPrefix(*gzTypeOpt);
+  auto gzType = *gzTypeOpt;
   auto paramValue = gz::msgs::Factory::New(gzType);
   if (!paramValue) {
     _res.set_data(msgs::ParameterError::INVALID_TYPE);
