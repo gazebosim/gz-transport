@@ -22,16 +22,6 @@
 #include <string>
 using namespace gz;
 //////////////////////////////////////////////////
-std::string
-transport::parameters::addGzMsgsPrefix(
-  const std::string &_gzType)
-{
-  std::ostringstream oss{"gz_msgs.", std::ios_base::ate};
-  oss << _gzType;
-  return oss.str();
-}
-
-//////////////////////////////////////////////////
 std::optional<std::string>
 transport::parameters::getGzTypeFromAnyProto(
   const google::protobuf::Any &_any)

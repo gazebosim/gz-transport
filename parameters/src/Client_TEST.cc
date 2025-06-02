@@ -204,13 +204,13 @@ TEST_F(ParametersClientTest, ListParameters)
     bool foundParam2{false};
     bool foundParam3{false};
     for (auto decl : declarations.parameter_declarations()) {
-      if (decl.name() == "parameter1" && decl.type() == "gz_msgs.Boolean") {
+      if (decl.name() == "parameter1" && decl.type() == "gz.msgs.Boolean") {
         foundParam1 = true;
       }
-      if (decl.name() == "parameter2" && decl.type() == "gz_msgs.StringMsg") {
+      if (decl.name() == "parameter2" && decl.type() == "gz.msgs.StringMsg") {
         foundParam2 = true;
       }
-      if (decl.name() == "parameter3" && decl.type() == "gz_msgs.StringMsg") {
+      if (decl.name() == "parameter3" && decl.type() == "gz.msgs.StringMsg") {
         foundParam3 = true;
       }
     }
@@ -225,12 +225,12 @@ TEST_F(ParametersClientTest, ListParameters)
     bool foundParam2{false};
     for (auto decl : declarations.parameter_declarations()) {
       if (
-        decl.name() == "another_param1" && decl.type() == "gz_msgs.Boolean")
+        decl.name() == "another_param1" && decl.type() == "gz.msgs.Boolean")
       {
         foundParam1 = true;
       }
       if (
-        decl.name() == "another_param2" && decl.type() == "gz_msgs.StringMsg")
+        decl.name() == "another_param2" && decl.type() == "gz.msgs.StringMsg")
       {
         foundParam2 = true;
       }

@@ -69,6 +69,9 @@ release will remove the deprecated code.
    bool res = node.Subscribe(topic, topicCb);
    ```
 
+2. The `parameters` registry no longer replaces `gz.msgs` message namespaces
+   with `gz_msgs`.
+
 ## Gazebo Transport 11.X to 12.X
 
 ### Deprecated

@@ -66,7 +66,7 @@ TEST(ParametersRegistry, Parameter)
   EXPECT_FALSE(ret);
   EXPECT_EQ(ret.ResultType(), ParameterResultType::InvalidType);
   EXPECT_EQ(ret.ParamName(), "parameter1");
-  EXPECT_EQ(ret.ParamType(), "gz_msgs.Boolean");
+  EXPECT_EQ(ret.ParamType(), "gz.msgs.Boolean");
 }
 
 //////////////////////////////////////////////////
@@ -91,7 +91,7 @@ TEST(ParametersRegistry, SetParameter)
   EXPECT_FALSE(ret);
   EXPECT_EQ(ret.ResultType(), ParameterResultType::InvalidType);
   EXPECT_EQ(ret.ParamName(), "parameter1");
-  EXPECT_EQ(ret.ParamType(), "gz_msgs.Boolean");
+  EXPECT_EQ(ret.ParamType(), "gz.msgs.Boolean");
 }
 
 //////////////////////////////////////////////////
@@ -109,10 +109,10 @@ TEST(ParametersRegistry, ListParameters)
   bool foundParam1 = false;
   bool foundParam2 = false;
   for (auto decl : declarations.parameter_declarations()) {
-    if (decl.name() == "parameter1" && decl.type() == "gz_msgs.Boolean") {
+    if (decl.name() == "parameter1" && decl.type() == "gz.msgs.Boolean") {
       foundParam1 = true;
     }
-    if (decl.name() == "parameter2" && decl.type() == "gz_msgs.StringMsg") {
+    if (decl.name() == "parameter2" && decl.type() == "gz.msgs.StringMsg") {
       foundParam2 = true;
     }
   }

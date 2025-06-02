@@ -27,12 +27,6 @@ using namespace transport;
 using namespace transport::parameters;
 
 //////////////////////////////////////////////////
-TEST(ParametersUtils, addGzMsgsPrefix)
-{
-  EXPECT_EQ(addGzMsgsPrefix("asd"), "gz_msgs.asd");
-}
-
-//////////////////////////////////////////////////
 TEST(ParametersUtils, getGzTypeFromAnyProto)
 {
   google::protobuf::Any any;
