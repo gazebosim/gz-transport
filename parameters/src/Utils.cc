@@ -46,5 +46,5 @@ transport::parameters::getGzTypeFromAnyProto(
   if (!ret.compare(0, sizeof(prefix), prefix)) {
     return std::nullopt;
   }
-  return ret.substr(sizeof(prefix) - 1);
+  return ret;
 }
