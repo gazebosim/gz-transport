@@ -63,34 +63,39 @@ TEST_F(ParametersClientTest, Parameter)
     ParametersClient client;
     {
       msgs::Boolean msg;
-      EXPECT_TRUE(client.Parameter("parameter1", msg));
+      ParameterResult result = client.Parameter("parameter1", msg);
+      EXPECT_TRUE(result) << result;
       EXPECT_EQ(msg.data(), false);
     }
     {
       std::unique_ptr<google::protobuf::Message> msg;
-      EXPECT_TRUE(client.Parameter("parameter2", msg));
+      ParameterResult result = client.Parameter("parameter2", msg);
+      EXPECT_TRUE(result) << result;
       ASSERT_NE(nullptr, msg);
       auto downcastedMsg = dynamic_cast<msgs::StringMsg *>(msg.get());
       EXPECT_EQ(downcastedMsg->data(), "");
     }
     {
       msgs::Boolean msg;
-      auto ret = client.Parameter("parameter3", msg);
-      EXPECT_FALSE(ret);
-      EXPECT_EQ(ret.ResultType(), ParameterResultType::InvalidType);
-      EXPECT_EQ(ret.ParamName(), "parameter3");
+      auto result = client.Parameter("parameter3", msg);
+      EXPECT_FALSE(result) << result;
+      EXPECT_EQ(result.ResultType(), ParameterResultType::InvalidType)
+          << result;
+      EXPECT_EQ(result.ParamName(), "parameter3") << result;
     }
   }
   {
     ParametersClient client{"/ns"};
     {
       msgs::Boolean msg;
-      EXPECT_TRUE(client.Parameter("another_param1", msg));
+      auto result = client.Parameter("another_param1", msg);
+      EXPECT_TRUE(result) << result;
       EXPECT_EQ(msg.data(), false);
     }
     {
       msgs::StringMsg msg;
-      EXPECT_TRUE(client.Parameter("another_param2", msg));
+      auto result = client.Parameter("another_param2", msg);
+      EXPECT_TRUE(result) << result;
       EXPECT_EQ(msg.data(), "bsd");
     }
   }
@@ -103,34 +108,46 @@ TEST_F(ParametersClientTest, SetParameter)
     ParametersClient client;
     msgs::StringMsg msg;
     msg.set_data("testing");
-    client.SetParameter("parameter2", msg);
+    {
+      auto result = client.SetParameter("parameter2", msg);
+      EXPECT_TRUE(result) << result;
+    }
     msgs::StringMsg msg_got;
-    EXPECT_TRUE(registry_.Parameter("parameter2", msg_got));
+    {
+      auto result = registry_.Parameter("parameter2", msg_got);
+      EXPECT_TRUE(result) << result;
+    }
     EXPECT_EQ(msg_got.data(), "testing");
   }
   {
     ParametersClient client;
     msgs::Boolean msg;
-    auto ret = client.SetParameter("parameter2", msg);
-    EXPECT_FALSE(ret);
-    EXPECT_EQ(ret.ResultType(), ParameterResultType::InvalidType);
-    EXPECT_EQ(ret.ParamName(), "parameter2");
+    auto result = client.SetParameter("parameter2", msg);
+    EXPECT_FALSE(result) << result;
+    EXPECT_EQ(result.ResultType(), ParameterResultType::InvalidType) << result;
+    EXPECT_EQ(result.ParamName(), "parameter2") << result;
   }
   {
     ParametersClient client;
     msgs::Boolean msg;
-    auto ret = client.SetParameter("parameter_doesnt_exist", msg);
-    EXPECT_FALSE(ret);
-    EXPECT_EQ(ret.ResultType(), ParameterResultType::NotDeclared);
-    EXPECT_EQ(ret.ParamName(), "parameter_doesnt_exist");
+    auto result = client.SetParameter("parameter_doesnt_exist", msg);
+    EXPECT_FALSE(result) << result;
+    EXPECT_EQ(result.ResultType(), ParameterResultType::NotDeclared) << result;
+    EXPECT_EQ(result.ParamName(), "parameter_doesnt_exist") << result;
   }
   {
     ParametersClient client{"/ns"};
     msgs::Boolean msg;
     msg.set_data(true);
-    client.SetParameter("another_param1", msg);
+    {
+      auto result = client.SetParameter("another_param1", msg);
+      EXPECT_TRUE(result) << result;
+    }
     msgs::Boolean msg_got;
-    EXPECT_TRUE(registry_other_ns_.Parameter("another_param1", msg_got));
+    {
+      auto result = registry_other_ns_.Parameter("another_param1", msg_got);
+      EXPECT_TRUE(result) << result;
+    }
     EXPECT_EQ(msg_got.data(), true);
   }
 }
@@ -142,25 +159,37 @@ TEST_F(ParametersClientTest, DeclareParameter)
     ParametersClient client;
     msgs::StringMsg msg;
     msg.set_data("declaring");
-    client.DeclareParameter("new_parameter", msg);
+    {
+      auto result = client.DeclareParameter("new_parameter", msg);
+      EXPECT_TRUE(result) << result;
+    }
     msgs::StringMsg msg_got;
-    EXPECT_TRUE(registry_.Parameter("new_parameter", msg_got));
+    {
+      auto result = registry_.Parameter("new_parameter", msg_got);
+      EXPECT_TRUE(result) << result;
+    }
     EXPECT_EQ(msg_got.data(), "declaring");
   }
   {
     ParametersClient client;
     msgs::Boolean msg;
-    auto ret = client.DeclareParameter("parameter1", msg);
-    EXPECT_FALSE(ret);
-    EXPECT_EQ(ret.ResultType(), ParameterResultType::AlreadyDeclared);
+    auto result = client.DeclareParameter("parameter1", msg);
+    EXPECT_FALSE(result);
+    EXPECT_EQ(result.ResultType(), ParameterResultType::AlreadyDeclared);
   }
   {
     ParametersClient client{"/ns"};
     msgs::Boolean msg;
     msg.set_data(true);
     msgs::Boolean msg_got;
-    client.DeclareParameter("new_parameter", msg);
-    EXPECT_TRUE(registry_other_ns_.Parameter("new_parameter", msg_got));
+    {
+      auto result = client.DeclareParameter("new_parameter", msg);
+      EXPECT_TRUE(result) << result;
+    }
+    {
+      auto result = registry_other_ns_.Parameter("new_parameter", msg_got);
+      EXPECT_TRUE(result) << result;
+    }
     EXPECT_EQ(msg_got.data(), true);
   }
 }
