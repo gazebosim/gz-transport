@@ -13,6 +13,43 @@ release will remove the deprecated code.
 1. The `Discovery.hh` file is no longer installed.
     * [GitHub pull request 630](https://github.com/gazebosim/gz-transport/pull/630)
 
+1. The following function in `Node.hh` has been removed:
+  ```cpp
+  bool TopicInfo(const std::string &_topic,
+                 std::vector<MessagePublisher> &_publishers) const;
+  ```
+  and was replaced with:
+  ```cpp
+  bool TopicInfo(const std::string &_topic,
+                 std::vector<MessagePublisher> &_publishers,
+                 std::vector<MessagePublisher> &_subscribers) const;
+  ```
+
+1. The following functions in `CIface.h` have been removed:
+  ```cpp
+  const auto ignTransportNodeCreate(...);
+  const auto ignTransportNodeDestroy(...);
+  const auto ignTransportAdvertise(...);
+  const auto ignTransportPublish(...);
+  const auto ignTransportSubscribe(...);
+  const auto ignTransportSubscribeOptions(...);
+  const auto ignTransportSubscribeNonConst(...);
+  const auto ignTransportUnsubscribe(...);
+  const auto ignTransportWaitForShutdown(...);
+  ```
+  and were replaced with:
+  ```cpp
+  const auto gzTransportNodeCreate(...);
+  const auto gzTransportNodeDestroy(...);
+  const auto gzTransportAdvertise(...);
+  const auto gzTransportPublish(...);
+  const auto gzTransportSubscribe(...);
+  const auto gzTransportSubscribeOptions(...);
+  const auto gzTransportSubscribeNonConst(...);
+  const auto gzTransportUnsubscribe(...);
+  const auto gzTransportWaitForShutdown(...);
+  ```
+
 ### Breaking Changes
 
 1. The `SubscriptionHandler.hh::SubscriptionHandlerBase` constructor now
@@ -45,6 +82,9 @@ release will remove the deprecated code.
    ...
    bool res = node.Subscribe(topic, topicCb);
    ```
+
+2. The `parameters` registry no longer replaces `gz.msgs` message namespaces
+   with `gz_msgs`.
 
 ## Gazebo Transport 11.X to 12.X
 

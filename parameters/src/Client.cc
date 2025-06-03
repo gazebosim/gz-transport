@@ -107,7 +107,7 @@ ParametersClient::Parameter(
       _parameterName};
   }
   auto gzType = *gzTypeOpt;
-  if (gzType != _parameter.GetDescriptor()->name()) {
+  if (gzType != _parameter.GetDescriptor()->full_name()) {
     return ParameterResult{
       ParameterResultType::InvalidType, _parameterName, gzType};
   }

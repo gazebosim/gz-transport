@@ -27,20 +27,14 @@ using namespace transport;
 using namespace transport::parameters;
 
 //////////////////////////////////////////////////
-TEST(ParametersUtils, addGzMsgsPrefix)
-{
-  EXPECT_EQ(addGzMsgsPrefix("asd"), "gz_msgs.asd");
-}
-
-//////////////////////////////////////////////////
 TEST(ParametersUtils, getGzTypeFromAnyProto)
 {
   google::protobuf::Any any;
 
   gz::msgs::Boolean boolMsg;
   any.PackFrom(boolMsg);
-  EXPECT_EQ(*getGzTypeFromAnyProto(any), "Boolean");
+  EXPECT_EQ(*getGzTypeFromAnyProto(any), "gz.msgs.Boolean");
   gz::msgs::StringMsg strMsg;
   any.PackFrom(strMsg);
-  EXPECT_EQ(*getGzTypeFromAnyProto(any), "StringMsg");
+  EXPECT_EQ(*getGzTypeFromAnyProto(any), "gz.msgs.StringMsg");
 }
