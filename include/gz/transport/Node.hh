@@ -17,26 +17,20 @@
 #ifndef GZ_TRANSPORT_NODE_HH_
 #define GZ_TRANSPORT_NODE_HH_
 
-#include <algorithm>
-#include <functional>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
-
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/Publisher.hh"
-#include "gz/transport/ReqHandler.hh"
 #include "gz/transport/SubscribeOptions.hh"
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicStatistics.hh"
-#include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
 
 namespace zenoh

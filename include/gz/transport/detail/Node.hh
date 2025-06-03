@@ -19,10 +19,13 @@
 #define GZ_TRANSPORT_DETAIL_NODE_HH_
 
 #include <gz/msgs/empty.pb.h>
-
+#include <algorithm>
+#include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <utility>
+#include "gz/transport/TopicUtils.hh"
 
 namespace gz
 {
