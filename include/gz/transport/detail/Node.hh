@@ -25,9 +25,10 @@
 #include <mutex>
 #include <string>
 #include <utility>
-#include "gz/transport/TopicUtils.hh"
-
 #include "gz/transport/Node.hh"
+#include "gz/transport/RepHandler.hh"
+#include "gz/transport/ReqHandler.hh"
+#include "gz/transport/TopicUtils.hh"
 
 namespace gz
 {

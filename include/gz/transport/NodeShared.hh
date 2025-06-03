@@ -41,8 +41,6 @@
 #include "gz/transport/HandlerStorage.hh"
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/Publisher.hh"
-#include "gz/transport/RepHandler.hh"
-#include "gz/transport/ReqHandler.hh"
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicStorage.hh"
 #include "gz/transport/TopicStatistics.hh"
@@ -62,6 +60,7 @@ namespace gz::transport
   //
   // Forward declarations.
   class IRepHandler;
+  class IReqHandler;
   class Node;
   class NodePrivate;
 
