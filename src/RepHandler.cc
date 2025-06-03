@@ -25,74 +25,71 @@
 #include <zenoh.hxx>
 #endif
 
-namespace gz
+namespace gz::transport
 {
-  namespace transport
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
-    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
+  /// \internal
+  /// \brief Private data for IRepHandler class.
+  class IRepHandlerPrivate
+  {
+    /// \brief Default constructor.
+    public: IRepHandlerPrivate()
+    : hUuid(Uuid().ToString())
     {
-    /// \internal
-    /// \brief Private data for IRepHandler class.
-    class IRepHandlerPrivate
-    {
-      /// \brief Default constructor.
-      public: IRepHandlerPrivate()
-      : hUuid(Uuid().ToString())
-      {
-      }
+    }
 
-      /// \brief Destructor.
-      public: virtual ~IRepHandlerPrivate() = default;
+    /// \brief Destructor.
+    public: virtual ~IRepHandlerPrivate() = default;
 
-      /// \brief Subscribe options.
-      public: std::string hUuid;
+    /// \brief Subscribe options.
+    public: std::string hUuid;
 
 #ifdef HAVE_ZENOH
-      /// \brief Zenoh queriable to receive requests.
-      std::unique_ptr<zenoh::Queryable<void>> zQueryable;
+    /// \brief Zenoh queriable to receive requests.
+    std::unique_ptr<zenoh::Queryable<void>> zQueryable;
 #endif
+  };
+
+  /////////////////////////////////////////////////
+  IRepHandler::IRepHandler()
+    : dataPtr(new IRepHandlerPrivate())
+  {
+  }
+
+  /////////////////////////////////////////////////
+  IRepHandler::~IRepHandler()
+  {
+    if (dataPtr)
+      delete dataPtr;
+  }
+
+  /////////////////////////////////////////////////
+  std::string IRepHandler::HandlerUuid() const
+  {
+    return this->dataPtr->hUuid;
+  }
+
+#ifdef HAVE_ZENOH
+  /////////////////////////////////////////////////
+  void IRepHandler::CreateZenohQueriable(
+    std::shared_ptr<zenoh::Session> _session,
+    const std::string &_service)
+  {
+    auto onQuery = [this, _service](const zenoh::Query &_query)
+    {
+      std::string output;
+      this->RunCallback(_query.get_payload()->get().as_string(), output);
+      _query.reply(_service, output);
     };
 
-    /////////////////////////////////////////////////
-    IRepHandler::IRepHandler()
-      : dataPtr(new IRepHandlerPrivate())
-    {
-    }
+    auto onDropQueryable = []() {};
 
-    /////////////////////////////////////////////////
-    IRepHandler::~IRepHandler()
-    {
-      if (dataPtr)
-        delete dataPtr;
-    }
-
-    /////////////////////////////////////////////////
-    std::string IRepHandler::HandlerUuid() const
-    {
-      return this->dataPtr->hUuid;
-    }
-
-#ifdef HAVE_ZENOH
-    /////////////////////////////////////////////////
-    void IRepHandler::CreateZenohQueriable(
-      std::shared_ptr<zenoh::Session> _session,
-      const std::string &_service)
-    {
-      auto onQuery = [this, _service](const zenoh::Query &_query)
-      {
-        std::string output;
-        this->RunCallback(_query.get_payload()->get().as_string(), output);
-        _query.reply(_service, output);
-      };
-
-      auto onDropQueryable = []() {};
-
-      zenoh::Session::QueryableOptions opts;
-      this->dataPtr->zQueryable = std::make_unique<zenoh::Queryable<void>>(
-        _session->declare_queryable(
-          _service, onQuery, onDropQueryable, std::move(opts)));
-    }
+    zenoh::Session::QueryableOptions opts;
+    this->dataPtr->zQueryable = std::make_unique<zenoh::Queryable<void>>(
+      _session->declare_queryable(
+        _service, onQuery, onDropQueryable, std::move(opts)));
+  }
 #endif
-    }
   }
 }

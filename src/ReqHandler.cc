@@ -27,121 +27,118 @@
 #include <zenoh.hxx>
 #endif
 
-namespace gz
+namespace gz::transport
 {
-  namespace transport
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
-    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
-    {
-    /// \internal
-    /// \brief Private data for IReqHandler class.
-    class IReqHandlerPrivate
-    {
-      /// \brief Default constructor.
-      public: IReqHandlerPrivate(const std::string &_nUuid)
-      : hUuid(Uuid().ToString()),
-        nUuid(_nUuid),
-        requested(false)
-      {
-      }
-
-      /// \brief Destructor.
-      public: virtual ~IReqHandlerPrivate() = default;
-
-      /// \brief Unique handler's UUID.
-      public: std::string hUuid;
-
-      /// \brief Node UUID.
-      public: std::string nUuid;
-
-      /// \brief When true, the REQ was already sent and the REP should be on
-      /// its way. Used to not resend the same REQ more than one time.
-      public: bool requested;
-    };
-
-    /////////////////////////////////////////////////
-    IReqHandler::IReqHandler(const std::string &_nUuid)
-      : dataPtr(new IReqHandlerPrivate(_nUuid)),
-        rep(""),
-        result(false),
-        repAvailable(false)
+  /// \internal
+  /// \brief Private data for IReqHandler class.
+  class IReqHandlerPrivate
+  {
+    /// \brief Default constructor.
+    public: IReqHandlerPrivate(const std::string &_nUuid)
+    : hUuid(Uuid().ToString()),
+      nUuid(_nUuid),
+      requested(false)
     {
     }
 
-    /////////////////////////////////////////////////
-    IReqHandler::~IReqHandler()
-    {
-      if (dataPtr)
-        delete dataPtr;
-    }
+    /// \brief Destructor.
+    public: virtual ~IReqHandlerPrivate() = default;
 
-    /////////////////////////////////////////////////
-    std::string IReqHandler::HandlerUuid() const
-    {
-      return this->dataPtr->hUuid;
-    }
+    /// \brief Unique handler's UUID.
+    public: std::string hUuid;
 
-    /////////////////////////////////////////////////
-    std::string IReqHandler::NodeUuid() const
-    {
-      return this->dataPtr->nUuid;
-    }
+    /// \brief Node UUID.
+    public: std::string nUuid;
 
-    /////////////////////////////////////////////////
-    bool IReqHandler::Requested() const
-    {
-      return this->dataPtr->requested;
-    }
+    /// \brief When true, the REQ was already sent and the REP should be on
+    /// its way. Used to not resend the same REQ more than one time.
+    public: bool requested;
+  };
 
-    /////////////////////////////////////////////////
-    void IReqHandler::Requested(const bool _value)
-    {
-      this->dataPtr->requested = _value;
-    }
+  /////////////////////////////////////////////////
+  IReqHandler::IReqHandler(const std::string &_nUuid)
+    : dataPtr(new IReqHandlerPrivate(_nUuid)),
+      rep(""),
+      result(false),
+      repAvailable(false)
+  {
+  }
+
+  /////////////////////////////////////////////////
+  IReqHandler::~IReqHandler()
+  {
+    if (dataPtr)
+      delete dataPtr;
+  }
+
+  /////////////////////////////////////////////////
+  std::string IReqHandler::HandlerUuid() const
+  {
+    return this->dataPtr->hUuid;
+  }
+
+  /////////////////////////////////////////////////
+  std::string IReqHandler::NodeUuid() const
+  {
+    return this->dataPtr->nUuid;
+  }
+
+  /////////////////////////////////////////////////
+  bool IReqHandler::Requested() const
+  {
+    return this->dataPtr->requested;
+  }
+
+  /////////////////////////////////////////////////
+  void IReqHandler::Requested(const bool _value)
+  {
+    this->dataPtr->requested = _value;
+  }
 
 #ifdef HAVE_ZENOH
-    /////////////////////////////////////////////////
-    void IReqHandler::CreateZenohGet(
-      std::shared_ptr<zenoh::Session> _session,
-      const std::string &_service)
+  /////////////////////////////////////////////////
+  void IReqHandler::CreateZenohGet(
+    std::shared_ptr<zenoh::Session> _session,
+    const std::string &_service)
+  {
+    std::mutex m;
+    std::condition_variable doneSignal;
+    bool done = false;
+    auto onReply = [this](const zenoh::Reply &_reply)
     {
-      std::mutex m;
-      std::condition_variable doneSignal;
-      bool done = false;
-      auto onReply = [this](const zenoh::Reply &_reply)
+      if (_reply.is_ok())
       {
-        if (_reply.is_ok())
-        {
-          const auto &sample = _reply.get_ok();
-          this->NotifyResult(sample.get_payload().as_string(), true);
-        }
-        else
-        {
-          std::cout << "Received an error :"
-                    << _reply.get_err().get_payload().as_string() << "\n";
-        }
-      };
-
-      auto onDone = [&m, &done, &doneSignal]()
+        const auto &sample = _reply.get_ok();
+        this->NotifyResult(sample.get_payload().as_string(), true);
+      }
+      else
       {
-        std::lock_guard lock(m);
-        done = true;
-        doneSignal.notify_all();
-      };
+        std::cout << "Received an error :"
+                  << _reply.get_err().get_payload().as_string() << "\n";
+      }
+    };
 
-      zenoh::Session::GetOptions options;
-      std::string payload;
-      this->Serialize(payload);
+    auto onDone = [&m, &done, &doneSignal]()
+    {
+      std::lock_guard lock(m);
+      done = true;
+      doneSignal.notify_all();
+    };
 
-      if (!payload.empty())
-        options.payload = payload;
+    zenoh::Session::GetOptions options;
+    std::string payload;
+    this->Serialize(payload);
 
-      _session->get(_service, "", onReply, onDone, std::move(options));
+    if (!payload.empty())
+      options.payload = payload;
 
-      std::unique_lock lock(m);
-      doneSignal.wait(lock, [&done] { return done; });
-    }
+    _session->get(_service, "", onReply, onDone, std::move(options));
+
+    std::unique_lock lock(m);
+    doneSignal.wait(lock, [&done] { return done; });
+  }
 #endif
-    }
   }
 }

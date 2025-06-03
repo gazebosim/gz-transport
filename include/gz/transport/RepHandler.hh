@@ -84,10 +84,7 @@ namespace gz::transport
 
     /// \brief Get the unique UUID of this handler.
     /// \return a string representation of the handler UUID.
-    public: std::string HandlerUuid() const
-    {
-      return this->hUuid;
-    }
+    public: std::string HandlerUuid() const;
 
     /// \brief Get the message type name used in the service request.
     /// \return Message type name.
@@ -96,10 +93,6 @@ namespace gz::transport
     /// \brief Get the message type name used in the service response.
     /// \return Message type name.
     public: virtual std::string RepTypeName() const = 0;
-
-    /// \brief Get the unique UUID of this handler.
-    /// \return a string representation of the handler UUID.
-    public: std::string HandlerUuid() const;
 
 #ifdef HAVE_ZENOH
     /// \brief Create a Zenoh queriable.

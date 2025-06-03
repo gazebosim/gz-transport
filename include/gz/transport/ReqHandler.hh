@@ -44,105 +44,103 @@ namespace zenoh
   class Session;
 }
 
-namespace gz
+namespace gz::transport
 {
-  namespace transport
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  //
+  /// Forward declaration;
+  class IReqHandlerPrivate;
+
+  /// \class IReqHandler ReqHandler.hh gz/transport/ReqHandler.hh
+  /// \brief Interface class used to manage a request handler.
+  class GZ_TRANSPORT_VISIBLE IReqHandler
   {
-    // Inline bracket to help doxygen filtering.
-    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-    //
-    /// Forward declaration;
-    class IReqHandlerPrivate;
+    /// \brief Constructor.
+    /// \param[in] _nUuid UUID of the node registering the request handler.
+    public: explicit IReqHandler(const std::string &_nUuid);
 
-    /// \class IReqHandler ReqHandler.hh gz/transport/ReqHandler.hh
-    /// \brief Interface class used to manage a request handler.
-    class GZ_TRANSPORT_VISIBLE IReqHandler
+    /// \brief Destructor.
+    public: virtual ~IReqHandler();
+
+    /// \brief Executes the callback registered for this handler and notify
+    /// a potential requester waiting on a blocking call.
+    /// \param[in] _rep Serialized data containing the response coming from
+    /// the service call responser.
+    /// \param[in] _result Contains the result of the service call coming from
+    /// the service call responser.
+    public: virtual void NotifyResult(const std::string &_rep,
+                                      const bool _result) = 0;
+
+    /// \brief Serialize the Req protobuf message stored.
+    /// \param[out] _buffer The serialized data.
+    /// \return True if the serialization succeed or false otherwise.
+    public: virtual bool Serialize(std::string &_buffer) const = 0;
+
+    /// \brief Get the message type name used in the service request.
+    /// \return Message type name.
+    public: virtual std::string ReqTypeName() const = 0;
+
+    /// \brief Get the message type name used in the service response.
+    /// \return Message type name.
+    public: virtual std::string RepTypeName() const = 0;
+
+    /// \brief Returns the unique handler UUID.
+    /// \return The handler's UUID.
+    public: std::string HandlerUuid() const;
+
+    /// \brief Get the node UUID.
+    /// \return The string representation of the node UUID.
+    public: std::string NodeUuid() const;
+
+    /// \brief Get the service response as raw bytes.
+    /// \return The string containing the service response.
+    public: std::string Response() const
     {
-      /// \brief Constructor.
-      /// \param[in] _nUuid UUID of the node registering the request handler.
-      public: explicit IReqHandler(const std::string &_nUuid);
+      return this->rep;
+    }
 
-      /// \brief Destructor.
-      public: virtual ~IReqHandler();
+    /// \brief Get the result of the service response.
+    /// \return The boolean result.
+    public: bool Result() const
+    {
+      return this->result;
+    }
 
-      /// \brief Executes the callback registered for this handler and notify
-      /// a potential requester waiting on a blocking call.
-      /// \param[in] _rep Serialized data containing the response coming from
-      /// the service call responser.
-      /// \param[in] _result Contains the result of the service call coming from
-      /// the service call responser.
-      public: virtual void NotifyResult(const std::string &_rep,
-                                        const bool _result) = 0;
+    /// \brief Returns if this service call request has already been requested
+    /// \return True when the service call has been requested.
+    public: bool Requested() const;
 
-      /// \brief Serialize the Req protobuf message stored.
-      /// \param[out] _buffer The serialized data.
-      /// \return True if the serialization succeed or false otherwise.
-      public: virtual bool Serialize(std::string &_buffer) const = 0;
+    /// \brief Mark the service call as requested (or not).
+    /// \param[in] _value true when you want to flag this REQ as requested.
+    public: void Requested(const bool _value);
 
-      /// \brief Get the message type name used in the service request.
-      /// \return Message type name.
-      public: virtual std::string ReqTypeName() const = 0;
-
-      /// \brief Get the message type name used in the service response.
-      /// \return Message type name.
-      public: virtual std::string RepTypeName() const = 0;
-
-      /// \brief Returns the unique handler UUID.
-      /// \return The handler's UUID.
-      public: std::string HandlerUuid() const;
-
-      /// \brief Get the node UUID.
-      /// \return The string representation of the node UUID.
-      public: std::string NodeUuid() const;
-
-      /// \brief Get the service response as raw bytes.
-      /// \return The string containing the service response.
-      public: std::string Response() const
-      {
-        return this->rep;
-      }
-
-      /// \brief Get the result of the service response.
-      /// \return The boolean result.
-      public: bool Result() const
-      {
-        return this->result;
-      }
-
-      /// \brief Returns if this service call request has already been requested
-      /// \return True when the service call has been requested.
-      public: bool Requested() const;
-
-      /// \brief Mark the service call as requested (or not).
-      /// \param[in] _value true when you want to flag this REQ as requested.
-      public: void Requested(const bool _value);
-
-      /// \brief Block the current thread until the response to the
-      /// service request is available or until the timeout expires.
-      /// This method uses a condition variable to notify when the response is
-      /// available.
-      /// \param[in] _lock Lock used to protect the condition variable.
-      /// \param[in] _timeout Maximum waiting time in milliseconds.
-      /// \return True if the service call was executed or false otherwise.
-      public: template<typename Lock> bool WaitUntil(Lock &_lock,
-                                                    const unsigned int _timeout)
-      {
-        auto now = std::chrono::steady_clock::now();
-        return this->condition.wait_until(_lock,
-          now + std::chrono::milliseconds(_timeout),
-          [this]
-          {
-            return this->repAvailable;
-          });
-      }
+    /// \brief Block the current thread until the response to the
+    /// service request is available or until the timeout expires.
+    /// This method uses a condition variable to notify when the response is
+    /// available.
+    /// \param[in] _lock Lock used to protect the condition variable.
+    /// \param[in] _timeout Maximum waiting time in milliseconds.
+    /// \return True if the service call was executed or false otherwise.
+    public: template<typename Lock> bool WaitUntil(Lock &_lock,
+                                                  const unsigned int _timeout)
+    {
+      auto now = std::chrono::steady_clock::now();
+      return this->condition.wait_until(_lock,
+        now + std::chrono::milliseconds(_timeout),
+        [this]
+        {
+          return this->repAvailable;
+        });
+    }
 
 #ifdef HAVE_ZENOH
-      /// \brief Create a Zenoh get.
-      /// \param[in] _session Zenoh session.
-      /// \param[in] _service The service.
-      protected: void CreateZenohGet(
-        std::shared_ptr<zenoh::Session> _session,
-        const std::string &_service);
+    /// \brief Create a Zenoh get.
+    /// \param[in] _session Zenoh session.
+    /// \param[in] _service The service.
+    protected: void CreateZenohGet(
+      std::shared_ptr<zenoh::Session> _session,
+      const std::string &_service);
 #endif
 
 #ifdef _WIN32
@@ -151,274 +149,273 @@ namespace gz
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-      /// \brief Private data.
-      protected: IReqHandlerPrivate *dataPtr;
+    /// \brief Private data.
+    protected: IReqHandlerPrivate *dataPtr;
 
-      /// \brief Condition variable used to wait until a service call REP is
-      /// available.
-      protected: std::condition_variable_any condition;
+    /// \brief Condition variable used to wait until a service call REP is
+    /// available.
+    protected: std::condition_variable_any condition;
 
-      /// \brief Stores the service response as raw bytes.
-      protected: std::string rep;
+    /// \brief Stores the service response as raw bytes.
+    protected: std::string rep;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
-      /// \brief Stores the result of the service call.
-      protected: bool result;
+    /// \brief Stores the result of the service call.
+    protected: bool result;
 
-      /// \brief When there is a blocking service call request, the call can
-      /// be unlocked when a service call REP is available. This variable
-      /// captures if we have found a node that can satisfy our request.
-      public: bool repAvailable;
-    };
+    /// \brief When there is a blocking service call request, the call can
+    /// be unlocked when a service call REP is available. This variable
+    /// captures if we have found a node that can satisfy our request.
+    public: bool repAvailable;
+  };
 
-    /// \class ReqHandler ReqHandler.hh
-    /// \brief It creates a reply handler for the specific protobuf
-    /// messages used. 'Req' is a protobuf message type containing the input
-    /// parameters of the service request. 'Rep' is a protobuf message type
-    /// that will be filled with the service response.
-    template <typename Req, typename Rep> class ReqHandler
-      : public IReqHandler
+  /// \class ReqHandler ReqHandler.hh
+  /// \brief It creates a reply handler for the specific protobuf
+  /// messages used. 'Req' is a protobuf message type containing the input
+  /// parameters of the service request. 'Rep' is a protobuf message type
+  /// that will be filled with the service response.
+  template <typename Req, typename Rep> class ReqHandler
+    : public IReqHandler
+  {
+    // Documentation inherited.
+    public: explicit ReqHandler(const std::string &_nUuid)
+      : IReqHandler(_nUuid)
     {
-      // Documentation inherited.
-      public: explicit ReqHandler(const std::string &_nUuid)
-        : IReqHandler(_nUuid)
+    }
+
+    /// \brief Create a specific protobuf message given its serialized data.
+    /// \param[in] _data The serialized data.
+    /// \return Pointer to the specific protobuf message.
+    public: std::shared_ptr<Rep> CreateMsg(const std::string &_data) const
+    {
+      // Instantiate a specific protobuf message
+      auto msgPtr = std::make_shared<Rep>();
+
+      // Create the message using some serialized data
+      if (!msgPtr->ParseFromString(_data))
       {
+        std::cerr << "ReqHandler::CreateMsg() error: ParseFromString failed"
+                  << std::endl;
       }
 
-      /// \brief Create a specific protobuf message given its serialized data.
-      /// \param[in] _data The serialized data.
-      /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<Rep> CreateMsg(const std::string &_data) const
-      {
-        // Instantiate a specific protobuf message
-        auto msgPtr = std::make_shared<Rep>();
+      return msgPtr;
+    }
 
-        // Create the message using some serialized data
-        if (!msgPtr->ParseFromString(_data))
-        {
-          std::cerr << "ReqHandler::CreateMsg() error: ParseFromString failed"
-                    << std::endl;
-        }
-
-        return msgPtr;
-      }
-
-      /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback with the following parameters:
-      /// * _rep Protobuf message containing the service response.
-      /// * _result True when the service request was successful or
-      /// false otherwise.
-      public: void SetCallback(const std::function <void(
-        const Rep &_rep, const bool _result)> &_cb)
-      {
-        this->cb = _cb;
-      }
+    /// \brief Set the callback for this handler.
+    /// \param[in] _cb The callback with the following parameters:
+    /// * _rep Protobuf message containing the service response.
+    /// * _result True when the service request was successful or
+    /// false otherwise.
+    public: void SetCallback(const std::function <void(
+      const Rep &_rep, const bool _result)> &_cb)
+    {
+      this->cb = _cb;
+    }
 
 #ifdef HAVE_ZENOH
-      /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback with the following parameters:
-      /// * _rep Protobuf message containing the service response.
-      /// * _result True when the service request was successful or
-      /// false otherwise.
-      public: void SetCallback(const std::function <void(
-        const Rep &_rep, const bool _result)> &_cb,
-        std::shared_ptr<zenoh::Session> _session,
-        const std::string &_service)
-      {
-        this->SetCallback(std::move(_cb));
-        this->CreateZenohGet(_session, _service);
-      }
+    /// \brief Set the callback for this handler.
+    /// \param[in] _cb The callback with the following parameters:
+    /// * _rep Protobuf message containing the service response.
+    /// * _result True when the service request was successful or
+    /// false otherwise.
+    public: void SetCallback(const std::function <void(
+      const Rep &_rep, const bool _result)> &_cb,
+      std::shared_ptr<zenoh::Session> _session,
+      const std::string &_service)
+    {
+      this->SetCallback(std::move(_cb));
+      this->CreateZenohGet(_session, _service);
+    }
 #endif
 
-      /// \brief Set the REQ protobuf message for this handler.
-      /// \param[in] _reqMsg Protobuf message containing the input parameters of
-      /// of the service request.
-      public: void SetMessage(const Req *_reqMsg)
-      {
-        if (!_reqMsg)
-        {
-          std::cerr << "ReqHandler::SetMessage() _reqMsg is null" << std::endl;
-          return;
-        }
-
-        this->reqMsg.CopyFrom(*_reqMsg);
-      }
-
-      /// \brief This function is only used for compatibility with
-      /// SetResponse() when [REP = google::protobuf::Message].
-      /// It shouldn't do anything.
-      /// \param[in] _repMsg Protobuf message containing the variable where
-      /// the result will be stored.
-      public: void SetResponse(const Rep *_repMsg)
-      {
-        (void)_repMsg;
-      }
-
-      // Documentation inherited
-      public: bool Serialize(std::string &_buffer) const
-      {
-        if (!this->reqMsg.SerializeToString(&_buffer))
-        {
-          std::cerr << "ReqHandler::Serialize(): Error serializing the request"
-                    << std::endl;
-          return false;
-        }
-
-        return true;
-      }
-
-      // Documentation inherited.
-      public: void NotifyResult(const std::string &_rep, const bool _result)
-      {
-        // Execute the callback (if existing).
-        if (this->cb)
-        {
-          // Instantiate the specific protobuf message associated to this topic.
-          auto msg = this->CreateMsg(_rep);
-
-          this->cb(*msg, _result);
-        }
-        else
-        {
-          this->rep = _rep;
-          this->result = _result;
-        }
-
-        this->repAvailable = true;
-        this->condition.notify_one();
-      }
-
-      // Documentation inherited.
-      public: virtual std::string ReqTypeName() const
-      {
-        return std::string(Req().GetTypeName());
-      }
-
-      // Documentation inherited.
-      public: virtual std::string RepTypeName() const
-      {
-        return std::string(Rep().GetTypeName());
-      }
-
-      /// \brief Protobuf message containing the request's parameters.
-      private: Req reqMsg;
-
-      /// \brief Callback to the function registered for this handler with the
-      /// following parameters:
-      /// \param[in] _rep Protobuf message containing the service response.
-      /// \param[in] _result True when the service request was successful or
-      /// false otherwise.
-      private: std::function<void(const Rep &_rep, const bool _result)> cb;
-    };
-
-    /// \class ReqHandler<google::protobuf::Message> ReqHandler.hh
-    /// \brief Template specialization for google::protobuf::Message.
-    /// This is only used by some gz command line tools.
-    template <> class ReqHandler<google::protobuf::Message,
-                                 google::protobuf::Message>
-      : public IReqHandler
+    /// \brief Set the REQ protobuf message for this handler.
+    /// \param[in] _reqMsg Protobuf message containing the input parameters of
+    /// of the service request.
+    public: void SetMessage(const Req *_reqMsg)
     {
-      // Documentation inherited.
-      public: explicit ReqHandler(const std::string &_nUuid)
-        : IReqHandler(_nUuid)
+      if (!_reqMsg)
       {
+        std::cerr << "ReqHandler::SetMessage() _reqMsg is null" << std::endl;
+        return;
       }
 
-      /// \brief Set the REQ protobuf message for this handler.
-      /// \param[in] _reqMsg Protobuf message containing the input parameters of
-      /// of the service request.
-      public: void SetMessage(const google::protobuf::Message *_reqMsg)
-      {
-        if (!_reqMsg)
-        {
-          std::cerr << "ReqHandler::SetMessage() _reqMsg is null" << std::endl;
-          return;
-        }
+      this->reqMsg.CopyFrom(*_reqMsg);
+    }
 
-        this->reqMsg = _reqMsg->New();
-        this->reqMsg->CopyFrom(*_reqMsg);
+    /// \brief This function is only used for compatibility with
+    /// SetResponse() when [REP = google::protobuf::Message].
+    /// It shouldn't do anything.
+    /// \param[in] _repMsg Protobuf message containing the variable where
+    /// the result will be stored.
+    public: void SetResponse(const Rep *_repMsg)
+    {
+      (void)_repMsg;
+    }
+
+    // Documentation inherited
+    public: bool Serialize(std::string &_buffer) const
+    {
+      if (!this->reqMsg.SerializeToString(&_buffer))
+      {
+        std::cerr << "ReqHandler::Serialize(): Error serializing the request"
+                  << std::endl;
+        return false;
       }
 
-      /// \brief Set the REP protobuf message for this handler.
-      /// \param[in] _repMsg Protobuf message containing the variable where
-      /// the result will be stored. The only purpose of this function is to
-      /// store the type information of _repMsg.
-      public: void SetResponse(const google::protobuf::Message *_repMsg)
+      return true;
+    }
+
+    // Documentation inherited.
+    public: void NotifyResult(const std::string &_rep, const bool _result)
+    {
+      // Execute the callback (if existing).
+      if (this->cb)
       {
-        if (!_repMsg)
-        {
-          std::cerr << "ReqHandler::SetResponse() _repMsg is null" << std::endl;
-          return;
-        }
+        // Instantiate the specific protobuf message associated to this topic.
+        auto msg = this->CreateMsg(_rep);
 
-        this->repMsg = _repMsg->New();
-        this->repMsg->CopyFrom(*_repMsg);
+        this->cb(*msg, _result);
       }
-
-      // Documentation inherited
-      public: bool Serialize(std::string &_buffer) const
-      {
-        if (!this->reqMsg)
-        {
-          std::cerr << "ReqHandler::Serialize() reqMsg is null" << std::endl;
-          return false;
-        }
-
-        if (!this->reqMsg->SerializeToString(&_buffer))
-        {
-          std::cerr << "ReqHandler::Serialize(): Error serializing the request"
-                    << std::endl;
-          return false;
-        }
-
-        return true;
-      }
-
-      // Documentation inherited.
-      public: void NotifyResult(const std::string &_rep, const bool _result)
+      else
       {
         this->rep = _rep;
         this->result = _result;
-
-        this->repAvailable = true;
-        this->condition.notify_one();
       }
 
-      // Documentation inherited.
-      public: virtual std::string ReqTypeName() const
-      {
-        if (this->reqMsg)
-          return std::string(this->reqMsg->GetTypeName());
-        else
-        {
-          std::cerr << "ReqHandler::ReqTypeName() Warning: Using ReqTypeName() "
-                    << "without type information" << std::endl;
-          return "";
-        }
-      }
-
-      //// Documentation inherited.
-      public: virtual std::string RepTypeName() const
-      {
-        if (this->repMsg)
-          return std::string(this->repMsg->GetTypeName());
-        else
-        {
-          std::cerr << "ReqHandler::RepTypeName() Warning: Using RepTypeName() "
-                    << "without type information" << std::endl;
-          return "";
-        }
-      }
-
-      /// \brief Protobuf message containing the request's parameters.
-      private: google::protobuf::Message *reqMsg = nullptr;
-
-      /// \brief Protobuf message containing the response.
-      private: google::protobuf::Message *repMsg = nullptr;
-    };
+      this->repAvailable = true;
+      this->condition.notify_one();
     }
+
+    // Documentation inherited.
+    public: virtual std::string ReqTypeName() const
+    {
+      return std::string(Req().GetTypeName());
+    }
+
+    // Documentation inherited.
+    public: virtual std::string RepTypeName() const
+    {
+      return std::string(Rep().GetTypeName());
+    }
+
+    /// \brief Protobuf message containing the request's parameters.
+    private: Req reqMsg;
+
+    /// \brief Callback to the function registered for this handler with the
+    /// following parameters:
+    /// \param[in] _rep Protobuf message containing the service response.
+    /// \param[in] _result True when the service request was successful or
+    /// false otherwise.
+    private: std::function<void(const Rep &_rep, const bool _result)> cb;
+  };
+
+  /// \class ReqHandler<google::protobuf::Message> ReqHandler.hh
+  /// \brief Template specialization for google::protobuf::Message.
+  /// This is only used by some gz command line tools.
+  template <> class ReqHandler<google::protobuf::Message,
+                               google::protobuf::Message>
+    : public IReqHandler
+  {
+    // Documentation inherited.
+    public: explicit ReqHandler(const std::string &_nUuid)
+      : IReqHandler(_nUuid)
+    {
+    }
+
+    /// \brief Set the REQ protobuf message for this handler.
+    /// \param[in] _reqMsg Protobuf message containing the input parameters of
+    /// of the service request.
+    public: void SetMessage(const google::protobuf::Message *_reqMsg)
+    {
+      if (!_reqMsg)
+      {
+        std::cerr << "ReqHandler::SetMessage() _reqMsg is null" << std::endl;
+        return;
+      }
+
+      this->reqMsg = _reqMsg->New();
+      this->reqMsg->CopyFrom(*_reqMsg);
+    }
+
+    /// \brief Set the REP protobuf message for this handler.
+    /// \param[in] _repMsg Protobuf message containing the variable where
+    /// the result will be stored. The only purpose of this function is to
+    /// store the type information of _repMsg.
+    public: void SetResponse(const google::protobuf::Message *_repMsg)
+    {
+      if (!_repMsg)
+      {
+        std::cerr << "ReqHandler::SetResponse() _repMsg is null" << std::endl;
+        return;
+      }
+
+      this->repMsg = _repMsg->New();
+      this->repMsg->CopyFrom(*_repMsg);
+    }
+
+    // Documentation inherited
+    public: bool Serialize(std::string &_buffer) const
+    {
+      if (!this->reqMsg)
+      {
+        std::cerr << "ReqHandler::Serialize() reqMsg is null" << std::endl;
+        return false;
+      }
+
+      if (!this->reqMsg->SerializeToString(&_buffer))
+      {
+        std::cerr << "ReqHandler::Serialize(): Error serializing the request"
+                  << std::endl;
+        return false;
+      }
+
+      return true;
+    }
+
+    // Documentation inherited.
+    public: void NotifyResult(const std::string &_rep, const bool _result)
+    {
+      this->rep = _rep;
+      this->result = _result;
+
+      this->repAvailable = true;
+      this->condition.notify_one();
+    }
+
+    // Documentation inherited.
+    public: virtual std::string ReqTypeName() const
+    {
+      if (this->reqMsg)
+        return std::string(this->reqMsg->GetTypeName());
+      else
+      {
+        std::cerr << "ReqHandler::ReqTypeName() Warning: Using ReqTypeName() "
+                  << "without type information" << std::endl;
+        return "";
+      }
+    }
+
+    //// Documentation inherited.
+    public: virtual std::string RepTypeName() const
+    {
+      if (this->repMsg)
+        return std::string(this->repMsg->GetTypeName());
+      else
+      {
+        std::cerr << "ReqHandler::RepTypeName() Warning: Using RepTypeName() "
+                  << "without type information" << std::endl;
+        return "";
+      }
+    }
+
+    /// \brief Protobuf message containing the request's parameters.
+    private: google::protobuf::Message *reqMsg = nullptr;
+
+    /// \brief Protobuf message containing the response.
+    private: google::protobuf::Message *repMsg = nullptr;
+  };
   }
 }
 
