@@ -42,7 +42,7 @@ namespace gz::transport
     /// \brief Destructor.
     public: virtual ~IRepHandlerPrivate() = default;
 
-    /// \brief Subscribe options.
+    /// \brief Handler UUID.
     public: std::string hUuid;
 
 #ifdef HAVE_ZENOH
