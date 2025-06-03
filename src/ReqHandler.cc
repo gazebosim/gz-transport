@@ -113,15 +113,6 @@ namespace gz
         if (_reply.is_ok())
         {
           const auto &sample = _reply.get_ok();
-
-          auto attachment = sample.get_attachment();
-          if (!attachment.has_value())
-          {
-            std::cerr << "IReqHandler::CreateZenohGet(): Unable to find "
-                      << "attachment. Ignoring message..." << std::endl;
-            return;
-          }
-
           this->NotifyResult(sample.get_payload().as_string(), true);
         }
         else
@@ -145,10 +136,7 @@ namespace gz
       if (!payload.empty())
         options.payload = payload;
 
-      // TODO(caguero): Remove.
-      options.timeout_ms = 2000u;
-      _session->get(_service, "",
-                  onReply, onDone, std::move(options));
+      _session->get(_service, "", onReply, onDone, std::move(options));
 
       std::unique_lock lock(m);
       doneSignal.wait(lock, [&done] { return done; });
