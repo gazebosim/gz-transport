@@ -30,7 +30,7 @@ namespace gz::transport
   /// \brief Private data for SubscriptionHandlerBase class.
   class SubscriptionHandlerBasePrivate
   {
-    /// \brief Default constructor.
+    /// \brief Constructor.
     public: SubscriptionHandlerBasePrivate(
       const std::string &_pUuid,
       const std::string &_nUuid,

@@ -133,7 +133,7 @@ namespace gz::transport
     /// * _req Protobuf message containing the service request params
     /// * _rep Protobuf message containing the service response.
     /// * Returns true when the service response is considered
-    /// successful or false otherwise.
+    ///   successful or false otherwise.
     public: void SetCallback(
       const std::function<bool(const Req &, Rep &)> &_cb)
     {
@@ -143,6 +143,12 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
     /// \brief Set the callback for this handler.
     /// \param[in] _cb The callback with the following parameters:
+    /// * _req Protobuf message containing the service request params.
+    /// * _rep Protobuf message containing the service response.
+    /// * Returns true when the service response is considered
+    ///   successful or false otherwise.
+    /// \param[in] _session The Zenoh session.
+    /// \param[in] _service The service name.
     public: void SetCallback(
       const std::function<bool(const Req &, Rep &)> &_cb,
       std::shared_ptr<zenoh::Session> _session,

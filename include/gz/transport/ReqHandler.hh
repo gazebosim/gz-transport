@@ -220,6 +220,8 @@ namespace gz::transport
     /// * _rep Protobuf message containing the service response.
     /// * _result True when the service request was successful or
     /// false otherwise.
+    /// \param[in] _session The Zenoh session.
+    /// \param[in] _service The service name.
     public: void SetCallback(const std::function <void(
       const Rep &_rep, const bool _result)> &_cb,
       std::shared_ptr<zenoh::Session> _session,
