@@ -36,17 +36,17 @@ RUN /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/gazebo
  && /bin/sh -c 'wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -' \
  && apt-get update \
  && apt-get install -y \
-    libgz-cmake4-dev \
-    libgz-math8-dev \
-    libgz-msgs11-dev \
-    libgz-utils3-cli-dev \
+    libgz-cmake5-dev \
+    libgz-math9-dev \
+    libgz-msgs12-dev \
+    libgz-utils4-cli-dev \
     libgflags-dev \
  && apt-get clean
 
 USER ubuntu
 WORKDIR /tmp
 # Gazebo transport
-RUN git clone https://github.com/gazebosim/gz-transport.git -b gz-transport14
+RUN git clone https://github.com/gazebosim/gz-transport.git -b gz-transport15
 RUN cd gz-transport \
  && mkdir build \
  && cd build \

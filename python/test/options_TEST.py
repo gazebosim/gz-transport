@@ -1,4 +1,4 @@
-from gz.msgs11.stringmsg_pb2 import StringMsg
+from gz.msgs.stringmsg_pb2 import StringMsg
 from gz.transport import Node, AdvertiseMessageOptions, SubscribeOptions, NodeOptions
 
 import unittest

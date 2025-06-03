@@ -298,8 +298,17 @@ bool Node::Subscriber::Unsubscribe()
 {
   if (!this->Valid())
     return false;
-  return this->dataPtr->shared->Unsubscribe(this->dataPtr->topic,
+
+  bool res = this->dataPtr->shared->Unsubscribe(this->dataPtr->topic,
       this->dataPtr->nUuid, this->dataPtr->nOpts, this->dataPtr->hUuid);
+
+  // Invalidate the subscriber
+  this->dataPtr->topic.clear();
+  this->dataPtr->nUuid.clear();
+  this->dataPtr->hUuid.clear();
+  this->dataPtr->nOpts = NodeOptions();
+
+  return res;
 }
 
 //////////////////////////////////////////////////
@@ -318,6 +327,30 @@ Node::Subscriber::operator bool() const
 bool Node::Subscriber::Valid() const
 {
   return this->dataPtr->Valid();
+}
+
+//////////////////////////////////////////////////
+Node::Subscriber::Subscriber(Node::Subscriber &&_other)
+{
+  *this = std::move(_other);
+}
+
+//////////////////////////////////////////////////
+Node::Subscriber &Node::Subscriber::operator=(Node::Subscriber &&_other)
+{
+  this->dataPtr->topic = _other.dataPtr->topic;
+  this->dataPtr->nUuid = _other.dataPtr->nUuid;
+  this->dataPtr->hUuid = _other.dataPtr->hUuid;
+  this->dataPtr->nOpts = _other.dataPtr->nOpts;
+
+  // Invalidate the other subscriber so it does not remove
+  // the subscription handler when it is destroyed.
+  _other.dataPtr->topic.clear();
+  _other.dataPtr->nUuid.clear();
+  _other.dataPtr->hUuid.clear();
+  _other.dataPtr->nOpts = NodeOptions();
+
+  return *this;
 }
 
 //////////////////////////////////////////////////
@@ -986,14 +1019,6 @@ std::unordered_set<std::string> &Node::TopicsSubscribed() const
 std::unordered_set<std::string> &Node::SrvsAdvertised() const
 {
   return this->dataPtr->srvsAdvertised;
-}
-
-//////////////////////////////////////////////////
-bool Node::TopicInfo(const std::string &_topic,
-                     std::vector<MessagePublisher> &_publishers) const
-{
-  std::vector<MessagePublisher> unused;
-  return this->TopicInfo(_topic, _publishers, unused);
 }
 
 //////////////////////////////////////////////////

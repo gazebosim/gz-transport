@@ -27,6 +27,8 @@
 #include <utility>
 #include "gz/transport/TopicUtils.hh"
 
+#include "gz/transport/Node.hh"
+
 namespace gz
 {
   namespace transport
