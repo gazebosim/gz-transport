@@ -2,11 +2,6 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 
 project(gz-transport-examples)
 
-########################################
-# Find Zenoh
-find_package(zenohc REQUIRED QUIET)
-find_package(zenohcxx REQUIRED QUIET)
-
 # Find the Gazebo Transport library
 find_package(gz-transport QUIET REQUIRED OPTIONAL_COMPONENTS log)
 

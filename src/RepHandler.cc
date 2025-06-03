@@ -15,6 +15,8 @@
  *
 */
 
+#include <memory>
+#include <string>
 #include "gz/transport/config.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/Uuid.hh"

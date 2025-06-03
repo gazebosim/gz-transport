@@ -33,14 +33,16 @@
 #include <string>
 #include <utility>
 
-#ifdef HAVE_ZENOH
-#include <zenoh.hxx>
-#endif
-
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+
+namespace zenoh
+{
+  // Forward declaration.
+  class Session;
+}
 
 namespace gz
 {
@@ -49,24 +51,19 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     //
+    /// Forward declaration;
+    class IReqHandlerPrivate;
+
     /// \class IReqHandler ReqHandler.hh gz/transport/ReqHandler.hh
     /// \brief Interface class used to manage a request handler.
     class GZ_TRANSPORT_VISIBLE IReqHandler
     {
       /// \brief Constructor.
       /// \param[in] _nUuid UUID of the node registering the request handler.
-      public: explicit IReqHandler(const std::string &_nUuid)
-        : rep(""),
-          hUuid(Uuid().ToString()),
-          nUuid(_nUuid),
-          result(false),
-          requested(false),
-          repAvailable(false)
-      {
-      }
+      public: explicit IReqHandler(const std::string &_nUuid);
 
       /// \brief Destructor.
-      public: virtual ~IReqHandler() = default;
+      public: virtual ~IReqHandler();
 
       /// \brief Executes the callback registered for this handler and notify
       /// a potential requester waiting on a blocking call.
@@ -92,17 +89,11 @@ namespace gz
 
       /// \brief Returns the unique handler UUID.
       /// \return The handler's UUID.
-      public: std::string HandlerUuid() const
-      {
-        return this->hUuid;
-      }
+      public: std::string HandlerUuid() const;
 
       /// \brief Get the node UUID.
       /// \return The string representation of the node UUID.
-      public: std::string NodeUuid() const
-      {
-        return this->nUuid;
-      }
+      public: std::string NodeUuid() const;
 
       /// \brief Get the service response as raw bytes.
       /// \return The string containing the service response.
@@ -120,17 +111,11 @@ namespace gz
 
       /// \brief Returns if this service call request has already been requested
       /// \return True when the service call has been requested.
-      public: bool Requested() const
-      {
-        return this->requested;
-      }
+      public: bool Requested() const;
 
       /// \brief Mark the service call as requested (or not).
       /// \param[in] _value true when you want to flag this REQ as requested.
-      public: void Requested(const bool _value)
-      {
-        this->requested = _value;
-      }
+      public: void Requested(const bool _value);
 
       /// \brief Block the current thread until the response to the
       /// service request is available or until the timeout expires.
@@ -151,34 +136,36 @@ namespace gz
           });
       }
 
+#ifdef HAVE_ZENOH
+      /// \brief Create a Zenoh get.
+      /// \param[in] _session Zenoh session.
+      /// \param[in] _service The service.
+      protected: void CreateZenohGet(
+        std::shared_ptr<zenoh::Session> _session,
+        const std::string &_service);
+#endif
+
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::*
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
+      /// \brief Private data.
+      protected: IReqHandlerPrivate *dataPtr;
+
       /// \brief Condition variable used to wait until a service call REP is
       /// available.
       protected: std::condition_variable_any condition;
 
       /// \brief Stores the service response as raw bytes.
       protected: std::string rep;
-
-      /// \brief Unique handler's UUID.
-      protected: std::string hUuid;
-
-      /// \brief Node UUID.
-      private: std::string nUuid;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
       /// \brief Stores the result of the service call.
       protected: bool result;
-
-      /// \brief When true, the REQ was already sent and the REP should be on
-      /// its way. Used to not resend the same REQ more than one time.
-      private: bool requested;
 
       /// \brief When there is a blocking service call request, the call can
       /// be unlocked when a service call REP is available. This variable
@@ -241,46 +228,7 @@ namespace gz
         const std::string &_service)
       {
         this->SetCallback(std::move(_cb));
-
-        std::mutex m;
-        std::condition_variable doneSignal;
-        bool done = false;
-        auto onReply = [this](const zenoh::Reply &reply)
-        {
-          if (reply.is_ok())
-          {
-            const auto &sample = reply.get_ok();
-            auto msg = this->CreateMsg(sample.get_payload().as_string());
-            this->cb(*msg, true);
-          }
-          else
-          {
-            std::cout << "Received an error :"
-                      << reply.get_err().get_payload().as_string() << "\n";
-          }
-        };
-
-        auto onDone = [&m, &done, &doneSignal]()
-        {
-          std::lock_guard lock(m);
-          done = true;
-          doneSignal.notify_all();
-        };
-
-        zenoh::Session::GetOptions options;
-        std::string payload;
-        this->Serialize(payload);
-
-        if (!payload.empty())
-          options.payload = payload;
-
-        // TODO(caguero): Remove.
-        options.timeout_ms = 2000u;
-        _session->get(_service, "",
-                    onReply, onDone, std::move(options));
-
-        std::unique_lock lock(m);
-        doneSignal.wait(lock, [&done] { return done; });
+        this->CreateZenohGet(_session, _service);
       }
 #endif
 
