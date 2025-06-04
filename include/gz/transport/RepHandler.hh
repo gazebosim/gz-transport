@@ -40,31 +40,18 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
+namespace ignition::transport
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
-  /// \class IRepHandler RepHandler.hh gz/transport/RepHandler.hh
+  /// \class IRepHandler RepHandler.hh ignition/transport/RepHandler.hh
   /// \brief Interface class used to manage a replier handler.
-  class GZ_TRANSPORT_VISIBLE IRepHandler
+  class IGNITION_TRANSPORT_VISIBLE IRepHandler
   {
-<<<<<<< HEAD
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-    //
-    /// \class IRepHandler RepHandler.hh ignition/transport/RepHandler.hh
-    /// \brief Interface class used to manage a replier handler.
-    class IGNITION_TRANSPORT_VISIBLE IRepHandler
-=======
     /// \brief Constructor.
     public: IRepHandler()
       : hUuid(Uuid().ToString())
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
     {
     }
 
@@ -151,34 +138,10 @@ namespace gz::transport
         return false;
       }
 
-<<<<<<< HEAD
-      // Documentation inherited.
-      public: bool RunLocalCallback(const transport::ProtoMsg &_msgReq,
-                                    transport::ProtoMsg &_msgRep)
-      {
-        // Execute the callback (if existing)
-        if (!this->cb)
-        {
-          std::cerr << "RepHandler::RunLocalCallback() error: "
-                    << "Callback is NULL" << std::endl;
-          return false;
-        }
-
 #if GOOGLE_PROTOBUF_VERSION >= 4022000
-        auto msgReq =
-          google::protobuf::internal::DownCast<const Req*>(&_msgReq);
-        auto msgRep = google::protobuf::internal::DownCast<Rep*>(&_msgRep);
-=======
-#if GOOGLE_PROTOBUF_VERSION >= 5028000
-      const auto msgReq =
-        google::protobuf::DynamicCastMessage<Req>(&_msgReq);
-      auto msgRep =
-        google::protobuf::DynamicCastMessage<Rep>(&_msgRep);
-#elif GOOGLE_PROTOBUF_VERSION >= 4022000
       auto msgReq =
         google::protobuf::internal::DownCast<const Req*>(&_msgReq);
       auto msgRep = google::protobuf::internal::DownCast<Rep*>(&_msgRep);
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 #elif GOOGLE_PROTOBUF_VERSION > 2999999
       auto msgReq = google::protobuf::down_cast<const Req*>(&_msgReq);
       auto msgRep = google::protobuf::down_cast<Rep*>(&_msgRep);
@@ -188,94 +151,7 @@ namespace gz::transport
       auto msgRep = google::protobuf::internal::down_cast<Rep*>(&_msgRep);
 #endif
 
-<<<<<<< HEAD
-        return this->cb(*msgReq, *msgRep);
-      }
-
-      // Documentation inherited.
-      public: bool RunCallback(const std::string &_req,
-                               std::string &_rep)
-      {
-        // Check if we have a callback registered.
-        if (!this->cb)
-=======
-      // Verify the dynamically casted messages are valid
-      if (msgReq == nullptr || msgRep == nullptr)
-      {
-        if (msgReq == nullptr)
-        {
-          if (_msgReq.GetDescriptor() != nullptr)
-          {
-            std::cerr << "RepHandler::RunLocalCallback() error: "
-                      << "Failed to cast the request of the type "
-                      << _msgReq.GetDescriptor()->full_name()
-                      << " to the specified type" << '\n';
-          }
-          else
-          {
-            std::cerr << "RepHandler::RunLocalCallback() error: "
-                      << "Failed to cast the request of an unknown type"
-                      << " to the specified type" << '\n';
-          }
-        }
-        if (msgRep == nullptr)
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
-        {
-          if (_msgRep.GetDescriptor() != nullptr)
-          {
-            std::cerr << "RepHandler::RunLocalCallback() error: "
-                      << "Failed to cast the response of the type "
-                      << _msgRep.GetDescriptor()->full_name()
-                      << " to the specified type" << '\n';
-          }
-          else
-          {
-            std::cerr << "RepHandler::RunLocalCallback() error: "
-                      << "Failed to cast the response of an unknown type"
-                      << " to the specified type" << '\n';
-          }
-        }
-        std::cerr.flush();
-        return false;
-      }
-
-<<<<<<< HEAD
-      // Documentation inherited.
-      public: virtual std::string ReqTypeName() const
-      {
-        return std::string(Req().GetTypeName());
-      }
-
-      // Documentation inherited.
-      public: virtual std::string RepTypeName() const
-      {
-        return std::string(Rep().GetTypeName());
-      }
-
-      /// \brief Create a specific protobuf message given its serialized data.
-      /// \param[in] _data The serialized data.
-      /// \return Pointer to the specific protobuf message.
-      private: std::shared_ptr<Req> CreateMsg(const std::string &_data) const
-      {
-        // Instantiate a specific protobuf message
-        std::shared_ptr<Req> msgPtr(new Req());
-
-        // Create the message using some serialized data
-        if (!msgPtr->ParseFromString(_data))
-        {
-          std::cerr << "RepHandler::CreateMsg() error: ParseFromString failed"
-                    << std::endl;
-        }
-
-        return msgPtr;
-      }
-
-      /// \brief Callback to the function registered for this handler.
-      private: std::function<bool(const Req &, Rep &)> cb;
-    };
-=======
       return this->cb(*msgReq, *msgRep);
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
     }
 
     // Documentation inherited.
@@ -329,7 +205,7 @@ namespace gz::transport
     private: std::shared_ptr<Req> CreateMsg(const std::string &_data) const
     {
       // Instantiate a specific protobuf message
-      auto msgPtr = std::make_shared<Req>();
+      std::shared_ptr<Req> msgPtr(new Req());
 
       // Create the message using some serialized data
       if (!msgPtr->ParseFromString(_data))

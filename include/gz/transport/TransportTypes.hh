@@ -35,33 +35,10 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Publisher.hh"
 
-<<<<<<< HEAD
-namespace ignition
-{
-  namespace transport
-  {
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-    //
-    /// \brief Forward declarations.
-    class IRepHandler;
-    class IReqHandler;
-    class ISubscriptionHandler;
-    class RawSubscriptionHandler;
-    class MessageInfo;
-
-    /// \def Addresses_M
-    /// \brief Map that stores all generic publishers.
-    /// The keys are the process uuids of the nodes. For each uuid key, the
-    /// value contains the list of publishers advertising the topic within the
-    /// same proccess uuid.
-    template<typename T>
-    using Addresses_M = std::map<std::string, std::vector<T>>;
-=======
-namespace gz::transport
+namespace ignition::transport
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   /// \brief Forward declarations.
   class IRepHandler;
@@ -74,10 +51,9 @@ namespace gz::transport
   /// \brief Map that stores all generic publishers.
   /// The keys are the process uuids of the nodes. For each uuid key, the
   /// value contains the list of publishers advertising the topic within the
-  /// same process uuid.
+  /// same proccess uuid.
   template<typename T>
   using Addresses_M = std::map<std::string, std::vector<T>>;
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
   /// \def MsgAddresses_M
   /// \brief Specialized Addresses_M map for message publishers.
@@ -195,15 +171,9 @@ namespace gz::transport
   /// \brief The string type used for generic messages.
   const std::string kGenericMessageType = "google.protobuf.Message";
 
-<<<<<<< HEAD
-    /// \brief The high water mark of the recieve message buffer.
-    /// \sa NodeShared::RcvHwm
-    const int kDefaultRcvHwm = 1000;
-=======
-  /// \brief The high water mark of the receive message buffer.
+  /// \brief The high water mark of the recieve message buffer.
   /// \sa NodeShared::RcvHwm
   const int kDefaultRcvHwm = 1000;
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
   /// \brief The high water mark of the send message buffer.
   /// \sa NodeShared::SndHwm

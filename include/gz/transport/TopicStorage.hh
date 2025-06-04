@@ -28,29 +28,16 @@
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/TransportTypes.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
+namespace ignition::transport
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
-  /// \class TopicStorage TopicStorage.hh gz/transport/TopicStorage.hh
+  /// \class TopicStorage TopicStorage.hh ignition/transport/TopicStorage.hh
   /// \brief Store address information about topics and provide convenient
   /// methods for adding new topics, removing them, etc.
   template<typename T> class TopicStorage
   {
-<<<<<<< HEAD
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-    //
-    /// \class TopicStorage TopicStorage.hh ignition/transport/TopicStorage.hh
-    /// \brief Store address information about topics and provide convenient
-    /// methods for adding new topics, removing them, etc.
-    template<typename T> class TopicStorage
-=======
     /// \brief Constructor.
     public: TopicStorage() = default;
 
@@ -62,7 +49,6 @@ namespace gz::transport
     /// \return true if the new entry is added or false if not (because it
     /// was already stored).
     public: bool AddPublisher(const T &_publisher)
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
     {
       // The topic does not exist.
       if (this->data.find(_publisher.Topic()) == this->data.end())
@@ -208,164 +194,8 @@ namespace gz::transport
         return true;
       }
 
-<<<<<<< HEAD
-      /// \brief Remove a publisher associated to a given topic and UUID pair.
-      /// \param[in] _topic Topic name
-      /// \param[in] _pUuid Process UUID of the publisher.
-      /// \param[in] _nUuid Node UUID of the publisher.
-      /// \return True when the publisher was removed or false otherwise.
-      public: bool DelPublisherByNode(const std::string &_topic,
-                                      const std::string &_pUuid,
-                                      const std::string &_nUuid)
-      {
-        size_t counter = 0;
-
-        // Iterate over all the topics.
-        if (this->data.find(_topic) != this->data.end())
-        {
-          // m is {pUUID=>Publisher}.
-          auto &m = this->data[_topic];
-
-          // The pUuid exists.
-          if (m.find(_pUuid) != m.end())
-          {
-            // Vector of 0MQ known addresses for a given topic and pUuid.
-            auto &v = m[_pUuid];
-            auto priorSize = v.size();
-            v.erase(std::remove_if(v.begin(), v.end(),
-              [&](const T &_pub)
-              {
-                return _pub.NUuid() == _nUuid;
-              }),
-              v.end());
-            counter = priorSize - v.size();
-
-            if (v.empty())
-              m.erase(_pUuid);
-
-            if (m.empty())
-              this->data.erase(_topic);
-          }
-        }
-
-        return counter > 0;
-      }
-
-      /// \brief Remove all the publishers associated to a given process.
-      /// \param[in] _pUuid Process' UUID of the publisher.
-      /// \return True when at least one address was removed or false otherwise.
-      public: bool DelPublishersByProc(const std::string &_pUuid)
-      {
-        size_t counter = 0;
-
-        // Iterate over all the topics.
-        for (auto it = this->data.begin(); it != this->data.end();)
-        {
-          // m is {pUUID=>Publisher}.
-          auto &m = it->second;
-          counter += m.erase(_pUuid);
-          if (m.empty())
-            this->data.erase(it++);
-          else
-            ++it;
-        }
-
-        return counter > 0;
-      }
-
-      /// \brief Given a process UUID, the function returns the list of
-      /// publishers contained in this process UUID with its address information
-      /// \param[in] _pUuid Process UUID.
-      /// \param[out] _pubs Map of publishers where the keys are the node UUIDs
-      /// and the value is its address information.
-      public: void PublishersByProc(const std::string &_pUuid,
-                             std::map<std::string, std::vector<T>> &_pubs) const
-      {
-        _pubs.clear();
-
-        // Iterate over all the topics.
-        for (auto const &topic : this->data)
-        {
-          // m is {pUUID=>Publisher}.
-          auto &m = topic.second;
-          if (m.find(_pUuid) != m.end())
-          {
-            auto &v = m.at(_pUuid);
-            for (auto const &pub : v)
-            {
-              _pubs[pub.NUuid()].push_back(T(pub));
-            }
-          }
-        }
-      }
-
-      /// \brief Given a process UUID and the node UUID, the function returns
-      /// the list of publishers contained in the node.
-      /// \param[in] _pUuid Process UUID.
-      /// \param[in] _nUuid Node UUID.
-      /// \param[out] _pubs Vector of publishers.
-      public: void PublishersByNode(const std::string &_pUuid,
-                                    const std::string &_nUuid,
-                                    std::vector<T> &_pubs) const
-      {
-        _pubs.clear();
-
-        // Iterate over all the topics.
-        for (auto const &topic : this->data)
-        {
-          // m is {pUUID=>Publisher}.
-          auto const &m = topic.second;
-          if (m.find(_pUuid) != m.end())
-          {
-            auto const &v = m.at(_pUuid);
-            for (auto const &pub : v)
-            {
-              if (pub.NUuid() == _nUuid)
-              {
-                _pubs.push_back(T(pub));
-              }
-            }
-          }
-        }
-      }
-
-      /// \brief Get the list of topics currently stored.
-      /// \param[out] _topics List of stored topics.
-      public: void TopicList(std::vector<std::string> &_topics) const
-      {
-        for (auto const &topic : this->data)
-          _topics.push_back(topic.first);
-      }
-
-      /// \brief Print all the information for debugging purposes.
-      public: void Print() const
-      {
-        std::cout << "---" << std::endl;
-        for (auto const &topic : this->data)
-        {
-          std::cout << "[" << topic.first << "]" << std::endl;
-          auto &m = topic.second;
-          for (auto const &proc : m)
-          {
-            std::cout << "\tProc. UUID: " << proc.first << std::endl;
-            auto &v = proc.second;
-            for (auto const &publisher : v)
-            {
-              std::cout << publisher;
-            }
-          }
-        }
-      }
-
-      /// \brief The keys are topics. The values are another map, where the key
-      /// is the process UUID and the value a vector of publishers.
-      private: std::map<std::string,
-                        std::map<std::string, std::vector<T>>> data;
-    };
-=======
       // nUuid not found.
       return false;
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
     }
 
     /// \brief Get the map of publishers stored for a given topic.
@@ -528,12 +358,6 @@ namespace gz::transport
           }
         }
       }
-    }
-
-    /// \brief Clear the content.
-    public: void Clear()
-    {
-      this->data.clear();
     }
 
     /// \brief The keys are topics. The values are another map, where the key

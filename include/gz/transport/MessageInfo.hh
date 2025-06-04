@@ -24,32 +24,16 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
+namespace ignition::transport
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   class MessageInfoPrivate;
 
   /// \brief A class that provides information about the message received.
-  class GZ_TRANSPORT_VISIBLE MessageInfo
+  class IGNITION_TRANSPORT_VISIBLE MessageInfo
   {
-<<<<<<< HEAD
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-    //
-    class MessageInfoPrivate;
-
-    /// \brief A class that provides information about the message received.
-    class IGNITION_TRANSPORT_VISIBLE MessageInfo
-    {
-      /// \brief Default constructor.
-      public: MessageInfo();
-=======
     /// \brief Default constructor.
     public: MessageInfo();
 
@@ -57,7 +41,6 @@ namespace gz::transport
     /// default due to the use of std::unique_ptr member).
     /// \param[in] _other an instance to copy data from
     public: MessageInfo(const MessageInfo &_other);
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
     /// \brief Move constructor
     /// \param[in] _other an instance data is moved from

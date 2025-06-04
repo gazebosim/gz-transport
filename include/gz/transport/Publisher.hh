@@ -27,31 +27,17 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
+namespace ignition::transport
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 
   /// \class Publisher Publisher.hh
-  /// gz/transport/Publisher.hh
+  /// ignition/transport/Publisher.hh
   /// \brief This class stores all the information about a publisher.
   /// It stores the topic name that publishes, addresses, UUIDs, scope, etc.
-  class GZ_TRANSPORT_VISIBLE Publisher
+  class IGNITION_TRANSPORT_VISIBLE Publisher
   {
-<<<<<<< HEAD
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-
-    /// \class Publisher Publisher.hh
-    /// ignition/transport/Publisher.hh
-    /// \brief This class stores all the information about a publisher.
-    /// It stores the topic name that publishes, addresses, UUIDs, scope, etc.
-    class IGNITION_TRANSPORT_VISIBLE Publisher
-=======
     /// \brief Default constructor.
     public: Publisher() = default;
 
@@ -147,7 +133,6 @@ namespace gz::transport
     /// \param[in] _msg Publisher to write to the stream.
     public: friend std::ostream &operator<<(std::ostream &_out,
                                             const Publisher &_msg)
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
     {
       _out << "Publisher:"                              << std::endl
            << "\tTopic: ["       << _msg.Topic() << "]" << std::endl
@@ -185,16 +170,10 @@ namespace gz::transport
     private: AdvertiseOptions opts;
   };
 
-<<<<<<< HEAD
-    /// \class MessagePublisher Publisher.hh
-    /// ignition/transport/Publisher.hh
-    /// \brief This class stores all the information about a message publisher.
-    class IGNITION_TRANSPORT_VISIBLE MessagePublisher : public Publisher
-=======
   /// \class MessagePublisher Publisher.hh
-  /// gz/transport/Publisher.hh
+  /// ignition/transport/Publisher.hh
   /// \brief This class stores all the information about a message publisher.
-  class GZ_TRANSPORT_VISIBLE MessagePublisher : public Publisher
+  class IGNITION_TRANSPORT_VISIBLE MessagePublisher : public Publisher
   {
     /// \brief Default constructor.
     public: MessagePublisher() = default;
@@ -261,7 +240,6 @@ namespace gz::transport
     /// \param[in] _msg MessagePublisher to write to the stream.
     public: friend std::ostream &operator<<(std::ostream &_out,
                                             const MessagePublisher &_msg)
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
     {
       _out << "Publisher:"                                  << std::endl
            << "\tTopic: ["           << _msg.Topic() << "]" << std::endl
@@ -307,16 +285,10 @@ namespace gz::transport
     private: AdvertiseMessageOptions msgOpts;
   };
 
-<<<<<<< HEAD
-    /// \class ServicePublisher Publisher.hh
-    /// ignition/transport/Publisher.hh
-    /// \brief This class stores all the information about a service publisher.
-    class IGNITION_TRANSPORT_VISIBLE ServicePublisher : public Publisher
-=======
   /// \class ServicePublisher Publisher.hh
-  /// gz/transport/Publisher.hh
+  /// ignition/transport/Publisher.hh
   /// \brief This class stores all the information about a service publisher.
-  class GZ_TRANSPORT_VISIBLE ServicePublisher : public Publisher
+  class IGNITION_TRANSPORT_VISIBLE ServicePublisher : public Publisher
   {
     /// \brief Default constructor.
     public: ServicePublisher() = default;
@@ -396,7 +368,6 @@ namespace gz::transport
     /// \param[in] _msg ServicePublisher to write to the stream.
     public: friend std::ostream &operator<<(std::ostream &_out,
                                             const ServicePublisher &_msg)
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
     {
       _out << "Publisher:"                                  << std::endl
            << "\tTopic: ["           << _msg.Topic() << "]" << std::endl

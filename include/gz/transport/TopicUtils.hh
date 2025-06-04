@@ -24,35 +24,15 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
+namespace ignition::transport
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
-  /// \class TopicUtils TopicUtils.hh gz/transport/TopicUtils.hh
+  /// \class TopicUtils TopicUtils.hh ignition/transport/TopicUtils.hh
   /// \brief This class provides different utilities related with topics.
-  class GZ_TRANSPORT_VISIBLE TopicUtils
+  class IGNITION_TRANSPORT_VISIBLE TopicUtils
   {
-<<<<<<< HEAD
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-    //
-    /// \class TopicUtils TopicUtils.hh ignition/transport/TopicUtils.hh
-    /// \brief This class provides different utilities related with topics.
-    class IGNITION_TRANSPORT_VISIBLE TopicUtils
-    {
-      /// \brief Determines if a namespace is valid. A namespace's length must
-      /// not exceed kMaxNameLength.
-      /// The following symbols are not allowed as part of the
-      /// namespace:  '@', ':=', '~'.
-      /// \param[in] _ns Namespace to be checked.
-      /// \return true if the namespace is valid.
-      public: static bool IsValidNamespace(const std::string &_ns);
-=======
     /// \brief Determines if a namespace is valid. A namespace's length must
     /// not exceed kMaxNameLength.
     /// The following symbols are not allowed as part of the
@@ -60,7 +40,6 @@ namespace gz::transport
     /// \param[in] _ns Namespace to be checked.
     /// \return true if the namespace is valid.
     public: static bool IsValidNamespace(const std::string &_ns);
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
     /// \brief Determines if a partition is valid.
     /// The same rules to validate a topic name applies to a partition with
@@ -82,48 +61,6 @@ namespace gz::transport
     /// \return true if the topic name is valid.
     public: static bool IsValidTopic(const std::string &_topic);
 
-<<<<<<< HEAD
-      /// \brief Get the full topic path given a namespace and a topic name.
-      /// A fully qualified topic name's length must not exceed kMaxNameLength.
-      /// The fully qualified name follows the next syntax:
-      /// \@\<PARTITION\>\@\<NAMESPACE\>/\<TOPIC\>
-      /// where:
-      /// \<PARTITION\>: The name of the partition or empty string.
-      ///              A "/" will be prefixed to the partition name unless is
-      ///              empty or it already starts with slash. A trailing slash
-      ///              will always be removed.
-      /// \<NAMESPACE\>: The namespace or empty string. A namespace is a prefix
-      ///              applied to the topic name. If not empty, it will always
-      ///              start with a "/". A trailing slash will always be
-      ///              removed
-      /// \<TOPIC\>: The topic name. A trailing slash will always be removed.
-      ///
-      /// Note: Intuitively, you can imagine the fully qualified name as a
-      /// UNIX absolute path, where the partition is always sorrounded by "@".
-      /// A namespace, if present, corresponds with the directories of the
-      /// path, and you can imagine the topic as the filename.
-      ///
-      /// E.g.:
-      ///   Only topic:                @@/topic
-      ///   No partition:              @@/namespace/topic1
-      ///   No namespace:              @/partition@/topic1
-      ///   Partition+namespace+topic: @/my_partition@/name/space/topic
-      ///
-      /// \param[in] _partition Partition name.
-      /// \param[in] _ns Namespace.
-      /// \param[in] _topic Topic name.
-      /// \param[out] _name Fully qualified topic name.
-      /// \return True if the fully qualified name is valid
-      /// (if partition, namespace and topic are correct).
-      /// \sa IsValidPartition
-      /// \sa IsValidNamespace
-      /// \sa IsValidTopic
-      /// \sa DecomposeFullyQualifiedTopic
-      public: static bool FullyQualifiedName(const std::string &_partition,
-                                             const std::string &_ns,
-                                             const std::string &_topic,
-                                             std::string &_name);
-=======
     /// \brief Get the full topic path given a namespace and a topic name.
     /// A fully qualified topic name's length must not exceed kMaxNameLength.
     /// The fully qualified name follows the next syntax:
@@ -140,7 +77,7 @@ namespace gz::transport
     /// \<TOPIC\>: The topic name. A trailing slash will always be removed.
     ///
     /// Note: Intuitively, you can imagine the fully qualified name as a
-    /// UNIX absolute path, where the partition is always surrounded by "@".
+    /// UNIX absolute path, where the partition is always sorrounded by "@".
     /// A namespace, if present, corresponds with the directories of the
     /// path, and you can imagine the topic as the filename.
     ///
@@ -164,7 +101,6 @@ namespace gz::transport
                                            const std::string &_ns,
                                            const std::string &_topic,
                                            std::string &_name);
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
     /// \brief Decompose a fully qualified topic name into its partition and
     /// topic strings. Note that if the topic is preceded by a namespace, then

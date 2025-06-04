@@ -36,27 +36,15 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
+namespace ignition::transport
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
-  /// \class IReqHandler ReqHandler.hh gz/transport/ReqHandler.hh
+  /// \class IReqHandler ReqHandler.hh ignition/transport/ReqHandler.hh
   /// \brief Interface class used to manage a request handler.
-  class GZ_TRANSPORT_VISIBLE IReqHandler
+  class IGNITION_TRANSPORT_VISIBLE IReqHandler
   {
-<<<<<<< HEAD
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-    //
-    /// \class IReqHandler ReqHandler.hh ignition/transport/ReqHandler.hh
-    /// \brief Interface class used to manage a request handler.
-    class IGNITION_TRANSPORT_VISIBLE IReqHandler
-=======
     /// \brief Constructor.
     /// \param[in] _nUuid UUID of the node registering the request handler.
     public: explicit IReqHandler(const std::string &_nUuid)
@@ -66,7 +54,6 @@ namespace gz::transport
         result(false),
         requested(false),
         repAvailable(false)
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
     {
     }
 
@@ -185,19 +172,11 @@ namespace gz::transport
     /// its way. Used to not resend the same REQ more than one time.
     private: bool requested;
 
-<<<<<<< HEAD
-      /// \brief When there is a blocking service call request, the call can
-      /// be unlocked when a service call REP is available. This variable
-      /// captures if we have found a node that can satisty our request.
-      public: bool repAvailable;
-    };
-=======
     /// \brief When there is a blocking service call request, the call can
     /// be unlocked when a service call REP is available. This variable
-    /// captures if we have found a node that can satisfy our request.
+    /// captures if we have found a node that can satisty our request.
     public: bool repAvailable;
   };
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
   /// \class ReqHandler ReqHandler.hh
   /// \brief It creates a reply handler for the specific protobuf
@@ -213,132 +192,13 @@ namespace gz::transport
     {
     }
 
-<<<<<<< HEAD
-      /// \brief Create a specific protobuf message given its serialized data.
-      /// \param[in] _data The serialized data.
-      /// \return Pointer to the specific protobuf message.
-      public: std::shared_ptr<Rep> CreateMsg(const std::string &_data) const
-      {
-        // Instantiate a specific protobuf message
-        std::shared_ptr<Rep> msgPtr(new Rep());
-
-        // Create the message using some serialized data
-        if (!msgPtr->ParseFromString(_data))
-        {
-          std::cerr << "ReqHandler::CreateMsg() error: ParseFromString failed"
-                    << std::endl;
-        }
-
-        return msgPtr;
-      }
-
-      /// \brief Set the callback for this handler.
-      /// \param[in] _cb The callback with the following parameters:
-      /// * _rep Protobuf message containing the service response.
-      /// * _result True when the service request was successful or
-      /// false otherwise.
-      public: void SetCallback(const std::function <void(
-        const Rep &_rep, const bool _result)> &_cb)
-      {
-        this->cb = _cb;
-      }
-
-      /// \brief Set the REQ protobuf message for this handler.
-      /// \param[in] _reqMsg Protofub message containing the input parameters of
-      /// of the service request.
-      public: void SetMessage(const Req *_reqMsg)
-      {
-        if (!_reqMsg)
-        {
-          std::cerr << "ReqHandler::SetMessage() _reqMsg is null" << std::endl;
-          return;
-        }
-
-        this->reqMsg.CopyFrom(*_reqMsg);
-      }
-
-      /// \brief This function is only used for compatibility with
-      /// SetResponse() when [REP = google::protobuf::Message].
-      /// It shouldn't do anything.
-      /// \param[in] _repMsg Protofub message containing the variable where
-      /// the result will be stored.
-      public: void SetResponse(const Rep *_repMsg)
-      {
-        (void)_repMsg;
-      }
-
-      // Documentation inherited
-      public: bool Serialize(std::string &_buffer) const
-      {
-        if (!this->reqMsg.SerializeToString(&_buffer))
-        {
-          std::cerr << "ReqHandler::Serialize(): Error serializing the request"
-                    << std::endl;
-          return false;
-        }
-
-        return true;
-      }
-
-      // Documentation inherited.
-      public: void NotifyResult(const std::string &_rep, const bool _result)
-      {
-        // Execute the callback (if existing).
-        if (this->cb)
-        {
-          // Instantiate the specific protobuf message associated to this topic.
-          auto msg = this->CreateMsg(_rep);
-
-          this->cb(*msg, _result);
-        }
-        else
-        {
-          this->rep = _rep;
-          this->result = _result;
-        }
-
-        this->repAvailable = true;
-        this->condition.notify_one();
-      }
-
-      // Documentation inherited.
-      public: virtual std::string ReqTypeName() const
-      {
-        return std::string(Req().GetTypeName());
-      }
-
-      // Documentation inherited.
-      public: virtual std::string RepTypeName() const
-      {
-        return std::string(Rep().GetTypeName());
-      }
-
-      /// \brief Protobuf message containing the request's parameters.
-      private: Req reqMsg;
-
-      /// \brief Callback to the function registered for this handler with the
-      /// following parameters:
-      /// \param[in] _rep Protobuf message containing the service response.
-      /// \param[in] _result True when the service request was successful or
-      /// false otherwise.
-      private: std::function<void(const Rep &_rep, const bool _result)> cb;
-    };
-
-    /// \class ReqHandler<google::protobuf::Message> ReqHandler.hh
-    /// \brief Template specialization for google::protobuf::Message.
-    /// This is only used by some ign command line tools.
-    template <> class ReqHandler<google::protobuf::Message,
-                                 google::protobuf::Message>
-      : public IReqHandler
-=======
     /// \brief Create a specific protobuf message given its serialized data.
     /// \param[in] _data The serialized data.
     /// \return Pointer to the specific protobuf message.
     public: std::shared_ptr<Rep> CreateMsg(const std::string &_data) const
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
     {
       // Instantiate a specific protobuf message
-      auto msgPtr = std::make_shared<Rep>();
+      std::shared_ptr<Rep> msgPtr(new Rep());
 
       // Create the message using some serialized data
       if (!msgPtr->ParseFromString(_data))
@@ -347,21 +207,8 @@ namespace gz::transport
                   << std::endl;
       }
 
-<<<<<<< HEAD
-      /// \brief Set the REQ protobuf message for this handler.
-      /// \param[in] _reqMsg Protofub message containing the input parameters of
-      /// of the service request.
-      public: void SetMessage(const google::protobuf::Message *_reqMsg)
-      {
-        if (!_reqMsg)
-        {
-          std::cerr << "ReqHandler::SetMessage() _reqMsg is null" << std::endl;
-          return;
-        }
-=======
       return msgPtr;
     }
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
     /// \brief Set the callback for this handler.
     /// \param[in] _cb The callback with the following parameters:
@@ -375,7 +222,7 @@ namespace gz::transport
     }
 
     /// \brief Set the REQ protobuf message for this handler.
-    /// \param[in] _reqMsg Protobuf message containing the input parameters of
+    /// \param[in] _reqMsg Protofub message containing the input parameters of
     /// of the service request.
     public: void SetMessage(const Req *_reqMsg)
     {
@@ -385,27 +232,13 @@ namespace gz::transport
         return;
       }
 
-<<<<<<< HEAD
-      /// \brief Set the REP protobuf message for this handler.
-      /// \param[in] _repMsg Protofub message containing the variable where
-      /// the result will be stored. The only purpose of this function is to
-      /// store the type information of _repMsg.
-      public: void SetResponse(const google::protobuf::Message *_repMsg)
-      {
-        if (!_repMsg)
-        {
-          std::cerr << "ReqHandler::SetResponse() _repMsg is null" << std::endl;
-          return;
-        }
-=======
       this->reqMsg.CopyFrom(*_reqMsg);
     }
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
     /// \brief This function is only used for compatibility with
     /// SetResponse() when [REP = google::protobuf::Message].
     /// It shouldn't do anything.
-    /// \param[in] _repMsg Protobuf message containing the variable where
+    /// \param[in] _repMsg Protofub message containing the variable where
     /// the result will be stored.
     public: void SetResponse(const Rep *_repMsg)
     {
@@ -471,7 +304,7 @@ namespace gz::transport
 
   /// \class ReqHandler<google::protobuf::Message> ReqHandler.hh
   /// \brief Template specialization for google::protobuf::Message.
-  /// This is only used by some gz command line tools.
+  /// This is only used by some ign command line tools.
   template <> class ReqHandler<google::protobuf::Message,
                                google::protobuf::Message>
     : public IReqHandler
@@ -483,7 +316,7 @@ namespace gz::transport
     }
 
     /// \brief Set the REQ protobuf message for this handler.
-    /// \param[in] _reqMsg Protobuf message containing the input parameters of
+    /// \param[in] _reqMsg Protofub message containing the input parameters of
     /// of the service request.
     public: void SetMessage(const google::protobuf::Message *_reqMsg)
     {
@@ -498,7 +331,7 @@ namespace gz::transport
     }
 
     /// \brief Set the REP protobuf message for this handler.
-    /// \param[in] _repMsg Protobuf message containing the variable where
+    /// \param[in] _repMsg Protofub message containing the variable where
     /// the result will be stored. The only purpose of this function is to
     /// store the type information of _repMsg.
     public: void SetResponse(const google::protobuf::Message *_repMsg)

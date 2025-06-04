@@ -24,45 +24,25 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
+namespace ignition::transport
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   // Forward declarations.
   class NodeOptionsPrivate;
 
-  /// \class NodeOptions NodeOptions.hh gz/transport/NodeOptions.hh
+  /// \class NodeOptions NodeOptions.hh ignition/transport/NodeOptions.hh
   /// \brief A class for customizing the behavior of the Node.
   /// E.g.: Set a custom namespace or a partition name.
-  class GZ_TRANSPORT_VISIBLE NodeOptions
+  class IGNITION_TRANSPORT_VISIBLE NodeOptions
   {
-<<<<<<< HEAD
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-    //
-    // Forward declarations.
-    class NodeOptionsPrivate;
-
-    /// \class NodeOptions NodeOptions.hh ignition/transport/NodeOptions.hh
-    /// \brief A class for customizing the behavior of the Node.
-    /// E.g.: Set a custom namespace or a partition name.
-    class IGNITION_TRANSPORT_VISIBLE NodeOptions
-    {
-      /// \brief Constructor.
-      public: NodeOptions();
-=======
     /// \brief Constructor.
     public: NodeOptions();
 
     /// \brief Copy constructor.
     /// \param[in] _other NodeOptions to copy.
     public: NodeOptions(const NodeOptions &_other);
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
     /// \brief Destructor.
     public: virtual ~NodeOptions();
@@ -117,39 +97,13 @@ namespace gz::transport
     /// \param[in] _partition The partition's name.
     /// The default partition value is created using a combination of your
     /// hostname, followed by ':' and your username. E.g.: "bb9:caguero" .
-    /// It's also possible to use the environment variable GZ_PARTITION for
+    /// It's also possible to use the environment variable IGN_PARTITION for
     /// setting a partition name.
     /// \return True when operation succeed or false if the partition name was
     /// invalid.
     /// \sa Partition
     public: bool SetPartition(const std::string &_partition);
 
-<<<<<<< HEAD
-      /// \brief Set the node's partition name. A partition is used to
-      /// isolate a set of topics or services from other nodes that use the same
-      /// names. E.g.: Node1 advertises topics '/foo' and Node2 advertises
-      /// '/foo' too. If we don't use a partition, a node subscribed to '/foo'
-      /// will receive the messages published from Node1 and Node2.
-      /// Alternatively, we could specify 'p1' as a partition for Node1 and 'p2'
-      /// as a partition for Node2. When we create the node for our subscriber,
-      /// if we specify 'p1' as a partition name, we'll receive the messages
-      /// published only by Node1. If we use 'p2', we'll only receive the
-      /// messages published by Node2. If we don't set a partition name, we
-      /// won't receive any messages from Node1 or Node2.
-      /// A partition name is any alphanumeric string with a few exceptions.
-      /// The symbol '/' is allowed as part of a partition name but just '/' is
-      /// not allowed. The symbols '@', '~' and ' ' are not allowed as part of a
-      /// partition name. Two or more consecutive slashes ('//') are not allowed
-      /// \param[in] _partition The partition's name.
-      /// The default partition value is created using a combination of your
-      /// hostname, followed by ':' and your username. E.g.: "bb9:caguero" .
-      /// It's also possible to use the environment variable IGN_PARTITION for
-      /// setting a partition name.
-      /// \return True when operation succeed or false if the partition name was
-      /// invalid.
-      /// \sa Partition
-      public: bool SetPartition(const std::string &_partition);
-=======
     /// \brief Add a new topic remapping. Any [Un]Advertise(),
     /// [Un]Subscribe() or Request() operation will check for topic
     /// remappings. If a topic is remapped, the '_fromTopic' topic will be
@@ -160,7 +114,6 @@ namespace gz::transport
     /// \return True if the topic remap is possible or false otherwise.
     public: bool AddTopicRemap(const std::string &_fromTopic,
                                const std::string &_toTopic);
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
     /// \brief Get a topic remapping.
     /// \param[in] _fromTopic The original topic.

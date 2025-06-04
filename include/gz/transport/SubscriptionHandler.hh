@@ -47,41 +47,21 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
+namespace ignition::transport
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   /// \brief SubscriptionHandlerBase contains functions and data which are
   /// common to all SubscriptionHandler types.
-  class GZ_TRANSPORT_VISIBLE SubscriptionHandlerBase
+  class IGNITION_TRANSPORT_VISIBLE SubscriptionHandlerBase
   {
-<<<<<<< HEAD
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-    //
-    /// \brief SubscriptionHandlerBase contains functions and data which are
-    /// common to all SubscriptionHandler types.
-    class IGNITION_TRANSPORT_VISIBLE SubscriptionHandlerBase
-    {
-      /// \brief Constructor.
-      /// \param[in] _nUuid UUID of the node registering the handler.
-      /// \param[in] _opts Subscription options.
-      public: explicit SubscriptionHandlerBase(
-        const std::string &_nUuid,
-        const SubscribeOptions &_opts = SubscribeOptions());
-=======
     /// \brief Constructor.
     /// \param[in] _nUuid UUID of the node registering the handler.
     /// \param[in] _opts Subscription options.
     public: explicit SubscriptionHandlerBase(
       const std::string &_nUuid,
       const SubscribeOptions &_opts = SubscribeOptions());
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
     /// \brief Destructor.
     public: virtual ~SubscriptionHandlerBase() = default;
@@ -99,21 +79,10 @@ namespace gz::transport
     /// \return A string representation of the handler UUID.
     public: std::string HandlerUuid() const;
 
-<<<<<<< HEAD
-      /// \brief Check if message subscription is throttled. If so, verify
-      /// whether the callback should be executed or not.
-      /// \return true if the callback should be executed or false otherwise.
-      protected: bool UpdateThrottling();
-=======
-    /// \brief Return whether local messages are ignored or not.
-    /// \return True when local messages are ignored or false otherwise.
-    public: bool IgnoreLocalMessages() const;
-
     /// \brief Check if message subscription is throttled. If so, verify
     /// whether the callback should be executed or not.
     /// \return true if the callback should be executed or false otherwise.
     protected: bool UpdateThrottling();
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 
     /// \brief Subscribe options.
     protected: SubscribeOptions opts;
@@ -141,27 +110,15 @@ namespace gz::transport
 #endif
   };
 
-<<<<<<< HEAD
-    /// \class ISubscriptionHandler SubscriptionHandler.hh
-    /// ignition/transport/SubscriptionHandler.hh
-    /// \brief Interface class used to manage generic protobuf messages.
-    ///
-    /// This extends SubscriptionHandlerBase by defining virtual functions for
-    /// deserializing protobuf message data, and for receiving deserialized
-    /// messages. Those functions are not needed by the RawSubscriptionHandler
-    /// class.
-    class IGNITION_TRANSPORT_VISIBLE ISubscriptionHandler
-        : public SubscriptionHandlerBase
-=======
   /// \class ISubscriptionHandler SubscriptionHandler.hh
-  /// gz/transport/SubscriptionHandler.hh
+  /// ignition/transport/SubscriptionHandler.hh
   /// \brief Interface class used to manage generic protobuf messages.
   ///
   /// This extends SubscriptionHandlerBase by defining virtual functions for
   /// deserializing protobuf message data, and for receiving deserialized
   /// messages. Those functions are not needed by the RawSubscriptionHandler
   /// class.
-  class GZ_TRANSPORT_VISIBLE ISubscriptionHandler
+  class IGNITION_TRANSPORT_VISIBLE ISubscriptionHandler
       : public SubscriptionHandlerBase
   {
     /// \brief Constructor.
@@ -202,7 +159,6 @@ namespace gz::transport
     public: explicit SubscriptionHandler(const std::string &_nUuid,
       const SubscribeOptions &_opts = SubscribeOptions())
       : ISubscriptionHandler(_nUuid, _opts)
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
     {
     }
 
@@ -253,65 +209,13 @@ namespace gz::transport
       if (!this->UpdateThrottling())
         return true;
 
-<<<<<<< HEAD
 #if GOOGLE_PROTOBUF_VERSION >= 4022000
-        auto msgPtr = google::protobuf::internal::DownCast<const T*>(&_msg);
-=======
-#if GOOGLE_PROTOBUF_VERSION >= 5028000
-      auto msgPtr = google::protobuf::DynamicCastMessage<T>(&_msg);
-#elif GOOGLE_PROTOBUF_VERSION >= 4022000
       auto msgPtr = google::protobuf::internal::DownCast<const T*>(&_msg);
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
 #elif GOOGLE_PROTOBUF_VERSION >= 3000000
       auto msgPtr = google::protobuf::down_cast<const T*>(&_msg);
 #else
       auto msgPtr = google::protobuf::internal::down_cast<const T*>(&_msg);
 #endif
-
-<<<<<<< HEAD
-        this->cb(*msgPtr, _info);
-        return true;
-      }
-
-      /// \brief Callback to the function registered for this handler.
-      private: MsgCallback<T> cb;
-    };
-
-    /// \brief Specialized template when the user prefers a callbacks that
-    /// accepts a generic google::protobuf::message instead of a specific type.
-    template <> class SubscriptionHandler<ProtoMsg>
-      : public ISubscriptionHandler
-    {
-      // Documentation inherited.
-      public: explicit SubscriptionHandler(const std::string &_nUuid,
-        const SubscribeOptions &_opts = SubscribeOptions())
-        : ISubscriptionHandler(_nUuid, _opts)
-=======
-      // Verify the dynamically casted message is valid
-      if (msgPtr == nullptr)
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
-      {
-        if (_msg.GetDescriptor() != nullptr)
-        {
-          std::cerr << "SubscriptionHandler::RunLocalCallback() error: "
-                    << "Failed to cast the message of the type "
-                    << _msg.GetDescriptor()->full_name()
-                    << " to the specified type" << '\n';
-        }
-        else
-        {
-<<<<<<< HEAD
-          // Fallback on Ignition Msgs if the message type is not found.
-          msgPtr = gz::msgs::Factory::New(_type);
-=======
-          std::cerr << "SubscriptionHandler::RunLocalCallback() error: "
-                    << "Failed to cast the message of an unknown type"
-                    << " to the specified type" << '\n';
->>>>>>> bd39167 (Clean up namespaces - part 2 (#642))
-        }
-        std::cerr.flush();
-        return false;
-      }
 
       this->cb(*msgPtr, _info);
       return true;
@@ -353,7 +257,7 @@ namespace gz::transport
       }
       else
       {
-        // Fallback on Gazebo Msgs if the message type is not found.
+        // Fallback on Ignition Msgs if the message type is not found.
         msgPtr = gz::msgs::Factory::New(_type);
       }
 
