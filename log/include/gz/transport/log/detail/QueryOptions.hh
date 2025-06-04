@@ -24,10 +24,22 @@
 #include <gz/transport/config.hh>
 #include <gz/transport/log/QueryOptions.hh>
 
+<<<<<<< HEAD
 namespace ignition
+=======
+namespace gz::transport::log
+>>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 {
-  namespace transport
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  //
+  //////////////////////////////////////////////////
+  template <typename Container>
+  TopicList TopicList::Create(
+      const Container &_topics,
+      const QualifiedTimeRange &_timeRange)
   {
+<<<<<<< HEAD
     namespace log
     {
       // Inline bracket to help doxygen filtering.
@@ -40,15 +52,16 @@ namespace ignition
           const QualifiedTimeRange &_timeRange)
       {
         TopicList tl(std::set<std::string>(), _timeRange);
+=======
+    TopicList tl(std::set<std::string>(), _timeRange);
+>>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
-        std::set<std::string> &internalTopics = tl.Topics();
-        for (const std::string &topic : _topics)
-          internalTopics.insert(topic);
+    std::set<std::string> &internalTopics = tl.Topics();
+    for (const std::string &topic : _topics)
+      internalTopics.insert(topic);
 
-        return tl;
-      }
-      }
-    }
+    return tl;
+  }
   }
 }
 

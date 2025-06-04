@@ -30,18 +30,52 @@
 #include "gz/transport/parameters/Export.hh"
 #include "gz/transport/parameters/Interface.hh"
 
+<<<<<<< HEAD
 namespace ignition
+=======
+namespace gz::transport::parameters
+>>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 {
-  namespace transport
-  {
-    namespace parameters
-    {
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
 
+  struct ParametersClientPrivate;
+
+  /// \brief Allow to get, set, declare or list parameters
+  /// \brief in a remote registry.
+  class GZ_TRANSPORT_PARAMETERS_VISIBLE ParametersClient
+  : public ParametersInterface
+  {
+    /// \brief Constructor.
+    /// \param[in] _serverNamespace Namespace of the parameters registry
+    ///    services. The client will send requests to:
+    ///   * /${_serverNamespace}/get_parameter
+    ///   * /${_serverNamespace}/list_parameters
+    ///   * /${_serverNamespace}/set_parameter
+    ///   * /${_serverNamespace}/declare_parameter
+    /// \param[in] _timeoutMs Time to wait for the server to respond.
+    public: ParametersClient(
+      const std::string & _serverNamespace = "",
+      unsigned int _timeoutMs = kDefaultTimeoutMs);
+
+<<<<<<< HEAD
       // Inline bracket to help doxygen filtering.
       inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+=======
+    /// \brief Destructor.
+    public: ~ParametersClient();
+>>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
-      struct ParametersClientPrivate;
+    /// \brief No copy constructor.
+    public: ParametersClient(const ParametersClient &) = delete;
+    /// \brief No copy assignment.
+    public: ParametersClient & operator=(const ParametersClient &) = delete;
+    /// \brief Default move constructor.
+    public: ParametersClient(ParametersClient &&);
+    /// \brief Default move assignment.
+    public: ParametersClient & operator=(ParametersClient &&);
 
+<<<<<<< HEAD
       /// \brief Allow to get, set, declare or list parameters
       /// \brief in a remote registry.
       class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParametersClient
@@ -58,27 +92,31 @@ namespace ignition
         public: ParametersClient(
           const std::string & _serverNamespace = "",
           unsigned int _timeoutMs = kDefaultTimeoutMs);
+=======
+    /// \brief Declare a new parameter.
+    /// See ParametersInterface::DeclareParameter().
+    public: ParameterResult DeclareParameter(
+      const std::string & _parameterName,
+      const google::protobuf::Message & _msg) final;
+>>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
-        /// \brief Destructor.
-        public: ~ParametersClient();
+    /// \brief Request the value of a parameter.
+    /// See ParametersInterface::Parameter().
+    public: ParameterResult Parameter(
+      const std::string & _parameterName,
+      google::protobuf::Message & _parameter) const final;
 
-        /// \brief No copy constructor.
-        public: ParametersClient(const ParametersClient &) = delete;
-        /// \brief No copy assignment.
-        public: ParametersClient & operator=(
-          const ParametersClient &) = delete;
-        /// \brief Default move constructor.
-        public: ParametersClient(ParametersClient &&);
-        /// \brief Default move assignment.
-        public: ParametersClient & operator=(
-          ParametersClient &&);
+    public: ParameterResult Parameter(
+      const std::string & _parameterName,
+      std::unique_ptr<google::protobuf::Message> & _parameter) const final;
 
-        /// \brief Declare a new parameter.
-        /// See ParametersInterface::DeclareParameter().
-        public: ParameterResult DeclareParameter(
-          const std::string & _parameterName,
-          const google::protobuf::Message & _msg) final;
+    /// \brief Set the value of a parameter.
+    /// See ParametersInterface::SetParameter().
+    public: ParameterResult SetParameter(
+      const std::string & _parameterName,
+      const google::protobuf::Message & _msg) final;
 
+<<<<<<< HEAD
         /// \brief Request the value of a parameter.
         /// See ParametersInterface::Parameter().
         public: ParameterResult Parameter(
@@ -100,6 +138,12 @@ namespace ignition
         ///   names and their types.
         public: ignition::msgs::ParameterDeclarations
           ListParameters() const final;
+=======
+    /// \brief List all parameters.
+    /// \return Protobuf message with a list of all declared parameter
+    ///   names and their types.
+    public: gz::msgs::ParameterDeclarations ListParameters() const final;
+>>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -107,16 +151,14 @@ namespace ignition
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-        /// \brief Pointer to implementation.
-        private: std::unique_ptr<ParametersClientPrivate> dataPtr;
+    /// \brief Pointer to implementation.
+    private: std::unique_ptr<ParametersClientPrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
-        private: constexpr static inline unsigned int kDefaultTimeoutMs = 5000;
-      };
-      }
-    }
+    private: constexpr static inline unsigned int kDefaultTimeoutMs = 5000;
+  };
   }
 }
 

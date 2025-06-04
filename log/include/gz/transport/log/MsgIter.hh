@@ -24,10 +24,23 @@
 #include <gz/transport/log/Export.hh>
 #include <gz/transport/log/Message.hh>
 
+<<<<<<< HEAD
 namespace ignition
+=======
+namespace gz::transport::log
+>>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 {
-  namespace transport
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  //
+  /// \brief Forward Declarations
+  class MsgIterPrivate;
+  class Log;
+
+  /// \brief Implements iterator for reading messages
+  class GZ_TRANSPORT_LOG_VISIBLE MsgIter
   {
+<<<<<<< HEAD
     namespace log
     {
       // Inline bracket to help doxygen filtering.
@@ -42,45 +55,65 @@ namespace ignition
       {
         /// \brief Default constructor
         public: MsgIter();
+=======
+    /// \brief Default constructor
+    public: MsgIter();
 
-        /// \brief Move Constructor
-        /// \param[in] _orig the instance being copied
-        public: MsgIter(MsgIter &&_orig);  // NOLINT
+    /// \brief Move Constructor
+    /// \param[in] _orig the instance being copied
+    public: MsgIter(MsgIter &&_orig);  // NOLINT
+>>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
-        /// \brief Destructor;
-        public: ~MsgIter();
+    /// \brief Destructor;
+    public: ~MsgIter();
 
+    /// \cond
+    /// \brief Copy-assignment operator
+    /// \param[in] _orig the instance being copied
+    /// \return a reference to this instance
+    // public: MsgIter &operator=(const MsgIter &_orig);
+    /// \endcond
+
+<<<<<<< HEAD
         /// \brief Copy-assignment operator
         /// \param[in] _orig the instance being copied
         /// \return a reference to this instance
         // public: MsgIter &operator=(const MsgIter &_orig);
+=======
+    /// \brief Prefix increment
+    /// \return a reference to this instance
+    public: MsgIter &operator++();
+>>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
-        /// \brief Prefix increment
-        /// \return a reference to this instance
-        public: MsgIter &operator++();
+    /// \brief Equality operator
+    /// \param[in] _other the iterator this is being compared to
+    /// \return true if the two iterator point to the same message
+    public: bool operator==(const MsgIter &_other) const;
 
-        /// \brief Equality operator
-        /// \param[in] _other the iterator this is being compared to
-        /// \return true if the two iterator point to the same message
-        public: bool operator==(const MsgIter &_other) const;
+    /// \brief Inequality operator
+    /// \param[in] _other the iterator this is being compared to
+    /// \return false if the two iterator point to the same message
+    public: bool operator!=(const MsgIter &_other) const;
 
-        /// \brief Inequality operator
-        /// \param[in] _other the iterator this is being compared to
-        /// \return false if the two iterator point to the same message
-        public: bool operator!=(const MsgIter &_other) const;
+    /// \brief Move assignment operator
+    /// \param[in] _other the new iterator replacing the current one
+    /// \return The updated MsgIter.
+    public: MsgIter& operator=(MsgIter &&_other); // NOLINT
 
+<<<<<<< HEAD
         /// \brief Move assignement operator
         /// \param[in] _other the new iterator replacing the current one
         /// \return The updated MsgIter.
         public: MsgIter& operator=(MsgIter &&_other); // NOLINT
+=======
+    /// \brief Dereference Operator
+    /// \return a reference to the message this is pointing to
+    public: const Message &operator*() const;
+>>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
-        /// \brief Dereference Operator
-        /// \return a reference to the message this is pointing to
-        public: const Message &operator*() const;
-
-        /// \brief arrow dereference operator
-        /// \return a pointer to the message this is pointing to
-        public: const Message *operator->() const;
+    /// \brief arrow dereference operator
+    /// \return a pointer to the message this is pointing to
+    public: const Message *operator->() const;
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -88,23 +121,21 @@ namespace ignition
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-        /// \brief Private Implementation Pointer
-        private: std::unique_ptr<MsgIterPrivate> dataPtr;
+    /// \brief Private Implementation Pointer
+    private: std::unique_ptr<MsgIterPrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
-        /// \brief Construct with private implementation
-        /// \param[in] _pimpl a private implementation pointer
-        /// \internal
-        private: MsgIter(
-            std::unique_ptr<MsgIterPrivate> &&_pimpl);  // NOLINT(build/c++11)
+    /// \brief Construct with private implementation
+    /// \param[in] _pimpl a private implementation pointer
+    /// \internal
+    private: MsgIter(
+        std::unique_ptr<MsgIterPrivate> &&_pimpl);  // NOLINT(build/c++11)
 
-        /// \brief can use private constructor
-        friend class Batch;
-      };
-      }
-    }
+    /// \brief can use private constructor
+    friend class Batch;
+  };
   }
 }
 #endif
