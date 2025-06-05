@@ -48,22 +48,11 @@ namespace gz::transport::log
     /// \return The updated Batch instance.
     public: Batch& operator=(Batch &&_other); // NOLINT
 
-    /// \brief No copy constructor.
-    public: Batch(const Batch& other) = delete;
-
-<<<<<<< HEAD
-        /// \brief destructor
-        public: ~Batch();
-=======
-    /// \brief No copy-assignment operator.
-    public: Batch& operator=(const Batch& other) = delete;
-
     /// \brief destructor
     public: ~Batch();
 
     /// \brief typedef for prettiness
     public: using iterator = MsgIter;
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Iterator to first message in batch
     /// \remarks the lowercase function name is required to support

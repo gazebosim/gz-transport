@@ -46,23 +46,14 @@ namespace gz::transport::log
     /// \brief Destructor;
     public: ~MsgIter();
 
-    /// \cond
     /// \brief Copy-assignment operator
     /// \param[in] _orig the instance being copied
     /// \return a reference to this instance
     // public: MsgIter &operator=(const MsgIter &_orig);
-    /// \endcond
 
-<<<<<<< HEAD
-        /// \brief Copy-assignment operator
-        /// \param[in] _orig the instance being copied
-        /// \return a reference to this instance
-        // public: MsgIter &operator=(const MsgIter &_orig);
-=======
     /// \brief Prefix increment
     /// \return a reference to this instance
     public: MsgIter &operator++();
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Equality operator
     /// \param[in] _other the iterator this is being compared to
