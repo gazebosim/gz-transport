@@ -24,58 +24,54 @@
 #include <gz/transport/log/Export.hh>
 #include <gz/transport/log/MsgIter.hh>
 
-namespace gz
+namespace gz::transport::log
 {
-  namespace transport
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  //
+  /// \brief Forward declaration
+  class BatchPrivate;
+  class Log;
+
+  /// \brief Holds the result of a query for messages
+  class GZ_TRANSPORT_LOG_VISIBLE Batch
   {
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-      //
-      /// \brief Forward declaration
-      class BatchPrivate;
-      class Log;
+    /// \brief Default constructor
+    public: Batch();
 
-      /// \brief Holds the result of a query for messages
-      class GZ_TRANSPORT_LOG_VISIBLE Batch
-      {
-        /// \brief Default constructor
-        public: Batch();
+    /// \brief move constructor
+    /// \param[in] _old the instance being moved into this one
+    public: Batch(Batch &&_old);  // NOLINT
 
-        /// \brief move constructor
-        /// \param[in] _old the instance being moved into this one
-        public: Batch(Batch &&_old);  // NOLINT
+    /// \brief Move assignment operator
+    /// \param[in] _other the new Batch replacing the current one
+    /// \return The updated Batch instance.
+    public: Batch& operator=(Batch &&_other); // NOLINT
 
-        /// \brief Move assignment operator
-        /// \param[in] _other the new Batch replacing the current one
-        /// \return The updated Batch instance.
-        public: Batch& operator=(Batch &&_other); // NOLINT
+    /// \brief No copy constructor.
+    public: Batch(const Batch& other) = delete;
 
-        /// \brief No copy constructor.
-        public: Batch(const Batch& other) = delete;
+    /// \brief No copy-assignment operator.
+    public: Batch& operator=(const Batch& other) = delete;
 
-        /// \brief No copy-assignment operator.
-        public: Batch& operator=(const Batch& other) = delete;
+    /// \brief destructor
+    public: ~Batch();
 
-        /// \brief destructor
-        public: ~Batch();
+    /// \brief typedef for prettiness
+    public: using iterator = MsgIter;
 
-        /// \brief typedef for prettiness
-        public: using iterator = MsgIter;
+    /// \brief Iterator to first message in batch
+    /// \remarks the lowercase function name is required to support
+    ///   range-based for loops
+    /// \return an iterator to the start of the messages
+    public: iterator begin();
 
-        /// \brief Iterator to first message in batch
-        /// \remarks the lowercase function name is required to support
-        ///   range-based for loops
-        /// \return an iterator to the start of the messages
-        public: iterator begin();
-
-        /// \brief Iterator to one past the last message in a batch
-        /// \remarks the lowercase function name is required to support
-        ///   range-based for loops
-        /// \return an iterator that is not equal to any iterator that points
-        ///   to a valid message
-        public: iterator end();
+    /// \brief Iterator to one past the last message in a batch
+    /// \remarks the lowercase function name is required to support
+    ///   range-based for loops
+    /// \return an iterator that is not equal to any iterator that points
+    ///   to a valid message
+    public: iterator end();
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -83,23 +79,21 @@ namespace gz
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-        /// \brief Private implementation
-        private: std::unique_ptr<BatchPrivate> dataPtr;
+    /// \brief Private implementation
+    private: std::unique_ptr<BatchPrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
-        /// \brief Construct with private implementation
-        /// \param[in] _pimpl a private implementation pointer
-        /// \internal
-        private: Batch(
-            std::unique_ptr<BatchPrivate> &&_pimpl);  // NOLINT(build/c++11)
+    /// \brief Construct with private implementation
+    /// \param[in] _pimpl a private implementation pointer
+    /// \internal
+    private: Batch(
+        std::unique_ptr<BatchPrivate> &&_pimpl);  // NOLINT(build/c++11)
 
-        /// \brief Log can use private constructor
-        friend class Log;
-      };
-      }
-    }
+    /// \brief Log can use private constructor
+    friend class Log;
+  };
   }
 }
 #endif
