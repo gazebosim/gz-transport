@@ -26,24 +26,33 @@
 #include "gz/transport/Node.hh"
 #include "gz/transport/NodeShared.hh"
 
+<<<<<<< HEAD
 namespace ignition
+=======
+namespace gz::transport
+>>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 {
-  namespace transport
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
+<<<<<<< HEAD
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
     {
     class NodeShared;
+=======
+  class NodeShared;
+>>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 
-    /// \internal
-    /// \brief Private data for Node class.
-    class NodePrivate
-    {
-      /// \brief Constructor.
-      public: NodePrivate() = default;
+  /// \internal
+  /// \brief Private data for Node class.
+  class NodePrivate
+  {
+    /// \brief Constructor.
+    public: NodePrivate() = default;
 
-      /// \brief Destructor.
-      public: virtual ~NodePrivate() = default;
+    /// \brief Destructor.
+    public: virtual ~NodePrivate() = default;
 
+<<<<<<< HEAD
       /// \brief Helper function for Subscribe.
       /// \param[in] _fullyQualifiedTopic Fully qualified topic name
       /// \return True on success.
@@ -55,27 +64,35 @@ namespace ignition
 
       /// \brief The list of service calls advertised by this node.
       public: std::unordered_set<std::string> srvsAdvertised;
+=======
+    /// \brief The list of service calls advertised by this node.
+    public: std::unordered_set<std::string> srvsAdvertised;
+>>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 
-      /// \brief Node UUID. This ID is unique for each node.
-      public: std::string nUuid;
+    /// \brief Node UUID. This ID is unique for each node.
+    public: std::string nUuid;
 
-      /// \brief Pointer to the object shared between all the nodes within the
-      /// same process.
-      public: NodeShared *shared = NodeShared::Instance();
+    /// \brief Pointer to the object shared between all the nodes within the
+    /// same process.
+    public: NodeShared *shared = NodeShared::Instance();
 
-      /// \brief Partition for this node.
-      public: std::string partition = hostname() + ":" + username();
+    /// \brief Partition for this node.
+    public: std::string partition = hostname() + ":" + username();
 
+<<<<<<< HEAD
       /// \brief Default namespace for this node.
       public: std::string ns = "";
+=======
+    /// \brief Default namespace for this node.
+    public: std::string ns;
+>>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 
-      /// \brief Custom options for this node.
-      public: NodeOptions options;
+    /// \brief Custom options for this node.
+    public: NodeOptions options;
 
-      /// \brief Statistics publisher.
-      public: Node::Publisher statPub;
-    };
-    }
+    /// \brief Statistics publisher.
+    public: Node::Publisher statPub;
+  };
   }
 }
-#endif
+#endif  // GZ_TRANSPORT_NODEPRIVATE_HH_

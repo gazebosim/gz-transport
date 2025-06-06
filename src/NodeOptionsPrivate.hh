@@ -24,10 +24,20 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/NetUtils.hh"
 
+<<<<<<< HEAD
 namespace ignition
+=======
+namespace gz::transport
+>>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 {
-  namespace transport
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  //
+  /// \internal
+  /// \brief Private data for NodeOption class.
+  class NodeOptionsPrivate
   {
+<<<<<<< HEAD
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
     //
@@ -37,21 +47,29 @@ namespace ignition
     {
       /// \brief Constructor.
       public: NodeOptionsPrivate() = default;
+=======
+    /// \brief Constructor.
+    public: NodeOptionsPrivate() = default;
+>>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 
-      /// \brief Destructor.
-      public: virtual ~NodeOptionsPrivate() = default;
+    /// \brief Destructor.
+    public: virtual ~NodeOptionsPrivate() = default;
 
+<<<<<<< HEAD
       /// \brief Namespace for this node.
       public: std::string ns = "";
+=======
+    /// \brief Namespace for this node.
+    public: std::string ns;
+>>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 
-      /// \brief Partition for this node.
-      public: std::string partition = hostname() + ":" + username();
+    /// \brief Partition for this node.
+    public: std::string partition = hostname() + ":" + username();
 
-      /// \brief Table of remappings. The key is the original topic name and
-      /// its value is the new topic name to be used instead.
-      public: std::map<std::string, std::string> topicsRemap;
-    };
-    }
+    /// \brief Table of remappings. The key is the original topic name and
+    /// its value is the new topic name to be used instead.
+    public: std::map<std::string, std::string> topicsRemap;
+  };
   }
 }
-#endif
+#endif  // GZ_TRANSPORT_NODEOPTIONSPRIVATE_HH_
