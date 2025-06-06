@@ -45,8 +45,9 @@
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/Node.hh"
 
-namespace gz::transport
-{
+using namespace gz;
+using namespace transport;
+
 //////////////////////////////////////////////////
 extern "C" void cmdTopicList()
 {
@@ -429,4 +430,3 @@ extern "C" const char *gzVersion()
 {
   return GZ_TRANSPORT_VERSION_FULL;
 }
-}  // namespace gz::transport

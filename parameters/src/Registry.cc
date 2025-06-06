@@ -38,11 +38,11 @@
 
 #include "Utils.hh"
 
-namespace gz::transport::parameters
-{
-// Inline bracket to help doxygen filtering.
-inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-struct ParametersRegistryPrivate
+using namespace gz;
+using namespace transport;
+using namespace parameters;
+
+struct transport::parameters::ParametersRegistryPrivate
 {
   using ParametersMapT = std::unordered_map<
     std::string, std::unique_ptr<google::protobuf::Message>>;
@@ -78,7 +78,6 @@ struct ParametersRegistryPrivate
   std::mutex parametersMapMutex;
   ParametersMapT parametersMap;
 };
-}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
 
 //////////////////////////////////////////////////
 ParametersRegistry::ParametersRegistry(
@@ -360,4 +359,3 @@ ParametersRegistry::ListParameters() const
   dataPtr->ListParameters(unused, ret);
   return ret;
 }
-}  // namespace gz::transport::parameters

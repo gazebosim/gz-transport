@@ -25,11 +25,10 @@
 #include <gz/transport/Clock.hh>
 #include <gz/transport/Node.hh>
 
-namespace gz::transport
-{
-inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+using namespace gz::transport;
+
 //////////////////////////////////////////////////
-class NetworkClock::Implementation
+class gz::transport::NetworkClock::Implementation
 {
   /// \brief Implementation constructor.
   /// \param[in] _topicName Name of the gz::msgs::Clock type
@@ -208,7 +207,7 @@ bool NetworkClock::IsReady() const {
 }
 
 //////////////////////////////////////////////////
-class WallClock::Implementation
+class gz::transport::WallClock::Implementation
 {
   /// \brief Default constructor
   public: Implementation();
@@ -273,5 +272,3 @@ bool WallClock::IsReady() const
 {
   return true;  // Always ready.
 }
-}  // GZ_TRANSPORT_VERSION_NAMESPACE
-}  // namespace gz::transport

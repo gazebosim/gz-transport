@@ -38,9 +38,12 @@
   #endif
 #endif
 
-namespace gz::transport
+namespace gz
 {
-inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+namespace transport
+{
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
+{
   /////////////////////////////////////////////////
   bool pollSockets(const std::vector<int> &_sockets, const int _timeout)
   {
@@ -62,5 +65,6 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
     // Return if we got a reply.
     return items[0].revents & ZMQ_POLLIN;
   }
-}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
-}  // namespace gz::transport
+}
+}
+}

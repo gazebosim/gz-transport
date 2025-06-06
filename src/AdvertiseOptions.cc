@@ -25,48 +25,53 @@
 using namespace gz;
 using namespace transport;
 
-namespace gz::transport
+namespace gz
 {
-inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
-{
-/// \internal
-/// \brief Private data for AdvertiseOptions class.
-class AdvertiseOptionsPrivate
-{
-  /// \brief Constructor.
-  public: AdvertiseOptionsPrivate() = default;
+  namespace transport
+  {
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
+    {
+    /// \internal
+    /// \brief Private data for AdvertiseOptions class.
+    class AdvertiseOptionsPrivate
+    {
+      /// \brief Constructor.
+      public: AdvertiseOptionsPrivate() = default;
 
-  /// \brief Destructor.
-  public: virtual ~AdvertiseOptionsPrivate() = default;
+      /// \brief Destructor.
+      public: virtual ~AdvertiseOptionsPrivate() = default;
 
-  /// \brief Default scope value.
-  public: Scope_t scope = Scope_t::ALL;
-};
+      /// \brief Default scope value.
+      public: Scope_t scope = Scope_t::ALL;
+    };
 
-/// \internal
-/// \brief Private data for AdvertiseMessageOptions class.
-class AdvertiseMessageOptionsPrivate
-{
-  /// \brief Constructor.
-  public: AdvertiseMessageOptionsPrivate() = default;
+    /// \internal
+    /// \brief Private data for AdvertiseMessageOptions class.
+    class AdvertiseMessageOptionsPrivate
+    {
+      /// \brief Constructor.
+      public: AdvertiseMessageOptionsPrivate() = default;
 
-  /// \brief Destructor.
-  public: virtual ~AdvertiseMessageOptionsPrivate() = default;
+      /// \brief Destructor.
+      public: virtual ~AdvertiseMessageOptionsPrivate() = default;
 
-  /// \brief Default message publication rate.
-  public: uint64_t msgsPerSec = kUnthrottled;
-};
+      /// \brief Default message publication rate.
+      public: uint64_t msgsPerSec = kUnthrottled;
+    };
 
-/// \internal
-/// \brief Private data for AdvertiseServiceOptions class.
-class AdvertiseServiceOptionsPrivate
-{
-  /// \brief Constructor.
-  public: AdvertiseServiceOptionsPrivate() = default;
+    /// \internal
+    /// \brief Private data for AdvertiseServiceOptions class.
+    class AdvertiseServiceOptionsPrivate
+    {
+      /// \brief Constructor.
+      public: AdvertiseServiceOptionsPrivate() = default;
 
-  /// \brief Destructor.
-  public: virtual ~AdvertiseServiceOptionsPrivate() = default;
-};
+      /// \brief Destructor.
+      public: virtual ~AdvertiseServiceOptionsPrivate() = default;
+    };
+    }
+  }
+}
 
 //////////////////////////////////////////////////
 AdvertiseOptions::AdvertiseOptions()
@@ -220,5 +225,3 @@ bool AdvertiseServiceOptions::operator!=(
 {
   return !(*this == _other);
 }
-}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
-}  // namespace gz::transport

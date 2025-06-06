@@ -26,8 +26,9 @@
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/SubscriptionHandler.hh"
 
-namespace gz::transport
-{
+using namespace gz;
+using namespace transport;
+
 //////////////////////////////////////////////////
 Publisher::Publisher(const std::string &_topic, const std::string &_addr,
   const std::string &_pUuid, const std::string &_nUuid,
@@ -353,4 +354,3 @@ bool ServicePublisher::operator!=(const ServicePublisher &_srv) const
 {
   return !(*this == _srv);
 }
-}  // namespace gz::transport

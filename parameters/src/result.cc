@@ -20,10 +20,10 @@
 
 #include "gz/transport/parameters/result.hh"
 
-namespace gz::transport::parameters
-{
-// Inline bracket to help doxygen filtering.
-inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+using namespace gz;
+using namespace transport;
+using namespace parameters;
+
 //////////////////////////////////////////////////
 ParameterResult::ParameterResult(ParameterResultType _resultType)
 : resultType{_resultType}
@@ -70,7 +70,8 @@ ParameterResult::operator bool() const
 }
 
 //////////////////////////////////////////////////
-std::ostream & operator<<(
+std::ostream &
+transport::parameters::operator<<(
   std::ostream & os, const ParameterResult & ret)
 {
   std::ostringstream ss;
@@ -104,5 +105,3 @@ std::ostream & operator<<(
   os << ss.str();
   return os;
 }
-}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
-}  // namespace gz::transport::parameters

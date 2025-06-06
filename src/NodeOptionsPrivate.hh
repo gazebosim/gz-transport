@@ -24,31 +24,34 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/NetUtils.hh"
 
-namespace gz::transport
+namespace gz
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-  //
-  /// \internal
-  /// \brief Private data for NodeOption class.
-  class NodeOptionsPrivate
+  namespace transport
   {
-    /// \brief Constructor.
-    public: NodeOptionsPrivate() = default;
+    // Inline bracket to help doxygen filtering.
+    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+    //
+    /// \internal
+    /// \brief Private data for NodeOption class.
+    class NodeOptionsPrivate
+    {
+      /// \brief Constructor.
+      public: NodeOptionsPrivate() = default;
 
-    /// \brief Destructor.
-    public: virtual ~NodeOptionsPrivate() = default;
+      /// \brief Destructor.
+      public: virtual ~NodeOptionsPrivate() = default;
 
-    /// \brief Namespace for this node.
-    public: std::string ns;
+      /// \brief Namespace for this node.
+      public: std::string ns;
 
-    /// \brief Partition for this node.
-    public: std::string partition = hostname() + ":" + username();
+      /// \brief Partition for this node.
+      public: std::string partition = hostname() + ":" + username();
 
-    /// \brief Table of remappings. The key is the original topic name and
-    /// its value is the new topic name to be used instead.
-    public: std::map<std::string, std::string> topicsRemap;
-  };
+      /// \brief Table of remappings. The key is the original topic name and
+      /// its value is the new topic name to be used instead.
+      public: std::map<std::string, std::string> topicsRemap;
+    };
+    }
   }
 }
-#endif  // GZ_TRANSPORT_NODEOPTIONSPRIVATE_HH_
+#endif
