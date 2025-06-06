@@ -31,11 +31,11 @@
 
 #include "Utils.hh"
 
-using namespace gz;
-using namespace transport;
-using namespace parameters;
-
-struct transport::parameters::ParametersClientPrivate
+namespace gz::transport::parameters
+{
+// Inline bracket to help doxygen filtering.
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+struct ParametersClientPrivate
 {
   ParametersClientPrivate(
     const std::string & _serverNamespace,
@@ -47,6 +47,7 @@ struct transport::parameters::ParametersClientPrivate
   mutable transport::Node node;
   unsigned int timeoutMs;
 };
+}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
 
 //////////////////////////////////////////////////
 ParametersClient::~ParametersClient() = default;
@@ -243,3 +244,4 @@ ParametersClient::ListParameters() const
   }
   return res;
 }
+}  // namespace gz::transport::parameters

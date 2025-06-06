@@ -22,9 +22,8 @@
 
 #include "SubscribeOptionsPrivate.hh"
 
-using namespace gz;
-using namespace transport;
-
+namespace gz::transport
+{
 //////////////////////////////////////////////////
 SubscribeOptions::SubscribeOptions()
   : dataPtr(new SubscribeOptionsPrivate())
@@ -71,3 +70,4 @@ void SubscribeOptions::SetIgnoreLocalMessages(bool _ignore)
 {
   this->dataPtr->ignoreLocalMessages = _ignore;
 }
+}  // namespace gz::transport

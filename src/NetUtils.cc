@@ -49,9 +49,7 @@
 
 using namespace gz;
 
-namespace gz
-{
-namespace transport
+namespace gz::transport
 {
 inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
@@ -59,7 +57,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// Note that we don't consider private IP addresses.
   /// \param[out] _ip The preferred local IP address.
   /// \return true if a public local IP was found or false otherwise.
-  static bool preferredPublicIP(std::string &_ip)
+  bool preferredPublicIP(std::string &_ip)
   {
     char host[1024];
     memset(host, 0, sizeof(host));
@@ -403,6 +401,5 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     return result;
 #endif
   }
-}
-}
-}
+}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport
