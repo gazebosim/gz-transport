@@ -20,8 +20,8 @@
 
 #include "gz/transport/Uuid.hh"
 
-using namespace gz;
-using namespace transport;
+namespace gz::transport
+{
 
 #ifdef _WIN32
 /* Windows implementation using libuuid library */
@@ -88,3 +88,4 @@ std::string Uuid::ToString() const
 }
 
 #endif
+}  // namespace gz::transport
