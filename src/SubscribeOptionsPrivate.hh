@@ -22,30 +22,27 @@
 
 #include "gz/transport/Helpers.hh"
 
-namespace gz
+namespace gz::transport
 {
-  namespace transport
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
-    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
-    {
-    /// \class SubscribeOptionsPrivate SubscribeOptionsPrivate.hh
-    /// gz/transport/SubscribeOptionsPrivate.hh
-    /// \brief Private data for the SubscribeOptions class.
-    class SubscribeOptionsPrivate
-    {
-      /// \brief Constructor.
-      public: SubscribeOptionsPrivate() = default;
+  /// \class SubscribeOptionsPrivate SubscribeOptionsPrivate.hh
+  /// gz/transport/SubscribeOptionsPrivate.hh
+  /// \brief Private data for the SubscribeOptions class.
+  class SubscribeOptionsPrivate
+  {
+    /// \brief Constructor.
+    public: SubscribeOptionsPrivate() = default;
 
-      /// \brief Destructor.
-      public: virtual ~SubscribeOptionsPrivate() = default;
+    /// \brief Destructor.
+    public: virtual ~SubscribeOptionsPrivate() = default;
 
-      /// \brief Default message subscription rate.
-      public: uint64_t msgsPerSec = kUnthrottled;
+    /// \brief Default message subscription rate.
+    public: uint64_t msgsPerSec = kUnthrottled;
 
-      /// \brief Whether local messages should be ignored or not.
-      public: bool ignoreLocalMessages = false;
-    };
-    }
-  }
-}
-#endif
+    /// \brief Whether local messages should be ignored or not.
+    public: bool ignoreLocalMessages = false;
+  };
+  }  // GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport
+#endif  // GZ_TRANSPORT_SUBSCRIBEOPTIONSPRIVATE_HH_
