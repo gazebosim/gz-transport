@@ -22,9 +22,8 @@
 
 #include "SubscribeOptionsPrivate.hh"
 
-using namespace gz;
-using namespace transport;
-
+namespace gz::transport
+{
 //////////////////////////////////////////////////
 SubscribeOptions::SubscribeOptions()
   : dataPtr(new SubscribeOptionsPrivate())
@@ -60,3 +59,19 @@ void SubscribeOptions::SetMsgsPerSec(const uint64_t _newMsgsPerSec)
 {
   this->dataPtr->msgsPerSec = _newMsgsPerSec;
 }
+<<<<<<< HEAD
+=======
+
+//////////////////////////////////////////////////
+bool SubscribeOptions::IgnoreLocalMessages() const
+{
+  return this->dataPtr->ignoreLocalMessages;
+}
+
+//////////////////////////////////////////////////
+void SubscribeOptions::SetIgnoreLocalMessages(bool _ignore)
+{
+  this->dataPtr->ignoreLocalMessages = _ignore;
+}
+}  // namespace gz::transport
+>>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))

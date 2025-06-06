@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 
+<<<<<<< HEAD
 //////////////////////////////////////////////////
 std::string
 ignition::transport::parameters::addIgnMsgsPrefix(
@@ -35,6 +36,15 @@ ignition::transport::parameters::addIgnMsgsPrefix(
 std::optional<std::string>
 ignition::transport::parameters::getIgnTypeFromAnyProto(
   const google::protobuf::Any & any)
+=======
+namespace gz::transport::parameters
+{
+// Inline bracket to help doxygen filtering.
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+//////////////////////////////////////////////////
+std::optional<std::string> getGzTypeFromAnyProto(
+  const google::protobuf::Any &_any)
+>>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 {
   auto typeUrl = any.type_url();
   auto pos = typeUrl.rfind('/');
@@ -48,3 +58,5 @@ ignition::transport::parameters::getIgnTypeFromAnyProto(
   }
   return ret.substr(sizeof(prefix) - 1);
 }
+}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport::parameters

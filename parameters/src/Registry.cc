@@ -37,11 +37,19 @@
 
 #include "Utils.hh"
 
+<<<<<<< HEAD
 using namespace ignition;
 using namespace transport;
 using namespace parameters;
 
 struct ignition::transport::parameters::ParametersRegistryPrivate
+=======
+namespace gz::transport::parameters
+{
+// Inline bracket to help doxygen filtering.
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+struct ParametersRegistryPrivate
+>>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 {
   using ParametersMapT = std::unordered_map<
     std::string, std::unique_ptr<google::protobuf::Message>>;
@@ -77,6 +85,7 @@ struct ignition::transport::parameters::ParametersRegistryPrivate
   std::mutex parametersMapMutex;
   ParametersMapT parametersMap;
 };
+}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
 
 //////////////////////////////////////////////////
 ParametersRegistry::ParametersRegistry(
@@ -358,3 +367,4 @@ ParametersRegistry::ListParameters() const
   dataPtr->ListParameters(unused, ret);
   return ret;
 }
+}  // namespace gz::transport::parameters
