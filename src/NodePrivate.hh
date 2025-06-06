@@ -26,47 +26,44 @@
 #include "gz/transport/Node.hh"
 #include "gz/transport/NodeShared.hh"
 
-namespace gz
+namespace gz::transport
 {
-  namespace transport
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
-    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
-    {
-    class NodeShared;
+  class NodeShared;
 
-    /// \internal
-    /// \brief Private data for Node class.
-    class NodePrivate
-    {
-      /// \brief Constructor.
-      public: NodePrivate() = default;
+  /// \internal
+  /// \brief Private data for Node class.
+  class NodePrivate
+  {
+    /// \brief Constructor.
+    public: NodePrivate() = default;
 
-      /// \brief Destructor.
-      public: virtual ~NodePrivate() = default;
+    /// \brief Destructor.
+    public: virtual ~NodePrivate() = default;
 
-      /// \brief The list of service calls advertised by this node.
-      public: std::unordered_set<std::string> srvsAdvertised;
+    /// \brief The list of service calls advertised by this node.
+    public: std::unordered_set<std::string> srvsAdvertised;
 
-      /// \brief Node UUID. This ID is unique for each node.
-      public: std::string nUuid;
+    /// \brief Node UUID. This ID is unique for each node.
+    public: std::string nUuid;
 
-      /// \brief Pointer to the object shared between all the nodes within the
-      /// same process.
-      public: NodeShared *shared = NodeShared::Instance();
+    /// \brief Pointer to the object shared between all the nodes within the
+    /// same process.
+    public: NodeShared *shared = NodeShared::Instance();
 
-      /// \brief Partition for this node.
-      public: std::string partition = hostname() + ":" + username();
+    /// \brief Partition for this node.
+    public: std::string partition = hostname() + ":" + username();
 
-      /// \brief Default namespace for this node.
-      public: std::string ns;
+    /// \brief Default namespace for this node.
+    public: std::string ns;
 
-      /// \brief Custom options for this node.
-      public: NodeOptions options;
+    /// \brief Custom options for this node.
+    public: NodeOptions options;
 
-      /// \brief Statistics publisher.
-      public: Node::Publisher statPub;
-    };
-    }
+    /// \brief Statistics publisher.
+    public: Node::Publisher statPub;
+  };
   }
 }
-#endif
+#endif  // GZ_TRANSPORT_NODEPRIVATE_HH_
