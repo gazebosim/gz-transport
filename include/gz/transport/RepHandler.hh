@@ -35,29 +35,36 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
+namespace zenoh
+{
+  // Forward declaration.
+  class Session;
+}
+
 namespace gz::transport
 {
   // Inline bracket to help doxygen filtering.
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
   //
+  /// Forward declaration;
+  class IRepHandlerPrivate;
+
   /// \class IRepHandler RepHandler.hh gz/transport/RepHandler.hh
   /// \brief Interface class used to manage a replier handler.
   class GZ_TRANSPORT_VISIBLE IRepHandler
   {
     /// \brief Constructor.
-    public: IRepHandler()
-      : hUuid(Uuid().ToString())
-    {
-    }
+    public: IRepHandler();
 
     /// \brief Destructor.
-    public: virtual ~IRepHandler() = default;
+    public: virtual ~IRepHandler();
 
     /// \brief Executes the local callback registered for this handler.
     /// \param[in] _msgReq Input parameter (Protobuf message).
@@ -77,10 +84,7 @@ namespace gz::transport
 
     /// \brief Get the unique UUID of this handler.
     /// \return a string representation of the handler UUID.
-    public: std::string HandlerUuid() const
-    {
-      return this->hUuid;
-    }
+    public: std::string HandlerUuid() const;
 
     /// \brief Get the message type name used in the service request.
     /// \return Message type name.
@@ -90,14 +94,23 @@ namespace gz::transport
     /// \return Message type name.
     public: virtual std::string RepTypeName() const = 0;
 
+#ifdef HAVE_ZENOH
+    /// \brief Create a Zenoh queriable.
+    /// \param[in] _session Zenoh session.
+    /// \param[in] _service The service.
+    protected: void CreateZenohQueriable(
+      std::shared_ptr<zenoh::Session> _session,
+      const std::string &_service);
+#endif
+
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::string
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-    /// \brief Unique handler's UUID.
-    protected: std::string hUuid;
+    /// \brief Private data.
+    protected: std::unique_ptr<IRepHandlerPrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -120,12 +133,31 @@ namespace gz::transport
     /// * _req Protobuf message containing the service request params
     /// * _rep Protobuf message containing the service response.
     /// * Returns true when the service response is considered
-    /// successful or false otherwise.
+    ///   successful or false otherwise.
     public: void SetCallback(
       const std::function<bool(const Req &, Rep &)> &_cb)
     {
       this->cb = _cb;
     }
+
+#ifdef HAVE_ZENOH
+    /// \brief Set the callback for this handler.
+    /// \param[in] _cb The callback with the following parameters:
+    /// * _req Protobuf message containing the service request params.
+    /// * _rep Protobuf message containing the service response.
+    /// * Returns true when the service response is considered
+    ///   successful or false otherwise.
+    /// \param[in] _session The Zenoh session.
+    /// \param[in] _service The service name.
+    public: void SetCallback(
+      const std::function<bool(const Req &, Rep &)> &_cb,
+      std::shared_ptr<zenoh::Session> _session,
+      const std::string &_service)
+    {
+      this->SetCallback(std::move(_cb));
+      this->CreateZenohQueriable(_session, _service);
+    }
+#endif
 
     // Documentation inherited.
     public: bool RunLocalCallback(const transport::ProtoMsg &_msgReq,

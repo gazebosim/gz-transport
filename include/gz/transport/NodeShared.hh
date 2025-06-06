@@ -41,8 +41,6 @@
 #include "gz/transport/HandlerStorage.hh"
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/Publisher.hh"
-#include "gz/transport/RepHandler.hh"
-#include "gz/transport/ReqHandler.hh"
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicStorage.hh"
 #include "gz/transport/TopicStatistics.hh"
@@ -61,6 +59,8 @@ namespace gz::transport
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
   //
   // Forward declarations.
+  class IRepHandler;
+  class IReqHandler;
   class Node;
   class NodePrivate;
 
@@ -367,6 +367,22 @@ namespace gz::transport
     /// \sa TopicUtils::FullyQualifiedName
     public: bool SubscribeHelper(const std::string &_fullyQualifiedTopic,
                                  const std::string &_nUuid);
+
+    /// \brief Return my replier service call address.
+    /// \return my replier service call address.
+    public: std::string ReplierAddress() const;
+
+    /// \brief My pub/sub address.
+    /// \return My pub/sub address.
+    public: std::string MyAddress() const;
+
+    /// \brief Pending service call requests.
+    /// \return A reference to the pending service call requests.
+    public: HandlerStorage<IReqHandler> &Requests();
+
+    /// \brief Service call repliers.
+    /// \return A reference to the service call repliers.
+    public: HandlerStorage<IRepHandler> &Repliers();
 
     /// \brief Constructor.
     protected: NodeShared();

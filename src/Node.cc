@@ -820,7 +820,7 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
   this->dataPtr->srvsAdvertised.erase(fullyQualifiedTopic);
 
   // Remove all the REP handlers for this node.
-  this->dataPtr->shared->repliers.RemoveHandlersForNode(
+  this->dataPtr->shared->Repliers().RemoveHandlersForNode(
     fullyQualifiedTopic, this->dataPtr->nUuid);
 
   // Notify the discovery service to unregister and unadvertise my services.
@@ -1158,7 +1158,7 @@ Node::Publisher Node::Advertise(const std::string &_topic,
 
   // Notify the discovery service to register and advertise my topic.
   MessagePublisher publisher(fullyQualifiedTopic,
-      this->Shared()->myAddress,
+      this->Shared()->MyAddress(),
       // this->Shared()->myControlAddress,
       "unused",
       this->Shared()->pUuid, this->NodeUuid(), _msgTypeName, _options);

@@ -19,12 +19,16 @@
 #define GZ_TRANSPORT_DETAIL_NODE_HH_
 
 #include <gz/msgs/empty.pb.h>
-
+#include <algorithm>
+#include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <utility>
-
 #include "gz/transport/Node.hh"
+#include "gz/transport/RepHandler.hh"
+#include "gz/transport/ReqHandler.hh"
+#include "gz/transport/TopicUtils.hh"
 
 namespace gz
 {
@@ -292,7 +296,16 @@ namespace gz
         new RepHandler<RequestT, ReplyT>());
 
       // Insert the callback into the handler.
-      repHandlerPtr->SetCallback(_cb);
+      std::string impl = this->Shared()->GzImplementation();
+      if (impl == "zeromq")
+        repHandlerPtr->SetCallback(_cb);
+#ifdef HAVE_ZENOH
+      else if (impl == "zenoh")
+      {
+        repHandlerPtr->SetCallback(_cb,
+          this->Shared()->Session(), fullyQualifiedTopic);
+      }
+#endif
 
       std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
@@ -303,24 +316,27 @@ namespace gz
       // associated with a topic. When the receiving thread gets new requests,
       // it will recover the replier handler associated to the topic and
       // will invoke the service call.
-      this->Shared()->repliers.AddHandler(
+      this->Shared()->Repliers().AddHandler(
         fullyQualifiedTopic, this->NodeUuid(), repHandlerPtr);
 
-      // Notify the discovery service to register and advertise my responser.
-      ServicePublisher publisher(fullyQualifiedTopic,
-        this->Shared()->myReplierAddress,
-        this->Shared()->replierId.ToString(),
-        this->Shared()->pUuid, this->NodeUuid(),
-        std::string(RequestT().GetTypeName()),
-        std::string(ReplyT().GetTypeName()), _options);
-
-      if (!this->Shared()->AdvertisePublisher(publisher))
+      if (impl == "zeromq")
       {
-        std::cerr << "Node::Advertise(): Error advertising service ["
-                  << topic
-                  << "]. Did you forget to start the discovery service?"
-                  << std::endl;
-        return false;
+        // Notify the discovery service to register and advertise my responser.
+        ServicePublisher publisher(fullyQualifiedTopic,
+          this->Shared()->ReplierAddress(),
+          this->Shared()->replierId.ToString(),
+          this->Shared()->pUuid, this->NodeUuid(),
+          std::string(RequestT().GetTypeName()),
+          std::string(ReplyT().GetTypeName()), _options);
+
+        if (!this->Shared()->AdvertisePublisher(publisher))
+        {
+          std::cerr << "Node::Advertise(): Error advertising service ["
+                    << topic
+                    << "]. Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
       }
 
       return true;
@@ -463,7 +479,7 @@ namespace gz
       IRepHandlerPtr repHandler;
       {
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-        localResponserFound = this->Shared()->repliers.FirstHandler(
+        localResponserFound = this->Shared()->Repliers().FirstHandler(
               fullyQualifiedTopic,
               std::string(RequestT().GetTypeName()),
               std::string(ReplyT().GetTypeName()),
@@ -489,33 +505,45 @@ namespace gz
       reqHandlerPtr->SetMessage(&_request);
 
       // Insert the callback into the handler.
-      reqHandlerPtr->SetCallback(_cb);
+      std::string impl = this->Shared()->GzImplementation();
+      if (impl == "zeromq")
+        reqHandlerPtr->SetCallback(_cb);
+#ifdef HAVE_ZENOH
+      else if (impl == "zenoh")
+      {
+        reqHandlerPtr->SetCallback(_cb,
+          this->Shared()->Session(), fullyQualifiedTopic);
+      }
+#endif
 
       {
         std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
         // Store the request handler.
-        this->Shared()->requests.AddHandler(
+        this->Shared()->Requests().AddHandler(
           fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
 
         // If the responser's address is known, make the request.
-        SrvAddresses_M addresses;
-        if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
+        if (impl == "zeromq")
         {
-          this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-            std::string(RequestT().GetTypeName()),
-            std::string(ReplyT().GetTypeName()));
-        }
-        else
-        {
-          // Discover the service responser.
-          if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
+          SrvAddresses_M addresses;
+          if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
           {
-            std::cerr << "Node::Request(): Error discovering service ["
-                      << topic
-                      << "]. Did you forget to start the discovery service?"
-                      << std::endl;
-            return false;
+            this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
+              std::string(RequestT().GetTypeName()),
+              std::string(ReplyT().GetTypeName()));
+          }
+          else
+          {
+            // Discover the service responser.
+            if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
+            {
+              std::cerr << "Node::Request(): Error discovering service ["
+                        << topic
+                        << "]. Did you forget to start the discovery service?"
+                        << std::endl;
+              return false;
+            }
           }
         }
       }
@@ -596,7 +624,7 @@ namespace gz
 
       // If the responser is within my process.
       IRepHandlerPtr repHandler;
-      if (this->Shared()->repliers.FirstHandler(fullyQualifiedTopic,
+      if (this->Shared()->Repliers().FirstHandler(fullyQualifiedTopic,
         std::string(_request.GetTypeName()),
         std::string(_reply.GetTypeName()), repHandler))
       {
@@ -606,7 +634,7 @@ namespace gz
       }
 
       // Store the request handler.
-      this->Shared()->requests.AddHandler(
+      this->Shared()->Requests().AddHandler(
         fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
 
       // If the responser's address is known, make the request.
