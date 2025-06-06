@@ -65,7 +65,7 @@ namespace gz::transport::parameters
         const std::string & _paramType);
 
       /// \brief  Return the result type.
-      public: GZ_TRANSPORT_PARAMETERS_VISIBLE 
+      public: GZ_TRANSPORT_PARAMETERS_VISIBLE
       ParameterResultType ResultType() const;
 
       /// \brief  Return the related parameter name.
