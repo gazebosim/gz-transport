@@ -150,7 +150,7 @@ namespace gz::transport
 #pragma warning(disable: 4251)
 #endif
     /// \brief Private data.
-    protected: IReqHandlerPrivate *dataPtr;
+    protected: std::unique_ptr<IReqHandlerPrivate> dataPtr;
 
     /// \brief Condition variable used to wait until a service call REP is
     /// available.

@@ -110,7 +110,7 @@ namespace gz::transport
 #pragma warning(disable: 4251)
 #endif
     /// \brief Private data.
-    protected: IRepHandlerPrivate *dataPtr;
+    protected: std::unique_ptr<IRepHandlerPrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
