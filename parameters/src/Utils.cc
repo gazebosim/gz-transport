@@ -20,10 +20,13 @@
 #include <ios>
 #include <sstream>
 #include <string>
-using namespace gz;
+
+namespace gz::transport::parameters
+{
+// Inline bracket to help doxygen filtering.
+inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
-std::optional<std::string>
-transport::parameters::getGzTypeFromAnyProto(
+std::optional<std::string> getGzTypeFromAnyProto(
   const google::protobuf::Any &_any)
 {
   auto typeUrl = _any.type_url();
@@ -38,3 +41,5 @@ transport::parameters::getGzTypeFromAnyProto(
   }
   return ret;
 }
+}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport::parameters
