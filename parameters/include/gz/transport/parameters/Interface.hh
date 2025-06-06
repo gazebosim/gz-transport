@@ -31,81 +31,75 @@
 #include "gz/transport/parameters/result.hh"
 #include "gz/transport/parameters/Export.hh"
 
-namespace ignition
+namespace ignition::transport::parameters
 {
-  namespace transport
+  // Inline bracket to help doxygen filtering.
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+
+  /// \brief Common interface, implemented by ParametersRegistry
+  ///   (local updates) and by ParametersClients (remote requests).
+  class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParametersInterface
   {
-    namespace parameters
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    /// Default virtual destructor.
+    public: virtual ~ParametersInterface() = default;
 
-      /// \brief Common interface, implemented by ParametersRegistry
-      ///   (local updates) and by ParametersClients (remote requests).
-      class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParametersInterface
-      {
-        /// Default virtual destructor.
-        public: virtual ~ParametersInterface() = default;
+    /// \brief Declare a new parameter.
+    /// \param[in] _parameterName Name of the parameter to be declared.
+    /// \param[in] _msg Protobuf message to be used as the initial
+    ///   parameter value.
+    /// \return A ParameterResult return code, can return error types:
+    /// - ParameterResultType::AlreadyDeclared if the parameter was already
+    ///   declared.
+    /// - ParameterResultType::InvalidType if the parameter type is not
+    ///   valid.
+    public: virtual ParameterResult DeclareParameter(
+      const std::string & _parameterName,
+      const google::protobuf::Message & _msg) = 0;
 
-        /// \brief Declare a new parameter.
-        /// \param[in] _parameterName Name of the parameter to be declared.
-        /// \param[in] _msg Protobuf message to be used as the initial
-        ///   parameter value.
-        /// \return A ParameterResult return code, can return error types:
-        /// - ParameterResultType::AlreadyDeclared if the parameter was already
-        ///   declared.
-        /// - ParameterResultType::InvalidType if the parameter type is not
-        ///   valid.
-        public: virtual ParameterResult DeclareParameter(
-          const std::string & _parameterName,
-          const google::protobuf::Message & _msg) = 0;
+    /// \brief Request the value of a parameter.
+    /// \param[in] _parameterName Name of the parameter to be requested.
+    /// \param[out] _parameter Output were the parameter value will be set.
+    /// \return A ParameterResult return code, can return error types:
+    /// - ParameterResultType::NotDeclared if the parameter was not
+    ///   declared.
+    /// - ParameterResultType::InvalidType if the parameter type was
+    ///   invalid.
+    /// - ParameterResultType::Unexpected, if an unexpected error happened.
+    public: virtual ParameterResult Parameter(
+      const std::string & _parameterName,
+      google::protobuf::Message & _parameter) const = 0;
 
-        /// \brief Request the value of a parameter.
-        /// \param[in] _parameterName Name of the parameter to be requested.
-        /// \param[out] _parameter Output were the parameter value will be set.
-        /// \return A ParameterResult return code, can return error types:
-        /// - ParameterResultType::NotDeclared if the parameter was not
-        ///   declared.
-        /// - ParameterResultType::InvalidType if the parameter type was
-        ///   invalid.
-        /// - ParameterResultType::Unexpected, if an unexpected error happened.
-        public: virtual ParameterResult Parameter(
-          const std::string & _parameterName,
-          google::protobuf::Message & _parameter) const = 0;
+    /// \brief Request the value of a parameter.
+    ///   Similar to the other overload, but it allocates a message of the
+    ///   right type.
+    ///
+    /// \param[in] _parameterName Name of the parameter to be requested.
+    /// \param[out] _parameter Output were the parameter value will be set.
+    /// \return A ParameterResult return code, can return error types:
+    /// - ParameterResultType::NotDeclared if the parameter was not
+    ///   declared.
+    /// - ParameterResultType::Unexpected, if an unexpected error happened.
+    public: virtual ParameterResult Parameter(
+      const std::string & _parameterName,
+      std::unique_ptr<google::protobuf::Message> & _parameter) const = 0;
 
-        /// \brief Request the value of a parameter.
-        ///   Similar to the other overload, but it allocates a message of the
-        ///   right type.
-        ///
-        /// \param[in] _parameterName Name of the parameter to be requested.
-        /// \param[out] _parameter Output were the parameter value will be set.
-        /// \return A ParameterResult return code, can return error types:
-        /// - ParameterResultType::NotDeclared if the parameter was not
-        ///   declared.
-        /// - ParameterResultType::Unexpected, if an unexpected error happened.
-        public: virtual ParameterResult Parameter(
-          const std::string & _parameterName,
-          std::unique_ptr<google::protobuf::Message> & _parameter) const = 0;
+    /// \brief Set the value of a parameter.
+    /// \param[in] _parameterName Name of the parameter to be set.
+    /// \param[in] _msg Protobuf message to be used as the parameter value.
+    /// \return A ParameterResult return code, can return error types:
+    /// - ParameterResultType::NotDeclared if the parameter was not
+    ///   declared.
+    /// - ParameterResultType::InvalidType if the parameter type was
+    ///   invalid.
+    public: virtual ParameterResult SetParameter(
+      const std::string & _parameterName,
+      const google::protobuf::Message & _msg) = 0;
 
-        /// \brief Set the value of a parameter.
-        /// \param[in] _parameterName Name of the parameter to be set.
-        /// \param[in] _msg Protobuf message to be used as the parameter value.
-        /// \return A ParameterResult return code, can return error types:
-        /// - ParameterResultType::NotDeclared if the parameter was not
-        ///   declared.
-        /// - ParameterResultType::InvalidType if the parameter type was
-        ///   invalid.
-        public: virtual ParameterResult SetParameter(
-          const std::string & _parameterName,
-          const google::protobuf::Message & _msg) = 0;
-
-        /// \brief List all existing parameters.
-        /// \return The name and types of existing parameters.
-        public: virtual ignition::msgs::ParameterDeclarations
-        ListParameters() const = 0;
-      };
-      }
-    }
+    /// \brief List all existing parameters.
+    /// \return The name and types of existing parameters.
+    public: virtual ignition::msgs::ParameterDeclarations
+      ListParameters() const = 0;
+  };
   }
 }
 
