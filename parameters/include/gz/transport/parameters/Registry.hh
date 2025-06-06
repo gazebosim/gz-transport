@@ -31,14 +31,10 @@
 #include "gz/transport/parameters/Export.hh"
 #include "gz/transport/parameters/Interface.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport::parameters
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport::parameters
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 
   struct ParametersRegistryPrivate;
 
@@ -52,54 +48,26 @@ namespace gz::transport::parameters
   /// * /${_parametersServicesNamespace}/list_parameters
   /// * /${_parametersServicesNamespace}/set_parameter
   /// * /${_parametersServicesNamespace}/declare_parameter
-  class GZ_TRANSPORT_PARAMETERS_VISIBLE ParametersRegistry
+  class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParametersRegistry
   : public ParametersInterface
   {
-<<<<<<< HEAD
-    namespace parameters
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-=======
     /// \brief Constructor.
     /// \param[in] _parametersServicesNamespace Namespace that will be used
     ///   in all the created services names.
     public: explicit ParametersRegistry(
       const std::string & _parametersServicesNamespace);
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Destructor.
     public: ~ParametersRegistry();
 
-<<<<<<< HEAD
-      /// \brief Provides a parameter registry.
-      /// Parameters can be declared, get or set in the registry.
-      /// It also provides services, so the parameters can be get, set or
-      /// listed from other processes.
-      ///
-      /// Provided services:
-      /// * /${_parametersServicesNamespace}/get_parameter
-      /// * /${_parametersServicesNamespace}/list_parameters
-      /// * /${_parametersServicesNamespace}/set_parameter
-      /// * /${_parametersServicesNamespace}/declare_parameter
-      class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParametersRegistry
-      : public ParametersInterface
-      {
-        /// \brief Constructor.
-        /// \param[in] _parametersServicesNamespace Namespace that will be used
-        ///   in all the created services names.
-        public: explicit ParametersRegistry(
-          const std::string & _parametersServicesNamespace);
-=======
     /// \brief No copy constructor.
     public: ParametersRegistry(const ParametersRegistry &) = delete;
     /// \brief No copy assignment.
-    public: ParametersRegistry & operator=(const ParametersRegistry &) = delete;
+    public: ParametersRegistry &operator=(const ParametersRegistry &) = delete;
     /// \brief Default move constructor.
     public: ParametersRegistry(ParametersRegistry &&);
     /// \brief Default move assignment.
-    public: ParametersRegistry & operator=(ParametersRegistry &&);
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+    public: ParametersRegistry &operator=(ParametersRegistry &&);
 
     /// \brief Declare a new parameter.
     /// See ParametersInterface::DeclareParameter().
@@ -120,13 +88,13 @@ namespace gz::transport::parameters
     /// \brief Set the value of a parameter.
     /// See ParametersInterface::SetParameter().
     public: ParameterResult SetParameter(
-      const std::string & _parameterName,
-      const google::protobuf::Message & _msg) final;
+        const std::string & _parameterName,
+        const google::protobuf::Message & _msg) final;
 
     /// \brief List all parameters.
     /// \return Protobuf message with a list of all declared parameter
     ///   names and their types.
-    public: gz::msgs::ParameterDeclarations ListParameters() const final;
+    public: ignition::msgs::ParameterDeclarations ListParameters() const final;
 
     /// \brief Declare a new parameter.
     /// \param[in] _parameterName Name of the parameter.
@@ -139,35 +107,6 @@ namespace gz::transport::parameters
       const std::string & _parameterName,
       std::unique_ptr<google::protobuf::Message> _initialValue);
 
-<<<<<<< HEAD
-        /// \brief List all parameters.
-        /// \return Protobuf message with a list of all declared parameter
-        ///   names and their types.
-        public: ignition::msgs::ParameterDeclarations
-          ListParameters() const final;
-
-        /// \brief Declare a new parameter.
-        /// \param[in] _parameterName Name of the parameter.
-        /// \param[in] _initialValue The initial value of the parameter.
-        ///   The parameter type will be deduced from the type of the message.
-        /// \throw std::invalid_argument if `_initialValue` is `nullptr`.
-        /// \throw ParameterAlreadyDeclaredException if a parameter with the
-        ///   same name was declared before.
-        public: ParameterResult DeclareParameter(
-          const std::string & _parameterName,
-          std::unique_ptr<google::protobuf::Message> _initialValue);
-
-        /// \brief Set the value of a parameter.
-        /// \param[in] _parameterName Name of the parameter to set.
-        /// \param[in] _value The value of the parameter.
-        /// \throw ParameterNotDeclaredException if a parameter of that name
-        ///   was not declared before.
-        /// \throw ParameterInvalidTypeException if the type does not match
-        ///   the type of the parameter when it was declared.
-        public: ParameterResult SetParameter(
-          const std::string & _parameterName,
-          std::unique_ptr<google::protobuf::Message> _value);
-=======
     /// \brief Set the value of a parameter.
     /// \param[in] _parameterName Name of the parameter to set.
     /// \param[in] _value The value of the parameter.
@@ -178,7 +117,6 @@ namespace gz::transport::parameters
     public: ParameterResult SetParameter(
       const std::string & _parameterName,
       std::unique_ptr<google::protobuf::Message> _value);
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by

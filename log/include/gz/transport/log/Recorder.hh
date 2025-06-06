@@ -27,43 +27,13 @@
 #include <gz/transport/config.hh>
 #include <gz/transport/log/Export.hh>
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport::log
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport::log
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   enum class RecorderError : int64_t
   {
-<<<<<<< HEAD
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-      //
-      enum class RecorderError : int64_t
-      {
-        SUCCESS = 0,
-        FAILED_TO_OPEN = -1,
-        FAILED_TO_SUBSCRIBE = -2,
-        ALREADY_RECORDING = -3,
-        INVALID_TOPIC = -4,
-        TOPIC_NOT_FOUND = -5,
-        ALREADY_SUBSCRIBED_TO_TOPIC = -6,
-      };
-
-      /// \brief Records ignition transport topics
-      /// This class makes it easy to record topics to a log file.
-      /// Responsibilities: topic name matching, time received tracking,
-      /// multiple thread safety, subscribing to topics
-      class IGNITION_TRANSPORT_LOG_VISIBLE Recorder
-      {
-        /// \brief Default constructor
-        public: Recorder();
-=======
     SUCCESS = 0,
     FAILED_TO_OPEN = -1,
     FAILED_TO_SUBSCRIBE = -2,
@@ -73,15 +43,14 @@ namespace gz::transport::log
     ALREADY_SUBSCRIBED_TO_TOPIC = -6,
   };
 
-  /// \brief Records Gazebo Transport topics
+  /// \brief Records ignition transport topics
   /// This class makes it easy to record topics to a log file.
   /// Responsibilities: topic name matching, time received tracking,
   /// multiple thread safety, subscribing to topics
-  class GZ_TRANSPORT_LOG_VISIBLE Recorder
+  class IGNITION_TRANSPORT_LOG_VISIBLE Recorder
   {
     /// \brief Default constructor
     public: Recorder();
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief move constructor
     /// \param[in] _old the instance being moved into this one
@@ -98,40 +67,23 @@ namespace gz::transport::log
     /// \remarks Clock lifetime must exceed that of this Recorder.
     public: RecorderError Sync(const Clock *_clockIn);
 
-<<<<<<< HEAD
-        /// \brief Begin recording topics
-        /// \param[in] _file path to log file
-        /// \return SUCCESS if recording was successfully started. If the file
-        /// already existed, this will return FAILED_TO_OPEN.
-        public: RecorderError Start(const std::string &_file);
-=======
     /// \brief Begin recording topics
     /// \param[in] _file path to log file
-    /// \return NO_ERROR if recording was successfully started. If the file
+    /// \return SUCCESS if recording was successfully started. If the file
     /// already existed, this will return FAILED_TO_OPEN.
     public: RecorderError Start(const std::string &_file);
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Stop recording topics. This function will block if there is
     /// any data in the internal buffer that has not yet been written to
     /// disk.
     public: void Stop();
 
-<<<<<<< HEAD
-        /// \brief Add a topic to be recorded (exact match only)
-        /// \param[in] _topic The exact topic name
-        /// \note This method attempts to subscribe to the topic immediately.
-        ///       The subscription will be kept until this is destructed.
-        /// \return SUCCESS if the subscription was created.
-        public: RecorderError AddTopic(const std::string &_topic);
-=======
     /// \brief Add a topic to be recorded (exact match only)
     /// \param[in] _topic The exact topic name
     /// \note This method attempts to subscribe to the topic immediately.
     ///       The subscription will be kept until this is destructed.
-    /// \return NO_ERROR if the subscription was created.
+    /// \return SUCCESS if the subscription was created.
     public: RecorderError AddTopic(const std::string &_topic);
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Add a topic to be recorded (regex match)
     /// \param[in] _topic Pattern to match against topic names

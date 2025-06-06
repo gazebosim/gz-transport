@@ -31,32 +31,15 @@
 #include "gz/transport/parameters/result.hh"
 #include "gz/transport/parameters/Export.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport::parameters
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport::parameters
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 
   /// \brief Common interface, implemented by ParametersRegistry
   ///   (local updates) and by ParametersClients (remote requests).
-  class GZ_TRANSPORT_PARAMETERS_VISIBLE ParametersInterface
+  class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParametersInterface
   {
-<<<<<<< HEAD
-    namespace parameters
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-
-      /// \brief Common interface, implemented by ParametersRegistry
-      ///   (local updates) and by ParametersClients (remote requests).
-      class IGNITION_TRANSPORT_PARAMETERS_VISIBLE ParametersInterface
-      {
-        /// Default virtual destructor.
-        public: virtual ~ParametersInterface() = default;
-=======
     /// Default virtual destructor.
     public: virtual ~ParametersInterface() = default;
 
@@ -72,7 +55,6 @@ namespace gz::transport::parameters
     public: virtual ParameterResult DeclareParameter(
       const std::string & _parameterName,
       const google::protobuf::Message & _msg) = 0;
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Request the value of a parameter.
     /// \param[in] _parameterName Name of the parameter to be requested.
@@ -113,32 +95,11 @@ namespace gz::transport::parameters
       const std::string & _parameterName,
       const google::protobuf::Message & _msg) = 0;
 
-<<<<<<< HEAD
-        /// \brief Set the value of a parameter.
-        /// \param[in] _parameterName Name of the parameter to be set.
-        /// \param[in] _msg Protobuf message to be used as the parameter value.
-        /// \return A ParameterResult return code, can return error types:
-        /// - ParameterResultType::NotDeclared if the parameter was not
-        ///   declared.
-        /// - ParameterResultType::InvalidType if the parameter type was
-        ///   invalid.
-        public: virtual ParameterResult SetParameter(
-          const std::string & _parameterName,
-          const google::protobuf::Message & _msg) = 0;
-
-        /// \brief List all existing parameters.
-        /// \return The name and types of existing parameters.
-        public: virtual ignition::msgs::ParameterDeclarations
-        ListParameters() const = 0;
-      };
-      }
-    }
-=======
     /// \brief List all existing parameters.
     /// \return The name and types of existing parameters.
-    public: virtual gz::msgs::ParameterDeclarations ListParameters() const = 0;
+    public: virtual ignition::msgs::ParameterDeclarations
+      ListParameters() const = 0;
   };
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
   }
 }
 

@@ -22,13 +22,7 @@
 #include <string>
 #include <utility>
 
-<<<<<<< HEAD
-namespace ignition
-=======
-#include "gz/transport/Node.hh"
-
-namespace gz::transport
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport
 {
   //////////////////////////////////////////////////
   template<typename MessageT>
@@ -41,167 +35,8 @@ namespace gz::transport
   }
 
   //////////////////////////////////////////////////
-  template <typename ...Args>
-  bool Node::Subscribe(Args && ...args)
-  {
-    return this->SubscribeImpl(std::forward<Args>(args)...) != nullptr;
-  }
-
-  //////////////////////////////////////////////////
-  template <typename ...Args>
-  Node::Subscriber Node::CreateSubscriber(const std::string &_topic,
-                                          Args && ...args)
-  {
-    auto handler = this->SubscribeImpl(_topic,
-                                       std::forward<Args>(args)...);
-    if (handler && !handler->HandlerUuid().empty())
-    {
-      return Node::Subscriber(_topic,
-                              handler->NodeUuid(),
-                              this->Options(),
-                              handler->HandlerUuid());
-    }
-    return Node::Subscriber();
-  }
-
-<<<<<<< HEAD
-    //////////////////////////////////////////////////
-    template<typename MessageT>
-    bool Node::Subscribe(
-        const std::string &_topic,
-        void(*_cb)(const MessageT &_msg),
-        const SubscribeOptions &_opts)
-    {
-      std::function<void(const MessageT &, const MessageInfo &)> f =
-        [_cb](const MessageT & _internalMsg,
-              const MessageInfo &/*_internalInfo*/)
-      {
-        (*_cb)(_internalMsg);
-      };
-
-      return this->Subscribe<MessageT>(_topic, f, _opts);
-    }
-
-    //////////////////////////////////////////////////
-    template<typename MessageT>
-    bool Node::Subscribe(
-        const std::string &_topic,
-        std::function<void(const MessageT &_msg)> _cb,
-        const SubscribeOptions &_opts)
-    {
-      std::function<void(const MessageT &, const MessageInfo &)> f =
-        [cb = std::move(_cb)](const MessageT & _internalMsg,
-              const MessageInfo &/*_internalInfo*/)
-      {
-        cb(_internalMsg);
-      };
-
-      return this->Subscribe<MessageT>(_topic, f, _opts);
-    }
-
-    //////////////////////////////////////////////////
-    template<typename ClassT, typename MessageT>
-    bool Node::Subscribe(
-        const std::string &_topic,
-        void(ClassT::*_cb)(const MessageT &_msg),
-        ClassT *_obj,
-        const SubscribeOptions &_opts)
-    {
-      std::function<void(const MessageT &, const MessageInfo &)> f =
-        [_cb, _obj](const MessageT & _internalMsg,
-                    const MessageInfo &/*_internalInfo*/)
-      {
-        auto cb = std::bind(_cb, _obj, std::placeholders::_1);
-        cb(_internalMsg);
-      };
-
-      return this->Subscribe<MessageT>(_topic, f, _opts);
-    }
-
-    //////////////////////////////////////////////////
-    template<typename MessageT>
-    bool Node::Subscribe(
-        const std::string &_topic,
-        void(*_cb)(const MessageT &_msg, const MessageInfo &_info),
-        const SubscribeOptions &_opts)
-    {
-      std::function<void(const MessageT &, const MessageInfo &)> f =
-        [_cb](const MessageT & _internalMsg,
-              const MessageInfo &_internalInfo)
-      {
-        (*_cb)(_internalMsg, _internalInfo);
-      };
-
-      return this->Subscribe<MessageT>(_topic, f, _opts);
-    }
-
-    //////////////////////////////////////////////////
-    template<typename MessageT>
-    bool Node::Subscribe(
-        const std::string &_topic,
-        std::function<void(const MessageT &_msg,
-                           const MessageInfo &_info)> _cb,
-        const SubscribeOptions &_opts)
-    {
-      // Topic remapping.
-      std::string topic = _topic;
-      this->Options().TopicRemap(_topic, topic);
-
-      std::string fullyQualifiedTopic;
-      if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-        this->Options().NameSpace(), topic, fullyQualifiedTopic))
-      {
-        std::cerr << "Topic [" << topic << "] is not valid." << std::endl;
-        return false;
-      }
-
-      // Create a new subscription handler.
-      std::shared_ptr<SubscriptionHandler<MessageT>> subscrHandlerPtr(
-          new SubscriptionHandler<MessageT>(this->NodeUuid(), _opts));
-
-      // Insert the callback into the handler.
-      subscrHandlerPtr->SetCallback(std::move(_cb));
-
-      std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-
-      // Store the subscription handler. Each subscription handler is
-      // associated with a topic. When the receiving thread gets new data,
-      // it will recover the subscription handler associated to the topic and
-      // will invoke the callback.
-      this->Shared()->localSubscribers.normal.AddHandler(
-        fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
-
-      return this->SubscribeHelper(fullyQualifiedTopic);
-    }
-
-    //////////////////////////////////////////////////
-    template<typename ClassT, typename MessageT>
-    bool Node::Subscribe(
-        const std::string &_topic,
-        void(ClassT::*_cb)(const MessageT &_msg, const MessageInfo &_info),
-        ClassT *_obj,
-        const SubscribeOptions &_opts)
-    {
-      std::function<void(const MessageT &, const MessageInfo &)> f =
-        [_cb, _obj](const MessageT & _internalMsg,
-                    const MessageInfo &_internalInfo)
-      {
-        auto cb = std::bind(_cb, _obj, std::placeholders::_1,
-          std::placeholders::_2);
-        cb(_internalMsg, _internalInfo);
-      };
-
-      return this->Subscribe<MessageT>(_topic, f, _opts);
-    }
-
-    //////////////////////////////////////////////////
-    template<typename RequestT, typename ReplyT>
-    bool Node::Advertise(
-=======
-  //////////////////////////////////////////////////
   template<typename MessageT>
-  std::shared_ptr<SubscriptionHandler<MessageT>> Node::SubscribeImpl(
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+  bool Node::Subscribe(
       const std::string &_topic,
       void(*_cb)(const MessageT &_msg),
       const SubscribeOptions &_opts)
@@ -213,12 +48,12 @@ namespace gz::transport
       (*_cb)(_internalMsg);
     };
 
-    return this->SubscribeImpl<MessageT>(_topic, f, _opts);
+    return this->Subscribe<MessageT>(_topic, f, _opts);
   }
 
   //////////////////////////////////////////////////
   template<typename MessageT>
-  std::shared_ptr<SubscriptionHandler<MessageT>> Node::SubscribeImpl(
+  bool Node::Subscribe(
       const std::string &_topic,
       std::function<void(const MessageT &_msg)> _cb,
       const SubscribeOptions &_opts)
@@ -230,12 +65,12 @@ namespace gz::transport
       cb(_internalMsg);
     };
 
-    return this->SubscribeImpl<MessageT>(_topic, f, _opts);
+    return this->Subscribe<MessageT>(_topic, f, _opts);
   }
 
   //////////////////////////////////////////////////
   template<typename ClassT, typename MessageT>
-  std::shared_ptr<SubscriptionHandler<MessageT>> Node::SubscribeImpl(
+  bool Node::Subscribe(
       const std::string &_topic,
       void(ClassT::*_cb)(const MessageT &_msg),
       ClassT *_obj,
@@ -249,12 +84,12 @@ namespace gz::transport
       cb(_internalMsg);
     };
 
-    return this->SubscribeImpl<MessageT>(_topic, f, _opts);
+    return this->Subscribe<MessageT>(_topic, f, _opts);
   }
 
   //////////////////////////////////////////////////
   template<typename MessageT>
-  std::shared_ptr<SubscriptionHandler<MessageT>> Node::SubscribeImpl(
+  bool Node::Subscribe(
       const std::string &_topic,
       void(*_cb)(const MessageT &_msg, const MessageInfo &_info),
       const SubscribeOptions &_opts)
@@ -266,12 +101,12 @@ namespace gz::transport
       (*_cb)(_internalMsg, _internalInfo);
     };
 
-    return this->SubscribeImpl<MessageT>(_topic, f, _opts);
+    return this->Subscribe<MessageT>(_topic, f, _opts);
   }
 
   //////////////////////////////////////////////////
   template<typename MessageT>
-  std::shared_ptr<SubscriptionHandler<MessageT>> Node::SubscribeImpl(
+  bool Node::Subscribe(
       const std::string &_topic,
       std::function<void(const MessageT &_msg,
                          const MessageInfo &_info)> _cb,
@@ -286,7 +121,7 @@ namespace gz::transport
       this->Options().NameSpace(), topic, fullyQualifiedTopic))
     {
       std::cerr << "Topic [" << topic << "] is not valid." << std::endl;
-      return nullptr;
+      return false;
     }
 
     // Create a new subscription handler.
@@ -305,15 +140,12 @@ namespace gz::transport
     this->Shared()->localSubscribers.normal.AddHandler(
       fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
 
-    if (!this->SubscribeHelper(fullyQualifiedTopic))
-      return nullptr;
-
-    return subscrHandlerPtr;
+    return this->SubscribeHelper(fullyQualifiedTopic);
   }
 
   //////////////////////////////////////////////////
   template<typename ClassT, typename MessageT>
-  std::shared_ptr<SubscriptionHandler<MessageT>> Node::SubscribeImpl(
+  bool Node::Subscribe(
       const std::string &_topic,
       void(ClassT::*_cb)(const MessageT &_msg, const MessageInfo &_info),
       ClassT *_obj,
@@ -328,7 +160,7 @@ namespace gz::transport
       cb(_internalMsg, _internalInfo);
     };
 
-    return this->SubscribeImpl<MessageT>(_topic, f, _opts);
+    return this->Subscribe<MessageT>(_topic, f, _opts);
   }
 
   //////////////////////////////////////////////////

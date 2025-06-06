@@ -24,14 +24,10 @@
 #include <gz/transport/config.hh>
 #include <gz/transport/log/Export.hh>
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport::log
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport::log
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   //////////////////////////////////////////////////
   /// \brief Since time is continuous, it may be difficult to know the exact
@@ -41,40 +37,16 @@ namespace gz::transport::log
   /// Note that the value of this time object may be interpreted as a
   /// relative time or as an absolute time stamp depending on the context in
   /// which it gets used.
-  class GZ_TRANSPORT_LOG_VISIBLE QualifiedTime
+  class IGNITION_TRANSPORT_LOG_VISIBLE QualifiedTime
   {
     /// \brief The Qualifier determines the behavior of how a message is
     /// selected.
     public: enum class Qualifier : int64_t
     {
-<<<<<<< HEAD
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-      //
-      //////////////////////////////////////////////////
-      /// \brief Since time is continuous, it may be difficult to know the exact
-      /// time stamp of a desired message. The QualifiedTime class provides a
-      /// way to tailor how a time stamp is interpreted by the message query.
-      ///
-      /// Note that the value of this time object may be interpreted as a
-      /// relative time or as an absolute time stamp depending on the context in
-      /// which it gets used.
-      class IGNITION_TRANSPORT_LOG_VISIBLE QualifiedTime
-      {
-        /// \brief The Qualifier determines the behavior of how a message is
-        /// selected.
-        public: enum class Qualifier : int64_t
-        {
-          /// \brief This point in time should be seen as a closed (inclusive)
-          /// time marker. When used in a QualifiedTimeRange, the range will
-          /// include this exact point in time.
-          INCLUSIVE = 0,
-=======
       /// \brief This point in time should be seen as a closed (inclusive)
       /// time marker. When used in a QualifiedTimeRange, the range will
       /// include this exact point in time.
       INCLUSIVE = 0,
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
       /// \brief This point in time should be seen as an open (exclusive)
       /// time marker. When used in a QualifiedTimeRange, the range will
@@ -83,21 +55,6 @@ namespace gz::transport::log
       EXCLUSIVE
     };
 
-<<<<<<< HEAD
-        /// \brief Convenient typedef for our time representation. Note that any
-        /// std::chrono::duration type can be implicitly converted to this type.
-        /// E.g. you can pass a
-        ///
-        /// \code
-        /// std::chrono::seconds(value)
-        /// std::chrono::milliseconds(value)
-        /// std::chrono::minutes(value)
-        /// // ... ect ...
-        /// \endcode
-        ///
-        /// into any function that accepts this Time type.
-        using Time = std::chrono::nanoseconds;
-=======
     /// \brief Convenient typedef for our time representation. Note that any
     /// std::chrono::duration type can be implicitly converted to this type.
     /// E.g. you can pass a
@@ -106,12 +63,11 @@ namespace gz::transport::log
     /// std::chrono::seconds(value)
     /// std::chrono::milliseconds(value)
     /// std::chrono::minutes(value)
-    /// // ... etc ...
+    /// // ... ect ...
     /// \endcode
     ///
     /// into any function that accepts this Time type.
     using Time = std::chrono::nanoseconds;
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Construct a qualified time specifier.
     /// \param[in] _time The time stamp that is used as the focal point of
@@ -225,28 +181,11 @@ namespace gz::transport::log
 #endif
   };
 
-<<<<<<< HEAD
-      //////////////////////////////////////////////////
-      /// \brief The QualifiedTimeRange class provides a pair of qualified times
-      /// that represent a range. This is used to specify a desired time range
-      /// to the BasicQueryOptions class.
-      class IGNITION_TRANSPORT_LOG_VISIBLE QualifiedTimeRange
-      {
-        /// \brief Construct a time range.
-        /// \param[in] _begin The beginning of the time range.
-        /// \param[in] _end The end of the time range.
-        /// \sa From()
-        /// \sa Until()
-        /// \sa AllTime()
-        public: QualifiedTimeRange(
-          const QualifiedTime &_begin,
-          const QualifiedTime &_end);
-=======
   //////////////////////////////////////////////////
   /// \brief The QualifiedTimeRange class provides a pair of qualified times
   /// that represent a range. This is used to specify a desired time range
   /// to the BasicQueryOptions class.
-  class GZ_TRANSPORT_LOG_VISIBLE QualifiedTimeRange
+  class IGNITION_TRANSPORT_LOG_VISIBLE QualifiedTimeRange
   {
     /// \brief Construct a time range.
     /// \param[in] _begin The beginning of the time range.
@@ -257,7 +196,6 @@ namespace gz::transport::log
     public: QualifiedTimeRange(
       const QualifiedTime &_begin,
       const QualifiedTime &_end);
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Copy constructor
     /// \param[in] _other Another QualifiedTimeRange

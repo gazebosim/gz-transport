@@ -29,43 +29,23 @@
 #include <gz/transport/log/Descriptor.hh>
 #include <gz/transport/log/Export.hh>
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport::log
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport::log
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   /// \brief Name of Environment variable containing path to schema
-  const std::string SchemaLocationEnvVar = "GZ_TRANSPORT_LOG_SQL_PATH";
+  const std::string SchemaLocationEnvVar = "IGN_TRANSPORT_LOG_SQL_PATH";
 
   /// \brief Interface to a log file
-  class GZ_TRANSPORT_LOG_VISIBLE Log
+  class IGNITION_TRANSPORT_LOG_VISIBLE Log
   {
-<<<<<<< HEAD
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-      //
-      /// \brief Name of Environment variable containing path to schema
-      const std::string SchemaLocationEnvVar = "IGN_TRANSPORT_LOG_SQL_PATH";
-
-      /// \brief Interface to a log file
-      class IGNITION_TRANSPORT_LOG_VISIBLE Log
-      {
-        /// \brief constructor
-        public: Log();
-=======
     /// \brief constructor
     public: Log();
 
     /// \brief move constructor
     /// \param[in] _old the instance being moved into this one
     public: Log(Log &&_old);  // NOLINT
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief destructor
     public: ~Log();
@@ -83,9 +63,10 @@ namespace gz::transport::log
     /// \param[in] _file path to log file
     /// \param[in] _mode flag indicating read only or read/write
     ///   Can use (in or out)
-    /// \return True if the log file was successfully opened, false otherwise.
+    /// \return True if the log file was successfully opened, false
+    /// otherwise.
     public: bool Open(const std::string &_file,
-        std::ios_base::openmode _mode = std::ios_base::in);
+                      std::ios_base::openmode _mode = std::ios_base::in);
 
     /// \brief Get the name of the log file.
     /// \return The name of the log file, or an empty string if Open has

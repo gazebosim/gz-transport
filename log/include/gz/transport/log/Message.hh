@@ -24,61 +24,23 @@
 #include <gz/transport/config.hh>
 #include <gz/transport/log/Export.hh>
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport::log
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport::log
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   /// \brief Forward Declarations
   class MessagePrivate;
 
   /// \brief Represents a message in a bag file.
-  class GZ_TRANSPORT_LOG_VISIBLE Message
+  class IGNITION_TRANSPORT_LOG_VISIBLE Message
   {
-<<<<<<< HEAD
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-      //
-      /// \brief Forward Declarations
-      class MessagePrivate;
-
-      /// \brief Represents a message in a bag file.
-      class IGNITION_TRANSPORT_LOG_VISIBLE Message
-      {
-        /// \brief Default constructor
-        public: Message();
-
-        /// \brief Construct with data.
-        /// \internal
-        /// Referrences and pointers are borrowed, and must be kept alive by
-        /// the creator for as long as an instance lives.
-        /// This constructor is public for the sake of unit testing, but is not
-        /// expected to be called by a user.
-        /// \param[in] _timeRecv time the message was received
-        /// \param[in] _data the serialized message
-        /// \param[in] _dataLen number of bytes in _data
-        /// \param[in] _type the name of the message type
-        /// \param[in] _typeLen the length of _type
-        /// \param[in] _topic the name of the topic the message was published to
-        /// \param[in] _topicLen the length of _topic
-        public: Message(
-            const std::chrono::nanoseconds &_timeRecv,
-            const void *_data, std::size_t _dataLen,
-            const char *_type, std::size_t _typeLen,
-            const char *_topic, std::size_t _topicLen);
-=======
     /// \brief Default constructor
     public: Message();
 
     /// \brief Construct with data.
     /// \internal
-    /// References and pointers are borrowed, and must be kept alive by
+    /// Referrences and pointers are borrowed, and must be kept alive by
     /// the creator for as long as an instance lives.
     /// This constructor is public for the sake of unit testing, but is not
     /// expected to be called by a user.
@@ -98,7 +60,6 @@ namespace gz::transport::log
     /// \brief No move constructor to prevent borrowed pointers from
     /// living beyond creator's expectations.
     public: Message(Message && _other) = delete;
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief No copy constructor to prevent borrowed pointers from
     /// living beyond creator's expectations.

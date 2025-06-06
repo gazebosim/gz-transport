@@ -24,72 +24,35 @@
 #include <gz/transport/log/Export.hh>
 #include <gz/transport/log/MsgIter.hh>
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport::log
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport::log
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   /// \brief Forward declaration
   class BatchPrivate;
   class Log;
 
   /// \brief Holds the result of a query for messages
-  class GZ_TRANSPORT_LOG_VISIBLE Batch
+  class IGNITION_TRANSPORT_LOG_VISIBLE Batch
   {
-<<<<<<< HEAD
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-      //
-      /// \brief Forward declaration
-      class BatchPrivate;
-      class Log;
-
-      /// \brief Holds the result of a query for messages
-      class IGNITION_TRANSPORT_LOG_VISIBLE Batch
-      {
-        /// \brief Default constructor
-        public: Batch();
-=======
     /// \brief Default constructor
     public: Batch();
 
     /// \brief move constructor
     /// \param[in] _old the instance being moved into this one
     public: Batch(Batch &&_old);  // NOLINT
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
-    /// \brief Move assignment operator
+    /// \brief Move assignement operator
     /// \param[in] _other the new Batch replacing the current one
     /// \return The updated Batch instance.
     public: Batch& operator=(Batch &&_other); // NOLINT
-
-<<<<<<< HEAD
-        /// \brief Move assignement operator
-        /// \param[in] _other the new Batch replacing the current one
-        /// \return The updated Batch instance.
-        public: Batch& operator=(Batch &&_other); // NOLINT
-
-        /// \brief destructor
-        public: ~Batch();
-=======
-    /// \brief No copy constructor.
-    public: Batch(const Batch& other) = delete;
-
-    /// \brief No copy-assignment operator.
-    public: Batch& operator=(const Batch& other) = delete;
 
     /// \brief destructor
     public: ~Batch();
 
     /// \brief typedef for prettiness
     public: using iterator = MsgIter;
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Iterator to first message in batch
     /// \remarks the lowercase function name is required to support

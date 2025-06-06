@@ -24,66 +24,36 @@
 #include <gz/transport/log/Export.hh>
 #include <gz/transport/log/Message.hh>
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport::log
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport::log
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   /// \brief Forward Declarations
   class MsgIterPrivate;
   class Log;
 
   /// \brief Implements iterator for reading messages
-  class GZ_TRANSPORT_LOG_VISIBLE MsgIter
+  class IGNITION_TRANSPORT_LOG_VISIBLE MsgIter
   {
-<<<<<<< HEAD
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-      //
-      /// \brief Forward Declarations
-      class MsgIterPrivate;
-      class Log;
-
-      /// \brief Implements iterator for reading messages
-      class IGNITION_TRANSPORT_LOG_VISIBLE MsgIter
-      {
-        /// \brief Default constructor
-        public: MsgIter();
-=======
     /// \brief Default constructor
     public: MsgIter();
 
     /// \brief Move Constructor
     /// \param[in] _orig the instance being copied
     public: MsgIter(MsgIter &&_orig);  // NOLINT
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Destructor;
     public: ~MsgIter();
 
-    /// \cond
     /// \brief Copy-assignment operator
     /// \param[in] _orig the instance being copied
     /// \return a reference to this instance
     // public: MsgIter &operator=(const MsgIter &_orig);
-    /// \endcond
 
-<<<<<<< HEAD
-        /// \brief Copy-assignment operator
-        /// \param[in] _orig the instance being copied
-        /// \return a reference to this instance
-        // public: MsgIter &operator=(const MsgIter &_orig);
-=======
     /// \brief Prefix increment
     /// \return a reference to this instance
     public: MsgIter &operator++();
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Equality operator
     /// \param[in] _other the iterator this is being compared to
@@ -95,21 +65,14 @@ namespace gz::transport::log
     /// \return false if the two iterator point to the same message
     public: bool operator!=(const MsgIter &_other) const;
 
-    /// \brief Move assignment operator
+    /// \brief Move assignement operator
     /// \param[in] _other the new iterator replacing the current one
     /// \return The updated MsgIter.
     public: MsgIter& operator=(MsgIter &&_other); // NOLINT
 
-<<<<<<< HEAD
-        /// \brief Move assignement operator
-        /// \param[in] _other the new iterator replacing the current one
-        /// \return The updated MsgIter.
-        public: MsgIter& operator=(MsgIter &&_other); // NOLINT
-=======
     /// \brief Dereference Operator
     /// \return a reference to the message this is pointing to
     public: const Message &operator*() const;
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief arrow dereference operator
     /// \return a pointer to the message this is pointing to

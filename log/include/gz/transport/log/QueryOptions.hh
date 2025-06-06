@@ -30,45 +30,22 @@
 #include <gz/transport/log/QualifiedTime.hh>
 #include <gz/transport/log/SqlStatement.hh>
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport::log
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport::log
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   //////////////////////////////////////////////////
   /// \brief The QueryOptions interface is used by Log::QueryMessages() to
   /// determine which messages are retrieved from the log file.
-  class GZ_TRANSPORT_LOG_VISIBLE QueryOptions
+  class IGNITION_TRANSPORT_LOG_VISIBLE QueryOptions
   {
-<<<<<<< HEAD
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-      //
-      //////////////////////////////////////////////////
-      /// \brief The QueryOptions interface is used by Log::QueryMessages() to
-      /// determine which messages are retrieved from the log file.
-      class IGNITION_TRANSPORT_LOG_VISIBLE QueryOptions
-      {
-        /// \brief Generate one or more SQL query statements to be used by the
-        /// log file to produce a Batch of messages.
-        /// \param[in] _descriptor A Descriptor to help form the SQL statements
-        /// \return One or more SQL statements.
-        public: virtual std::vector<SqlStatement> GenerateStatements(
-          const Descriptor &_descriptor) const = 0;
-=======
     /// \brief Generate one or more SQL query statements to be used by the
     /// log file to produce a Batch of messages.
     /// \param[in] _descriptor A Descriptor to help form the SQL statements
     /// \return One or more SQL statements.
     public: virtual std::vector<SqlStatement> GenerateStatements(
       const Descriptor &_descriptor) const = 0;
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Get a standard SQL statement preamble, from the SELECT
     /// keyword up to (but not including) the WHERE keyword. This preamble
@@ -96,25 +73,14 @@ namespace gz::transport::log
     public: virtual ~QueryOptions() = default;
   };
 
-<<<<<<< HEAD
-      //////////////////////////////////////////////////
-      /// \brief Base class which manages the time range settings for the native
-      /// QueryOptions classes.
-      class IGNITION_TRANSPORT_LOG_VISIBLE TimeRangeOption
-      {
-        /// \brief Constructor that sets the initial time range option.
-        /// \param[in] _timeRange The time range.
-        public: explicit TimeRangeOption(const QualifiedTimeRange &_timeRange);
-=======
   //////////////////////////////////////////////////
   /// \brief Base class which manages the time range settings for the native
   /// QueryOptions classes.
-  class GZ_TRANSPORT_LOG_VISIBLE TimeRangeOption
+  class IGNITION_TRANSPORT_LOG_VISIBLE TimeRangeOption
   {
     /// \brief Constructor that sets the initial time range option.
     /// \param[in] _timeRange The time range.
     public: explicit TimeRangeOption(const QualifiedTimeRange &_timeRange);
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Copy constructor
     /// \param[in] _other Another TimeRangeOption
@@ -159,24 +125,9 @@ namespace gz::transport::log
 #endif
   };
 
-<<<<<<< HEAD
-      //////////////////////////////////////////////////
-      /// \brief Specify a list of topics to query.
-      class IGNITION_TRANSPORT_LOG_VISIBLE TopicList final
-          : public virtual QueryOptions,
-            public virtual TimeRangeOption
-      {
-        /// \brief Query for a list of topics over the specified time range (by
-        /// default, all time).
-        /// \param[in] _topics The topics to include
-        /// \param[in] _timeRange The time range to query over
-        public: TopicList(
-          const std::set<std::string> &_topics = { },
-          const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
-=======
   //////////////////////////////////////////////////
   /// \brief Specify a list of topics to query.
-  class GZ_TRANSPORT_LOG_VISIBLE TopicList final
+  class IGNITION_TRANSPORT_LOG_VISIBLE TopicList final
       : public virtual QueryOptions,
         public virtual TimeRangeOption
   {
@@ -187,7 +138,6 @@ namespace gz::transport::log
     public: TopicList(
       const std::set<std::string> &_topics = { },
       const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Factory function that accepts any container type that can be
     /// passed through a range-for loop. This will insert the contents of
@@ -248,24 +198,9 @@ namespace gz::transport::log
 #endif
   };
 
-<<<<<<< HEAD
-      //////////////////////////////////////////////////
-      /// \brief Specify a pattern of topics to query.
-      class IGNITION_TRANSPORT_LOG_VISIBLE TopicPattern final
-          : public virtual QueryOptions,
-            public virtual TimeRangeOption
-      {
-        /// \brief Query for topics that match a pattern, over a specified time
-        /// range (by default, all time).
-        /// \param[in] _pattern The initial pattern that this option should use
-        /// \param[in] _timeRange The initial range of time for this option
-        public: TopicPattern(
-          const std::regex &_pattern,
-          const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
-=======
   //////////////////////////////////////////////////
   /// \brief Specify a pattern of topics to query.
-  class GZ_TRANSPORT_LOG_VISIBLE TopicPattern final
+  class IGNITION_TRANSPORT_LOG_VISIBLE TopicPattern final
       : public virtual QueryOptions,
         public virtual TimeRangeOption
   {
@@ -276,7 +211,6 @@ namespace gz::transport::log
     public: TopicPattern(
       const std::regex &_pattern,
       const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Copy constructor
     /// \param[in] _other Another TopicPattern
@@ -319,22 +253,9 @@ namespace gz::transport::log
 #endif
   };
 
-<<<<<<< HEAD
-      //////////////////////////////////////////////////
-      /// \brief Query for all the topics.
-      class IGNITION_TRANSPORT_LOG_VISIBLE AllTopics final
-          : public virtual QueryOptions,
-            public virtual TimeRangeOption
-      {
-        /// \brief Query for all the topics over the specified time range (by
-        /// default, all time).
-        /// \param[in] _timeRange The initial range of time for this option.
-        public: explicit AllTopics(
-          const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
-=======
   //////////////////////////////////////////////////
   /// \brief Query for all the topics.
-  class GZ_TRANSPORT_LOG_VISIBLE AllTopics final
+  class IGNITION_TRANSPORT_LOG_VISIBLE AllTopics final
       : public virtual QueryOptions,
         public virtual TimeRangeOption
   {
@@ -343,7 +264,6 @@ namespace gz::transport::log
     /// \param[in] _timeRange The initial range of time for this option.
     public: explicit AllTopics(
       const QualifiedTimeRange &_timeRange = QualifiedTimeRange::AllTime());
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief Copy constructor
     /// \param[in] _other Another AllTopics

@@ -24,84 +24,13 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/parameters/Export.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport::parameters
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport::parameters
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-
-    /// \brief Possible result types of the different parameters operations.
-    enum class ParameterResultType
-    {
-<<<<<<< HEAD
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-        enum class IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-        /// \brief Possible result types of the different parameters opeartions.
-        ParameterResultType {
-          Success,
-          AlreadyDeclared,
-          InvalidType,
-          NotDeclared,
-          ClientTimeout,
-          Unexpected,
-        };
-
-        /// \brief The return type used in all falible parameters methods.
-        class ParameterResult {
-          /// \brief Construct.
-          /// \param _resultType Type of result of the operation.
-          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-          explicit ParameterResult(ParameterResultType _resultType);
-
-          /// \brief Construct.
-          /// \param _resultType Type of result of the operation.
-          /// \param _paramName Name of the related parameter.
-          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-          ParameterResult(
-            ParameterResultType _resultType, const std::string & _paramName);
-
-          /// \brief Construct.
-          /// \param _resultType Type of result of the operation.
-          /// \param _paramName Name of the related parameter.
-          /// \param _paramType Type of the related parameter.
-          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-          ParameterResult(
-            ParameterResultType _resultType,
-            const std::string & _paramName,
-            const std::string & _paramType);
-
-          /// \brief  Return the result type.
-          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-          ParameterResultType ResultType() const;
-
-          /// \brief  Return the related parameter name.
-          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-          const std::string & ParamName() const;
-
-          /// \brief  Return the related parameter type.
-          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-          const std::string & ParamType() const;
-
-          /// \brief Coercion to bool type.
-          /// True if ParameterErrorType::Success, else False.
-          public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-          explicit operator bool() const;
-
-          private: ParameterResultType resultType;
-          private: std::string paramName;
-          private: std::string paramType;
-        };
-
-        /// \brief Stream operator, for debug output.
-        IGNITION_TRANSPORT_PARAMETERS_VISIBLE
-        std::ostream & operator<<(std::ostream &, const ParameterResult &);
-      }
-    }
-=======
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+    enum class IGNITION_TRANSPORT_PARAMETERS_VISIBLE
+    /// \brief Possible result types of the different parameters opeartions.
+    ParameterResultType {
       Success,
       AlreadyDeclared,
       InvalidType,
@@ -114,13 +43,13 @@ namespace gz::transport::parameters
     class ParameterResult {
       /// \brief Construct.
       /// \param _resultType Type of result of the operation.
-      public: GZ_TRANSPORT_PARAMETERS_VISIBLE
+      public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
       explicit ParameterResult(ParameterResultType _resultType);
 
       /// \brief Construct.
       /// \param _resultType Type of result of the operation.
       /// \param _paramName Name of the related parameter.
-      public: GZ_TRANSPORT_PARAMETERS_VISIBLE
+      public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
       ParameterResult(
         ParameterResultType _resultType, const std::string & _paramName);
 
@@ -128,27 +57,27 @@ namespace gz::transport::parameters
       /// \param _resultType Type of result of the operation.
       /// \param _paramName Name of the related parameter.
       /// \param _paramType Type of the related parameter.
-      public: GZ_TRANSPORT_PARAMETERS_VISIBLE
+      public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
       ParameterResult(
         ParameterResultType _resultType,
         const std::string & _paramName,
         const std::string & _paramType);
 
       /// \brief  Return the result type.
-      public: GZ_TRANSPORT_PARAMETERS_VISIBLE
+      public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
       ParameterResultType ResultType() const;
 
       /// \brief  Return the related parameter name.
-      public: GZ_TRANSPORT_PARAMETERS_VISIBLE
+      public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
       const std::string & ParamName() const;
 
       /// \brief  Return the related parameter type.
-      public: GZ_TRANSPORT_PARAMETERS_VISIBLE
+      public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
       const std::string & ParamType() const;
 
       /// \brief Coercion to bool type.
       /// True if ParameterErrorType::Success, else False.
-      public: GZ_TRANSPORT_PARAMETERS_VISIBLE
+      public: IGNITION_TRANSPORT_PARAMETERS_VISIBLE
       explicit operator bool() const;
 
       private: ParameterResultType resultType;
@@ -157,9 +86,8 @@ namespace gz::transport::parameters
     };
 
     /// \brief Stream operator, for debug output.
-    GZ_TRANSPORT_PARAMETERS_VISIBLE
+    IGNITION_TRANSPORT_PARAMETERS_VISIBLE
     std::ostream & operator<<(std::ostream &, const ParameterResult &);
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
   }
 }
 

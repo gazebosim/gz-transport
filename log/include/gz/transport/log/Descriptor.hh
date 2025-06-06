@@ -26,14 +26,10 @@
 #include <gz/transport/config.hh>
 #include <gz/transport/log/Export.hh>
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport::log
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
+namespace ignition::transport::log
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
   //
   // Forward declaration
   class Log;
@@ -42,27 +38,8 @@ namespace gz::transport::log
   /// \brief The Descriptor class provides meta-information about what a log
   /// contains. This may be useful for determining QueryOptions or for
   /// generating a high-level overview of a Log's contents.
-  class GZ_TRANSPORT_LOG_VISIBLE Descriptor
+  class IGNITION_TRANSPORT_LOG_VISIBLE Descriptor
   {
-<<<<<<< HEAD
-    namespace log
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
-      //
-      // Forward declaration
-      class Log;
-
-      //////////////////////////////////////////////////
-      /// \brief The Descriptor class provides meta-information about what a log
-      /// contains. This may be useful for determining QueryOptions or for
-      /// generating a high-level overview of a Log's contents.
-      class IGNITION_TRANSPORT_LOG_VISIBLE Descriptor
-      {
-        /// \brief A map from a name (e.g. topic name or message type name) to
-        /// the id of a row in one of the database tables. (name -> id)
-        public: using NameToId = std::map<std::string, int64_t>;
-=======
     /// \brief A map from a name (e.g. topic name or message type name) to
     /// the id of a row in one of the database tables. (name -> id)
     public: using NameToId = std::map<std::string, int64_t>;
@@ -70,7 +47,6 @@ namespace gz::transport::log
     /// \brief A map from a name to a map from a name to a row ID.
     /// (name -> name -> id)
     public: using NameToMap = std::map<std::string, NameToId>;
->>>>>>> 2a0abdc (Clean up namespaces - part 3 (#649))
 
     /// \brief A topic in the database is uniquely identified by a pair of
     /// (topic name, message type).
