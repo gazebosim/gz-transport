@@ -33,30 +33,24 @@
 #pragma warning(pop)
 #endif  // defined(_MSC_VER)
 
-namespace gz
+namespace gz::transport::parameters
 {
-  namespace transport
-  {
-    namespace parameters
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
 
-      /// \brief Return the protobuf type prefixed with "gz_msgs."
-      /// \param[in] _gzType Type name to be prefixed.
-      /// \return The protobuf type with the prefix added.
-      GZ_TRANSPORT_PARAMETERS_VISIBLE
-      std::string addGzMsgsPrefix(const std::string &_gzType);
+  /// \brief Return the protobuf type prefixed with "gz_msgs."
+  /// \param[in] _gzType Type name to be prefixed.
+  /// \return The protobuf type with the prefix added.
+  GZ_TRANSPORT_PARAMETERS_VISIBLE
+  std::string addGzMsgsPrefix(const std::string &_gzType);
 
-      /// \brief Get the gz message type from a protobuf message.
-      /// \param[in] _any Message to get the type.
-      /// \return A string with the gazebo protobuf type,
-      ///   or nullopt if it fails.
-      GZ_TRANSPORT_PARAMETERS_VISIBLE
-      std::optional<std::string> getGzTypeFromAnyProto(
-        const google::protobuf::Any &_any);
-      }
-    }
+  /// \brief Get the gz message type from a protobuf message.
+  /// \param[in] _any Message to get the type.
+  /// \return A string with the gazebo protobuf type,
+  ///   or nullopt if it fails.
+  GZ_TRANSPORT_PARAMETERS_VISIBLE
+  std::optional<std::string> getGzTypeFromAnyProto(
+    const google::protobuf::Any &_any);
   }
 }
 
