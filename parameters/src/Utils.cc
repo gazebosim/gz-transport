@@ -26,10 +26,7 @@ namespace gz::transport::parameters
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
-<<<<<<< HEAD
-std::string
-transport::parameters::addGzMsgsPrefix(
-  const std::string &_gzType)
+std::string addGzMsgsPrefix(const std::string &_gzType)
 {
   std::ostringstream oss{"gz_msgs.", std::ios_base::ate};
   oss << _gzType;
@@ -37,11 +34,7 @@ transport::parameters::addGzMsgsPrefix(
 }
 
 //////////////////////////////////////////////////
-std::optional<std::string>
-transport::parameters::getGzTypeFromAnyProto(
-=======
 std::optional<std::string> getGzTypeFromAnyProto(
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
   const google::protobuf::Any &_any)
 {
   auto typeUrl = _any.type_url();
