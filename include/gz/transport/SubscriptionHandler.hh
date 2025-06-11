@@ -116,7 +116,7 @@ namespace gz::transport
 #pragma warning(disable: 4251)
 #endif
     /// \brief Private data.
-    protected: SubscriptionHandlerBasePrivate *dataPtr;
+    protected: std::unique_ptr<SubscriptionHandlerBasePrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif

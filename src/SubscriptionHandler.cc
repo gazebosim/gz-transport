@@ -93,8 +93,6 @@ namespace gz::transport
   /////////////////////////////////////////////////
   SubscriptionHandlerBase::~SubscriptionHandlerBase()
   {
-    if (dataPtr)
-      delete dataPtr;
   }
 
   /////////////////////////////////////////////////

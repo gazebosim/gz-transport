@@ -247,7 +247,7 @@ namespace gz::transport
     /// qualified topic name.
     public: static const uint16_t kMaxNameLength = 65535;
 
-    /// \param The separator used within the liveliness token.
+    /// \brief The separator used within the liveliness token.
     public: static constexpr const char *kTokenSeparator = "@";
 
     /// \brief A common prefix for all liveliness tokens.
