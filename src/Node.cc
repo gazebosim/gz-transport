@@ -1183,13 +1183,11 @@ Node::Publisher Node::Advertise(const std::string &_topic,
     auto zPub = this->Shared()->dataPtr->session->declare_publisher(
      zenoh::KeyExpr(fullyQualifiedTopic));
 
-    auto zToken = this->Shared()->dataPtr->session->liveliness_declare_token(
-      "gz" +
-      fullyQualifiedTopic + "@" +
-      this->Shared()->pUuid + "@" +
-      this->NodeUuid() + "@" +
-      "pub@" +
+    std::string token = TopicUtils::CreateLivelinessToken(
+      fullyQualifiedTopic, this->Shared()->pUuid, this->NodeUuid(), "pub",
       _msgTypeName);
+    auto zToken =
+      this->Shared()->dataPtr->session->liveliness_declare_token(token);
 
     return Publisher(publisher, std::move(zPub), std::move(zToken));
   }

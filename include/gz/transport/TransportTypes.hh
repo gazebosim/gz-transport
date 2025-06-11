@@ -36,6 +36,12 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Publisher.hh"
 
+namespace zenoh
+{
+  /// \brief Forward declaration.
+  class Sample;
+}
+
 namespace gz::transport
 {
   // Inline bracket to help doxygen filtering.
@@ -130,6 +136,11 @@ namespace gz::transport
   /// publisher.
   using SrvDiscoveryCallback =
     std::function<void(const ServicePublisher &_publisher)>;
+
+  /// \def ZenohLivelinessCallback
+  /// \brief Function for receiving a Zenoh liveliness callback.
+  using LivelinessCallback =
+    std::function<void(const zenoh::Sample &_sample)>;
 
   /// \def MsgCallback
   /// \brief User callback used for receiving messages:

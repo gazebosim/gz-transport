@@ -87,7 +87,7 @@ TEST(RepStorageTest, RepStorageAPI)
   // Create a REP handler.
   std::shared_ptr<transport::RepHandler<msgs::Vector3d,
     msgs::Int32>> rep1HandlerPtr(new transport::RepHandler<
-      msgs::Vector3d, msgs::Int32>());
+      msgs::Vector3d, msgs::Int32>(pUuid1, nUuid1));
 
   rep1HandlerPtr->SetCallback(cb1);
 
@@ -131,7 +131,7 @@ TEST(RepStorageTest, RepStorageAPI)
   // Create another REP handler without a callback for node1.
   std::shared_ptr<transport::RepHandler<msgs::Int32,
     msgs::Int32>> rep2HandlerPtr(new transport::RepHandler
-      <msgs::Int32, msgs::Int32>());
+      <msgs::Int32, msgs::Int32>(pUuid1, nUuid1));
 
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep2HandlerPtr);
@@ -139,7 +139,7 @@ TEST(RepStorageTest, RepStorageAPI)
   // Create another REP handler without a callback for node1.
   std::shared_ptr<transport::RepHandler<msgs::Int32,
     msgs::Int32>> rep5HandlerPtr(new transport::RepHandler
-      <msgs::Int32, msgs::Int32>());
+      <msgs::Int32, msgs::Int32>(pUuid1, nUuid1));
 
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep5HandlerPtr);
@@ -148,7 +148,7 @@ TEST(RepStorageTest, RepStorageAPI)
   // Create a REP handler without a callback for node2.
   std::shared_ptr<transport::RepHandler<msgs::Int32,
     msgs::Int32>> rep3HandlerPtr(new transport::RepHandler
-      <msgs::Int32, msgs::Int32>());
+      <msgs::Int32, msgs::Int32>(pUuid1, nUuid1));
 
   // Insert the handler and check operations.
   reps.AddHandler(topic, nUuid2, rep3HandlerPtr);
@@ -197,7 +197,7 @@ TEST(RepStorageTest, RepStorageAPI)
   // Insert another handler, remove it, and check that the map is empty.
   std::shared_ptr<transport::RepHandler<msgs::Int32,
     msgs::Int32>> rep4HandlerPtr(new transport::RepHandler
-      <msgs::Int32, msgs::Int32>());
+      <msgs::Int32, msgs::Int32>(pUuid1, nUuid1));
 
   // Insert the handler.
   reps.AddHandler(topic, nUuid1, rep3HandlerPtr);

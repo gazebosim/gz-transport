@@ -61,7 +61,10 @@ namespace gz::transport
   class GZ_TRANSPORT_VISIBLE IRepHandler
   {
     /// \brief Constructor.
-    public: IRepHandler();
+    /// \param[in] _pUuid Process UUID.
+    /// \param[in] _nUuid Node UUID.
+    public: explicit IRepHandler(const std::string &_pUuid,
+                                 const std::string &_nUuid);
 
     /// \brief Destructor.
     public: virtual ~IRepHandler();
@@ -126,7 +129,7 @@ namespace gz::transport
     : public IRepHandler
   {
     // Documentation inherited.
-    public: RepHandler() = default;
+    using IRepHandler::IRepHandler;
 
     /// \brief Set the callback for this handler.
     /// \param[in] _cb The callback with the following parameters:
