@@ -137,7 +137,7 @@ namespace gz::transport
   using SrvDiscoveryCallback =
     std::function<void(const ServicePublisher &_publisher)>;
 
-  /// \def ZenohLivelinessCallback
+  /// \def LivelinessCallback
   /// \brief Function for receiving a Zenoh liveliness callback.
   using LivelinessCallback =
     std::function<void(const zenoh::Sample &_sample)>;
