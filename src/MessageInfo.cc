@@ -20,12 +20,9 @@
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/TopicUtils.hh"
 
-using namespace gz;
-using namespace transport;
-
-namespace gz::transport
+namespace ignition::transport
 {
-inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
 {
 /// \internal
 /// \brief Private data for MessageInfo class.
