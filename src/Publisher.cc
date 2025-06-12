@@ -26,7 +26,7 @@
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/SubscriptionHandler.hh"
 
-namespace gz::transport
+namespace ignition::transport
 {
 //////////////////////////////////////////////////
 Publisher::Publisher(const std::string &_topic, const std::string &_addr,
@@ -348,4 +348,4 @@ bool ServicePublisher::operator!=(const ServicePublisher &_srv) const
 {
   return !(*this == _srv);
 }
-}  // namespace gz::transport
+}  // namespace ignition::transport

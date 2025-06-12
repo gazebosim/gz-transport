@@ -30,19 +30,11 @@
 
 #include "Utils.hh"
 
-<<<<<<< HEAD
-using namespace ignition;
-using namespace transport;
-using namespace parameters;
-
-struct ignition::transport::parameters::ParametersClientPrivate
-=======
-namespace gz::transport::parameters
+namespace ignition::transport::parameters
 {
 // Inline bracket to help doxygen filtering.
-inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 struct ParametersClientPrivate
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 {
   ParametersClientPrivate(
     const std::string & _serverNamespace,
@@ -54,7 +46,7 @@ struct ParametersClientPrivate
   mutable ignition::transport::Node node;
   unsigned int timeoutMs;
 };
-}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
 
 //////////////////////////////////////////////////
 ParametersClient::~ParametersClient() = default;
@@ -251,4 +243,4 @@ ParametersClient::ListParameters() const
   }
   return res;
 }
-}  // namespace gz::transport::parameters
+}  // namespace ignition::transport::parameters

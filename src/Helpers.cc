@@ -26,64 +26,51 @@
 
 #include "gz/transport/Helpers.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
+namespace ignition::transport
 {
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-  //////////////////////////////////////////////////
-  bool env(const std::string &_name, std::string &_value)
-  {
-<<<<<<< HEAD
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
-    {
-    //////////////////////////////////////////////////
-    bool env(const std::string &_name, std::string &_value)
-    {
-      char *v;
-=======
-    char *v;
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+//////////////////////////////////////////////////
+bool env(const std::string &_name, std::string &_value)
+{
+  char *v;
 #ifdef _MSC_VER
-    size_t sz = 0;
-    _dupenv_s(&v, &sz, _name.c_str());
+  size_t sz = 0;
+  _dupenv_s(&v, &sz, _name.c_str());
 #else
-    v = std::getenv(_name.c_str());
+  v = std::getenv(_name.c_str());
 #endif
-    if (v)
-    {
-      _value = v;
-      return true;
-    }
-    return false;
-  }
-
-  //////////////////////////////////////////////////
-  std::vector<std::string> split(const std::string &_orig, char _delim)
+  if (v)
   {
-    std::vector<std::string> pieces;
-    size_t pos1 = 0;
-    size_t pos2 = _orig.find(_delim);
-    while (pos2 != std::string::npos)
-    {
-      pieces.push_back(_orig.substr(pos1, pos2-pos1));
-      pos1 = pos2 + 1;
-      pos2 = _orig.find(_delim, pos2 + 1);
-    }
-    pieces.push_back(_orig.substr(pos1, _orig.size()-pos1));
-    return pieces;
+    _value = v;
+    return true;
   }
+  return false;
+}
 
-  //////////////////////////////////////////////////
-  unsigned int getProcessId()
+//////////////////////////////////////////////////
+std::vector<std::string> split(const std::string &_orig, char _delim)
+{
+  std::vector<std::string> pieces;
+  size_t pos1 = 0;
+  size_t pos2 = _orig.find(_delim);
+  while (pos2 != std::string::npos)
   {
+    pieces.push_back(_orig.substr(pos1, pos2-pos1));
+    pos1 = pos2 + 1;
+    pos2 = _orig.find(_delim, pos2 + 1);
+  }
+  pieces.push_back(_orig.substr(pos1, _orig.size()-pos1));
+  return pieces;
+}
+
+//////////////////////////////////////////////////
+unsigned int getProcessId()
+{
 #ifdef _WIN32
-    return ::GetCurrentProcessId();
+  return ::GetCurrentProcessId();
 #else
-    return ::getpid();
+  return ::getpid();
 #endif
-  }
-  }  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
-}  // namespace gz::transport
+}
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport

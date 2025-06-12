@@ -45,17 +45,9 @@
 #pragma warning(disable: 4503)
 #endif
 
-using namespace gz;
-using namespace transport;
-
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
+namespace ignition::transport
 {
-inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
-{
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 /// \brief Flag to detect SIGINT or SIGTERM while the code is executing
 /// waitForShutdown().
 static bool g_shutdown = false;
@@ -73,176 +65,14 @@ static void signal_handler(const int _signal)
 {
   if (_signal == SIGINT || _signal == SIGTERM)
   {
-<<<<<<< HEAD
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
-    {
-    /// \brief Flag to detect SIGINT or SIGTERM while the code is executing
-    /// waitForShutdown().
-    static bool g_shutdown = false;
-
-    /// \brief Mutex to protect the boolean shutdown variable.
-    static std::mutex g_shutdown_mutex;
-
-    /// \brief Condition variable to wakeup waitForShutdown() and exit.
-    static std::condition_variable g_shutdown_cv;
-
-    //////////////////////////////////////////////////
-    /// \brief Function executed when a SIGINT or SIGTERM signals are captured.
-    /// \param[in] _signal Signal received.
-    static void signal_handler(const int _signal)
-    {
-      if (_signal == SIGINT || _signal == SIGTERM)
-      {
-        g_shutdown_mutex.lock();
-        g_shutdown = true;
-        g_shutdown_mutex.unlock();
-        g_shutdown_cv.notify_all();
-      }
-    }
-
-    //////////////////////////////////////////////////
-    int rcvHwm()
-    {
-      return NodeShared::Instance()->RcvHwm();
-    }
-
-    //////////////////////////////////////////////////
-    int sndHwm()
-    {
-      return NodeShared::Instance()->SndHwm();
-    }
-
-    //////////////////////////////////////////////////
-    void waitForShutdown()
-    {
-      // Install a signal handler for SIGINT and SIGTERM.
-      std::signal(SIGINT,  signal_handler);
-      std::signal(SIGTERM, signal_handler);
-
-      std::unique_lock<std::mutex> lk(g_shutdown_mutex);
-      g_shutdown_cv.wait(lk, []{return g_shutdown;});
-    }
-
-    //////////////////////////////////////////////////
-    /// \internal
-    /// \brief Private data for Node::Publisher class.
-    class Node::PublisherPrivate
-    {
-      /// \brief Default constructor.
-      public: PublisherPrivate()
-        : shared(NodeShared::Instance())
-      {
-      }
-
-      /// \brief Constructor
-      /// \param[in] _publisher The message publisher.
-      public: explicit PublisherPrivate(const MessagePublisher &_publisher)
-        : shared(NodeShared::Instance()),
-          publisher(_publisher)
-      {
-      }
-
-      /// \brief Check if this Publisher is ready to send an update based on
-      /// publication settings and the clock.
-      ///
-      /// \return True if it is okay to publish, false otherwise.
-      public: bool ThrottledUpdateReady() const
-      {
-        if (!this->publisher.Options().Throttled())
-          return true;
-
-        Timestamp now = std::chrono::steady_clock::now();
-
-        std::lock_guard<std::mutex> lk(this->mutex);
-        auto elapsed = now - this->lastCbTimestamp;
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(
-              elapsed).count() >= this->periodNs;
-      }
-
-      /// \brief Check if this Publisher is ready to send an update based on
-      /// publication settings and the clock.
-      ///
-      /// This additionally advances the internal timestamp by one period.
-      ///
-      /// \return True if it is okay to publish, false otherwise.
-      public: bool UpdateThrottling()
-      {
-        if (!this->publisher.Options().Throttled())
-          return true;
-
-        if (!this->ThrottledUpdateReady())
-          return false;
-
-        // Update the last callback execution.
-        std::lock_guard<std::mutex> lk(this->mutex);
-        this->lastCbTimestamp = std::chrono::steady_clock::now();
-        return true;
-      }
-
-      /// \brief Check if this Publisher is valid
-      /// \return True if we have a topic to publish to, otherwise false.
-      public: bool Valid()
-      {
-        return !this->publisher.Topic().empty();
-      }
-
-      /// \brief Destructor.
-      public: virtual ~PublisherPrivate()
-      {
-        std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
-        // Notify the discovery service to unregister and unadvertise my topic.
-        if (!this->shared->dataPtr->msgDiscovery->Unadvertise(
-               this->publisher.Topic(), this->publisher.NUuid()))
-        {
-          std::cerr << "~PublisherPrivate() Error unadvertising topic ["
-                    << this->publisher.Topic() << "]" << std::endl;
-        }
-      }
-
-      /// \brief Create a MessageInfo object for this Publisher
-      MessageInfo CreateMessageInfo()
-      {
-        MessageInfo info;
-
-        // Set the topic and the partition at the same time
-        info.SetTopicAndPartition(this->publisher.Topic());
-
-        // Set the message type name
-        info.SetType(this->publisher.MsgTypeName());
-
-        return info;
-      }
-
-      /// \brief Pointer to the object shared between all the nodes within the
-      /// same process.
-      public: NodeShared *shared = nullptr;
-
-      /// \brief The message publisher.
-      public: MessagePublisher publisher;
-
-      /// \brief Timestamp of the last callback executed.
-      public: Timestamp lastCbTimestamp;
-
-      /// \brief If throttling is enabled, the minimum period for receiving a
-      /// message in nanoseconds.
-      public: double periodNs = 0.0;
-
-      /// \brief Mutex to protect the node::publisher from race conditions.
-      public: mutable std::mutex mutex;
-    };
-    }
-=======
     g_shutdown_mutex.lock();
     g_shutdown = true;
     g_shutdown_mutex.unlock();
     g_shutdown_cv.notify_all();
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
   }
 }
 
 //////////////////////////////////////////////////
-<<<<<<< HEAD
-=======
 int rcvHwm()
 {
   return NodeShared::Instance()->RcvHwm();
@@ -374,128 +204,6 @@ class Node::PublisherPrivate
 };
 
 //////////////////////////////////////////////////
-/// \internal
-/// \brief Private data for Node::Subscriber class.
-class Node::SubscriberPrivate
-{
-  /// \brief Constructor
-  public: SubscriberPrivate()
-    : shared(NodeShared::Instance())
-  {
-  }
-
-  /// \brief Check if this subscriber is valid
-  /// \return True if topic, node and handler ids are not empty.
-  public: bool Valid()
-  {
-    return !this->topic.empty() && !this->hUuid.empty() &&
-           !this->nUuid.empty();
-  }
-
-  /// \brief Pointer to the object shared between all the nodes within the
-  /// same process.
-  public: NodeShared *shared = nullptr;
-
-  /// \brief Topic name
-  public: std::string topic;
-
-  /// \brief Node UUID
-  public: std::string nUuid;
-
-  /// \brief Node options
-  public: NodeOptions nOpts;
-
-  /// \brief Handler UUID
-  public: std::string hUuid;
-};
-
-//////////////////////////////////////////////////
-Node::Subscriber::Subscriber()
-  : dataPtr(std::make_shared<SubscriberPrivate>())
-{
-}
-
-//////////////////////////////////////////////////
-Node::Subscriber::Subscriber(const std::string &_topic,
-                             const std::string &_nUuid,
-                             const NodeOptions &_nOpts,
-                             const std::string &_hUuid)
-  : dataPtr(std::make_shared<SubscriberPrivate>())
-{
-  this->dataPtr->topic = _topic;
-  this->dataPtr->nUuid = _nUuid;
-  this->dataPtr->nOpts = _nOpts;
-  this->dataPtr->hUuid = _hUuid;
-}
-
-//////////////////////////////////////////////////
-Node::Subscriber::~Subscriber()
-{
-  this->Unsubscribe();
-}
-
-//////////////////////////////////////////////////
-bool Node::Subscriber::Unsubscribe()
-{
-  if (!this->Valid())
-    return false;
-
-  bool res = this->dataPtr->shared->Unsubscribe(this->dataPtr->topic,
-      this->dataPtr->nUuid, this->dataPtr->nOpts, this->dataPtr->hUuid);
-
-  // Invalidate the subscriber
-  this->dataPtr->topic.clear();
-  this->dataPtr->nUuid.clear();
-  this->dataPtr->hUuid.clear();
-  this->dataPtr->nOpts = NodeOptions();
-
-  return res;
-}
-
-//////////////////////////////////////////////////
-Node::Subscriber::operator bool()
-{
-  return this->Valid();
-}
-
-//////////////////////////////////////////////////
-Node::Subscriber::operator bool() const
-{
-  return this->Valid();
-}
-
-//////////////////////////////////////////////////
-bool Node::Subscriber::Valid() const
-{
-  return this->dataPtr->Valid();
-}
-
-//////////////////////////////////////////////////
-Node::Subscriber::Subscriber(Node::Subscriber &&_other)
-{
-  *this = std::move(_other);
-}
-
-//////////////////////////////////////////////////
-Node::Subscriber &Node::Subscriber::operator=(Node::Subscriber &&_other)
-{
-  this->dataPtr->topic = _other.dataPtr->topic;
-  this->dataPtr->nUuid = _other.dataPtr->nUuid;
-  this->dataPtr->hUuid = _other.dataPtr->hUuid;
-  this->dataPtr->nOpts = _other.dataPtr->nOpts;
-
-  // Invalidate the other subscriber so it does not remove
-  // the subscription handler when it is destroyed.
-  _other.dataPtr->topic.clear();
-  _other.dataPtr->nUuid.clear();
-  _other.dataPtr->hUuid.clear();
-  _other.dataPtr->nOpts = NodeOptions();
-
-  return *this;
-}
-
-//////////////////////////////////////////////////
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 Node::Publisher::Publisher()
   : dataPtr(std::make_shared<PublisherPrivate>())
 {
@@ -803,15 +511,6 @@ Node::Node(const NodeOptions &_options)
 }
 
 //////////////////////////////////////////////////
-<<<<<<< HEAD
-=======
-Node::Node():
-  Node(NodeOptions())
-{
-}
-
-//////////////////////////////////////////////////
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 Node::~Node()
 {
   // Unsubscribe from all the topics.
@@ -1359,18 +1058,5 @@ bool Node::RequestRaw(const std::string &_topic,
   bool executed = this->Request(_topic, *req, _timeout, *res, _result);
   return executed && res->SerializeToString(&_response);
 }
-<<<<<<< HEAD
-=======
-
-/////////////////////////////////////////////////
-void Node::AddGlobalRelay(const std::string& _relayAddress) {
-  Shared()->AddGlobalRelay(_relayAddress);
-}
-
-/////////////////////////////////////////////////
-std::vector<std::string> Node::GlobalRelays() const {
-  return Shared()->GlobalRelays();
-}
-}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
-}  // namespace gz::transport
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport

@@ -22,53 +22,23 @@
 
 #include "gz/transport/Helpers.hh"
 
-<<<<<<< HEAD
-namespace ignition
-=======
-namespace gz::transport
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
+namespace ignition::transport
 {
-  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
-  {
-<<<<<<< HEAD
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
-    {
-    /// \class SubscribeOptionsPrivate SubscribeOptionsPrivate.hh
-    /// gz/transport/SubscribeOptionsPrivate.hh
-    /// \brief Private data for the SubscribeOptions class.
-    class SubscribeOptionsPrivate
-    {
-      /// \brief Constructor.
-      public: SubscribeOptionsPrivate() = default;
-=======
-  /// \class SubscribeOptionsPrivate SubscribeOptionsPrivate.hh
-  /// gz/transport/SubscribeOptionsPrivate.hh
-  /// \brief Private data for the SubscribeOptions class.
-  class SubscribeOptionsPrivate
-  {
-    /// \brief Constructor.
-    public: SubscribeOptionsPrivate() = default;
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+/// \class SubscribeOptionsPrivate SubscribeOptionsPrivate.hh
+/// gz/transport/SubscribeOptionsPrivate.hh
+/// \brief Private data for the SubscribeOptions class.
+class SubscribeOptionsPrivate
+{
+  /// \brief Constructor.
+  public: SubscribeOptionsPrivate() = default;
 
-    /// \brief Destructor.
-    public: virtual ~SubscribeOptionsPrivate() = default;
+  /// \brief Destructor.
+  public: virtual ~SubscribeOptionsPrivate() = default;
 
-<<<<<<< HEAD
-      /// \brief Default message subscription rate.
-      public: uint64_t msgsPerSec = kUnthrottled;
-    };
-    }
-  }
-}
-#endif
-=======
-    /// \brief Default message subscription rate.
-    public: uint64_t msgsPerSec = kUnthrottled;
-
-    /// \brief Whether local messages should be ignored or not.
-    public: bool ignoreLocalMessages = false;
-  };
-  }  // GZ_TRANSPORT_VERSION_NAMESPACE
-}  // namespace gz::transport
+  /// \brief Default message subscription rate.
+  public: uint64_t msgsPerSec = kUnthrottled;
+};
+}  // IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport
 #endif  // GZ_TRANSPORT_SUBSCRIBEOPTIONSPRIVATE_HH_
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))

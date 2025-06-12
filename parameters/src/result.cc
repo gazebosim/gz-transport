@@ -20,17 +20,10 @@
 
 #include "gz/transport/parameters/result.hh"
 
-<<<<<<< HEAD
-using namespace ignition;
-using namespace transport;
-using namespace parameters;
-
-=======
-namespace gz::transport::parameters
+namespace ignition::transport::parameters
 {
 // Inline bracket to help doxygen filtering.
-inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
 ParameterResult::ParameterResult(ParameterResultType _resultType)
 : resultType{_resultType}
@@ -77,12 +70,7 @@ ParameterResult::operator bool() const
 }
 
 //////////////////////////////////////////////////
-<<<<<<< HEAD
-std::ostream &
-ignition::transport::parameters::operator<<(
-=======
 std::ostream & operator<<(
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
   std::ostream & os, const ParameterResult & ret)
 {
   std::ostringstream ss;
@@ -116,5 +104,5 @@ std::ostream & operator<<(
   os << ss.str();
   return os;
 }
-}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
-}  // namespace gz::transport::parameters
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport::parameters

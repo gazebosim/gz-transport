@@ -22,26 +22,9 @@
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Helpers.hh"
 
-using namespace gz;
-using namespace transport;
-
-<<<<<<< HEAD
-namespace ignition
+namespace ignition::transport
 {
-  namespace transport
-  {
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
-    {
-    /// \internal
-    /// \brief Private data for AdvertiseOptions class.
-    class AdvertiseOptionsPrivate
-    {
-      /// \brief Constructor.
-      public: AdvertiseOptionsPrivate() = default;
-=======
-namespace gz::transport
-{
-inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
 {
 /// \internal
 /// \brief Private data for AdvertiseOptions class.
@@ -49,7 +32,6 @@ class AdvertiseOptionsPrivate
 {
   /// \brief Constructor.
   public: AdvertiseOptionsPrivate() = default;
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 
   /// \brief Destructor.
   public: virtual ~AdvertiseOptionsPrivate() = default;
@@ -235,5 +217,5 @@ bool AdvertiseServiceOptions::operator!=(
 {
   return !(*this == _other);
 }
-}  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
-}  // namespace gz::transport
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport

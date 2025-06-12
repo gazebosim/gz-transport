@@ -272,5 +272,5 @@ bool WallClock::IsReady() const
 {
   return true;  // Always ready.
 }
-}  // GZ_TRANSPORT_VERSION_NAMESPACE
-}  // namespace gz::transport
+}  // IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport

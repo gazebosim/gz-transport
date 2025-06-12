@@ -35,18 +35,12 @@
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/Node.hh"
 
-<<<<<<< HEAD
 #ifdef _MSC_VER
 # pragma warning(disable: 4503)
 #endif
 
-using namespace gz;
-using namespace transport;
-
-=======
-namespace gz::transport
+namespace ignition::transport
 {
->>>>>>> 14b1f20 (Clean up namespaces - part 4 (#653))
 //////////////////////////////////////////////////
 extern "C" void cmdTopicList()
 {
@@ -333,4 +327,4 @@ extern "C" const char *ignitionVersion()
 {
   return IGNITION_TRANSPORT_VERSION_FULL;
 }
-}  // namespace gz::transport
+}  // namespace ignition::transport
