@@ -22,10 +22,10 @@
 
 #include "gz/transport/TopicStatistics.hh"
 
-using namespace gz;
-using namespace transport;
-
-class gz::transport::TopicStatisticsPrivate
+namespace ignition::transport
+{
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+class TopicStatisticsPrivate
 {
   /// \brief Default constructor
   public: TopicStatisticsPrivate() = default;
@@ -268,3 +268,5 @@ Statistics TopicStatistics::AgeStatistics() const
 {
   return this->dataPtr->age;
 }
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport

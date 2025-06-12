@@ -21,10 +21,12 @@
 #include <sstream>
 #include <string>
 
+namespace ignition::transport::parameters
+{
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
-std::string
-ignition::transport::parameters::addIgnMsgsPrefix(
-  const std::string & ignType)
+std::string addIgnMsgsPrefix(const std::string & ignType)
 {
   std::ostringstream oss{"ign_msgs.", std::ios_base::ate};
   oss << ignType;
@@ -32,8 +34,7 @@ ignition::transport::parameters::addIgnMsgsPrefix(
 }
 
 //////////////////////////////////////////////////
-std::optional<std::string>
-ignition::transport::parameters::getIgnTypeFromAnyProto(
+std::optional<std::string> getIgnTypeFromAnyProto(
   const google::protobuf::Any & any)
 {
   auto typeUrl = any.type_url();
@@ -48,3 +49,5 @@ ignition::transport::parameters::getIgnTypeFromAnyProto(
   }
   return ret.substr(sizeof(prefix) - 1);
 }
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport::parameters

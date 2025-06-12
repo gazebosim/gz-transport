@@ -39,9 +39,8 @@
 # pragma warning(disable: 4503)
 #endif
 
-using namespace gz;
-using namespace transport;
-
+namespace ignition::transport
+{
 //////////////////////////////////////////////////
 extern "C" void cmdTopicList()
 {
@@ -328,3 +327,4 @@ extern "C" const char *ignitionVersion()
 {
   return IGNITION_TRANSPORT_VERSION_FULL;
 }
+}  // namespace ignition::transport

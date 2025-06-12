@@ -27,41 +27,37 @@
 
 #include "gz/transport/Discovery.hh"
 
-namespace ignition
+namespace ignition::transport
 {
-namespace transport
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+/////////////////////////////////////////////////
+bool pollSockets(const std::vector<int> &_sockets, const int _timeout)
 {
-inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
-{
-  /////////////////////////////////////////////////
-  bool pollSockets(const std::vector<int> &_sockets, const int _timeout)
-  {
 #ifdef _WIN32
 // Disable warning C4838
 #pragma warning(push)
 #pragma warning(disable: 4838)
 #endif
-    zmq::pollitem_t items[] =
-    {
-      {0, _sockets.at(0), ZMQ_POLLIN, 0},
-    };
+  zmq::pollitem_t items[] =
+  {
+    {0, _sockets.at(0), ZMQ_POLLIN, 0},
+  };
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
-    try
-    {
-      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
-          std::chrono::milliseconds(_timeout));
-    }
-    catch(...)
-    {
-      return false;
-    }
-
-    // Return if we got a reply.
-    return items[0].revents & ZMQ_POLLIN;
+  try
+  {
+    zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
+        std::chrono::milliseconds(_timeout));
   }
+  catch(...)
+  {
+    return false;
+  }
+
+  // Return if we got a reply.
+  return items[0].revents & ZMQ_POLLIN;
 }
-}
-}
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport

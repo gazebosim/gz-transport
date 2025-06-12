@@ -22,9 +22,8 @@
 
 #include "SubscribeOptionsPrivate.hh"
 
-using namespace gz;
-using namespace transport;
-
+namespace ignition::transport
+{
 //////////////////////////////////////////////////
 SubscribeOptions::SubscribeOptions()
   : dataPtr(new SubscribeOptionsPrivate())
@@ -60,3 +59,4 @@ void SubscribeOptions::SetMsgsPerSec(const uint64_t _newMsgsPerSec)
 {
   this->dataPtr->msgsPerSec = _newMsgsPerSec;
 }
+}  // namespace ignition::transport

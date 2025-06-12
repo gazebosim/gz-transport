@@ -45,172 +45,163 @@
 #pragma warning(disable: 4503)
 #endif
 
-using namespace gz;
-using namespace transport;
-
-namespace ignition
+namespace ignition::transport
 {
-  namespace transport
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+/// \brief Flag to detect SIGINT or SIGTERM while the code is executing
+/// waitForShutdown().
+static bool g_shutdown = false;
+
+/// \brief Mutex to protect the boolean shutdown variable.
+static std::mutex g_shutdown_mutex;
+
+/// \brief Condition variable to wakeup waitForShutdown() and exit.
+static std::condition_variable g_shutdown_cv;
+
+//////////////////////////////////////////////////
+/// \brief Function executed when a SIGINT or SIGTERM signals are captured.
+/// \param[in] _signal Signal received.
+static void signal_handler(const int _signal)
+{
+  if (_signal == SIGINT || _signal == SIGTERM)
   {
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
-    {
-    /// \brief Flag to detect SIGINT or SIGTERM while the code is executing
-    /// waitForShutdown().
-    static bool g_shutdown = false;
-
-    /// \brief Mutex to protect the boolean shutdown variable.
-    static std::mutex g_shutdown_mutex;
-
-    /// \brief Condition variable to wakeup waitForShutdown() and exit.
-    static std::condition_variable g_shutdown_cv;
-
-    //////////////////////////////////////////////////
-    /// \brief Function executed when a SIGINT or SIGTERM signals are captured.
-    /// \param[in] _signal Signal received.
-    static void signal_handler(const int _signal)
-    {
-      if (_signal == SIGINT || _signal == SIGTERM)
-      {
-        g_shutdown_mutex.lock();
-        g_shutdown = true;
-        g_shutdown_mutex.unlock();
-        g_shutdown_cv.notify_all();
-      }
-    }
-
-    //////////////////////////////////////////////////
-    int rcvHwm()
-    {
-      return NodeShared::Instance()->RcvHwm();
-    }
-
-    //////////////////////////////////////////////////
-    int sndHwm()
-    {
-      return NodeShared::Instance()->SndHwm();
-    }
-
-    //////////////////////////////////////////////////
-    void waitForShutdown()
-    {
-      // Install a signal handler for SIGINT and SIGTERM.
-      std::signal(SIGINT,  signal_handler);
-      std::signal(SIGTERM, signal_handler);
-
-      std::unique_lock<std::mutex> lk(g_shutdown_mutex);
-      g_shutdown_cv.wait(lk, []{return g_shutdown;});
-    }
-
-    //////////////////////////////////////////////////
-    /// \internal
-    /// \brief Private data for Node::Publisher class.
-    class Node::PublisherPrivate
-    {
-      /// \brief Default constructor.
-      public: PublisherPrivate()
-        : shared(NodeShared::Instance())
-      {
-      }
-
-      /// \brief Constructor
-      /// \param[in] _publisher The message publisher.
-      public: explicit PublisherPrivate(const MessagePublisher &_publisher)
-        : shared(NodeShared::Instance()),
-          publisher(_publisher)
-      {
-      }
-
-      /// \brief Check if this Publisher is ready to send an update based on
-      /// publication settings and the clock.
-      ///
-      /// \return True if it is okay to publish, false otherwise.
-      public: bool ThrottledUpdateReady() const
-      {
-        if (!this->publisher.Options().Throttled())
-          return true;
-
-        Timestamp now = std::chrono::steady_clock::now();
-
-        std::lock_guard<std::mutex> lk(this->mutex);
-        auto elapsed = now - this->lastCbTimestamp;
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(
-              elapsed).count() >= this->periodNs;
-      }
-
-      /// \brief Check if this Publisher is ready to send an update based on
-      /// publication settings and the clock.
-      ///
-      /// This additionally advances the internal timestamp by one period.
-      ///
-      /// \return True if it is okay to publish, false otherwise.
-      public: bool UpdateThrottling()
-      {
-        if (!this->publisher.Options().Throttled())
-          return true;
-
-        if (!this->ThrottledUpdateReady())
-          return false;
-
-        // Update the last callback execution.
-        std::lock_guard<std::mutex> lk(this->mutex);
-        this->lastCbTimestamp = std::chrono::steady_clock::now();
-        return true;
-      }
-
-      /// \brief Check if this Publisher is valid
-      /// \return True if we have a topic to publish to, otherwise false.
-      public: bool Valid()
-      {
-        return !this->publisher.Topic().empty();
-      }
-
-      /// \brief Destructor.
-      public: virtual ~PublisherPrivate()
-      {
-        std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
-        // Notify the discovery service to unregister and unadvertise my topic.
-        if (!this->shared->dataPtr->msgDiscovery->Unadvertise(
-               this->publisher.Topic(), this->publisher.NUuid()))
-        {
-          std::cerr << "~PublisherPrivate() Error unadvertising topic ["
-                    << this->publisher.Topic() << "]" << std::endl;
-        }
-      }
-
-      /// \brief Create a MessageInfo object for this Publisher
-      MessageInfo CreateMessageInfo()
-      {
-        MessageInfo info;
-
-        // Set the topic and the partition at the same time
-        info.SetTopicAndPartition(this->publisher.Topic());
-
-        // Set the message type name
-        info.SetType(this->publisher.MsgTypeName());
-
-        return info;
-      }
-
-      /// \brief Pointer to the object shared between all the nodes within the
-      /// same process.
-      public: NodeShared *shared = nullptr;
-
-      /// \brief The message publisher.
-      public: MessagePublisher publisher;
-
-      /// \brief Timestamp of the last callback executed.
-      public: Timestamp lastCbTimestamp;
-
-      /// \brief If throttling is enabled, the minimum period for receiving a
-      /// message in nanoseconds.
-      public: double periodNs = 0.0;
-
-      /// \brief Mutex to protect the node::publisher from race conditions.
-      public: mutable std::mutex mutex;
-    };
-    }
+    g_shutdown_mutex.lock();
+    g_shutdown = true;
+    g_shutdown_mutex.unlock();
+    g_shutdown_cv.notify_all();
   }
 }
+
+//////////////////////////////////////////////////
+int rcvHwm()
+{
+  return NodeShared::Instance()->RcvHwm();
+}
+
+//////////////////////////////////////////////////
+int sndHwm()
+{
+  return NodeShared::Instance()->SndHwm();
+}
+
+//////////////////////////////////////////////////
+void waitForShutdown()
+{
+  // Install a signal handler for SIGINT and SIGTERM.
+  std::signal(SIGINT,  signal_handler);
+  std::signal(SIGTERM, signal_handler);
+
+  std::unique_lock<std::mutex> lk(g_shutdown_mutex);
+  g_shutdown_cv.wait(lk, []{return g_shutdown;});
+}
+
+//////////////////////////////////////////////////
+/// \internal
+/// \brief Private data for Node::Publisher class.
+class Node::PublisherPrivate
+{
+  /// \brief Default constructor.
+  public: PublisherPrivate()
+    : shared(NodeShared::Instance())
+  {
+  }
+
+  /// \brief Constructor
+  /// \param[in] _publisher The message publisher.
+  public: explicit PublisherPrivate(const MessagePublisher &_publisher)
+    : shared(NodeShared::Instance()),
+      publisher(_publisher)
+  {
+  }
+
+  /// \brief Check if this Publisher is ready to send an update based on
+  /// publication settings and the clock.
+  ///
+  /// \return True if it is okay to publish, false otherwise.
+  public: bool ThrottledUpdateReady() const
+  {
+    if (!this->publisher.Options().Throttled())
+      return true;
+
+    Timestamp now = std::chrono::steady_clock::now();
+
+    std::lock_guard<std::mutex> lk(this->mutex);
+    auto elapsed = now - this->lastCbTimestamp;
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+          elapsed).count() >= this->periodNs;
+  }
+
+  /// \brief Check if this Publisher is ready to send an update based on
+  /// publication settings and the clock.
+  ///
+  /// This additionally advances the internal timestamp by one period.
+  ///
+  /// \return True if it is okay to publish, false otherwise.
+  public: bool UpdateThrottling()
+  {
+    if (!this->publisher.Options().Throttled())
+      return true;
+
+    if (!this->ThrottledUpdateReady())
+      return false;
+
+    // Update the last callback execution.
+    std::lock_guard<std::mutex> lk(this->mutex);
+    this->lastCbTimestamp = std::chrono::steady_clock::now();
+    return true;
+  }
+
+  /// \brief Check if this Publisher is valid
+  /// \return True if we have a topic to publish to, otherwise false.
+  public: bool Valid()
+  {
+    return !this->publisher.Topic().empty();
+  }
+
+  /// \brief Destructor.
+  public: virtual ~PublisherPrivate()
+  {
+    std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
+    // Notify the discovery service to unregister and unadvertise my topic.
+    if (!this->shared->dataPtr->msgDiscovery->Unadvertise(
+           this->publisher.Topic(), this->publisher.NUuid()))
+    {
+      std::cerr << "~PublisherPrivate() Error unadvertising topic ["
+                << this->publisher.Topic() << "]" << std::endl;
+    }
+  }
+
+  /// \brief Create a MessageInfo object for this Publisher
+  MessageInfo CreateMessageInfo()
+  {
+    MessageInfo info;
+
+    // Set the topic and the partition at the same time
+    info.SetTopicAndPartition(this->publisher.Topic());
+
+    // Set the message type name
+    info.SetType(this->publisher.MsgTypeName());
+
+    return info;
+  }
+
+  /// \brief Pointer to the object shared between all the nodes within the
+  /// same process.
+  public: NodeShared *shared = nullptr;
+
+  /// \brief The message publisher.
+  public: MessagePublisher publisher;
+
+  /// \brief Timestamp of the last callback executed.
+  public: Timestamp lastCbTimestamp;
+
+  /// \brief If throttling is enabled, the minimum period for receiving a
+  /// message in nanoseconds.
+  public: double periodNs = 0.0;
+
+  /// \brief Mutex to protect the node::publisher from race conditions.
+  public: mutable std::mutex mutex;
+};
 
 //////////////////////////////////////////////////
 Node::Publisher::Publisher()
@@ -1067,3 +1058,5 @@ bool Node::RequestRaw(const std::string &_topic,
   bool executed = this->Request(_topic, *req, _timeout, *res, _result);
   return executed && res->SerializeToString(&_response);
 }
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport

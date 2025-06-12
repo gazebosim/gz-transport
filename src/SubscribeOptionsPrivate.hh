@@ -22,27 +22,23 @@
 
 #include "gz/transport/Helpers.hh"
 
-namespace ignition
+namespace ignition::transport
 {
-  namespace transport
-  {
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
-    {
-    /// \class SubscribeOptionsPrivate SubscribeOptionsPrivate.hh
-    /// gz/transport/SubscribeOptionsPrivate.hh
-    /// \brief Private data for the SubscribeOptions class.
-    class SubscribeOptionsPrivate
-    {
-      /// \brief Constructor.
-      public: SubscribeOptionsPrivate() = default;
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+/// \class SubscribeOptionsPrivate SubscribeOptionsPrivate.hh
+/// gz/transport/SubscribeOptionsPrivate.hh
+/// \brief Private data for the SubscribeOptions class.
+class SubscribeOptionsPrivate
+{
+  /// \brief Constructor.
+  public: SubscribeOptionsPrivate() = default;
 
-      /// \brief Destructor.
-      public: virtual ~SubscribeOptionsPrivate() = default;
+  /// \brief Destructor.
+  public: virtual ~SubscribeOptionsPrivate() = default;
 
-      /// \brief Default message subscription rate.
-      public: uint64_t msgsPerSec = kUnthrottled;
-    };
-    }
-  }
-}
-#endif
+  /// \brief Default message subscription rate.
+  public: uint64_t msgsPerSec = kUnthrottled;
+};
+}  // IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport
+#endif  // GZ_TRANSPORT_SUBSCRIBEOPTIONSPRIVATE_HH_

@@ -24,9 +24,8 @@
 
 #include "NodeOptionsPrivate.hh"
 
-using namespace gz;
-using namespace transport;
-
+namespace ignition::transport
+{
 //////////////////////////////////////////////////
 NodeOptions::NodeOptions()
   : dataPtr(new NodeOptionsPrivate())
@@ -134,3 +133,4 @@ bool NodeOptions::TopicRemap(const std::string &_fromTopic,
 
   return topicIt != this->dataPtr->topicsRemap.end();
 }
+}  // namespace ignition::transport

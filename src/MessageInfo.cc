@@ -20,40 +20,31 @@
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/TopicUtils.hh"
 
-using namespace gz;
-using namespace transport;
-
-namespace ignition
+namespace ignition::transport
 {
-  namespace transport
-  {
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
-    {
-    /// \internal
-    /// \brief Private data for MessageInfo class.
-    class MessageInfoPrivate
-    {
-      /// \brief Default constructor.
-      public: MessageInfoPrivate() = default;
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+/// \internal
+/// \brief Private data for MessageInfo class.
+class MessageInfoPrivate
+{
+  /// \brief Default constructor.
+  public: MessageInfoPrivate() = default;
 
-      /// \brief Destructor.
-      public: virtual ~MessageInfoPrivate() = default;
+  /// \brief Destructor.
+  public: virtual ~MessageInfoPrivate() = default;
 
-      /// \brief Topic name.
-      public: std::string topic = "";
+  /// \brief Topic name.
+  public: std::string topic = "";
 
-      /// \brief Message type name.
-      public: std::string type = "";
+  /// \brief Message type name.
+  public: std::string type = "";
 
-      /// \brief Partition name.
-      public: std::string partition = "";
+  /// \brief Partition name.
+  public: std::string partition = "";
 
-      /// \brief Was the message sent via intra-process?
-      public: bool isIntraProcess = false;
-    };
-    }
-  }
-}
+  /// \brief Was the message sent via intra-process?
+  public: bool isIntraProcess = false;
+};
 
 //////////////////////////////////////////////////
 MessageInfo::MessageInfo()
@@ -135,3 +126,5 @@ void MessageInfo::SetIntraProcess(bool _value)
 {
   this->dataPtr->isIntraProcess = _value;
 }
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace ignition::transport

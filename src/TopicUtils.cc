@@ -20,9 +20,8 @@
 
 #include "gz/transport/TopicUtils.hh"
 
-using namespace gz;
-using namespace transport;
-
+namespace ignition::transport
+{
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidNamespace(const std::string &_ns)
 {
@@ -174,3 +173,4 @@ std::string TopicUtils::AsValidTopic(const std::string &_topic)
 
   return validTopic;
 }
+}  // namespace ignition::transport

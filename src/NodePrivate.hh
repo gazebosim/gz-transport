@@ -26,56 +26,52 @@
 #include "gz/transport/Node.hh"
 #include "gz/transport/NodeShared.hh"
 
-namespace ignition
+namespace ignition::transport
 {
-  namespace transport
-  {
-    inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
-    {
-    class NodeShared;
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
+class NodeShared;
 
-    /// \internal
-    /// \brief Private data for Node class.
-    class NodePrivate
-    {
-      /// \brief Constructor.
-      public: NodePrivate() = default;
+/// \internal
+/// \brief Private data for Node class.
+class NodePrivate
+{
+  /// \brief Constructor.
+  public: NodePrivate() = default;
 
-      /// \brief Destructor.
-      public: virtual ~NodePrivate() = default;
+  /// \brief Destructor.
+  public: virtual ~NodePrivate() = default;
 
-      /// \brief Helper function for Subscribe.
-      /// \param[in] _fullyQualifiedTopic Fully qualified topic name
-      /// \return True on success.
-      /// \sa TopicUtils::FullyQualifiedName
-      public: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
+  /// \brief Helper function for Subscribe.
+  /// \param[in] _fullyQualifiedTopic Fully qualified topic name
+  /// \return True on success.
+  /// \sa TopicUtils::FullyQualifiedName
+  public: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
 
-      /// \brief The list of topics subscribed by this node.
-      public: std::unordered_set<std::string> topicsSubscribed;
+  /// \brief The list of topics subscribed by this node.
+  public: std::unordered_set<std::string> topicsSubscribed;
 
-      /// \brief The list of service calls advertised by this node.
-      public: std::unordered_set<std::string> srvsAdvertised;
+  /// \brief The list of service calls advertised by this node.
+  public: std::unordered_set<std::string> srvsAdvertised;
 
-      /// \brief Node UUID. This ID is unique for each node.
-      public: std::string nUuid;
+  /// \brief Node UUID. This ID is unique for each node.
+  public: std::string nUuid;
 
-      /// \brief Pointer to the object shared between all the nodes within the
-      /// same process.
-      public: NodeShared *shared = NodeShared::Instance();
+  /// \brief Pointer to the object shared between all the nodes within the
+  /// same process.
+  public: NodeShared *shared = NodeShared::Instance();
 
-      /// \brief Partition for this node.
-      public: std::string partition = hostname() + ":" + username();
+  /// \brief Partition for this node.
+  public: std::string partition = hostname() + ":" + username();
 
-      /// \brief Default namespace for this node.
-      public: std::string ns = "";
+  /// \brief Default namespace for this node.
+  public: std::string ns = "";
 
-      /// \brief Custom options for this node.
-      public: NodeOptions options;
+  /// \brief Custom options for this node.
+  public: NodeOptions options;
 
-      /// \brief Statistics publisher.
-      public: Node::Publisher statPub;
-    };
-    }
-  }
-}
+  /// \brief Statistics publisher.
+  public: Node::Publisher statPub;
+};
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
+}  // namespace IGNITION_TRANSPORT_NODEPRIVATE_HH_
 #endif

@@ -60,8 +60,6 @@
 #endif
 
 using namespace std::chrono_literals;
-using namespace gz;
-using namespace transport;
 
 const char kIgnAuthDomain[] = "ign-auth";
 
@@ -167,6 +165,8 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 #endif
 }
 
+namespace ignition::transport
+{
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
@@ -1909,3 +1909,4 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
   }
   return numVal;
 }
+}  // namespace ignition::transport
