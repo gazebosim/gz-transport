@@ -141,5 +141,5 @@ RawSubscriptionHandler::~RawSubscriptionHandler()
 {
   // Do nothing. This is here for pimpl.
 }
-}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE 
+}  // namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
 }  // namespace ignition::transport
