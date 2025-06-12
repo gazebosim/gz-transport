@@ -24,9 +24,9 @@
 #include <gz/transport/Clock.hh>
 #include <gz/transport/Node.hh>
 
-namespace gz::transport
+namespace ignition::transport
 {
-inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
 class NetworkClock::Implementation
 {
