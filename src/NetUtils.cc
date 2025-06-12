@@ -54,6 +54,7 @@
 #endif
 
 namespace ignition::transport
+{
 inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 /// \brief Get the preferred local IP address.
 /// Note that we don't consider private IP addresses.

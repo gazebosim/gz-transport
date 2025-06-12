@@ -22,8 +22,7 @@
 
 namespace ignition::transport
 {
-inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
-{
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 /// \internal
 /// \brief Private data for MessageInfo class.
 class MessageInfoPrivate

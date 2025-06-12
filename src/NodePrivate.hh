@@ -28,8 +28,7 @@
 
 namespace ignition::transport
 {
-inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE
-{
+inline namespace IGNITION_TRANSPORT_VERSION_NAMESPACE {
 class NodeShared;
 
 /// \internal
