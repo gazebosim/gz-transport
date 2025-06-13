@@ -17,6 +17,7 @@
 
 #include "gz/transport/config.hh"
 #include "gz/transport/SubscriptionHandler.hh"
+#include "gz/transport/TopicUtils.hh"
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
@@ -92,8 +93,6 @@ namespace gz::transport
   /////////////////////////////////////////////////
   SubscriptionHandlerBase::~SubscriptionHandlerBase()
   {
-    if (dataPtr)
-      delete dataPtr;
   }
 
   /////////////////////////////////////////////////
@@ -181,14 +180,10 @@ namespace gz::transport
       _session->declare_subscriber(
         _topic, dataHandler, zenoh::closures::none));
 
+    std::string token = TopicUtils::CreateLivelinessToken(
+      _topic, this->ProcUuid(), this->NodeUuid(), "sub", this->TypeName());
     this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
-      _session->liveliness_declare_token(
-        "gz" +
-        _topic + "@" +
-        this->ProcUuid() + "@" +
-        this->NodeUuid() + "@" +
-        "sub@" +
-        this->TypeName()));
+      _session->liveliness_declare_token(token));
   }
 #endif
 
@@ -251,14 +246,10 @@ namespace gz::transport
       _session->declare_subscriber(
         keyexpr, dataHandler, zenoh::closures::none));
 
+    std::string token = TopicUtils::CreateLivelinessToken(
+      _topic, this->ProcUuid(), this->NodeUuid(), "sub", this->TypeName());
     this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
-        _session->liveliness_declare_token(
-          "gz" +
-          _topic + "@" +
-          this->ProcUuid() + "@" +
-          this->NodeUuid() + "@" +
-          "sub@" +
-          this->TypeName()));
+        _session->liveliness_declare_token(token));
 
     this->SetCallback(std::move(_cb));
   }

@@ -285,7 +285,7 @@ namespace gz
 
 #ifdef HAVE_ZENOH
       //////////////////////////////////////////////////
-      private: void LivelinessDataHandler(const zenoh::Sample &_sample)
+      public: void LivelinessMsgDataHandler(const zenoh::Sample &_sample)
       {
         std::string token{_sample.get_keyexpr().as_string_view()};
         std::string prefix;
@@ -298,8 +298,6 @@ namespace gz
         if (!TopicUtils::DecomposeLivelinessToken(
           token, prefix, partition, topic, pUUID, nUUID, entityType, msgType))
         {
-          std::cerr << "Unable to decompose liveliness token ["
-                    << token << "]" << std::endl;
           return;
         };
 
@@ -351,6 +349,61 @@ namespace gz
           }
         }
       }
+
+      //////////////////////////////////////////////////
+      public: void LivelinessSrvDataHandler(const zenoh::Sample &_sample)
+      {
+        std::string token{_sample.get_keyexpr().as_string_view()};
+        std::string prefix;
+        std::string partition;
+        std::string service;
+        std::string pUUID;
+        std::string nUUID;
+        std::string entityType;
+        std::string reqType;
+        std::string repType;
+        if (!TopicUtils::DecomposeLivelinessToken(
+          token, prefix, partition, service, pUUID, nUUID, entityType,
+          reqType, repType))
+        {
+          return;
+        };
+
+        ServicePublisher pub(
+          "@" + partition + "@" + service, "", "", pUUID, nUUID, reqType,
+          repType, AdvertiseServiceOptions());
+
+        {
+          std::lock_guard<std::mutex> lock(this->mutex);
+
+          if (_sample.get_kind() == Z_SAMPLE_KIND_PUT)
+          {
+            if (entityType == "srv")
+            {
+              this->info.AddPublisher(pub);
+            }
+
+            if (this->verbose)
+            {
+              std::cout << ">> [LivelinessSubscriber] New alive token ('"
+                        << _sample.get_keyexpr().as_string_view() << "')\n";
+            }
+          }
+          else if (_sample.get_kind() == Z_SAMPLE_KIND_DELETE)
+          {
+            if (entityType == "srv")
+            {
+              this->info.DelPublisherByNode("@" + partition + "@" + pub.Topic(),
+                pub.PUuid(), pub.NUuid());
+            }
+            if (this->verbose)
+            {
+              std::cout << ">> [LivelinessSubscriber] Dropped token ('"
+                        << _sample.get_keyexpr().as_string_view() << "')\n";
+            }
+          }
+        }
+      }
 #endif
 
       /// \brief Start the discovery service. You probably want to register the
@@ -378,15 +431,14 @@ namespace gz
 
 #ifdef HAVE_ZENOH
       /// \brief Start the graph cache.
-      public: void Start(std::shared_ptr<zenoh::Session> _session)
+      public: void Start(std::shared_ptr<zenoh::Session> _session,
+                         LivelinessCallback _cb)
       {
         zenoh::Session::LivelinessSubscriberOptions opts;
         opts.history = true;
         this->livelinessSubscriber = std::make_unique<zenoh::Subscriber<void>>(
           _session->liveliness_declare_subscriber(
-            "**", std::bind(&Discovery::LivelinessDataHandler,
-            this, std::placeholders::_1), zenoh::closures::none,
-            std::move(opts)));
+            "**", _cb, zenoh::closures::none, std::move(opts)));
 
         this->initialized = true;
         this->useZenoh = true;

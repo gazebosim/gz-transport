@@ -293,7 +293,8 @@ namespace gz
 
       // Create a new service reply handler.
       std::shared_ptr<RepHandler<RequestT, ReplyT>> repHandlerPtr(
-        new RepHandler<RequestT, ReplyT>());
+        new RepHandler<RequestT, ReplyT>(this->Shared()->pUuid,
+          this->NodeUuid()));
 
       // Insert the callback into the handler.
       std::string impl = this->Shared()->GzImplementation();

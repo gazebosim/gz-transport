@@ -52,6 +52,15 @@ release will remove the deprecated code.
 
 ### Breaking Changes
 
+1. The `RepHandler.hh::IRepHandler` constructor now
+   requires two parameters (process UUID, and  node UUID). The new signature is:
+   ```cpp
+   IRepHandler(
+     const std::string &_pUuid,
+     const std::string &_nUuid);
+   ```
+   * [GitHub pull request 657](https://github.com/gazebosim/gz-transport/pull/657)
+
 1. The `SubscriptionHandler.hh::SubscriptionHandlerBase` constructor now
    requires a new parameter (process UUID). The new signature is:
    ```cpp

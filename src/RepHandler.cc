@@ -19,6 +19,7 @@
 #include <string>
 #include "gz/transport/config.hh"
 #include "gz/transport/RepHandler.hh"
+#include "gz/transport/TopicUtils.hh"
 #include "gz/transport/Uuid.hh"
 
 #ifdef HAVE_ZENOH
@@ -34,13 +35,23 @@ namespace gz::transport
   class IRepHandlerPrivate
   {
     /// \brief Default constructor.
-    public: IRepHandlerPrivate()
-    : hUuid(Uuid().ToString())
+    public: IRepHandlerPrivate(
+      const std::string &_pUuid,
+      const std::string &_nUuid)
+    : pUuid(_pUuid),
+      nUuid(_nUuid),
+      hUuid(Uuid().ToString())
     {
     }
 
     /// \brief Destructor.
     public: virtual ~IRepHandlerPrivate() = default;
+
+    /// \brief Process UUID.
+    public: std::string pUuid;
+
+    /// \brief Node UUID.
+    public: std::string nUuid;
 
     /// \brief Handler UUID.
     public: std::string hUuid;
@@ -48,12 +59,16 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
     /// \brief Zenoh queriable to receive requests.
     std::unique_ptr<zenoh::Queryable<void>> zQueryable;
+
+    /// \brief The liveliness token.
+    public: std::unique_ptr<zenoh::LivelinessToken> zToken;
 #endif
   };
 
   /////////////////////////////////////////////////
-  IRepHandler::IRepHandler()
-    : dataPtr(new IRepHandlerPrivate())
+  IRepHandler::IRepHandler(const std::string &_pUuid,
+      const std::string &_nUuid)
+    : dataPtr(new IRepHandlerPrivate(_pUuid, _nUuid))
   {
   }
 
@@ -87,6 +102,12 @@ namespace gz::transport
     this->dataPtr->zQueryable = std::make_unique<zenoh::Queryable<void>>(
       _session->declare_queryable(
         _service, onQuery, onDropQueryable, std::move(opts)));
+
+    std::string token = TopicUtils::CreateLivelinessToken(
+      _service, this->dataPtr->pUuid, this->dataPtr->nUuid, "srv",
+      this->ReqTypeName(), this->RepTypeName());
+    this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
+      _session->liveliness_declare_token(token));
   }
 #endif
   }

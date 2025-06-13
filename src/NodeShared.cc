@@ -330,7 +330,13 @@ NodeShared::NodeShared()
 #ifdef HAVE_ZENOH
   else if (this->GzImplementation() == "zenoh")
   {
-    this->dataPtr->msgDiscovery->Start(this->Session());
+    this->dataPtr->msgDiscovery->Start(this->Session(),
+      std::bind(&MsgDiscovery::LivelinessMsgDataHandler,
+            this->dataPtr->msgDiscovery.get(), std::placeholders::_1));
+
+    this->dataPtr->srvDiscovery->Start(this->Session(),
+      std::bind(&SrvDiscovery::LivelinessSrvDataHandler,
+            this->dataPtr->srvDiscovery.get(), std::placeholders::_1));
   }
 #endif
 

@@ -164,6 +164,76 @@ namespace gz::transport
       std::string &_entityType,
       std::string &_msgType);
 
+    /// \brief Decompose a Zenoh liveliness token into its components.
+    ///
+    /// Given a Zenoh liveliness token with the following syntax:
+    ///
+    /// \<PREFIX\>\@\<PARTITION\>\@\<NAMESPACE\>/\<TOPIC\>@\<ProcUUID\>
+    /// \@\<NodeUUID\>\@\<EntityType\>\@\<ReqType\>\@\<RepType\>
+    ///
+    /// The _prefix output argument will be set to \<PREFIX\>, the _partition
+    /// output argument will be set to \<PARTITION\>, the
+    /// _namespaceAndTopic output argument will be set to
+    /// \<NAMESPACE\>/\<TOPIC\>, the _pUUID output argument will be set to
+    /// \<ProcUUID\>, the _nUUID output argument will be set to
+    /// \<NodeUUID\>, the _entityType output argument will be set to
+    /// \<EntityType\>, the _reqType output argument will be set to
+    /// \<ReqType\>, the _repType output argument will be set to
+    /// \<RepType\>.
+    ///
+    /// \param[in] _token The Zenoh liveliness token.
+    /// \param[out] _prefix The prefix component.
+    /// \param[out] _partition The partition component.
+    /// \param[out] _namespaceAndTopic The namespace and topic name component.
+    /// Note that there is no way to distinguish between where a namespace
+    /// ends and a topic name begins, since topic names may contain slashes.
+    /// \param[out] _pUUID The process UUID component.
+    /// \param[out] _nUUID The node UUID component.
+    /// \param[out] _entityType The entity type (pub, sub) component.
+    /// \param[out] _reqType The service request message type.
+    /// \param[out] _repType The service response message type.
+    /// \return True if all the components were set.
+    public: static bool DecomposeLivelinessToken(
+      const std::string &_token,
+      std::string &_prefix,
+      std::string &_partition,
+      std::string &_namespaceAndTopic,
+      std::string &_pUUID,
+      std::string &_nUUID,
+      std::string &_entityType,
+      std::string &_reqType,
+      std::string &_repType);
+
+    /// \brief Create a liveliness token.
+    /// \param[in] _fullyQualifiedTopic The fully qualified topic.
+    /// \param[in] _pUuid The process UUID.
+    /// \param[in] _nUuid The node UUID.
+    /// \param[in] _entityType The entity type (pub, sub, srv).
+    /// \param[in] _msgTypeName The message type.
+    /// \return The liveliness token.
+    public: static std::string CreateLivelinessToken(
+      const std::string &_fullyQualifiedTopic,
+      const std::string &_pUuid,
+      const std::string &_nUuid,
+      const std::string &_entityType,
+      const std::string &_msgTypeName);
+
+    /// \brief Create a liveliness token.
+    /// \param[in] _fullyQualifiedTopic The fully qualified topic.
+    /// \param[in] _pUuid The process UUID.
+    /// \param[in] _nUuid The node UUID.
+    /// \param[in] _entityType The entity type (pub, sub, srv).
+    /// \param[in] _reqTypeName The service request type.
+    /// \param[in] _repTypeName The service response type.
+    /// \return The liveliness token.
+    public: static std::string CreateLivelinessToken(
+      const std::string &_fullyQualifiedTopic,
+      const std::string &_pUuid,
+      const std::string &_nUuid,
+      const std::string &_entityType,
+      const std::string &_reqTypeName,
+      const std::string &_repTypeName);
+
     /// \brief Convert a topic name to a valid topic. The input topic is
     /// modified by:
     /// * turning white space into `_`.
@@ -176,6 +246,12 @@ namespace gz::transport
     /// allowed in a namespace, a partition name, a topic name, and a fully
     /// qualified topic name.
     public: static const uint16_t kMaxNameLength = 65535;
+
+    /// \brief The separator used within the liveliness token.
+    public: static constexpr const char *kTokenSeparator = "@";
+
+    /// \brief A common prefix for all liveliness tokens.
+    public: static constexpr const char *kTokenPrefix = "gz";
   };
   }
 }
