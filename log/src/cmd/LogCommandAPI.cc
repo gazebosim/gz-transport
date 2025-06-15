@@ -18,6 +18,7 @@
 #include "LogCommandAPI.hh"
 
 #include <csignal>
+#include <filesystem>
 #include <iostream>
 #include <regex>
 #include <string>
@@ -33,20 +34,28 @@ using namespace gz;
 transport::log::PlaybackHandlePtr g_playbackHandler;
 
 //////////////////////////////////////////////////
-int verbosity(int _level)
+void verbosity(const int _level)
 {
-  if (_level < 0 || _level > 4)
-  {
-    std::cerr << "Invalid verbosity level\n";
-    return INVALID_VERSION;
-  }
   transport::log::__verbosity = _level;
-  return SUCCESS;
 }
 
 //////////////////////////////////////////////////
-int recordTopics(const char *_file, const char *_pattern)
+int recordTopics(const char *_file, const char *_pattern, int force)
 {
+  if (force)
+  {
+    try
+    {
+      std::filesystem::remove(_file);
+      LDBG("Deleted existing file.\n");
+    }
+    catch(const std::filesystem::filesystem_error &e)
+    {
+      LERR("Unable to delete existing file.\n");
+      return FAILED_TO_DELETE;
+    }
+  }
+
   std::regex regexPattern;
   try
   {
@@ -103,13 +112,19 @@ int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
     // Sanity check: It should contain the := delimiter.
     auto delim = remap.find(":=");
     if (delim == std::string::npos)
+    {
+      LERR("Invalid remap as := delimiter is missing");
       return INVALID_REMAP;
+    }
 
     std::string from = remap.substr(0, delim);
     std::string to = remap.substr(delim + 2, remap.size() - delim - 1);
 
     if (!nodeOptions.AddTopicRemap(from, to))
+    {
+      LERR("Invalid remap of topics");
       return INVALID_REMAP;
+    }
   }
 
   transport::log::Playback player(_file, nodeOptions);
@@ -117,7 +132,10 @@ int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
     return FAILED_TO_OPEN;
 
   if (player.AddTopic(regexPattern) < 0)
+  {
+    LERR("Failed to advertise topic(s)");
     return FAILED_TO_ADVERTISE;
+  }
 
   std::this_thread::sleep_for(std::chrono::milliseconds(_wait_ms));
 
