@@ -15,52 +15,157 @@
  *
 */
 
-#include "cmd/LogCommandAPI.hh"
 #include "gtest/gtest.h"
 
-//////////////////////////////////////////////////
-TEST(LogCommandAPI, Version)
+static const std::string kGzLogCommand(std::string(GZ_PATH) + " log ");
+
+/////////////////////////////////////////////////
+std::string customExecStr(std::string _cmd)
 {
-  EXPECT_EQ(INVALID_VERSION, verbosity(-1));
-  EXPECT_EQ(SUCCESS, verbosity(0));
-  EXPECT_EQ(INVALID_VERSION, verbosity(5));
+  std::cout << "Running command [" << _cmd << "]" << std::endl;
+
+  _cmd += " 2>&1";
+  FILE *pipe = popen(_cmd.c_str(), "r");
+
+  if (!pipe)
+    return "ERROR";
+
+  char buffer[128];
+  std::string result = "";
+
+  while (!feof(pipe))
+  {
+    if (fgets(buffer, 128, pipe) != nullptr)
+    {
+      result += buffer;
+    }
+  }
+
+  pclose(pipe);
+  return result;
 }
 
 //////////////////////////////////////////////////
+// Test `gz log record` subcommand for regex
 TEST(LogCommandAPI, RecordBadRegex)
 {
-  EXPECT_EQ(BAD_REGEX, recordTopics(":memory:", "*"));
+  // Tested command: gz log record --file ':memory:' --pattern '*'
+  const std::string cmd =
+    kGzLogCommand + "record --file ':memory:' --pattern '*'";
+  const std::string output = customExecStr(cmd);
+  const std::string expectedOutput = "\nRegex pattern is invalid\n";
+
+  EXPECT_EQ(expectedOutput, output);
 }
 
 //////////////////////////////////////////////////
+// Test `gz log playback` subcommand for regex
 TEST(LogCommandAPI, PlaybackBadRegex)
 {
-  EXPECT_EQ(BAD_REGEX, playbackTopics(":memory:", "*", 0, "", true));
+  // Tested command: gz log record --file ':memory:' --pattern '*' --wait 0
+  const std::string cmd =
+    kGzLogCommand + "playback --file ':memory:' --pattern '*' "
+    "--wait 0";
+  const std::string output = customExecStr(cmd);
+  const std::string expectedOutput = "\nRegex pattern is invalid\n";
+
+  EXPECT_EQ(expectedOutput, output);
 }
 
 //////////////////////////////////////////////////
+// Test `gz log playback` subcommand for topic remap
 TEST(LogCommandAPI, PlaybackBadRemap)
 {
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo", true));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo:=",
-        false));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, "/foo:= ",
-        true));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, ":=/bar",
-        false));
-  EXPECT_EQ(INVALID_REMAP, playbackTopics(":memory:", ".*", 0, " :=/bar",
-        true));
+  // Tested command:
+  // gz log record --file ':memory:' --pattern '*' --wait 0 --remap '/foo' -f
+  {
+    const std::string cmd =
+      kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
+      "--wait 0 --remap '/foo' -f";
+    const std::string output = customExecStr(cmd);
+    const std::string expectedOutput =
+      "\nInvalid remap as := delimiter is missing\n";
+
+    EXPECT_EQ(expectedOutput, output);
+  }
+
+  // Tested command:
+  // gz log record --file ':memory:' --pattern '*' --wait 0 --remap '/foo:='
+  {
+    const std::string cmd =
+      kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
+      "--wait 0 --remap '/foo:='";
+    const std::string output = customExecStr(cmd);
+    const std::string expectedOutput = "Invalid remap of topics\n";
+
+    EXPECT_EQ(expectedOutput, output);
+  }
+
+  // Tested command:
+  // gz log record --file ':memory:' --pattern '*' --wait 0 --remap '/foo:=' -f
+  {
+    const std::string cmd =
+      kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
+      "--wait 0 --remap '/foo:=' -f";
+    const std::string output = customExecStr(cmd);
+    const std::string expectedOutput = "Invalid remap of topics\n";
+
+    EXPECT_EQ(expectedOutput, output);
+  }
+
+  // Tested command:
+  // gz log record --file ':memory:' --pattern '*' --wait 0 --remap ':=/bar'
+  {
+    const std::string cmd =
+      kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
+      "--wait 0 --remap ':=/bar'";
+    const std::string output = customExecStr(cmd);
+    const std::string expectedOutput = "Invalid remap of topics\n";
+
+    EXPECT_EQ(expectedOutput, output);
+  }
+
+  // Tested command:
+  // gz log record --file ':memory:' --pattern '*' --wait 0 --remap ':=/bar' -f
+  {
+    const std::string cmd =
+      kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
+      "--wait 0 --remap ':=/bar' -f";
+    const std::string output = customExecStr(cmd);
+    const std::string expectedOutput = "Invalid remap of topics\n";
+
+    EXPECT_EQ(expectedOutput, output);
+  }
 }
 
 //////////////////////////////////////////////////
+// Test `gz log record` subcommand for opening file
 TEST(LogCommandAPI, RecordFailedToOpen)
 {
-  EXPECT_EQ(FAILED_TO_OPEN, recordTopics("!@#$%^&*(:;[{]})?/.'|", ".*"));
+  // Tested command: gz log record --file '!@#$%^&*(:;[{]})?/.|' --pattern '.*'
+  const std::string cmd =
+    kGzLogCommand + "record --file '!@#$%^&*(:;[{]})?/.|' --pattern '.*'";
+  const std::string output = customExecStr(cmd);
+  const std::string expectedOutput =
+    "\nFailed to open the requested sqlite3 database"
+    "\nFailed to open or create file [!@#$%^&*(:;[{]})?/.|]\n";
+
+  EXPECT_EQ(expectedOutput, output);
 }
 
 //////////////////////////////////////////////////
+// Test `gz log playback` subcommand for opening file
 TEST(LogCommandAPI, PlaybackFailedToOpen)
 {
-  EXPECT_EQ(FAILED_TO_OPEN,
-    playbackTopics("!@#$%^&*(:;[{]})?/.'|", ".*", 0, "", false));
+  // Tested command:
+  // gz log playback --file '!@#$%^&*(:;[{]})?/.|' --pattern '.*' --wait 0
+  const std::string cmd =
+    kGzLogCommand + "playback --file '!@#$%^&*(:;[{]})?/.|' "
+    "--pattern '.*' --wait 0";
+  const std::string output = customExecStr(cmd);
+  const std::string expectedOutput =
+    "\nFailed to open the requested sqlite3 database"
+    "\nFailed to open or create file [!@#$%^&*(:;[{]})?/.|]\n";
+
+  EXPECT_EQ(expectedOutput, output);
 }
