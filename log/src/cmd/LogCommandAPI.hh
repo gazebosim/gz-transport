@@ -17,17 +17,6 @@
 
 #include <gz/transport/log/Export.hh>
 
-enum {
-  SUCCESS             = 0,
-  FAILED_TO_OPEN      = 1,
-  BAD_REGEX           = 2,
-  FAILED_TO_ADVERTISE = 3,
-  FAILED_TO_SUBSCRIBE = 4,
-  INVALID_VERSION     = 5,
-  INVALID_REMAP       = 6,
-  FAILED_TO_DELETE    = 7,
-};
-
 /// \brief Sets verbosity of library
 /// \param[in] _level [0-4] Verbosity level
 void verbosity(const int _level);
@@ -35,10 +24,11 @@ void verbosity(const int _level);
 /// \brief Record topics whose name matches the given pattern
 /// \param[in] _file Path to the log file to record
 /// \param[in] _pattern ECMAScript regular expression to match against topics
-int recordTopics(
+/// \param[in] _force Flag to overwrite existing file
+void recordTopics(
   const char *_file,
   const char *_pattern,
-  int force);
+  int _force);
 
 /// \brief Playback topics whose name matches the given pattern
 /// \param[in] _file Path to the log file to playback
@@ -46,7 +36,7 @@ int recordTopics(
 /// \param[in] _wait_ms How long to wait before the publications begin after
 /// advertising the topics that will be played back (milliseconds)
 /// \param[in] _fast Set to > 0 to disable wait between messages.
-int playbackTopics(
+void playbackTopics(
   const char *_file,
   const char *_pattern,
   const int _wait_ms,

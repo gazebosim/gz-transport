@@ -26,21 +26,30 @@
 #include <gz/transport/config.hh>
 #include "LogCommandAPI.hh"
 
+//////////////////////////////////////////////////
+/// \brief Structure to hold all available log options
 struct LogOptions
 {
+  /// \brief Log filename
   std::string file{""};
 
+  /// \brief Regex pattern
   std::string pattern{".+"};
 
+  /// \brief Flag to for file overwrite
   int force{0};
 
+  /// \brief Remap of topics
   std::string remap{""};
 
+  /// \brief Wait time between topic advertisement (in ms)
   int wait{1000};
 
+  /// \brief Flag to enable fast playback
   int fast{0};
 };
 
+//////////////////////////////////////////////////
 void addCommonFlags(CLI::App *_app)
 {
   _app->add_option_function<int>("-v,--verbose",
@@ -52,6 +61,7 @@ void addCommonFlags(CLI::App *_app)
     ->default_val(1);
 }
 
+//////////////////////////////////////////////////
 void addRecordFlags(CLI::App *_app)
 {
   auto opt = std::make_shared<LogOptions>();
@@ -75,6 +85,7 @@ void addRecordFlags(CLI::App *_app)
     });
 }
 
+//////////////////////////////////////////////////
 void addPlaybackFlags(CLI::App *_app)
 {
   auto opt = std::make_shared<LogOptions>();
@@ -110,6 +121,7 @@ void addPlaybackFlags(CLI::App *_app)
       });
 }
 
+//////////////////////////////////////////////////
 int main(int argc, char** argv)
 {
   CLI::App app{"Record and playback Gazebo Transport topics"};
