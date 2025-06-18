@@ -138,9 +138,8 @@ namespace gz::transport
     /// \brief Create a Zenoh get.
     /// \param[in] _session Zenoh session.
     /// \param[in] _service The service.
-    protected: void CreateZenohGet(
-      std::shared_ptr<zenoh::Session> _session,
-      const std::string &_service);
+    public: void CreateZenohGet(std::shared_ptr<zenoh::Session> _session,
+                                const std::string &_service);
 #endif
 
 #ifdef _WIN32

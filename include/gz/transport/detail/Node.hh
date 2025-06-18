@@ -638,26 +638,37 @@ namespace gz
       this->Shared()->Requests().AddHandler(
         fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
 
+      std::string impl = this->Shared()->GzImplementation();
       // If the responser's address is known, make the request.
-      SrvAddresses_M addresses;
-      if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
+      if (impl == "zeromq")
       {
-        this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-          std::string(_request.GetTypeName()),
-          std::string(_reply.GetTypeName()));
-      }
-      else
-      {
-        // Discover the service responser.
-        if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
+        SrvAddresses_M addresses;
+        if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
         {
-          std::cerr << "Node::Request(): Error discovering service ["
-                    << topic
-                    << "]. Did you forget to start the discovery service?"
-                    << std::endl;
-          return false;
+          this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
+            std::string(_request.GetTypeName()),
+            std::string(_reply.GetTypeName()));
+        }
+        else
+        {
+          // Discover the service responser.
+          if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
+          {
+            std::cerr << "Node::Request(): Error discovering service ["
+                      << topic
+                      << "]. Did you forget to start the discovery service?"
+                      << std::endl;
+            return false;
+          }
         }
       }
+#ifdef HAVE_ZENOH
+      else if (impl == "zenoh")
+      {
+        reqHandlerPtr->CreateZenohGet(
+          this->Shared()->Session(), fullyQualifiedTopic);
+      }
+#endif
 
       // Wait until the REP is available.
       bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
