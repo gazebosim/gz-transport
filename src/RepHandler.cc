@@ -92,8 +92,12 @@ namespace gz::transport
     auto onQuery = [this, _service](const zenoh::Query &_query)
     {
       std::string output;
-      this->RunCallback(_query.get_payload()->get().as_string(), output);
-      _query.reply(_service, output);
+      std::string input = "";
+      if (_query.get_payload())
+        input = _query.get_payload()->get().as_string();
+
+      if (this->RunCallback(input, output))
+        _query.reply(_service, output);
     };
 
     auto onDropQueryable = []() {};
