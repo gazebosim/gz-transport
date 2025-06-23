@@ -111,7 +111,7 @@ void playbackTopics(const char *_file, const char *_pattern,
     auto delim = remap.find(":=");
     if (delim == std::string::npos)
     {
-      LERR("Invalid remap as := delimiter is missing");
+      LERR("Invalid remap as := delimiter is missing\n");
       return;
     }
 
@@ -120,7 +120,7 @@ void playbackTopics(const char *_file, const char *_pattern,
 
     if (!nodeOptions.AddTopicRemap(from, to))
     {
-      LERR("Invalid remap of topics");
+      LERR("Invalid remap of topics\n");
       return;
     }
   }
@@ -131,7 +131,7 @@ void playbackTopics(const char *_file, const char *_pattern,
 
   if (player.AddTopic(regexPattern) < 0)
   {
-    LERR("Failed to advertise topic(s)");
+    LERR("Failed to advertise topic(s)\n");
     return;
   }
 
