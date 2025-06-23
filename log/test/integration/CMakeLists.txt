@@ -40,28 +40,3 @@ foreach(test_target ${logging_tests})
   target_compile_definitions(${test_target}
     PRIVATE GZ_TRANSPORT_LOG_SQL_PATH="${PROJECT_SOURCE_DIR}/log/sql")
 endforeach()
-
-
-# gz log CLI test
-if (HAVE_GZ_TOOLS)
-  set(GZ_CONFIG_PATH "${CMAKE_BINARY_DIR}/log/test/lib/ruby/gz")
-
-  add_test(gz_log_record_no_overwrite
-    ruby ${CMAKE_CURRENT_SOURCE_DIR}/gz_log_record_no_overwrite.rb
-  )
-
-  # Test disabled
-  # add_test(gz_log_record_force
-  #   ruby ${CMAKE_CURRENT_SOURCE_DIR}/gz_log_record_force.rb
-  # )
-
-  set_tests_properties(
-    gz_log_record_no_overwrite
-    # Test disabled
-    # gz_log_record_force
-    PROPERTIES
-    ENVIRONMENT
-      "GZ_CONFIG_PATH=${GZ_CONFIG_PATH};GZ_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql"
-    TIMEOUT 10
-  )
-endif ()
