@@ -104,7 +104,8 @@ TEST(LogCommandAPI, PlaybackBadRemap)
   }
 
   // Tested command:
-  // gz log playback --file ':memory:' --pattern '.*' --wait 0 --remap '/foo:=' -f
+  // gz log playback --file ':memory:' --pattern '.*'
+  // --wait 0 --remap '/foo:=' -f
   {
     const std::string cmd =
       kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
@@ -132,7 +133,8 @@ TEST(LogCommandAPI, PlaybackBadRemap)
   }
 
   // Tested command:
-  // gz log playback --file ':memory:' --pattern '.*' --wait 0 --remap ':=/bar' -f
+  // gz log playback --file ':memory:' --pattern '.*'
+  // --wait 0 --remap ':=/bar' -f
   {
     const std::string cmd =
       kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
