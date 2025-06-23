@@ -53,7 +53,7 @@ TEST(LogCommandAPI, RecordBadRegex)
   const std::string cmd =
     kGzLogCommand + "record --file ':memory:' --pattern '*'";
   const std::string output = customExecStr(cmd);
-  const std::string expectedOutput = "\nRegex pattern is invalid\n";
+  const std::string expectedOutput = "Regex pattern is invalid\n";
 
   EXPECT_EQ(expectedOutput, output);
 }
@@ -67,7 +67,7 @@ TEST(LogCommandAPI, PlaybackBadRegex)
     kGzLogCommand + "playback --file ':memory:' --pattern '*' "
     "--wait 0";
   const std::string output = customExecStr(cmd);
-  const std::string expectedOutput = "\nRegex pattern is invalid\n";
+  const std::string expectedOutput = "Regex pattern is invalid\n";
 
   EXPECT_EQ(expectedOutput, output);
 }
@@ -84,7 +84,7 @@ TEST(LogCommandAPI, PlaybackBadRemap)
       "--wait 0 --remap '/foo' -f";
     const std::string output = customExecStr(cmd);
     const std::string expectedOutput =
-      "\nInvalid remap as := delimiter is missing\n";
+      "Invalid remap as := delimiter is missing";
 
     EXPECT_EQ(expectedOutput, output);
   }
@@ -147,8 +147,8 @@ TEST(LogCommandAPI, RecordFailedToOpen)
     kGzLogCommand + "record --file '!@#$%^&*(:;[{]})?/.|' --pattern '.*'";
   const std::string output = customExecStr(cmd);
   const std::string expectedOutput =
-    "\nFailed to open the requested sqlite3 database"
-    "\nFailed to open or create file [!@#$%^&*(:;[{]})?/.|]\n";
+    "Failed to open the requested sqlite3 database\n"
+    "Failed to open or create file [!@#$%^&*(:;[{]})?/.|]\n";
 
   EXPECT_EQ(expectedOutput, output);
 }
@@ -164,8 +164,8 @@ TEST(LogCommandAPI, PlaybackFailedToOpen)
     "--pattern '.*' --wait 0";
   const std::string output = customExecStr(cmd);
   const std::string expectedOutput =
-    "\nFailed to open the requested sqlite3 database"
-    "\nFailed to open or create file [!@#$%^&*(:;[{]})?/.|]\n";
+    "Failed to open the requested sqlite3 database\n"
+    "Could not open file [!@#$%^&*(:;[{]})?/.|]\n";
 
   EXPECT_EQ(expectedOutput, output);
 }
