@@ -96,8 +96,7 @@ namespace gz::transport::log
     /// \param[in] _options A QueryOptions type to indicate what kind of
     /// messages you would like to query.
     /// \return A Batch which matches the requested QueryOptions.
-    public: Batch QueryMessages(
-        const QueryOptions &_options = AllTopics());
+    public: Batch QueryMessages(const QueryOptions &_options = AllTopics());
 
     /// \brief Get start time of the log, or in other words the
     /// time of the first message found in the log
