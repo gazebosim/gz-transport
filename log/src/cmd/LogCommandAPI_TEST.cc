@@ -15,7 +15,15 @@
  *
 */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
+#include <iostream>
+#include <stdio.h>
+
+#ifdef _WIN32
+  #define popen _popen
+  #define pclose _pclose
+#endif
 
 static const std::string kGzLogCommand(std::string(GZ_PATH) + " log ");
 
