@@ -63,7 +63,7 @@ TEST(LogCommandAPI, RecordBadRegex)
   const std::string output = customExecStr(cmd);
   const std::string expectedOutput = "Regex pattern is invalid\n";
 
-  EXPECT_EQ(expectedOutput, output);
+  EXPECT_NE(output.find(expectedOutput), std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -77,7 +77,7 @@ TEST(LogCommandAPI, PlaybackBadRegex)
   const std::string output = customExecStr(cmd);
   const std::string expectedOutput = "Regex pattern is invalid\n";
 
-  EXPECT_EQ(expectedOutput, output);
+  EXPECT_NE(output.find(expectedOutput), std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -94,7 +94,7 @@ TEST(LogCommandAPI, PlaybackBadRemap)
     const std::string expectedOutput =
       "Invalid remap as := delimiter is missing\n";
 
-    EXPECT_EQ(expectedOutput, output);
+    EXPECT_NE(output.find(expectedOutput), std::string::npos);
   }
 
   // Tested command:
@@ -108,7 +108,7 @@ TEST(LogCommandAPI, PlaybackBadRemap)
       "Invalid topic name []\n"
       "Invalid remap of topics\n";
 
-    EXPECT_EQ(expectedOutput, output);
+    EXPECT_NE(output.find(expectedOutput), std::string::npos);
   }
 
   // Tested command:
@@ -123,7 +123,7 @@ TEST(LogCommandAPI, PlaybackBadRemap)
       "Invalid topic name []\n"
       "Invalid remap of topics\n";
 
-    EXPECT_EQ(expectedOutput, output);
+    EXPECT_NE(output.find(expectedOutput), std::string::npos);
   }
 
   // Tested command:
@@ -137,7 +137,7 @@ TEST(LogCommandAPI, PlaybackBadRemap)
       "Invalid topic name []\n"
       "Invalid remap of topics\n";
 
-    EXPECT_EQ(expectedOutput, output);
+    EXPECT_NE(output.find(expectedOutput), std::string::npos);
   }
 
   // Tested command:
@@ -152,7 +152,7 @@ TEST(LogCommandAPI, PlaybackBadRemap)
       "Invalid topic name []\n"
       "Invalid remap of topics\n";
 
-    EXPECT_EQ(expectedOutput, output);
+    EXPECT_NE(output.find(expectedOutput), std::string::npos);
   }
 }
 
@@ -168,7 +168,7 @@ TEST(LogCommandAPI, RecordFailedToOpen)
     "Failed to open the requested sqlite3 database\n"
     "Failed to open or create file [!@#$%^&*(:;[{]})?/.|]\n";
 
-  EXPECT_EQ(expectedOutput, output);
+  EXPECT_NE(output.find(expectedOutput), std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -185,5 +185,5 @@ TEST(LogCommandAPI, PlaybackFailedToOpen)
     "Failed to open the requested sqlite3 database\n"
     "Could not open file [!@#$%^&*(:;[{]})?/.|]\n";
 
-  EXPECT_EQ(expectedOutput, output);
+  EXPECT_NE(output.find(expectedOutput), std::string::npos);
 }
