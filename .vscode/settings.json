@@ -1,6 +1,0 @@
-{
-    "ros.distro": "rolling",
-    "files.associations": {
-        "stdexcept": "cpp"
-    }
-}
