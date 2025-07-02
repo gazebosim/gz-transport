@@ -583,12 +583,6 @@ NodeShared::SubscriberInfo NodeShared::CheckSubscriberInfo(
   info.haveRemote = this->remoteSubscribers.HasTopic(
         _topic, _msgType);
 
-  if (this->GzImplementation() == "zenoh")
-  {
-    // For now we fake that there are always remote subscribers.
-    info.haveRemote = true;
-  }
-
   return info;
 }
 
