@@ -107,8 +107,6 @@ void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
 /// node receives the message.
 TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   transport::Node node;
   auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
@@ -142,8 +140,6 @@ TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
 /// of Publish(~).
 TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   transport::Node node;
   auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
@@ -174,6 +170,8 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
           std::string(msg.GetTypeName())));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
+
+  reset();
 }
 
 //////////////////////////////////////////////////
@@ -392,8 +390,6 @@ TEST(twoProcPubSub, PubThrottled)
 /// using a callback that accepts message information.
 TEST(twoProcPubSub, PubSubMessageInfo)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
   reset();
@@ -549,8 +545,6 @@ TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
 /// After that check that only one remaining subscriber receives the message.
 TEST(twoProcPubSub, PubSubTwoProcsMixedSubscribers)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   transport::Node node;
   auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);

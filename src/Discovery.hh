@@ -302,7 +302,7 @@ namespace gz
         };
 
         MessagePublisher pub(
-          "@" + partition + "@" + topic, "", "", pUUID, nUUID, msgType,
+          "@" + partition + "@" + topic, "", this->pUuid, pUUID, nUUID, msgType,
           AdvertiseMessageOptions());
 
         {

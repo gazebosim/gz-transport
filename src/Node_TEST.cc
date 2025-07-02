@@ -539,8 +539,6 @@ TEST(NodePubTest, BoolOperatorTest)
 /// \brief A message should not be published if it is not advertised before.
 TEST(NodeTest, PubWithoutAdvertise)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 msg;
@@ -651,8 +649,6 @@ TEST(NodeTest, PubSubSameThread)
 /// \brief A thread can create a node, and send and receive messages.
 TEST(NodeTest, PubSubSameThreadGenericCb)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 msg;
@@ -697,8 +693,6 @@ TEST(NodeTest, PubSubSameThreadGenericCb)
 /// information.
 TEST(NodeTest, PubSubSameThreadMessageInfo)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 msg;
@@ -781,8 +775,6 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
 //////////////////////////////////////////////////
 TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 msg;
@@ -825,8 +817,6 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
 //////////////////////////////////////////////////
 TEST(NodeTest, PubRawSubSameThreadMessageInfo)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 msg;
@@ -915,8 +905,6 @@ TEST(NodeTest, PubSubSameThreadLambda)
 /// information.
 TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 msg;
@@ -1044,8 +1032,6 @@ TEST(NodeTest, PubSubWithCreateSubscriber)
 /// \brief Subscribe to a topic using dfferent Subscribe APIs
 TEST(NodeTest, PubSubWithMixedSubscribeAPIs)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 msg;
@@ -1380,8 +1366,6 @@ TEST(NodeTest, ClassMemberCallbackMessage)
 /// publish. This test uses a callback that accepts message information.
 TEST(NodeTest, ClassMemberCallbackMessageInfo)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   MyTestClass client;
   client.SubscribeWithMessageInfo();
 
@@ -2159,8 +2143,6 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
 /// the advertised types.
 TEST(NodeTest, PubSubWrongTypesOnSubscription)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Vector3d msgV;
@@ -2193,8 +2175,6 @@ TEST(NodeTest, PubSubWrongTypesOnSubscription)
 /// advertised type). Check that only the good callback is executed.
 TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 msg;
@@ -2269,8 +2249,6 @@ TEST(NodeTest, SubThrottled)
 /// publishes at a throttled frequency .
 TEST(NodeTest, PubThrottled)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 msg;
@@ -2309,8 +2287,6 @@ TEST(NodeTest, PubThrottled)
 /// is set to true.
 TEST(NodeTest, IgnoreLocalMessages)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 msg;
@@ -2508,8 +2484,6 @@ TEST(NodeTest, SrvWithoutInputTwoRequestsOneWrong)
 /// verifies that TopicList() returns the list of all the topics advertised.
 TEST(NodeTest, TopicList)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   std::vector<std::string> topics;
   transport::Node node1;
   transport::Node node2;
@@ -2540,8 +2514,6 @@ TEST(NodeTest, TopicList)
 /// Topic remapping is enabled.
 TEST(NodeTest, TopicListRemap)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   std::vector<std::string> topics;
   transport::NodeOptions nodeOptions;
   nodeOptions.AddTopicRemap(g_topic, g_topic_remap);
