@@ -21,9 +21,8 @@
 
 #include "gz/transport/TopicUtils.hh"
 
-using namespace gz;
-using namespace transport;
-
+namespace gz::transport
+{
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidNamespace(const std::string &_ns)
 {
@@ -387,3 +386,4 @@ std::string TopicUtils::CreateLivelinessToken(
     _reqTypeName + kTokenSeparator +
     _repTypeName;
 }
+}  // namespace gz::transport

@@ -282,5 +282,5 @@ namespace gz::transport
   {
     // Do nothing. This is here for pimpl.
   }
-  }
-}
+  }  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport

@@ -27,63 +27,59 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
 
-namespace gz
+namespace gz::transport
 {
-  namespace transport
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  //////////////////////////////////////////////////
+  bool env(const std::string &_name, std::string &_value)
   {
-    inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
-    {
-    //////////////////////////////////////////////////
-    bool env(const std::string &_name, std::string &_value)
-    {
-      char *v;
+    char *v;
 #ifdef _MSC_VER
-      size_t sz = 0;
-      _dupenv_s(&v, &sz, _name.c_str());
+    size_t sz = 0;
+    _dupenv_s(&v, &sz, _name.c_str());
 #else
-      v = std::getenv(_name.c_str());
+    v = std::getenv(_name.c_str());
 #endif
-      if (v)
-      {
-        _value = v;
-        return true;
-      }
-      return false;
-    }
-
-    //////////////////////////////////////////////////
-    std::vector<std::string> split(const std::string &_orig, char _delim)
+    if (v)
     {
-      std::vector<std::string> pieces;
-      size_t pos1 = 0;
-      size_t pos2 = _orig.find(_delim);
-      while (pos2 != std::string::npos)
-      {
-        pieces.push_back(_orig.substr(pos1, pos2-pos1));
-        pos1 = pos2 + 1;
-        pos2 = _orig.find(_delim, pos2 + 1);
-      }
-      pieces.push_back(_orig.substr(pos1, _orig.size()-pos1));
-      return pieces;
+      _value = v;
+      return true;
     }
+    return false;
+  }
 
-    //////////////////////////////////////////////////
-    unsigned int getProcessId()
+  //////////////////////////////////////////////////
+  std::vector<std::string> split(const std::string &_orig, char _delim)
+  {
+    std::vector<std::string> pieces;
+    size_t pos1 = 0;
+    size_t pos2 = _orig.find(_delim);
+    while (pos2 != std::string::npos)
     {
+      pieces.push_back(_orig.substr(pos1, pos2-pos1));
+      pos1 = pos2 + 1;
+      pos2 = _orig.find(_delim, pos2 + 1);
+    }
+    pieces.push_back(_orig.substr(pos1, _orig.size()-pos1));
+    return pieces;
+  }
+
+  //////////////////////////////////////////////////
+  unsigned int getProcessId()
+  {
 #ifdef _WIN32
-      return ::GetCurrentProcessId();
+    return ::GetCurrentProcessId();
 #else
-      return ::getpid();
+    return ::getpid();
 #endif
-    }
+  }
 
-    //////////////////////////////////////////////////
-    std::string getTransportImplementation()
-    {
-      if (const char* implEnv = std::getenv("GZ_TRANSPORT_IMPLEMENTATION"))
-        return std::string(implEnv);
-      return std::string(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION);
-    }
-    }
+  //////////////////////////////////////////////////
+  std::string getTransportImplementation()
+  {
+    if (const char* implEnv = std::getenv("GZ_TRANSPORT_IMPLEMENTATION"))
+      return std::string(implEnv);
+    return std::string(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION);
+  }
   }
 }

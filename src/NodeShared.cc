@@ -46,8 +46,6 @@
 #include "NodeSharedPrivate.hh"
 
 using namespace std::chrono_literals;
-using namespace gz;
-using namespace transport;
 
 const char kGzAuthDomain[] = "gz-auth";
 
@@ -155,6 +153,8 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 #endif
 }
 
+namespace gz::transport
+{
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
@@ -2288,3 +2288,4 @@ HandlerStorage<IRepHandler> &NodeShared::Repliers()
 {
   return this->dataPtr->repliers;
 }
+}  // namespace gz::transport
