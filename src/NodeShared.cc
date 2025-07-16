@@ -312,12 +312,12 @@ NodeShared::NodeShared()
   this->dataPtr->msgDiscovery->SubscribersCb(
       std::bind(&NodeShared::OnSubscribers, this));
 
+  // Set the callback to notify svc discovery updates (new services).
+  this->dataPtr->srvDiscovery->ConnectionsCb(
+    std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
+
   if (this->GzImplementation() == "zeromq")
   {
-    // Set the callback to notify svc discovery updates (new services).
-    this->dataPtr->srvDiscovery->ConnectionsCb(
-      std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
-
     // Set the callback to notify svc discovery updates (invalid services).
     this->dataPtr->srvDiscovery->DisconnectionsCb(
       std::bind(&NodeShared::OnNewSrvDisconnection,
@@ -1017,17 +1017,21 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-  // I am still not connected to this address.
-  if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
-        responserAddr) == this->srvConnections.end())
+  std::string impl = this->GzImplementation();
+  if (impl == "zeromq")
   {
-    this->dataPtr->requester->connect(responserAddr.c_str());
-    this->srvConnections.push_back(responserAddr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    if (this->dataPtr->verbose)
+    // I am still not connected to this address.
+    if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
+          responserAddr) == this->srvConnections.end())
     {
-      std::cout << "\t* Connected to [" << responserAddr
-                << "] for service requests" << std::endl;
+      this->dataPtr->requester->connect(responserAddr.c_str());
+      this->srvConnections.push_back(responserAddr);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      if (this->dataPtr->verbose)
+      {
+        std::cout << "\t* Connected to [" << responserAddr
+                  << "] for service requests" << std::endl;
+      }
     }
   }
 
@@ -1054,95 +1058,104 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
       // Mark the handler as requested.
       req.second->Requested(true);
 
-      std::string data;
-      if (!req.second->Serialize(data))
-        continue;
-
       auto nodeUuid = req.second->NodeUuid();
       auto reqUuid = req.second->HandlerUuid();
 
-      try
+#ifdef HAVE_ZENOH
+      if (impl == "zenoh")
       {
-        zmq::message_t msg;
-
-        msg.rebuild(responserId.size());
-        memcpy(msg.data(), responserId.data(), responserId.size());
-#ifdef GZ_ZMQ_POST_4_3_1
-        this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
-
-        msg.rebuild(_topic.size());
-        memcpy(msg.data(), _topic.data(), _topic.size());
-#ifdef GZ_ZMQ_POST_4_3_1
-        this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
-
-        msg.rebuild(this->dataPtr->myRequesterAddress.size());
-        memcpy(msg.data(), this->dataPtr->myRequesterAddress.data(),
-          this->dataPtr->myRequesterAddress.size());
-#ifdef GZ_ZMQ_POST_4_3_1
-        this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
-
-        std::string myId = this->responseReceiverId.ToString();
-        msg.rebuild(myId.size());
-        memcpy(msg.data(), myId.data(), myId.size());
-#ifdef GZ_ZMQ_POST_4_3_1
-        this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
-
-        msg.rebuild(nodeUuid.size());
-        memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
-#ifdef GZ_ZMQ_POST_4_3_1
-        this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
-
-        msg.rebuild(reqUuid.size());
-        memcpy(msg.data(), reqUuid.data(), reqUuid.size());
-#ifdef GZ_ZMQ_POST_4_3_1
-        this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
-
-        msg.rebuild(data.size());
-        memcpy(msg.data(), data.data(), data.size());
-#ifdef GZ_ZMQ_POST_4_3_1
-        this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
-
-        msg.rebuild(_reqType.size());
-        memcpy(msg.data(), _reqType.data(), _reqType.size());
-#ifdef GZ_ZMQ_POST_4_3_1
-        this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-        this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
-
-        msg.rebuild(_repType.size());
-        memcpy(msg.data(), _repType.data(), _repType.size());
-#ifdef GZ_ZMQ_POST_4_3_1
-        this->dataPtr->requester->send(msg, zmq::send_flags::none);
-#else
-        this->dataPtr->requester->send(msg, 0);
-#endif
+        req.second->CreateZenohGet(this->Session(), _topic);
       }
-      catch(const zmq::error_t& /*ze*/)
+#endif
+      else if (impl == "zeromq")
       {
-        // Debug output.
-        // std::cerr << "Error connecting [" << ze.what() << "]\n";
+        std::string data;
+        if (!req.second->Serialize(data))
+          continue;
+
+        try
+        {
+          zmq::message_t msg;
+
+          msg.rebuild(responserId.size());
+          memcpy(msg.data(), responserId.data(), responserId.size());
+#ifdef GZ_ZMQ_POST_4_3_1
+          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+#else
+          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
+#endif
+
+          msg.rebuild(_topic.size());
+          memcpy(msg.data(), _topic.data(), _topic.size());
+#ifdef GZ_ZMQ_POST_4_3_1
+          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+#else
+          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
+#endif
+
+          msg.rebuild(this->dataPtr->myRequesterAddress.size());
+          memcpy(msg.data(), this->dataPtr->myRequesterAddress.data(),
+            this->dataPtr->myRequesterAddress.size());
+#ifdef GZ_ZMQ_POST_4_3_1
+          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+#else
+          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
+#endif
+
+          std::string myId = this->responseReceiverId.ToString();
+          msg.rebuild(myId.size());
+          memcpy(msg.data(), myId.data(), myId.size());
+#ifdef GZ_ZMQ_POST_4_3_1
+          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+#else
+          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
+#endif
+
+          msg.rebuild(nodeUuid.size());
+          memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
+#ifdef GZ_ZMQ_POST_4_3_1
+          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+#else
+          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
+#endif
+
+          msg.rebuild(reqUuid.size());
+          memcpy(msg.data(), reqUuid.data(), reqUuid.size());
+#ifdef GZ_ZMQ_POST_4_3_1
+          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+#else
+          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
+#endif
+
+          msg.rebuild(data.size());
+          memcpy(msg.data(), data.data(), data.size());
+#ifdef GZ_ZMQ_POST_4_3_1
+          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+#else
+          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
+#endif
+
+          msg.rebuild(_reqType.size());
+          memcpy(msg.data(), _reqType.data(), _reqType.size());
+#ifdef GZ_ZMQ_POST_4_3_1
+          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+#else
+          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
+#endif
+
+          msg.rebuild(_repType.size());
+          memcpy(msg.data(), _repType.data(), _repType.size());
+#ifdef GZ_ZMQ_POST_4_3_1
+          this->dataPtr->requester->send(msg, zmq::send_flags::none);
+#else
+          this->dataPtr->requester->send(msg, 0);
+#endif
+        }
+        catch(const zmq::error_t& /*ze*/)
+        {
+          // Debug output.
+          // std::cerr << "Error connecting [" << ze.what() << "]\n";
+        }
       }
 
       // Remove the handler associated to this service request. We won't
@@ -1261,7 +1274,6 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
 void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
 {
   std::string topic = _pub.Topic();
-  std::string addr = _pub.Addr();
   std::string reqType = _pub.ReqTypeName();
   std::string repType = _pub.RepTypeName();
 
@@ -1273,17 +1285,22 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
     std::cout << _pub;
   }
 
-  // I am still not connected to this address.
-  if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
-        addr) == this->srvConnections.end())
+  if (this->GzImplementation() == "zeromq")
   {
-    this->dataPtr->requester->connect(addr.c_str());
-    this->srvConnections.push_back(addr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    if (this->dataPtr->verbose)
+    std::string addr = _pub.Addr();
+
+    // I am still not connected to this address.
+    if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
+          addr) == this->srvConnections.end())
     {
-      std::cout << "\t* Connected to [" << addr
-                << "] for service requests" << std::endl;
+      this->dataPtr->requester->connect(addr.c_str());
+      this->srvConnections.push_back(addr);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      if (this->dataPtr->verbose)
+      {
+        std::cout << "\t* Connected to [" << addr
+                  << "] for service requests" << std::endl;
+      }
     }
   }
 

@@ -104,8 +104,6 @@ void wrongResponse(const msgs::Vector3d &/*_rep*/, bool /*_result*/)
 /// advertises a service and the other requests a few service calls.
 TEST_F(twoProcSrvCall, SrvTwoProcs)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 req;
