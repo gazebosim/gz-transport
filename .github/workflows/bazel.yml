@@ -1,9 +1,9 @@
 name: Bazel CI
 on:
   push:
-    branches: [gz-transport14, main]
+    branches: [gz-transport14, main, iche033/zenoh_main_bazel_ci]
   pull_request:
-    branches: [gz-transport14, main]
+    branches: [gz-transport14, main, iche033/zenoh_main_bazel_ci]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
