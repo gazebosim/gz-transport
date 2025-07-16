@@ -23,6 +23,7 @@ jobs:
           cppcheck-enabled: true
           cpplint-enabled: true
           doxygen-enabled: true
+          cmake-args: '-DGZ_TRANSPORT_ENABLE_ZENOH=OFF'
   noble-ci-zenoh:
     runs-on: ubuntu-latest
     name: Ubuntu Noble CI - Zenoh
