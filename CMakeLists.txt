@@ -99,7 +99,7 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
 # Find Zenoh
 option(GZ_TRANSPORT_ENABLE_ZENOH "Enable gz-transport zenoh implementation" ON)
 
-if (ENABLE_ZENOH)
+if (GZ_TRANSPORT_ENABLE_ZENOH)
   gz_find_package(zenohc PRIVATE QUIET)
   gz_find_package(zenohcxx PRIVATE QUIET)
 
