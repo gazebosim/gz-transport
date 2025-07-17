@@ -22,6 +22,7 @@
 
 #include "gz/transport/log/Log.hh"
 #include "gtest/gtest.h"
+#include "test_utils.hh"
 
 using namespace gz;
 using namespace gz::transport;
