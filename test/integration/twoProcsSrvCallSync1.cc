@@ -43,6 +43,8 @@ static int data = 5;
 /// the timeout.
 TEST(twoProcSrvCallSync1, SrvTwoProcs)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsSrvCallReplier, partition});
 

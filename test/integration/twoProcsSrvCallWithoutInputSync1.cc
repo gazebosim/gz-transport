@@ -42,6 +42,8 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 /// the timeout.
 TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   auto pi = gz::utils::Subprocess(
       {test_executables::kTwoProcsSrvCallWithoutInputReplier, g_partition});
 

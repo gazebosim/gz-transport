@@ -79,6 +79,8 @@ bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
 /// \brief Check cmdTopicInfo running the advertiser on a the same process.
 TEST(gzTest, cmdTopicInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::stringstream stdOutBuffer;
   std::stringstream stdErrBuffer;
   redirectIO(stdOutBuffer, stdErrBuffer);
@@ -105,6 +107,8 @@ TEST(gzTest, cmdTopicInfo)
 /// \brief Check cmdServiceInfo running the advertiser on a the same process.
 TEST(gzTest, cmdServiceInfo)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::stringstream stdOutBuffer;
   std::stringstream stdErrBuffer;
   redirectIO(stdOutBuffer, stdErrBuffer);
@@ -129,6 +133,8 @@ TEST(gzTest, cmdServiceInfo)
 /// \brief Check cmdTopicPub running the advertiser on a the same process.
 TEST(gzTest, cmdTopicPub)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::stringstream stdOutBuffer;
   std::stringstream stdErrBuffer;
   redirectIO(stdOutBuffer, stdErrBuffer);
@@ -157,6 +163,8 @@ TEST(gzTest, cmdTopicPub)
 /// \brief Check cmdServiceReq running the advertiser on a the same process.
 TEST(gzTest, cmdServiceReq)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::stringstream  stdOutBuffer;
   std::stringstream  stdErrBuffer;
   redirectIO(stdOutBuffer, stdErrBuffer);
@@ -230,6 +238,8 @@ TEST(gzTest, cmdServiceReq)
 /// \brief Check cmdTopicEcho running the advertiser on a the same process.
 TEST(gzTest, cmdTopicEcho)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::stringstream  stdOutBuffer;
   std::stringstream  stdErrBuffer;
   redirectIO(stdOutBuffer, stdErrBuffer);
@@ -252,6 +262,8 @@ TEST(gzTest, cmdTopicEcho)
 /////////////////////////////////////////////////
 TEST(gzTest, cmdTopicEchoOutputFormats)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::stringstream  stdOutBuffer;
   std::stringstream  stdErrBuffer;
   redirectIO(stdOutBuffer, stdErrBuffer);

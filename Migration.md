@@ -10,6 +10,9 @@ release will remove the deprecated code.
 
 ### Removed
 
+1. The `Discovery.hh` file is no longer installed.
+    * [GitHub pull request 630](https://github.com/gazebosim/gz-transport/pull/630)
+
 1. The following function in `Node.hh` has been removed:
   ```cpp
   bool TopicInfo(const std::string &_topic,
@@ -46,7 +49,27 @@ release will remove the deprecated code.
   const auto gzTransportUnsubscribe(...);
   const auto gzTransportWaitForShutdown(...);
   ```
+
 ### Breaking Changes
+
+1. The `RepHandler.hh::IRepHandler` constructor now
+   requires two parameters (process UUID, and  node UUID). The new signature is:
+   ```cpp
+   IRepHandler(
+     const std::string &_pUuid,
+     const std::string &_nUuid);
+   ```
+   * [GitHub pull request 657](https://github.com/gazebosim/gz-transport/pull/657)
+
+1. The `SubscriptionHandler.hh::SubscriptionHandlerBase` constructor now
+   requires a new parameter (process UUID). The new signature is:
+   ```cpp
+   SubscriptionHandlerBase(
+     const std::string &_pUuid,
+     const std::string &_nUuid,
+     const SubscribeOptions &_opts = SubscribeOptions());
+   ```
+   * [GitHub pull request 630](https://github.com/gazebosim/gz-transport/pull/630)
 
 1. All variants of the `bool Node::Subscribe` functions are combined into
    one `bool Subscribe(Args && ...args)` function that forwards arguments to

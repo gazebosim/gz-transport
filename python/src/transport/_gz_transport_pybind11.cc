@@ -18,6 +18,7 @@
 
 #include <google/protobuf/message.h>
 #include <gz/transport/Node.hh>
+#include <gz/transport/Helpers.hh>
 
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
@@ -68,7 +69,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           &AdvertiseMessageOptions::MsgsPerSec,
           &AdvertiseMessageOptions::SetMsgsPerSec,
           "The maximum number of messages per second to be published")
-      .def("__copy__", 
+      .def("__copy__",
           [](const AdvertiseMessageOptions &self)
           {
             return AdvertiseMessageOptions(self);
@@ -110,9 +111,9 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           },
           py::arg("from_topic"),
           "Get a topic remapping. Returns a pair with the result of the method"
-          "and the remapped name of the topic. The topic name remains empty if" 
+          "and the remapped name of the topic. The topic name remains empty if"
           "there isn't any remap for the topic")
-      .def("__copy__", 
+      .def("__copy__",
           [](const NodeOptions &self)
           {
             return NodeOptions(self);
@@ -135,7 +136,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           &SubscribeOptions::MsgsPerSec,
           &SubscribeOptions::SetMsgsPerSec,
           "Set the maximum number of messages per second received per topic")
-      .def("__copy__", 
+      .def("__copy__",
           [](const SubscribeOptions &self)
           {
             return SubscribeOptions(self);
@@ -304,7 +305,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           "Get the current statistics for a topic. Statistics must"
           "have been enabled using the EnableStats function, otherwise"
           "the return value will be null.");
-      
+
   // Register Node::Publisher as a subclass of Node
   py::class_<gz::transport::Node::Publisher>(node, "Publisher",
       "A class that is used to store information about an"
@@ -323,6 +324,10 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
       .def("has_connections",
           &gz::transport::Node::Publisher::HasConnections,
           "Return true if this publisher has subscribers");
+
+  m.def("transport_implementation", &getTransportImplementation,
+      "Get the name of the underlying transport implementation.");
+
 }  // gz-transport module
 
 }  // python
