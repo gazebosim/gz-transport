@@ -46,7 +46,7 @@ namespace gz::transport::log
     /// \param[in] _file path to log file
     /// \param[in] _nodeOptions Options for creating a node.
     public: explicit Playback(const std::string &_file,
-                           const NodeOptions &_nodeOptions = NodeOptions());
+                              const NodeOptions &_nodeOptions = NodeOptions());
 
     /// \brief move constructor
     /// \param[in] _old the instance being moved into this one
