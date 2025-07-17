@@ -505,15 +505,7 @@ namespace gz::transport
 
     // Insert the callback into the handler.
     std::string impl = this->Shared()->GzImplementation();
-    if (impl == "zeromq")
-      reqHandlerPtr->SetCallback(_cb);
-#ifdef HAVE_ZENOH
-    else if (impl == "zenoh")
-    {
-      reqHandlerPtr->SetCallback(_cb,
-        this->Shared()->Session(), fullyQualifiedTopic);
-    }
-#endif
+    reqHandlerPtr->SetCallback(_cb);
 
     {
       std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
@@ -523,26 +515,23 @@ namespace gz::transport
         fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
 
       // If the responser's address is known, make the request.
-      if (impl == "zeromq")
+      SrvAddresses_M addresses;
+      if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
       {
-        SrvAddresses_M addresses;
-        if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
+        this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
+          std::string(RequestT().GetTypeName()),
+          std::string(ReplyT().GetTypeName()));
+      }
+      else if (impl == "zeromq")
+      {
+        // Discover the service responser.
+        if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
         {
-          this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-            std::string(RequestT().GetTypeName()),
-            std::string(ReplyT().GetTypeName()));
-        }
-        else
-        {
-          // Discover the service responser.
-          if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
-          {
-            std::cerr << "Node::Request(): Error discovering service ["
-                      << topic
-                      << "]. Did you forget to start the discovery service?"
-                      << std::endl;
-            return false;
-          }
+          std::cerr << "Node::Request(): Error discovering service ["
+                    << topic
+                    << "]. Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
         }
       }
     }
@@ -636,37 +625,26 @@ namespace gz::transport
     this->Shared()->Requests().AddHandler(
       fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
 
-    std::string impl = this->Shared()->GzImplementation();
     // If the responser's address is known, make the request.
-    if (impl == "zeromq")
+    SrvAddresses_M addresses;
+    if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
     {
-      SrvAddresses_M addresses;
-      if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
+      this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
+        std::string(_request.GetTypeName()),
+        std::string(_reply.GetTypeName()));
+    }
+    else if (this->Shared()->GzImplementation() == "zeromq")
+    {
+      // Discover the service responser.
+      if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
       {
-        this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-          std::string(_request.GetTypeName()),
-          std::string(_reply.GetTypeName()));
-      }
-      else
-      {
-        // Discover the service responser.
-        if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
-        {
-          std::cerr << "Node::Request(): Error discovering service ["
-                    << topic
-                    << "]. Did you forget to start the discovery service?"
-                    << std::endl;
-          return false;
-        }
+        std::cerr << "Node::Request(): Error discovering service ["
+                  << topic
+                  << "]. Did you forget to start the discovery service?"
+                  << std::endl;
+        return false;
       }
     }
-#ifdef HAVE_ZENOH
-    else if (impl == "zenoh")
-    {
-      reqHandlerPtr->CreateZenohGet(
-        this->Shared()->Session(), fullyQualifiedTopic);
-    }
-#endif
 
     // Wait until the REP is available.
     bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);

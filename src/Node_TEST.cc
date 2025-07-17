@@ -1384,8 +1384,6 @@ TEST(NodeTest, ClassMemberCallbackMessageInfo)
 /// function.
 TEST(NodeTest, ClassMemberCallbackService)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   MyTestClass client;
   client.TestServiceCall();
 }
@@ -1395,8 +1393,6 @@ TEST(NodeTest, ClassMemberCallbackService)
 /// using member function.
 TEST(NodeTest, ClassMemberCallbackServiceWithoutInput)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   MyTestClass client;
   client.TestServiceCallWithoutInput();
 }
@@ -1439,8 +1435,6 @@ TEST(NodeTest, TypeMismatch)
 /// \brief Make an asynchronous service call using free function.
 TEST(NodeTest, ServiceCallAsync)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 req;
@@ -1505,8 +1499,6 @@ TEST(NodeTest, ServiceCallAsync)
 /// \brief Make an asynchronous service call without input using free function.
 TEST(NodeTest, ServiceCallWithoutInputAsync)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   transport::Node node;
@@ -1569,8 +1561,6 @@ TEST(NodeTest, ServiceCallWithoutInputAsync)
 /// \using free function.
 TEST(NodeTest, ServiceWithoutOutputCallAsync)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   transport::Node node;
@@ -1614,8 +1604,6 @@ TEST(NodeTest, ServiceWithoutOutputCallAsync)
 /// \brief Make an asynchronous service call using lambdas.
 TEST(NodeTest, ServiceCallAsyncLambda)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   std::function<bool(const msgs::Int32 &, msgs::Int32 &)>
@@ -1654,8 +1642,6 @@ TEST(NodeTest, ServiceCallAsyncLambda)
 /// \brief Make an asynchronous service call without input using lambdas.
 TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   std::function<bool(msgs::Int32 &)> advCb =
@@ -1689,8 +1675,6 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncLambda)
 /// \lambdas.
 TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   bool executed = false;
 
   std::function<void(const msgs::Int32 &)> advCb =
@@ -1714,8 +1698,6 @@ TEST(NodeTest, ServiceCallWithoutOutputAsyncLambda)
 /// \brief Request multiple service calls at the same time.
 TEST(NodeTest, MultipleServiceCallAsync)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 req;
@@ -1776,8 +1758,6 @@ TEST(NodeTest, MultipleServiceCallAsync)
 /// \brief Request multiple service calls without input at the same time.
 TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   transport::Node node;
@@ -1835,8 +1815,6 @@ TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
 /// \ at the same time.
 TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   transport::Node node;
@@ -1891,8 +1869,6 @@ TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
 /// \brief Make a synchronous service call.
 TEST(NodeTest, ServiceCallSync)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 req;
@@ -1921,8 +1897,6 @@ TEST(NodeTest, ServiceCallSync)
 /// \brief Make a synchronous service call without input.
 TEST(NodeTest, ServiceCallWithoutInputSync)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 rep;
@@ -1948,8 +1922,6 @@ TEST(NodeTest, ServiceCallWithoutInputSync)
 /// \brief Check a timeout in a synchronous service call.
 TEST(NodeTest, ServiceCallSyncTimeout)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 req;
@@ -1983,8 +1955,6 @@ TEST(NodeTest, ServiceCallSyncTimeout)
 /// \brief Check a timeout in a synchronous service call without input.
 TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 rep;
@@ -2322,8 +2292,6 @@ TEST(NodeTest, IgnoreLocalMessages)
 /// that the service call does not succeed.
 TEST(NodeTest, SrvRequestWrongReq)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Vector3d wrongReq;
@@ -2355,8 +2323,6 @@ TEST(NodeTest, SrvRequestWrongReq)
 /// verify that the service call does not succeed.
 TEST(NodeTest, SrvRequestWrongRep)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 req;
@@ -2386,8 +2352,6 @@ TEST(NodeTest, SrvRequestWrongRep)
 /// should verify that the service call does not succeed.
 TEST(NodeTest, SrvWithoutInputRequestWrongRep)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Vector3d wrongRep;
@@ -2415,8 +2379,6 @@ TEST(NodeTest, SrvWithoutInputRequestWrongRep)
 /// are used.
 TEST(NodeTest, SrvTwoRequestsOneWrong)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 req;
@@ -2452,8 +2414,6 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
 /// are used.
 TEST(NodeTest, SrvWithoutInputTwoRequestsOneWrong)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   msgs::Int32 goodRep;
@@ -2533,8 +2493,6 @@ TEST(NodeTest, TopicListRemap)
 /// verifies that ServiceList() returns the list of all the services advertised.
 TEST(NodeTest, ServiceList)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   std::vector<std::string> services;
   transport::Node node;
 
@@ -2563,8 +2521,6 @@ TEST(NodeTest, ServiceList)
 /// Topic remapping is enabled.
 TEST(NodeTest, ServiceListRemap)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   std::vector<std::string> services;
   transport::NodeOptions nodeOptions;
   nodeOptions.AddTopicRemap(g_topic, g_topic_remap);

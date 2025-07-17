@@ -113,7 +113,7 @@ namespace gz::transport
       }
       else
       {
-        std::cout << "Received an error :"
+        std::cerr << "Received an error :"
                   << _reply.get_err().get_payload().as_string() << "\n";
       }
     };

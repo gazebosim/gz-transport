@@ -353,6 +353,7 @@ namespace gz
       //////////////////////////////////////////////////
       public: void LivelinessSrvDataHandler(const zenoh::Sample &_sample)
       {
+        DiscoveryCallback<Pub> cb;
         std::string token{_sample.get_keyexpr().as_string_view()};
         std::string prefix;
         std::string partition;
@@ -380,7 +381,8 @@ namespace gz
           {
             if (entityType == "srv")
             {
-              this->info.AddPublisher(pub);
+              if (!this->info.AddPublisher(pub))
+                return;
             }
 
             if (this->verbose)
@@ -388,6 +390,8 @@ namespace gz
               std::cout << ">> [LivelinessSubscriber] New alive token ('"
                         << _sample.get_keyexpr().as_string_view() << "')\n";
             }
+
+            cb = this->connectionCb;
           }
           else if (_sample.get_kind() == Z_SAMPLE_KIND_DELETE)
           {
@@ -403,6 +407,9 @@ namespace gz
             }
           }
         }
+
+        if (cb)
+          cb(pub);
       }
 #endif
 

@@ -22,6 +22,7 @@
 
 #include "gz/transport/log/Log.hh"
 #include "gtest/gtest.h"
+#include "test_utils.hh"
 
 using namespace gz;
 using namespace gz::transport;
@@ -127,6 +128,8 @@ void InsertMessages(log::Log &_log,
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryAllTopicsAfterInclusive)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -151,6 +154,8 @@ TEST(QueryMessages, QueryAllTopicsAfterInclusive)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryAllTopicsAfterInclusiveCopy)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -176,6 +181,8 @@ TEST(QueryMessages, QueryAllTopicsAfterInclusiveCopy)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryAllTopicsAfterInclusiveMove)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -201,6 +208,8 @@ TEST(QueryMessages, QueryAllTopicsAfterInclusiveMove)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryAllTopicsAfterExclusive)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -225,6 +234,8 @@ TEST(QueryMessages, QueryAllTopicsAfterExclusive)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryAllTopicsBeforeInclusive)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -249,6 +260,8 @@ TEST(QueryMessages, QueryAllTopicsBeforeInclusive)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryAllTopicsBeforeExclusive)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -273,6 +286,8 @@ TEST(QueryMessages, QueryAllTopicsBeforeExclusive)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryAllTopicsBetweenInclusive)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -298,6 +313,8 @@ TEST(QueryMessages, QueryAllTopicsBetweenInclusive)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryAllTopicsBetweenExclusive)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -323,6 +340,8 @@ TEST(QueryMessages, QueryAllTopicsBetweenExclusive)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryTopicPatternAllTime)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -350,6 +369,8 @@ TEST(QueryMessages, QueryTopicPatternAllTime)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryTopicPatternAfterInclusive)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -379,6 +400,8 @@ TEST(QueryMessages, QueryTopicPatternAfterInclusive)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryTopicPatternBeforeInclusive)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -408,6 +431,8 @@ TEST(QueryMessages, QueryTopicPatternBeforeInclusive)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryTopicListAllTime)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -435,6 +460,8 @@ TEST(QueryMessages, QueryTopicListAllTime)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryTopicListAfterInclusive)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 
@@ -464,6 +491,8 @@ TEST(QueryMessages, QueryTopicListAfterInclusive)
 //////////////////////////////////////////////////
 TEST(QueryMessages, QueryTopicListBeforeInclusive)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   log::Log logFile;
   ASSERT_TRUE(logFile.Open(":memory:", std::ios_base::out));
 

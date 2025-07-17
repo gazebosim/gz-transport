@@ -213,24 +213,6 @@ namespace gz::transport
       this->cb = _cb;
     }
 
-#ifdef HAVE_ZENOH
-    /// \brief Set the callback for this handler.
-    /// \param[in] _cb The callback with the following parameters:
-    /// * _rep Protobuf message containing the service response.
-    /// * _result True when the service request was successful or
-    /// false otherwise.
-    /// \param[in] _session The Zenoh session.
-    /// \param[in] _service The service name.
-    public: void SetCallback(const std::function <void(
-      const Rep &_rep, const bool _result)> &_cb,
-      std::shared_ptr<zenoh::Session> _session,
-      const std::string &_service)
-    {
-      this->SetCallback(std::move(_cb));
-      this->CreateZenohGet(_session, _service);
-    }
-#endif
-
     /// \brief Set the REQ protobuf message for this handler.
     /// \param[in] _reqMsg Protobuf message containing the input parameters of
     /// of the service request.
