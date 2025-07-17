@@ -33,25 +33,19 @@
 #pragma warning(pop)
 #endif  // defined(_MSC_VER)
 
-namespace gz
+namespace gz::transport::parameters
 {
-  namespace transport
-  {
-    namespace parameters
-    {
-      // Inline bracket to help doxygen filtering.
-      inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+  // Inline bracket to help doxygen filtering.
+  inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
 
-      /// \brief Get the gz message type from a protobuf message.
-      /// \param[in] _any Message to get the type.
-      /// \return A string with the gazebo protobuf type,
-      ///   or nullopt if it fails.
-      GZ_TRANSPORT_PARAMETERS_VISIBLE
-      std::optional<std::string> getGzTypeFromAnyProto(
-        const google::protobuf::Any &_any);
-      }
-    }
-  }
-}
+  /// \brief Get the gz message type from a protobuf message.
+  /// \param[in] _any Message to get the type.
+  /// \return A string with the gazebo protobuf type,
+  ///   or nullopt if it fails.
+  GZ_TRANSPORT_PARAMETERS_VISIBLE
+  std::optional<std::string> getGzTypeFromAnyProto(
+    const google::protobuf::Any &_any);
+  }  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
+}  // namespace gz::transport::parameters
 
-#endif
+#endif  // GZ_TRANSPORT_PARAMETERS_UTILS_HH_

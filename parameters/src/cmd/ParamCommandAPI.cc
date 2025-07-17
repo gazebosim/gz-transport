@@ -42,15 +42,22 @@ extern "C" void cmdParametersList(const char * _ns)
 
   std::cout << std::endl << "Listing parameters, registry namespace [" << _ns
             << "]..." << std::endl << std::endl;
-
-  auto res = client.ListParameters();
-  if (!res.parameter_declarations_size()) {
-    std::cout << "No parameters available" << std::endl;
-    return;
-  }
-  for (const auto & decl : res.parameter_declarations()) {
-    std::cout << decl.name() << "            [" << decl.type() << "]"
-              << std::endl;
+  try {
+    auto res = client.ListParameters();
+    if (!res.parameter_declarations_size()) {
+      std::cout << "No parameters available" << std::endl;
+      return;
+    }
+    for (const auto & decl : res.parameter_declarations()) {
+      std::cout << decl.name() << "            [" << decl.type() << "]"
+                << std::endl;
+    }
+  } catch (const std::runtime_error& e) {
+    std::cerr << "Error listing parameters: " << e.what() << std::endl;
+    std::cerr << "\nPossible causes:" << std::endl;
+    std::cerr << "1. Parameter server not running" << std::endl;
+    std::cerr << "2. Invalid namespace: '" << _ns << "'" << std::endl;
+    std::cerr << "3. Network communication issue" << std::endl;
   }
 }
 
