@@ -79,7 +79,11 @@ namespace gz::transport
   {
     if (const char* implEnv = std::getenv("GZ_TRANSPORT_IMPLEMENTATION"))
       return std::string(implEnv);
+#ifdef GZ_TRANSPORT_DEFAULT_IMPLEMENTATION
     return std::string(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION);
+#else
+    return "zeromq";
+#endif
   }
   }
 }
