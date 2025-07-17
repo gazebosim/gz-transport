@@ -1061,13 +1061,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
       auto nodeUuid = req.second->NodeUuid();
       auto reqUuid = req.second->HandlerUuid();
 
-#ifdef HAVE_ZENOH
-      if (impl == "zenoh")
-      {
-        req.second->CreateZenohGet(this->Session(), _topic);
-      }
-#endif
-      else if (impl == "zeromq")
+      if (impl == "zeromq")
       {
         std::string data;
         if (!req.second->Serialize(data))
@@ -1157,6 +1151,12 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
           // std::cerr << "Error connecting [" << ze.what() << "]\n";
         }
       }
+#ifdef HAVE_ZENOH
+      else if (impl == "zenoh")
+      {
+        req.second->CreateZenohGet(this->Session(), _topic);
+      }
+#endif
 
       // Remove the handler associated to this service request. We won't
       // receive a response because this is a oneway request.
