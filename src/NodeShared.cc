@@ -1310,7 +1310,9 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
   if (this->dataPtr->requests.FirstHandler(topic, reqType, repType, handler))
   {
     // Request all pending service calls for this topic and req/rep types.
-    this->SendPendingRemoteReqs(topic, reqType, repType);
+    std::thread t(&NodeShared::SendPendingRemoteReqs, this,
+      topic, reqType, repType);
+    t.detach();
   }
 }
 
