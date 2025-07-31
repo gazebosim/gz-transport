@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: PR Metadata Validation
-        uses: gazebo-tooling/pr-data-action@jrivero/none
+        uses: gazebo-tooling/pr-data-action@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           changelog-dir: '.changelog'
