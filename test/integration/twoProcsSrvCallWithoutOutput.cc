@@ -88,8 +88,6 @@ void reset()
 /// verify that the service call does not succeed.
 TEST_F(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   msgs::Vector3d wrongReq;
 
   wrongReq.set_x(1);
@@ -114,8 +112,6 @@ TEST_F(twoProcSrvCallWithoutOutput, SrvRequestWrongReq)
 /// getting the list of available services.
 TEST_F(twoProcSrvCallWithoutOutput, ServiceList)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   transport::Node node;
@@ -158,8 +154,6 @@ TEST_F(twoProcSrvCallWithoutOutput, ServiceList)
 /// getting information about the service.
 TEST_F(twoProcSrvCallWithoutOutput, ServiceInfo)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   reset();
 
   transport::Node node;

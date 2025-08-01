@@ -38,8 +38,6 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 //////////////////////////////////////////////////
 TEST(twoProcSrvCallWithoutInput, ThousandCalls)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
       {test_executables::kTwoProcsSrvCallWithoutInputReplierInc, g_partition});
 
