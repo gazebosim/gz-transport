@@ -100,6 +100,9 @@ namespace gz::transport
     /// \brief Method in charge of receiving the topic updates.
     public: void RecvMsgUpdate();
 
+    /// \brief Handles service requests on the srvQueue.
+    public: void SrvPublishThread();
+
     /// \brief HandlerInfo contains information about callback handlers which
     /// is useful for local publishers and message receivers. You should only
     /// retrieve a HandlerInfo by calling

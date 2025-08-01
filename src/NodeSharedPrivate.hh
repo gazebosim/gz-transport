@@ -198,6 +198,18 @@ namespace gz::transport
     /// \brief used to signal when new work is available
     public: std::condition_variable signalNewPub;
 
+    /// \brief Service thread used to process the srvQueue.
+    public: std::thread srvThread;
+
+    /// \brief Mutex to protect the srvThread and srvQueue.
+    public: std::mutex srvThreadMutex;
+
+    /// \brief List onto which new srv publishers are pushed.
+    public: std::list<ServicePublisher> srvQueue;
+
+    /// \brief Used to signal when new work is available.
+    public: std::condition_variable signalNewSrv;
+
     /// \brief Handles local publication of messages on the pubQueue.
     public: void PublishThread();
 

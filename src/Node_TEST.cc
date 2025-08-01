@@ -1401,8 +1401,6 @@ TEST(NodeTest, ClassMemberCallbackServiceWithoutInput)
 /// \brief Make an asynchronous service call, and then, advertise the service.
 TEST(NodeTest, ClassMemberRequestServiceBeforeAdvertise)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   MyTestClass client;
   client.TestServiceCallRequestingBeforeAdvertising();
 }
