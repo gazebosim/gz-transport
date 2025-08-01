@@ -343,6 +343,9 @@ NodeShared::NodeShared()
   // Create the local publish thread.
   this->dataPtr->pubThread = std::thread(&NodeSharedPrivate::PublishThread,
       this->dataPtr.get());
+
+  // Create the local service thread.
+  this->dataPtr->srvThread = std::thread(&NodeShared::SrvPublishThread, this);
 }
 
 //////////////////////////////////////////////////
@@ -354,6 +357,11 @@ NodeShared::~NodeShared()
   // Notify the local pubthread and join.
   this->dataPtr->signalNewPub.notify_all();
   this->dataPtr->pubThread.join();
+
+  // Notify the local srvthread and join.
+  this->dataPtr->signalNewSrv.notify_all();
+  if (this->dataPtr->srvThread.joinable())
+    this->dataPtr->srvThread.join();
 
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
@@ -1309,10 +1317,12 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
   IReqHandlerPtr handler;
   if (this->dataPtr->requests.FirstHandler(topic, reqType, repType, handler))
   {
-    // Request all pending service calls for this topic and req/rep types.
-    std::thread t(&NodeShared::SendPendingRemoteReqs, this,
-      topic, reqType, repType);
-    t.detach();
+    {
+      std::unique_lock<std::mutex> queueLock(this->dataPtr->srvThreadMutex);
+      this->dataPtr->srvQueue.push_back(std::move(_pub));
+    }
+
+    this->dataPtr->signalNewSrv.notify_one();
   }
 }
 
@@ -1959,6 +1969,47 @@ void NodeSharedPrivate::PublishThread()
           << std::endl;
       }
     }
+  }
+}
+
+/////////////////////////////////////////////////
+void NodeShared::SrvPublishThread()
+{
+  // Loop until exits
+  while (!this->dataPtr->exit)
+  {
+    ServicePublisher nextSrvPublisher;
+
+    // Lock the mutex, and acquire the next publisher to be checked.
+    {
+      std::unique_lock<std::mutex> queueLock(this->dataPtr->srvThreadMutex);
+
+      // Wait for more srv publishers if the queue is empty. Otherwise get the
+      // next publisher and continue.
+      if (this->dataPtr->srvQueue.empty())
+      {
+        auto now = std::chrono::system_clock::now();
+        this->dataPtr->signalNewSrv.wait_until(queueLock, now + 500ms,
+          [&]{return !this->dataPtr->srvQueue.empty() || this->dataPtr->exit;});
+      }
+
+      if (this->dataPtr->srvQueue.empty())
+        continue;
+
+      // Stop early on exit.
+      if (this->dataPtr->exit)
+        break;
+
+      // Get the message
+      nextSrvPublisher = std::move(this->dataPtr->srvQueue.front());
+      this->dataPtr->srvQueue.pop_front();
+    }
+
+    std::string topic = nextSrvPublisher.Topic();
+    std::string reqType = nextSrvPublisher.ReqTypeName();
+    std::string repType = nextSrvPublisher.RepTypeName();
+
+    this->SendPendingRemoteReqs(topic, reqType, repType);
   }
 }
 
