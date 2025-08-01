@@ -608,19 +608,24 @@ namespace gz::transport
     reqHandlerPtr->SetMessage(&_request);
     reqHandlerPtr->SetResponse(&_reply);
 
-    std::unique_lock<std::recursive_mutex> lk(this->Shared()->mutex);
+    bool localResponserFound;
+    IRepHandlerPtr repHandler;
+    {
+      std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+      localResponserFound = this->Shared()->Repliers().FirstHandler(
+          fullyQualifiedTopic, std::string(_request.GetTypeName()),
+          std::string(_reply.GetTypeName()), repHandler);
+    }
 
     // If the responser is within my process.
-    IRepHandlerPtr repHandler;
-    if (this->Shared()->Repliers().FirstHandler(fullyQualifiedTopic,
-      std::string(_request.GetTypeName()),
-      std::string(_reply.GetTypeName()), repHandler))
+    if (localResponserFound)
     {
       // There is a responser in my process, let's use it.
       _result = repHandler->RunLocalCallback(_request, _reply);
       return true;
     }
 
+    std::unique_lock<std::recursive_mutex> lk(this->Shared()->mutex);
     // Store the request handler.
     this->Shared()->Requests().AddHandler(
       fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
