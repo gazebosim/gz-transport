@@ -17,28 +17,28 @@
 #ifndef GZ_TRANSPORT_NODE_HH_
 #define GZ_TRANSPORT_NODE_HH_
 
-#include <algorithm>
-#include <functional>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
-
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/Publisher.hh"
-#include "gz/transport/RepHandler.hh"
-#include "gz/transport/ReqHandler.hh"
 #include "gz/transport/SubscribeOptions.hh"
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicStatistics.hh"
-#include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
+
+namespace zenoh
+{
+  // Forward declaration.
+  class LivelinessToken;
+  class Publisher;
+}
 
 namespace gz::transport
 {
@@ -110,6 +110,16 @@ namespace gz::transport
       /// \brief Constructor.
       /// \param[in] _publisher A message publisher.
       public: explicit Publisher(const MessagePublisher &_publisher);
+
+#ifdef HAVE_ZENOH
+      /// \brief Constructor.
+      /// \param[in] _publisher A message publisher.
+      /// \param[in] _zPublisher The zenoh publisher.
+      /// \param[in] _zToken The zenoh liveliness token.
+      public: explicit Publisher(const MessagePublisher &_publisher,
+                                 zenoh::Publisher &&_zPublisher,
+                                 zenoh::LivelinessToken &&_zToken);
+#endif
 
       /// \brief Destructor.
       public: virtual ~Publisher();

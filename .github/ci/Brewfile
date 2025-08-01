@@ -1,0 +1,3 @@
+tap "eclipse-zenoh/zenoh"
+brew "eclipse-zenoh/zenoh/libzenohc"
+brew "eclipse-zenoh/zenoh/libzenohcpp"
