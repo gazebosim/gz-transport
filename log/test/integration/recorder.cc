@@ -76,7 +76,7 @@ void VerifyMessage(const gz::transport::log::Message &_msg,
 TEST(recorder,
   GZ_UTILS_TEST_DISABLED_ON_MAC(BeginRecordingTopicsBeforeAdvertisement))
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+  //CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
 
   // Remember to include a leading slash so that the VerifyTopic lambda below
   // will work correctly. gz-transport automatically adds a leading slash to

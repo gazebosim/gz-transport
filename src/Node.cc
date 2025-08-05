@@ -1145,7 +1145,7 @@ Node::Publisher Node::Advertise(const std::string &_topic,
   auto currentTopics = this->AdvertisedTopics();
 
   if (std::find(currentTopics.begin(), currentTopics.end(),
-        fullyQualifiedTopic) != currentTopics.end())
+        _topic) != currentTopics.end())
   {
     std::cerr << "Topic [" << topic << "] already advertised. You cannot"
       << " advertise the same topic twice on the same node."

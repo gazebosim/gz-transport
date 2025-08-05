@@ -179,8 +179,6 @@ TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
 /// the advertised types.
 TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -202,8 +200,6 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 /// \brief Same as above, but using a raw subscription.
 TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -230,8 +226,6 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 /// (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -265,8 +259,6 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 /// callbacks are executed (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -412,8 +404,6 @@ TEST(twoProcPubSub, PubSubMessageInfo)
 /// available topics.
 TEST(twoProcPubSub, TopicList)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -460,8 +450,6 @@ TEST(twoProcPubSub, TopicList)
 /// about the topic.
 TEST(twoProcPubSub, TopicInfo)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -498,8 +486,6 @@ TEST(twoProcPubSub, TopicInfo)
 /// check returns the correct result.
 TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   transport::Node node;
 
   for (auto j = 0; j < 2; ++j)
