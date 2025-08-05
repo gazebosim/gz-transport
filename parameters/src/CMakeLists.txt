@@ -12,7 +12,7 @@ target_link_libraries(${param_lib_target}
 
 if (HAVE_ZENOH)
 target_link_libraries(${param_lib_target}
-  PUBLIC zenohcxx::zenohc)
+  PRIVATE zenohcxx::zenohc)
 endif()
 
 # Unit tests
