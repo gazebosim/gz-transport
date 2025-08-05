@@ -139,7 +139,6 @@ TEST_F(ParametersClientTest, cmdParameterGet)
 //////////////////////////////////////////////////
 TEST_F(ParametersClientTest, SetParameter)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
   {
     CaptureCoutScoped coutCapture;
     CaptureCerrScoped cerrCapture;
@@ -190,7 +189,6 @@ TEST_F(ParametersClientTest, SetParameter)
 //////////////////////////////////////////////////
 TEST_F(ParametersClientTest, ListParameters)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
   {
     CaptureCoutScoped coutCapture;
     CaptureCerrScoped cerrCapture;
