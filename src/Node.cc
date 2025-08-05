@@ -598,7 +598,12 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       // Add message type as an attachment.
       options.attachment = this->dataPtr->publisher.MsgTypeName();
 
-      this->dataPtr->zPub->put(msgBuffer, std::move(options));
+      // Zenoh will call this lambda once Bytes objects are destroyed
+      auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+      auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
+      this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
+                               std::move(options));
+
     }
   }
 #endif
