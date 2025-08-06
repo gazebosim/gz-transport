@@ -1173,8 +1173,6 @@ TEST(NodeTest, PubSubWithMixedSubscribeAPIs)
 /// within the same node but it's valid on separate nodes.
 TEST(NodeTest, AdvertiseTwoEqualTopics)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   transport::Node node1;
   transport::Node node2;
 

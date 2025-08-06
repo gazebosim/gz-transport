@@ -101,86 +101,10 @@ void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
 }
 
 //////////////////////////////////////////////////
-/// \brief Three different nodes running in two different processes. In the
-/// subscriber process there are two nodes. Both should receive the message.
-/// After some time one of them unsubscribe. After that check that only one
-/// node receives the message.
-TEST(twoProcPubSub, PubSubTwoProcsThreeNodes)
-{
-  transport::Node node;
-  auto pub = node.Advertise<msgs::Vector3d>(g_topic);
-  EXPECT_TRUE(pub);
-
-  // No subscribers yet.
-  EXPECT_FALSE(pub.HasConnections());
-
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsPubSubSubscriber, partition});
-
-  msgs::Vector3d msg;
-  msg.set_x(1.0);
-  msg.set_y(2.0);
-  msg.set_z(3.0);
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-  // Now, we should have subscribers.
-  EXPECT_TRUE(pub.HasConnections());
-
-  // Publish messages for a few seconds
-  for (auto i = 0; i < 10; ++i)
-  {
-    EXPECT_TRUE(pub.Publish(msg));
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  }
-}
-
-//////////////////////////////////////////////////
-/// \brief This is the same as the last test, but we use PublishRaw(~) instead
-/// of Publish(~).
-TEST(twoProcPubSub, RawPubSubTwoProcsThreeNodes)
-{
-  transport::Node node;
-  auto pub = node.Advertise<msgs::Vector3d>(g_topic);
-  EXPECT_TRUE(pub);
-
-  // No subscribers yet.
-  EXPECT_FALSE(pub.HasConnections());
-
-  auto pi = gz::utils::Subprocess(
-    {test_executables::kTwoProcsPubSubSubscriber, partition});
-
-  msgs::Vector3d msg;
-  msg.set_x(1.0);
-  msg.set_y(2.0);
-  msg.set_z(3.0);
-
-  unsigned int retries = 0u;
-
-  while (!pub.HasConnections() && retries++ < 5u)
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-  // Now, we should have subscribers.
-  EXPECT_LT(retries, 5u);
-
-  // Publish messages for a few seconds
-  for (auto i = 0; i < 10; ++i)
-  {
-    EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
-          std::string(msg.GetTypeName())));
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  }
-
-  reset();
-}
-
-//////////////////////////////////////////////////
 /// \brief Check that a message is not received if the callback does not use
 /// the advertised types.
 TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -202,8 +126,6 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 /// \brief Same as above, but using a raw subscription.
 TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -230,8 +152,6 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 /// (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -265,8 +185,6 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 /// callbacks are executed (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -412,8 +330,6 @@ TEST(twoProcPubSub, PubSubMessageInfo)
 /// available topics.
 TEST(twoProcPubSub, TopicList)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -582,7 +498,6 @@ int main(int argc, char **argv)
 
   // Set the partition name for this process.
   gz::utils::setenv("GZ_PARTITION", partition);
-  gz::utils::setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1");
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

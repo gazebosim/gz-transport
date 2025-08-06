@@ -165,8 +165,16 @@ namespace gz::transport
       auto attachment = _sample.get_attachment();
       if (attachment.has_value())
       {
+        // Same topic but different type, not interested.
+        auto msgType = attachment->get().as_string();
+        if (this->TypeName() != kGenericMessageType &&
+            this->TypeName() != msgType)
+        {
+          return;
+        }
+
         auto output = this->CreateMsg(
-          _sample.get_payload().as_string(), attachment->get().as_string());
+          _sample.get_payload().as_string(), msgType);
         this->RunLocalCallback(*output, msgInfo);
       }
       else
@@ -235,11 +243,29 @@ namespace gz::transport
     zenoh::KeyExpr keyexpr(_topic);
     MessageInfo msgInfo;
     msgInfo.SetTopic(_topic);
-    msgInfo.SetType("google::protobuf::Message");
+    msgInfo.SetType(this->TypeName());
     auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
     {
-      auto payload = _sample.get_payload().as_string();
-      this->RunRawCallback(payload.c_str(), payload.size(), msgInfo);
+      auto attachment = _sample.get_attachment();
+      if (attachment.has_value())
+      {
+        // Same topic but different type, not interested.
+        auto msgType = attachment->get().as_string();
+        if (this->TypeName() != kGenericMessageType &&
+            this->TypeName() != msgType)
+        {
+          return;
+        }
+
+        auto payload = _sample.get_payload().as_string();
+
+        this->RunRawCallback(payload.c_str(), payload.size(), msgInfo);
+      }
+      else
+      {
+        std::cerr << "RawSubscriptionHandler::SetCallback(): Unable to find "
+                  << "attachment. Ignoring message..." << std::endl;
+      }
     };
 
     this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
