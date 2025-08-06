@@ -175,7 +175,6 @@ int main(int argc, char **argv)
 
   // Set the partition name for this test.
   gz::utils::setenv("GZ_PARTITION", argv[1]);
-  gz::utils::setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1");
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

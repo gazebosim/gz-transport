@@ -24,6 +24,7 @@
 #include <unistd.h>
 #endif
 
+#include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
 
 namespace gz::transport
@@ -72,5 +73,17 @@ namespace gz::transport
     return ::getpid();
 #endif
   }
-  }  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
-}  // namespace gz::transport
+
+  //////////////////////////////////////////////////
+  std::string getTransportImplementation()
+  {
+    if (const char* implEnv = std::getenv("GZ_TRANSPORT_IMPLEMENTATION"))
+      return std::string(implEnv);
+#ifdef GZ_TRANSPORT_DEFAULT_IMPLEMENTATION
+    return std::string(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION);
+#else
+    return "zeromq";
+#endif
+  }
+  }
+}

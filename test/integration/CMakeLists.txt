@@ -6,6 +6,7 @@ set(tests
   callback_scope_TEST.cc
   statistics.cc
   twoProcsPubSub.cc
+  twoProcsPubSubStats.cc
   twoProcsSrvCall.cc
   twoProcsSrvCallStress.cc
   twoProcsSrvCallSync1.cc
@@ -64,4 +65,11 @@ foreach(AUX_EXECUTABLE ${auxiliary_files})
       ${EXTRA_TEST_LIB_DEPS}
       test_config
   )
+
+  if (HAVE_ZENOH)
+    target_link_libraries(${AUX_EXECUTABLE}
+      PRIVATE
+        zenohcxx::zenohc
+    )
+  endif()
 endforeach(AUX_EXECUTABLE)

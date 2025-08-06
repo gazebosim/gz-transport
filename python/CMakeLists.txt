@@ -65,6 +65,12 @@ target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 
+if (HAVE_ZENOH)
+  target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
+    zenohcxx::zenohc
+  )
+endif()
+
 target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
   BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
 

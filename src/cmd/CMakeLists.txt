@@ -18,6 +18,12 @@ target_link_libraries(gz
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 
+if (HAVE_ZENOH)
+  target_link_libraries(gz
+    zenohcxx::zenohc
+  )
+endif()
+
 # Build topic CLI executable
 set(topic_executable gz-transport-topic)
 add_executable(${topic_executable} topic_main.cc)
@@ -26,6 +32,11 @@ target_link_libraries(${topic_executable}
   gz-utils::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
+if (HAVE_ZENOH)
+  target_link_libraries(${topic_executable}
+    zenohcxx::zenohc
+  )
+endif()
 install(TARGETS ${topic_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build service CLI executable
@@ -36,6 +47,11 @@ target_link_libraries(${service_executable}
   gz-utils::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
+if (HAVE_ZENOH)
+  target_link_libraries(${service_executable}
+    zenohcxx::zenohc
+  )
+endif()
 install(TARGETS ${service_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
 # Build the unit tests.
