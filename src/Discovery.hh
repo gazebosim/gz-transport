@@ -324,7 +324,8 @@ namespace gz
             if (this->verbose)
             {
               std::cout << ">> [LivelinessSubscriber] New alive token ('"
-                        << _sample.get_keyexpr().as_string_view() << "')\n";
+                        << _sample.get_keyexpr().as_string_view() << "')"
+                        << std::endl;
             }
           }
           else if (_sample.get_kind() == Z_SAMPLE_KIND_DELETE)
@@ -344,7 +345,8 @@ namespace gz
             if (this->verbose)
             {
               std::cout << ">> [LivelinessSubscriber] Dropped token ('"
-                        << _sample.get_keyexpr().as_string_view() << "')\n";
+                        << _sample.get_keyexpr().as_string_view() << "')"
+                        << std::endl;
             }
           }
         }

@@ -6,6 +6,7 @@ set(tests
   callback_scope_TEST.cc
   statistics.cc
   twoProcsPubSub.cc
+  twoProcsPubSubStats.cc
   twoProcsSrvCall.cc
   twoProcsSrvCallStress.cc
   twoProcsSrvCallSync1.cc
