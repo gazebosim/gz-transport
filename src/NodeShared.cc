@@ -1969,11 +1969,13 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
   return numVal;
 }
 
+//////////////////////////////////////////////////
 void NodeShared::AddGlobalRelay(const std::string& _relayAddress) {
   dataPtr->msgDiscovery->AddRelayAddress(_relayAddress);
   dataPtr->srvDiscovery->AddRelayAddress(_relayAddress);
 }
 
+//////////////////////////////////////////////////
 std::vector<std::string> NodeShared::GlobalRelays() const {
   // Merge relays from message and service discovery. They should be identical
   // since they're typically build from the same sources.
