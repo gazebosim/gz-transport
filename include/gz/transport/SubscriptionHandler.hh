@@ -46,29 +46,44 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
+namespace zenoh
+{
+  // Forward declaration.
+  class Session;
+}
+
 namespace gz::transport
 {
   // Inline bracket to help doxygen filtering.
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
   //
+  /// Forward declaration;
+    class SubscriptionHandlerBasePrivate;
+
   /// \brief SubscriptionHandlerBase contains functions and data which are
   /// common to all SubscriptionHandler types.
   class GZ_TRANSPORT_VISIBLE SubscriptionHandlerBase
   {
     /// \brief Constructor.
+    /// \param[in] _pUuid UUID of the process registering the handler.
     /// \param[in] _nUuid UUID of the node registering the handler.
     /// \param[in] _opts Subscription options.
     public: explicit SubscriptionHandlerBase(
+      const std::string &_pUuid,
       const std::string &_nUuid,
       const SubscribeOptions &_opts = SubscribeOptions());
 
     /// \brief Destructor.
-    public: virtual ~SubscriptionHandlerBase() = default;
+    public: virtual ~SubscriptionHandlerBase();
 
     /// \brief Get the type of the messages from which this subscriber
     /// handler is subscribed.
     /// \return String representation of the message type.
     public: virtual std::string TypeName() = 0;
+
+    /// \brief Get the process UUID.
+    /// \return The string representation of the process UUID.
+    public: std::string ProcUuid() const;
 
     /// \brief Get the node UUID.
     /// \return The string representation of the node UUID.
@@ -100,14 +115,8 @@ namespace gz::transport
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
-    /// \brief Unique handler's UUID.
-    protected: std::string hUuid;
-
-    /// \brief Timestamp of the last callback executed.
-    protected: Timestamp lastCbTimestamp;
-
-    /// \brief Node UUID.
-    private: std::string nUuid;
+    /// \brief Private data.
+    protected: std::unique_ptr<SubscriptionHandlerBasePrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -125,9 +134,11 @@ namespace gz::transport
       : public SubscriptionHandlerBase
   {
     /// \brief Constructor.
+    /// \param[in] _pUuid UUID of the process registering the handler.
     /// \param[in] _nUuid UUID of the node registering the handler.
     /// \param[in] _opts Subscription options.
     public: explicit ISubscriptionHandler(
+      const std::string &_pUuid,
       const std::string &_nUuid,
       const SubscribeOptions &_opts = SubscribeOptions());
 
@@ -149,6 +160,15 @@ namespace gz::transport
     public: virtual const std::shared_ptr<ProtoMsg> CreateMsg(
       const std::string &_data,
       const std::string &_type) const = 0;
+
+#ifdef HAVE_ZENOH
+    /// \brief Create a Zenoh subscriber
+    /// \param[in] _session Zenoh session.
+    /// \param[in] _topic The topic.
+    public: void CreateGenericZenohSubscriber(
+      std::shared_ptr<zenoh::Session> _session,
+      const std::string &_topic);
+#endif
   };
 
   /// \class SubscriptionHandler SubscriptionHandler.hh
@@ -159,9 +179,10 @@ namespace gz::transport
     : public ISubscriptionHandler
   {
     // Documentation inherited.
-    public: explicit SubscriptionHandler(const std::string &_nUuid,
+    public: explicit SubscriptionHandler(const std::string &_pUuid,
+      const std::string &_nUuid,
       const SubscribeOptions &_opts = SubscribeOptions())
-      : ISubscriptionHandler(_nUuid, _opts)
+      : ISubscriptionHandler(_pUuid, _nUuid, _opts)
     {
     }
 
@@ -195,6 +216,20 @@ namespace gz::transport
     {
       this->cb = _cb;
     }
+
+#ifdef HAVE_ZENOH
+    /// \brief Set the callback for this handler.
+    /// \param[in] _cb The callback.
+    /// \param[in] _session The Zenoh session.
+    /// \param[in] _topic The topic associated to this callback.
+    public: void SetCallback(const MsgCallback<T> &_cb,
+                             std::shared_ptr<zenoh::Session> _session,
+                             const std::string &_topic)
+    {
+      this->SetCallback(std::move(_cb));
+      this->CreateGenericZenohSubscriber(_session, _topic);
+    }
+#endif
 
     // Documentation inherited.
     public: bool RunLocalCallback(const ProtoMsg &_msg,
@@ -256,9 +291,10 @@ namespace gz::transport
     : public ISubscriptionHandler
   {
     // Documentation inherited.
-    public: explicit SubscriptionHandler(const std::string &_nUuid,
+    public: explicit SubscriptionHandler(const std::string &_pUuid,
+      const std::string &_nUuid,
       const SubscribeOptions &_opts = SubscribeOptions())
-      : ISubscriptionHandler(_nUuid, _opts)
+      : ISubscriptionHandler(_pUuid, _nUuid, _opts)
     {
     }
 
@@ -312,6 +348,20 @@ namespace gz::transport
       this->cb = _cb;
     }
 
+#ifdef HAVE_ZENOH
+    /// \brief Set the callback for this handler.
+    /// \param[in] _cb The callback.
+    /// \param[in] _session The Zenoh session.
+    /// \param[in] _topic The topic associated to this callback.
+    public: void SetCallback(const MsgCallback<ProtoMsg> &_cb,
+                             std::shared_ptr<zenoh::Session> _session,
+                             const std::string &_topic)
+    {
+      this->SetCallback(std::move(_cb));
+      this->CreateGenericZenohSubscriber(_session, _topic);
+    }
+#endif
+
     // Documentation inherited.
     public: bool RunLocalCallback(const ProtoMsg &_msg,
                                   const MessageInfo &_info)
@@ -342,12 +392,14 @@ namespace gz::transport
   class RawSubscriptionHandler : public SubscriptionHandlerBase
   {
     /// \brief Constructor
+    /// \param[in] _pUuid UUID of the process registering the handler
     /// \param[in] _nUuid UUID of the node registering the handler
     /// \param[in] _msgType Name of message type that this handler should
     /// listen for. Setting this to kGenericMessageType will tell this handler
     /// to listen for all message types.
     /// \param[in] _opts Subscription options.
     public: explicit RawSubscriptionHandler(
+      const std::string &_pUuid,
       const std::string &_nUuid,
       const std::string &_msgType = kGenericMessageType,
       const SubscribeOptions &_opts = SubscribeOptions());
@@ -359,6 +411,16 @@ namespace gz::transport
     /// \param[in] _callback The callback function that will be triggered when
     /// a message is received.
     public: void SetCallback(const RawCallback &_callback);
+
+#ifdef HAVE_ZENOH
+    /// \brief Set the callback for this handler.
+    /// \param[in] _cb The callback.
+    /// \param[in] _session The Zenoh session.
+    /// \param[in] _topic The topic associated to this callback.
+    public: void SetCallback(const RawCallback &_cb,
+                             std::shared_ptr<zenoh::Session> _session,
+                             const std::string &_topic);
+#endif
 
     /// \brief Executes the raw callback registered for this handler.
     /// \param[in] _msgData Serialized string of message data

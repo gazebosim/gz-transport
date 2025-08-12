@@ -31,35 +31,37 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
+namespace zenoh
+{
+  // Forward declaration.
+  class Session;
+}
+
 namespace gz::transport
 {
   // Inline bracket to help doxygen filtering.
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
   //
+  /// Forward declaration;
+  class IReqHandlerPrivate;
+
   /// \class IReqHandler ReqHandler.hh gz/transport/ReqHandler.hh
   /// \brief Interface class used to manage a request handler.
   class GZ_TRANSPORT_VISIBLE IReqHandler
   {
     /// \brief Constructor.
     /// \param[in] _nUuid UUID of the node registering the request handler.
-    public: explicit IReqHandler(const std::string &_nUuid)
-      : rep(""),
-        hUuid(Uuid().ToString()),
-        nUuid(_nUuid),
-        result(false),
-        requested(false),
-        repAvailable(false)
-    {
-    }
+    public: explicit IReqHandler(const std::string &_nUuid);
 
     /// \brief Destructor.
-    public: virtual ~IReqHandler() = default;
+    public: virtual ~IReqHandler();
 
     /// \brief Executes the callback registered for this handler and notify
     /// a potential requester waiting on a blocking call.
@@ -70,12 +72,26 @@ namespace gz::transport
     public: virtual void NotifyResult(const std::string &_rep,
                                       const bool _result) = 0;
 
+    /// \brief Serialize the Req protobuf message stored.
+    /// \param[out] _buffer The serialized data.
+    /// \return True if the serialization succeed or false otherwise.
+    public: virtual bool Serialize(std::string &_buffer) const = 0;
+
+    /// \brief Get the message type name used in the service request.
+    /// \return Message type name.
+    public: virtual std::string ReqTypeName() const = 0;
+
+    /// \brief Get the message type name used in the service response.
+    /// \return Message type name.
+    public: virtual std::string RepTypeName() const = 0;
+
+    /// \brief Returns the unique handler UUID.
+    /// \return The handler's UUID.
+    public: std::string HandlerUuid() const;
+
     /// \brief Get the node UUID.
     /// \return The string representation of the node UUID.
-    public: std::string NodeUuid() const
-    {
-      return this->nUuid;
-    }
+    public: std::string NodeUuid() const;
 
     /// \brief Get the service response as raw bytes.
     /// \return The string containing the service response.
@@ -93,29 +109,11 @@ namespace gz::transport
 
     /// \brief Returns if this service call request has already been requested
     /// \return True when the service call has been requested.
-    public: bool Requested() const
-    {
-      return this->requested;
-    }
+    public: bool Requested() const;
 
     /// \brief Mark the service call as requested (or not).
     /// \param[in] _value true when you want to flag this REQ as requested.
-    public: void Requested(const bool _value)
-    {
-      this->requested = _value;
-    }
-
-    /// \brief Serialize the Req protobuf message stored.
-    /// \param[out] _buffer The serialized data.
-    /// \return True if the serialization succeed or false otherwise.
-    public: virtual bool Serialize(std::string &_buffer) const = 0;
-
-    /// \brief Returns the unique handler UUID.
-    /// \return The handler's UUID.
-    public: std::string HandlerUuid() const
-    {
-      return this->hUuid;
-    }
+    public: void Requested(const bool _value);
 
     /// \brief Block the current thread until the response to the
     /// service request is available or until the timeout expires.
@@ -136,13 +134,13 @@ namespace gz::transport
         });
     }
 
-    /// \brief Get the message type name used in the service request.
-    /// \return Message type name.
-    public: virtual std::string ReqTypeName() const = 0;
-
-    /// \brief Get the message type name used in the service response.
-    /// \return Message type name.
-    public: virtual std::string RepTypeName() const = 0;
+#ifdef HAVE_ZENOH
+    /// \brief Create a Zenoh get.
+    /// \param[in] _session Zenoh session.
+    /// \param[in] _service The service.
+    public: void CreateZenohGet(std::shared_ptr<zenoh::Session> _session,
+                                const std::string &_service);
+#endif
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
@@ -150,28 +148,21 @@ namespace gz::transport
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
+    /// \brief Private data.
+    protected: std::unique_ptr<IReqHandlerPrivate> dataPtr;
+
     /// \brief Condition variable used to wait until a service call REP is
     /// available.
     protected: std::condition_variable_any condition;
 
     /// \brief Stores the service response as raw bytes.
     protected: std::string rep;
-
-    /// \brief Unique handler's UUID.
-    protected: std::string hUuid;
-
-    /// \brief Node UUID.
-    private: std::string nUuid;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
     /// \brief Stores the result of the service call.
     protected: bool result;
-
-    /// \brief When true, the REQ was already sent and the REP should be on
-    /// its way. Used to not resend the same REQ more than one time.
-    private: bool requested;
 
     /// \brief When there is a blocking service call request, the call can
     /// be unlocked when a service call REP is available. This variable
