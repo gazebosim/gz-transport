@@ -178,22 +178,16 @@ bool TopicUtils::DecomposeLivelinessToken(
     std::string &_entityType,
     std::string &_msgType)
 {
-  std::cerr << "0" << std::endl;
-  std::cerr << _token << std::endl;
   auto nDelims = static_cast<int>(
     std::count(_token.begin(), _token.end(), '/'));
   if (nDelims != 6)
     return false;
-
-  std::cerr << "1" << std::endl;
 
   std::string token = _token;
 
   std::size_t firstAt = token.find_first_of("@");
   if ( firstAt != 0)
     return false;
-
-  std::cerr << "2" << std::endl;
 
   firstAt = token.find_first_of("/");
 
@@ -204,8 +198,6 @@ bool TopicUtils::DecomposeLivelinessToken(
   if ( firstAt == 0)
     return false;
 
-  std::cerr << "3" << std::endl;
-
   // Partition
   std::string possiblePartition = token.substr(0, firstAt);
   possiblePartition = Demangle(possiblePartition);
@@ -214,8 +206,6 @@ bool TopicUtils::DecomposeLivelinessToken(
   firstAt = token.find_first_of("/");
   if ( firstAt == 0)
     return false;
-
-  std::cerr << "4" << std::endl;
 
   // Topic
   std::string possibleTopic = token.substr(0, firstAt);
@@ -226,8 +216,6 @@ bool TopicUtils::DecomposeLivelinessToken(
   if ( firstAt == 0)
     return false;
 
-  std::cerr << "5" << std::endl;
-
   // Process UUID
   std::string possibleProcUUID = token.substr(0, firstAt);
   token.erase(0, firstAt + 1);
@@ -235,8 +223,6 @@ bool TopicUtils::DecomposeLivelinessToken(
   firstAt = token.find_first_of("/");
   if ( firstAt == 0)
     return false;
-
-  std::cerr << "6" << std::endl;
 
   // Node UUID
   std::string possibleNodeUUID = token.substr(0, firstAt);
@@ -246,8 +232,6 @@ bool TopicUtils::DecomposeLivelinessToken(
   if ( firstAt == 0)
     return false;
 
-  std::cerr << "7" << std::endl;
-
   // Entity type
   std::string possibleEntityType = token.substr(0, firstAt);
   token.erase(0, firstAt + 1);
@@ -255,25 +239,10 @@ bool TopicUtils::DecomposeLivelinessToken(
   // MsgType
   std::string possibleMsgType = token;
 
-  std::cerr << possiblePartition << std::endl;
-  std::cerr << possibleTopic << std::endl;
-
-  if (!DecomposeFullyQualifiedTopic(possiblePartition + possibleTopic,
-    possiblePartition, possibleTopic))
-  {
-    std::cerr << "error 1" << std::endl;
-    return false;
-  }
-
-  std::cerr << possiblePartition << std::endl;
-  std::cerr << possibleTopic << std::endl;
-
   if (!IsValidPartition(possiblePartition) || !IsValidTopic(possibleTopic))
   {
     return false;
   }
-
-  std::cerr << "8" << std::endl;
 
   _prefix = possiblePrefix;
   _partition = possiblePartition;
@@ -366,12 +335,6 @@ bool TopicUtils::DecomposeLivelinessToken(
   // RepType
   std::string possibleRepType = token;
 
-  if (!DecomposeFullyQualifiedTopic(possiblePartition + possibleTopic,
-    possiblePartition, possibleTopic))
-  {
-    return false;
-  }
-
   if (!IsValidPartition(possiblePartition) || !IsValidTopic(possibleTopic))
   {
     return false;
@@ -420,9 +383,6 @@ std::string TopicUtils::CreateLivelinessToken(
   if (!DecomposeFullyQualifiedTopic(_fullyQualifiedTopic, partition, topic))
     return "";
 
-  std::cerr << partition << std::endl;
-  std::cerr << topic << std::endl;
-
   return
     kTokenPrefix + kTokenSeparator +
     Mangle(partition) + kTokenSeparator +
@@ -446,9 +406,6 @@ std::string TopicUtils::CreateLivelinessToken(
   std::string topic;
   if (!DecomposeFullyQualifiedTopic(_fullyQualifiedTopic, partition, topic))
     return "";
-
-  std::cerr << partition << std::endl;
-  std::cerr << topic << std::endl;
 
   return
     kTokenPrefix + kTokenSeparator +
