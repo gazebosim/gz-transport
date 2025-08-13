@@ -238,11 +238,17 @@ namespace gz::transport
   void RawSubscriptionHandler::SetCallback(
     const RawCallback &_cb,
     std::shared_ptr<zenoh::Session> _session,
-    const std::string &_topic)
+    const FullyQualifiedTopic &_fullyQualifiedTopic)
   {
-    zenoh::KeyExpr keyexpr(_topic);
+    if (!_fullyQualifiedTopic.FullTopic())
+    {
+      std::cerr << "Fully qualified topic is not valid\n";
+      return;
+    }
+    zenoh::KeyExpr keyexpr(*_fullyQualifiedTopic.FullTopic());
     MessageInfo msgInfo;
-    msgInfo.SetTopic(_topic);
+
+    msgInfo.SetTopic(_fullyQualifiedTopic.Topic());
     msgInfo.SetType(this->TypeName());
     auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
     {
@@ -273,7 +279,7 @@ namespace gz::transport
         keyexpr, dataHandler, zenoh::closures::none));
 
     std::string token = TopicUtils::CreateLivelinessToken(
-      _topic, this->ProcUuid(), this->NodeUuid(), "sub", this->TypeName());
+      *_fullyQualifiedTopic.FullTopic(), this->ProcUuid(), this->NodeUuid(), "sub", this->TypeName());
     this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
         _session->liveliness_declare_token(token));
 

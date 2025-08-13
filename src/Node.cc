@@ -898,10 +898,10 @@ bool Node::SubscribeRaw(
   std::string topic = _topic;
   this->Options().TopicRemap(_topic, topic);
 
-  std::string fullyQualifiedTopic;
-  if (!TopicUtils::FullyQualifiedName(this->dataPtr->options.Partition(),
-                                      this->dataPtr->options.NameSpace(),
-                                      _topic, fullyQualifiedTopic))
+  FullyQualifiedTopic fullyQualifiedTopic(this->dataPtr->options.Partition(),
+                                          this->dataPtr->options.NameSpace(),
+                                          topic);
+  if (!fullyQualifiedTopic.FullTopic())
   {
     std::cerr << "Topic [" << _topic << "] is not valid." << std::endl;
     return false;
@@ -930,9 +930,9 @@ bool Node::SubscribeRaw(
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
   this->dataPtr->shared->localSubscribers.raw.AddHandler(
-        fullyQualifiedTopic, this->dataPtr->nUuid, handlerPtr);
+        *fullyQualifiedTopic.FullTopic(), this->dataPtr->nUuid, handlerPtr);
 
-  return this->SubscribeHelper(fullyQualifiedTopic);
+  return this->SubscribeHelper(*fullyQualifiedTopic.FullTopic());
 }
 
 //////////////////////////////////////////////////
