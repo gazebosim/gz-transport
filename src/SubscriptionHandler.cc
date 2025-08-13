@@ -246,12 +246,11 @@ namespace gz::transport
       return;
     }
     zenoh::KeyExpr keyexpr(*_fullyQualifiedTopic.FullTopic());
-    MessageInfo msgInfo;
 
-    msgInfo.SetTopic(_fullyQualifiedTopic.Topic());
-    msgInfo.SetType(this->TypeName());
-    auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
+    auto dataHandler = [this, _fullyQualifiedTopic](const zenoh::Sample &_sample)
     {
+      MessageInfo msgInfo;
+      msgInfo.SetTopic(_fullyQualifiedTopic.Topic());
       auto attachment = _sample.get_attachment();
       if (attachment.has_value())
       {
@@ -263,6 +262,7 @@ namespace gz::transport
           return;
         }
 
+        msgInfo.SetType(msgType);
         auto payload = _sample.get_payload().as_string();
 
         this->RunRawCallback(payload.c_str(), payload.size(), msgInfo);

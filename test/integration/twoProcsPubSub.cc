@@ -376,8 +376,6 @@ TEST(twoProcPubSub, TopicList)
 /// about the topic.
 TEST(twoProcPubSub, TopicInfo)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 

@@ -287,6 +287,7 @@ namespace gz
       //////////////////////////////////////////////////
       public: void LivelinessMsgDataHandler(const zenoh::Sample &_sample)
       {
+        DiscoveryCallback<Pub> cb;
         std::string token{_sample.get_keyexpr().as_string_view()};
         std::string prefix;
         std::string partition;
@@ -312,11 +313,15 @@ namespace gz
           {
             if (entityType == "pub")
             {
-              this->info.AddPublisher(pub);
+              if (!this->info.AddPublisher(pub))
+                return;
+
+              cb = this->connectionCb;
             }
             else if (entityType == "sub" && this->pUuid != pUUID)
             {
               this->remoteSubscribers.AddPublisher(pub);
+              // TODO(azeey) Should not call this callbacks while we have the mutex locked.
               if (this->registrationCb)
                 this->registrationCb(pub);
             }
@@ -350,6 +355,10 @@ namespace gz
             }
           }
         }
+
+        // TODO(azeey) Uncommenting the following two lines causes a crash for some reason.
+        // if (cb)
+        //   cb(pub);
       }
 
       //////////////////////////////////////////////////
