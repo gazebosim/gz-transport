@@ -102,8 +102,6 @@ bool ExpectSameMessages(
 /// the original.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLog))
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
