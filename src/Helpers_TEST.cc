@@ -110,5 +110,5 @@ TEST(HelpersTest, TransportImplementation)
   if (found)
     EXPECT_TRUE(impl.empty());
   else
-    EXPECT_EQ("zenoh", impl);
+    EXPECT_EQ("zeromq", impl);
 }
