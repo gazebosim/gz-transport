@@ -101,8 +101,14 @@ TEST(HelpersTest, TransportImplementation)
   impl = transport::getTransportImplementation();
   EXPECT_EQ("abc", impl);
 
+  // This call unsets the environment variable on Windows.
   ASSERT_TRUE(gz::utils::setenv("GZ_TRANSPORT_IMPLEMENTATION", ""));
 
   impl = transport::getTransportImplementation();
-  EXPECT_TRUE(impl.empty());
+  bool found;
+  gz::utils::env("GZ_TRANSPORT_IMPLEMENTATION", found);
+  if (found)
+    EXPECT_TRUE(impl.empty());
+  else
+    EXPECT_EQ("zenoh", impl);
 }
