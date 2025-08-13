@@ -105,9 +105,8 @@ TEST(HelpersTest, TransportImplementation)
   ASSERT_TRUE(gz::utils::setenv("GZ_TRANSPORT_IMPLEMENTATION", ""));
 
   impl = transport::getTransportImplementation();
-  bool found;
-  gz::utils::env("GZ_TRANSPORT_IMPLEMENTATION", found);
-  if (found)
+  std::string value;
+  if (gz::utils::env("GZ_TRANSPORT_IMPLEMENTATION", value, true))
     EXPECT_TRUE(impl.empty());
   else
     EXPECT_EQ("zeromq", impl);
