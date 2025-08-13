@@ -247,7 +247,8 @@ namespace gz::transport
     }
     zenoh::KeyExpr keyexpr(*_fullyQualifiedTopic.FullTopic());
 
-    auto dataHandler = [this, _fullyQualifiedTopic](const zenoh::Sample &_sample)
+    auto dataHandler =
+        [this, _fullyQualifiedTopic](const zenoh::Sample &_sample)
     {
       MessageInfo msgInfo;
       msgInfo.SetTopic(_fullyQualifiedTopic.Topic());
@@ -279,7 +280,8 @@ namespace gz::transport
         keyexpr, dataHandler, zenoh::closures::none));
 
     std::string token = TopicUtils::CreateLivelinessToken(
-      *_fullyQualifiedTopic.FullTopic(), this->ProcUuid(), this->NodeUuid(), "sub", this->TypeName());
+        *_fullyQualifiedTopic.FullTopic(), this->ProcUuid(), this->NodeUuid(),
+        "sub", this->TypeName());
     this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
         _session->liveliness_declare_token(token));
 

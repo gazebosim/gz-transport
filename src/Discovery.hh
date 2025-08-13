@@ -321,7 +321,8 @@ namespace gz
             else if (entityType == "sub" && this->pUuid != pUUID)
             {
               this->remoteSubscribers.AddPublisher(pub);
-              // TODO(azeey) Should not call this callbacks while we have the mutex locked.
+              // TODO(azeey) Should not call this callbacks while we have the
+              // mutex locked.
               if (this->registrationCb)
                 this->registrationCb(pub);
             }
@@ -356,7 +357,8 @@ namespace gz
           }
         }
 
-        // TODO(azeey) Uncommenting the following two lines causes a crash for some reason.
+        // TODO(azeey) Uncommenting the following two lines causes a crash for
+        // some reason.
         // if (cb)
         //   cb(pub);
       }
