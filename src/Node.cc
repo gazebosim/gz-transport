@@ -1186,6 +1186,7 @@ Node::Publisher Node::Advertise(const std::string &_topic,
     std::string token = TopicUtils::CreateLivelinessToken(
       fullyQualifiedTopic, this->Shared()->pUuid, this->NodeUuid(), "pub",
       _msgTypeName);
+    std::cerr << token << std::endl;
     auto zToken =
       this->Shared()->dataPtr->session->liveliness_declare_token(token);
 

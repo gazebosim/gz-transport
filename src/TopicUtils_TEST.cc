@@ -129,10 +129,10 @@ TEST(TopicUtilsTest, decomposeMsgLivelinessToken)
   std::string msgType;
 
   EXPECT_TRUE(transport::TopicUtils::DecomposeLivelinessToken(
-    "gz@/cold:caguero@/foo@ProcessUUID@NodeUUID@pub@gz.msgs.StringMsg",
+    "@gz/_cold:caguero_/%foo/ProcessUUID/NodeUUID/pub/gz.msgs.StringMsg",
     prefix, partition, topic, pUUID, nUUID, entityType, msgType));
-  EXPECT_EQ(std::string("gz"), prefix);
-  EXPECT_EQ(std::string("/cold:caguero"), partition);
+  EXPECT_EQ(std::string("@gz"), prefix);
+  EXPECT_EQ(std::string("cold:caguero"), partition);
   EXPECT_EQ(std::string("/foo"), topic);
   EXPECT_EQ(std::string("ProcessUUID"), pUUID);
   EXPECT_EQ(std::string("NodeUUID"), nUUID);
@@ -154,11 +154,11 @@ TEST(TopicUtilsTest, decomposeSrvLivelinessToken)
   std::string repType;
 
   EXPECT_TRUE(transport::TopicUtils::DecomposeLivelinessToken(
-    "gz@/cold:caguero@/foo@ProcessUUID@NodeUUID@srv@gz.msgs.StringMsg"
-    "@gz.msgs.Int32",
+    "@gz/_cold:caguero_/%foo/ProcessUUID/NodeUUID/srv/gz.msgs.StringMsg"
+    "/gz.msgs.Int32",
     prefix, partition, topic, pUUID, nUUID, entityType, reqType, repType));
-  EXPECT_EQ(std::string("gz"), prefix);
-  EXPECT_EQ(std::string("/cold:caguero"), partition);
+  EXPECT_EQ(std::string("@gz"), prefix);
+  EXPECT_EQ(std::string("cold:caguero"), partition);
   EXPECT_EQ(std::string("/foo"), topic);
   EXPECT_EQ(std::string("ProcessUUID"), pUUID);
   EXPECT_EQ(std::string("NodeUUID"), nUUID);
@@ -346,17 +346,18 @@ TEST(TopicUtilsTest, asValidTopic)
 TEST(TopicUtilsTest, CreateMsgLivelinessToken)
 {
   std::string token = transport::TopicUtils::CreateLivelinessToken(
-    "@/hostname:user", "processUUID", "nodeUUID", "pub", "gz::msgs::StringMsg");
+    "@/hostname:user@/foo", "processUUID", "nodeUUID", "pub",
+    "gz::msgs::StringMsg");
   EXPECT_EQ(
-    "gz@/hostname:user@processUUID@nodeUUID@pub@gz::msgs::StringMsg", token);
+    "@gz/%hostname:user/%foo/processUUID/nodeUUID/pub/gz::msgs::StringMsg", token);
 }
 
 //////////////////////////////////////////////////
 TEST(TopicUtilsTest, CreateSrvLivelinessToken)
 {
   std::string token = transport::TopicUtils::CreateLivelinessToken(
-    "@/hostname:user", "processUUID", "nodeUUID", "pub", "gz::msgs::StringMsg",
-    "gz::msgs::Empty");
-  EXPECT_EQ("gz@/hostname:user@processUUID@nodeUUID@pub@gz::msgs::StringMsg"
-    "@gz::msgs::Empty", token);
+    "@/hostname:user@/foo", "processUUID", "nodeUUID", "pub",
+    "gz::msgs::StringMsg", "gz::msgs::Empty");
+  EXPECT_EQ("@gz/%hostname:user/%foo/processUUID/nodeUUID/pub/"
+    "gz::msgs::StringMsg/gz::msgs::Empty", token);
 }

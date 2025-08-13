@@ -242,16 +242,22 @@ namespace gz::transport
     /// \return A valid topic, or empty string if not possible to convert.
     public: static std::string AsValidTopic(const std::string &_topic);
 
+    public: static std::string Mangle(const std::string &_input);
+
+    public: static std::string Demangle(const std::string &_input);
+
     /// \brief The kMaxNameLength specifies the maximum number of characters
     /// allowed in a namespace, a partition name, a topic name, and a fully
     /// qualified topic name.
     public: static const uint16_t kMaxNameLength = 65535;
 
     /// \brief The separator used within the liveliness token.
-    public: static constexpr const char *kTokenSeparator = "@";
+    public: static const std::string kTokenSeparator;
 
     /// \brief A common prefix for all liveliness tokens.
-    public: static constexpr const char *kTokenPrefix = "gz";
+    public: static const std::string kTokenPrefix;
+
+    public: static const char kSlashReplacement;
   };
   }
 }

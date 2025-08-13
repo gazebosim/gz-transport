@@ -445,9 +445,11 @@ namespace gz
       {
         zenoh::Session::LivelinessSubscriberOptions opts;
         opts.history = true;
+
+        // Notice the Zenoh hermetic namespace starting with @.
         this->livelinessSubscriber = std::make_unique<zenoh::Subscriber<void>>(
           _session->liveliness_declare_subscriber(
-            "**", _cb, zenoh::closures::none, std::move(opts)));
+            "@gz/**", _cb, zenoh::closures::none, std::move(opts)));
 
         this->initialized = true;
         this->useZenoh = true;
