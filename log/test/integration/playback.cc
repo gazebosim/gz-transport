@@ -183,8 +183,6 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLog))
 //////////////////////////////////////////////////
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayNoSuchTopic))
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   gz::transport::log::Recorder recorder;
   const std::string logName =
     "file:playbackReplayNoSuchTopic?mode=memory&cache=shared";
@@ -204,8 +202,6 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayNoSuchTopic))
 /// the original.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
@@ -273,8 +269,6 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
 /// that the playback matches the original.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(RemoveTopic))
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
@@ -384,80 +378,6 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(RemoveTopic))
 /// the original.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogMoveInstances))
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
-  std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
-
-  std::vector<MessageInformation> incomingData;
-
-  auto callback = [&incomingData](
-      const char *_data,
-      std::size_t _len,
-      const gz::transport::MessageInfo &_msgInfo)
-  {
-    TrackMessages(incomingData, _data, _len, _msgInfo);
-  };
-
-  gz::transport::Node node;
-  gz::transport::log::Recorder recorder_orig;
-
-  for (const std::string &topic : topics)
-  {
-    node.SubscribeRaw(topic, callback);
-  }
-  recorder_orig.AddTopic(std::regex(".*"));
-
-  gz::transport::log::Recorder recorder(std::move(recorder_orig));
-
-  const std::string logName =
-    "file:playbackReplayLogRegex?mode=memory&cache=shared";
-  EXPECT_EQ(gz::transport::log::RecorderError::SUCCESS,
-    recorder.Start(logName));
-
-  const int numChirps = 100;
-  auto chirper =
-      gz::transport::log::test::BeginChirps(topics, numChirps, partition);
-
-  // Wait for the chirping to finish
-  chirper.Join();
-
-  // Wait to make sure our callbacks are done processing the incoming messages
-  std::this_thread::sleep_for(std::chrono::seconds(1));
-
-  // Create playback before stopping so sqlite memory database is shared
-  gz::transport::log::Playback playback_orig(logName);
-  recorder.Stop();
-
-  // Make a copy of the data so we can compare it later
-  std::vector<MessageInformation> originalData = incomingData;
-
-  // Clear out the old data so we can recreate it during the playback
-  incomingData.clear();
-
-  playback_orig.AddTopic(std::regex(".*"));
-  gz::transport::log::Playback playback(std::move(playback_orig));
-  const auto handle = playback.Start();
-
-  std::cout << "Waiting to for playback to finish..." << std::endl;
-  handle->WaitUntilFinished();
-  std::cout << " Done waiting..." << std::endl;
-  handle->Stop();
-  std::cout << "Playback finished!" << std::endl;
-
-  // Wait to make sure our callbacks are done processing the incoming messages
-  // (Strangely, Windows throws an exception when this is ~1s or more)
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-  EXPECT_TRUE(ExpectSameMessages(originalData, incomingData));
-}
-
-//////////////////////////////////////////////////
-/// \brief Record a log and then play it back calling the Pause and Resume
-/// methods to control the playback flow.
-TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
-{
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
@@ -580,8 +500,6 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayPauseResume))
 /// the playback workflow.
 TEST(playback, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ReplayStep))
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
@@ -698,8 +616,6 @@ TEST(playback, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ReplayStep))
 /// the playback workflow.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
