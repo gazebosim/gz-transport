@@ -89,6 +89,9 @@ cc_library(
     name = "gz-transport-discovery-header",
     hdrs = ["src/Discovery.hh"],
     visibility = ["//:__subpackages__"],
+    deps = [
+        ":gz-transport",
+    ],
 )
 
 cc_binary(
