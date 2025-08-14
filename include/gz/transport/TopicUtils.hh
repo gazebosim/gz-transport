@@ -20,6 +20,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -152,7 +153,7 @@ namespace gz::transport
     /// \param[out] _pUUID The process UUID component.
     /// \param[out] _nUUID The node UUID component.
     /// \param[out] _entityType The entity type (pub, sub) component.
-    /// \param[out] _msgType The message type component.
+    /// \param[out] _TypeName The message type component.
     /// \return True if all the components were set.
     public: static bool DecomposeLivelinessToken(
       const std::string &_token,
@@ -162,7 +163,7 @@ namespace gz::transport
       std::string &_pUUID,
       std::string &_nUUID,
       std::string &_entityType,
-      std::string &_msgType);
+      std::string &_TypeName);
 
     /// \brief Decompose a Zenoh liveliness token into its components.
     ///
@@ -216,7 +217,7 @@ namespace gz::transport
       const std::string &_pUuid,
       const std::string &_nUuid,
       const std::string &_entityType,
-      const std::string &_msgTypeName);
+      const std::string &_typeName);
 
     /// \brief Create a liveliness token.
     /// \param[in] _fullyQualifiedTopic The fully qualified topic.
@@ -242,9 +243,79 @@ namespace gz::transport
     /// \return A valid topic, or empty string if not possible to convert.
     public: static std::string AsValidTopic(const std::string &_topic);
 
-    public: static std::string Mangle(const std::string &_input);
+    /// \brief Replace "/" instances with "%".
+    /// \param[in] _input Input name.
+    /// \return The mangled name.
+    public: static std::string MangleName(const std::string &_input);
 
-    public: static std::string Demangle(const std::string &_input);
+    /// \brief Recompose a previously mangled name.
+    /// \param[in] _input Input mangled name.
+    /// \return The unmangled name.
+    public: static std::string DemangleName(const std::string &_input);
+
+    /// \brief Mangle multiple types into a single string using "&" as delimiter
+    /// \param[in] _input Input vector with types.
+    /// \param[out] _output The mangled string.
+    /// \return True if the mangled worked succesfully.
+    public: static bool MangleType(const std::vector<std::string> &_input,
+                                   std::string &_output);
+
+    /// \brief Recompose a previously mangled type.
+    /// \param[in] _input Input mangled type.
+    /// \param[out] _output The unmangled vector with types.
+    /// \return True if the demanged worked succesfully.
+    public: static bool DemangleType(const std::string &_input,
+                                     std::vector<std::string> &_output);
+
+    /// \brief Create a partial liveliness token.
+    /// \param[in] _fullyQualifiedTopic The fully qualified topic.
+    /// \param[in] _pUuid The process UUID.
+    /// \param[in] _nUuid The node UUID.
+    /// \param[in] _entityType The entity type (pub, sub, srv).
+    /// \return A partial liveliness token.
+    private: static std::string CreateLivelinessTokenHelper(
+      const std::string &_fullyQualifiedTopic,
+      const std::string &_pUuid,
+      const std::string &_nUuid,
+      const std::string &_entityType);
+
+    /// \brief Partially decompose a Zenoh liveliness token into its components.
+    ///
+    /// Given a Zenoh liveliness token with the following syntax:
+    ///
+    /// \<PREFIX\>\@\<PARTITION\>\@\<NAMESPACE\>/\<TOPIC\>@\<ProcUUID\>
+    /// \@\<NodeUUID\>\@\<EntityType\>\@\<ReqType\>\@\<RepType\>
+    ///
+    /// The _prefix output argument will be set to \<PREFIX\>, the _partition
+    /// output argument will be set to \<PARTITION\>, the
+    /// _namespaceAndTopic output argument will be set to
+    /// \<NAMESPACE\>/\<TOPIC\>, the _pUUID output argument will be set to
+    /// \<ProcUUID\>, the _nUUID output argument will be set to
+    /// \<NodeUUID\>, the _entityType output argument will be set to
+    /// \<EntityType\>, the _reqType output argument will be set to
+    /// \<ReqType\>, the _repType output argument will be set to
+    /// \<RepType\>.
+    ///
+    /// \param[in] _token The Zenoh liveliness token.
+    /// \param[out] _prefix The prefix component.
+    /// \param[out] _partition The partition component.
+    /// \param[out] _namespaceAndTopic The namespace and topic name component.
+    /// Note that there is no way to distinguish between where a namespace
+    /// ends and a topic name begins, since topic names may contain slashes.
+    /// \param[out] _pUUID The process UUID component.
+    /// \param[out] _nUUID The node UUID component.
+    /// \param[out] _entityType The entity type (pub, sub) component.
+    /// \param[out] _remainingToken The part of the token unprocessed.
+    /// \return True if all the components were set.
+    private: static bool DecomposeLivelinessTokenHelper(
+      const std::string &_token,
+      std::string &_prefix,
+      std::string &_partition,
+      std::string &_namespaceAndTopic,
+      std::string &_pUUID,
+      std::string &_nUUID,
+      std::string &_entityType,
+      std::string &_remainingToken);
 
     /// \brief The kMaxNameLength specifies the maximum number of characters
     /// allowed in a namespace, a partition name, a topic name, and a fully
@@ -254,9 +325,13 @@ namespace gz::transport
     /// \brief The separator used within the liveliness token.
     public: static const std::string kTokenSeparator;
 
+    /// \brief The separator used to concatenate type names.
+    public: static const std::string kTypeSeparator;
+
     /// \brief A common prefix for all liveliness tokens.
     public: static const std::string kTokenPrefix;
 
+    /// \brief A replacement for the slash when mangling names.
     public: static const char kSlashReplacement;
   };
   }

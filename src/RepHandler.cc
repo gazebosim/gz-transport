@@ -108,7 +108,7 @@ namespace gz::transport
         _service, onQuery, onDropQueryable, std::move(opts)));
 
     std::string token = TopicUtils::CreateLivelinessToken(
-      _service, this->dataPtr->pUuid, this->dataPtr->nUuid, "srv",
+      _service, this->dataPtr->pUuid, this->dataPtr->nUuid, "SS",
       this->ReqTypeName(), this->RepTypeName());
     this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
       _session->liveliness_declare_token(token));

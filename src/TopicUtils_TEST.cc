@@ -129,15 +129,15 @@ TEST(TopicUtilsTest, decomposeMsgLivelinessToken)
   std::string msgType;
 
   EXPECT_TRUE(transport::TopicUtils::DecomposeLivelinessToken(
-    "@gz/%cold:caguero/%foo/ProcessUUID/NodeUUID/pub/gz.msgs.StringMsg",
+    "@gz/%hostname:user/processUUID/nodeUUID/nodeUUID/MP/%/%/%/%foo/gz::msgs::StringMsg/%/%",
     prefix, partition, topic, pUUID, nUUID, entityType, msgType));
   EXPECT_EQ(std::string("@gz"), prefix);
-  EXPECT_EQ(std::string("/cold:caguero"), partition);
+  EXPECT_EQ(std::string("/hostname:user"), partition);
   EXPECT_EQ(std::string("/foo"), topic);
-  EXPECT_EQ(std::string("ProcessUUID"), pUUID);
-  EXPECT_EQ(std::string("NodeUUID"), nUUID);
-  EXPECT_EQ(std::string("pub"), entityType);
-  EXPECT_EQ(std::string("gz.msgs.StringMsg"), msgType);
+  EXPECT_EQ(std::string("processUUID"), pUUID);
+  EXPECT_EQ(std::string("nodeUUID"), nUUID);
+  EXPECT_EQ(std::string("MP"), entityType);
+  EXPECT_EQ(std::string("gz::msgs::StringMsg"), msgType);
 }
 
 //////////////////////////////////////////////////
@@ -154,15 +154,15 @@ TEST(TopicUtilsTest, decomposeSrvLivelinessToken)
   std::string repType;
 
   EXPECT_TRUE(transport::TopicUtils::DecomposeLivelinessToken(
-    "@gz/%cold:caguero/%foo/ProcessUUID/NodeUUID/srv/gz.msgs.StringMsg"
-    "/gz.msgs.Int32",
+    "@gz/%hostname:user/processUUID/nodeUUID/nodeUUID/SS/%/%/%/%foo/gz.msgs.StringMsg&"
+    "gz.msgs.Int32/%/%",
     prefix, partition, topic, pUUID, nUUID, entityType, reqType, repType));
   EXPECT_EQ(std::string("@gz"), prefix);
-  EXPECT_EQ(std::string("/cold:caguero"), partition);
+  EXPECT_EQ(std::string("/hostname:user"), partition);
   EXPECT_EQ(std::string("/foo"), topic);
-  EXPECT_EQ(std::string("ProcessUUID"), pUUID);
-  EXPECT_EQ(std::string("NodeUUID"), nUUID);
-  EXPECT_EQ(std::string("srv"), entityType);
+  EXPECT_EQ(std::string("processUUID"), pUUID);
+  EXPECT_EQ(std::string("nodeUUID"), nUUID);
+  EXPECT_EQ(std::string("SS"), entityType);
   EXPECT_EQ(std::string("gz.msgs.StringMsg"), reqType);
   EXPECT_EQ(std::string("gz.msgs.Int32"), repType);
 }
@@ -346,18 +346,96 @@ TEST(TopicUtilsTest, asValidTopic)
 TEST(TopicUtilsTest, CreateMsgLivelinessToken)
 {
   std::string token = transport::TopicUtils::CreateLivelinessToken(
-    "@/hostname:user@/foo", "processUUID", "nodeUUID", "pub",
+    "@/hostname:user@/foo", "processUUID", "nodeUUID", "MP",
     "gz::msgs::StringMsg");
   EXPECT_EQ(
-    "@gz/%hostname:user/%foo/processUUID/nodeUUID/pub/gz::msgs::StringMsg", token);
+    "@gz/%hostname:user/processUUID/nodeUUID/nodeUUID/MP/%/%/%/%foo/gz::msgs::StringMsg/%/%", token);
 }
 
 //////////////////////////////////////////////////
 TEST(TopicUtilsTest, CreateSrvLivelinessToken)
 {
   std::string token = transport::TopicUtils::CreateLivelinessToken(
-    "@/hostname:user@/foo", "processUUID", "nodeUUID", "pub",
+    "@/hostname:user@/foo", "processUUID", "nodeUUID", "SS",
     "gz::msgs::StringMsg", "gz::msgs::Empty");
-  EXPECT_EQ("@gz/%hostname:user/%foo/processUUID/nodeUUID/pub/"
-    "gz::msgs::StringMsg/gz::msgs::Empty", token);
+  EXPECT_EQ("@gz/%hostname:user/processUUID/nodeUUID/nodeUUID/SS/%/%/%/%foo/"
+    "gz::msgs::StringMsg&gz::msgs::Empty/%/%", token);
+}
+
+//////////////////////////////////////////////////
+TEST(TopicUtilsTest, MangleName)
+{
+  std::string input = "/foo/bar";
+  std::string expectedOutput = "%foo%bar";
+
+  std::string output = transport::TopicUtils::MangleName(input);
+  EXPECT_EQ(expectedOutput, output);
+}
+
+//////////////////////////////////////////////////
+TEST(TopicUtilsTest, DemangleName)
+{
+  std::string input = "%foo%bar";
+  std::string expectedOutput = "/foo/bar";
+
+  std::string output = transport::TopicUtils::DemangleName(input);
+  EXPECT_EQ(expectedOutput, output);
+}
+
+//////////////////////////////////////////////////
+TEST(TopicUtilsTest, MangleType)
+{
+  std::string output;
+  EXPECT_TRUE(transport::TopicUtils::MangleType(
+    {"gz::msgs::StringMsg", "gz::msgs::Empty"}, output));
+  EXPECT_EQ("gz::msgs::StringMsg&gz::msgs::Empty", output);
+
+  EXPECT_TRUE(transport::TopicUtils::MangleType(
+    {"gz::msgs::StringMsg"}, output));
+  EXPECT_EQ("gz::msgs::StringMsg", output);
+
+  EXPECT_FALSE(transport::TopicUtils::MangleType(
+    {""}, output));
+
+  EXPECT_FALSE(transport::TopicUtils::MangleType(
+    {}, output));
+
+  EXPECT_FALSE(transport::TopicUtils::MangleType(
+    {"gz::msgs::StringMsg&"}, output));
+
+  EXPECT_FALSE(transport::TopicUtils::MangleType(
+    {"&gz::msgs::StringMsg"}, output));
+
+  EXPECT_FALSE(transport::TopicUtils::MangleType(
+    {"&"}, output));
+}
+
+//////////////////////////////////////////////////
+TEST(TopicUtilsTest, DemangleType)
+{
+  std::vector<std::string> output;
+  EXPECT_TRUE(transport::TopicUtils::DemangleType(
+    {"gz::msgs::StringMsg&gz::msgs::Empty"}, output));
+  EXPECT_NE(std::find(output.begin(), output.end(), "gz::msgs::StringMsg"),
+            output.end());
+  EXPECT_NE(std::find(output.begin(), output.end(), "gz::msgs::Empty"),
+            output.end());
+
+  EXPECT_TRUE(transport::TopicUtils::DemangleType(
+    {"gz::msgs::StringMsg"}, output));
+  EXPECT_NE(std::find(output.begin(), output.end(), "gz::msgs::StringMsg"),
+            output.end());
+
+  EXPECT_FALSE(transport::TopicUtils::DemangleType(
+    {""}, output));
+
+  EXPECT_FALSE(transport::TopicUtils::DemangleType(
+    {"gz::msgs::StringMsg&"}, output));
+
+  EXPECT_FALSE(transport::TopicUtils::DemangleType(
+    {"&gz::msgs::StringMsg"}, output));
+
+  EXPECT_FALSE(transport::TopicUtils::DemangleType(
+    {"&"}, output));
+
 }

@@ -189,7 +189,7 @@ namespace gz::transport
         _topic, dataHandler, zenoh::closures::none));
 
     std::string token = TopicUtils::CreateLivelinessToken(
-      _topic, this->ProcUuid(), this->NodeUuid(), "sub", this->TypeName());
+      _topic, this->ProcUuid(), this->NodeUuid(), "MS", this->TypeName());
     this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
       _session->liveliness_declare_token(token));
   }
@@ -273,7 +273,7 @@ namespace gz::transport
         keyexpr, dataHandler, zenoh::closures::none));
 
     std::string token = TopicUtils::CreateLivelinessToken(
-      _topic, this->ProcUuid(), this->NodeUuid(), "sub", this->TypeName());
+      _topic, this->ProcUuid(), this->NodeUuid(), "MS", this->TypeName());
     this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
         _session->liveliness_declare_token(token));
 
