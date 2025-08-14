@@ -243,7 +243,7 @@ class PlaybackHandle::Implementation
   public: Batch::iterator messageIter;
 
   // \brief The wall clock time of the first message in batch
-  public: const std::chrono::nanoseconds firstMessageTime;
+  public: std::chrono::nanoseconds firstMessageTime;
 
   /// \brief True to wait between publication of
   /// messages based on the message timestamps. False to playback
@@ -434,7 +434,6 @@ PlaybackHandle::Implementation::Implementation(
     trackedTopics(_topics),
     batch(logFile->QueryMessages(TopicList::Create(_topics))),
     messageIter(batch.begin()),
-    firstMessageTime(messageIter->TimeReceived()),
     msgWaiting(_msgWaiting)
 {
   this->node.reset(new transport::Node(_nodeOptions));
@@ -450,8 +449,11 @@ PlaybackHandle::Implementation::Implementation(
   {
     LWRN("There are no messages to play\n");
   }
-
-  this->StartPlayback();
+  else
+  {
+    firstMessageTime = messageIter->TimeReceived();
+    this->StartPlayback();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -511,6 +513,11 @@ void PlaybackHandle::Implementation::WaitUntilFinished()
 //////////////////////////////////////////////////
 void PlaybackHandle::Implementation::StartPlayback()
 {
+  if (this->messageIter == this->batch.end())
+  {
+    LWRN("There are no messages to play\n");
+    return;
+  }
   this->stop = false;
 
   // Set time boundary to infinite, which will get overwritten on a step request

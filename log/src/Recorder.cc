@@ -200,6 +200,9 @@ Recorder::Implementation::Implementation()
 
   this->discovery->ConnectionsCb(cb);
   this->discovery->Start();
+  this->discovery->Start(shared->Session(),
+      std::bind(&MsgDiscovery::LivelinessMsgDataHandler,
+            this->discovery.get(), std::placeholders::_1));
 }
 
 //////////////////////////////////////////////////
@@ -310,6 +313,7 @@ int64_t Recorder::Implementation::AddTopic(const std::regex &_pattern)
   this->node.TopicList(allTopics);
   for (auto topic : allTopics)
   {
+    std::cout << "Checking: " << topic << "\n";
     if (std::regex_match(topic, _pattern))
     {
       // Subscribe to the topic
