@@ -41,13 +41,17 @@
 #include "gz/transport/HandlerStorage.hh"
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/Publisher.hh"
-#include "gz/transport/RepHandler.hh"
-#include "gz/transport/ReqHandler.hh"
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicStorage.hh"
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+
+namespace zenoh
+{
+  // Forward declaration.
+  class Session;
+}
 
 namespace gz::transport
 {
@@ -55,6 +59,8 @@ namespace gz::transport
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
   //
   // Forward declarations.
+  class IRepHandler;
+  class IReqHandler;
   class Node;
   class NodePrivate;
 
@@ -93,6 +99,9 @@ namespace gz::transport
 
     /// \brief Method in charge of receiving the topic updates.
     public: void RecvMsgUpdate();
+
+    /// \brief Handles service requests on the srvQueue.
+    public: void SrvPublishThread();
 
     /// \brief HandlerInfo contains information about callback handlers which
     /// is useful for local publishers and message receivers. You should only
@@ -297,6 +306,16 @@ namespace gz::transport
     /// \return The relay addresses.
     public: std::vector<std::string> GlobalRelays() const;
 
+    /// \brief Gets the current implementation.
+    /// \return The current implementation (e.g.: zeromq, zenoh).
+    public: std::string GzImplementation() const;
+
+#ifdef HAVE_ZENOH
+    /// \brief Get the current Zenoh session.
+    /// \return The Zenoh session.
+    public: std::shared_ptr<zenoh::Session> Session();
+#endif
+
     /// \brief Unsubscribe a node from a topic.
     /// If the handler UUID argument is empty, all subscription handlers in
     /// the node for the specified topic are removed
@@ -351,6 +370,22 @@ namespace gz::transport
     /// \sa TopicUtils::FullyQualifiedName
     public: bool SubscribeHelper(const std::string &_fullyQualifiedTopic,
                                  const std::string &_nUuid);
+
+    /// \brief Return my replier service call address.
+    /// \return my replier service call address.
+    public: std::string ReplierAddress() const;
+
+    /// \brief My pub/sub address.
+    /// \return My pub/sub address.
+    public: std::string MyAddress() const;
+
+    /// \brief Pending service call requests.
+    /// \return A reference to the pending service call requests.
+    public: HandlerStorage<IReqHandler> &Requests();
+
+    /// \brief Service call repliers.
+    /// \return A reference to the service call repliers.
+    public: HandlerStorage<IRepHandler> &Repliers();
 
     /// \brief Constructor.
     protected: NodeShared();

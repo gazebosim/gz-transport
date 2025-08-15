@@ -88,3 +88,26 @@ TEST(HelpersTest, SplitOneDelimiterAtEnd)
   EXPECT_EQ("Hello World", pieces[0]);
   EXPECT_EQ("", pieces[1]);
 }
+
+//////////////////////////////////////////////////
+/// \brief Check the getTransportImplementation() function.
+TEST(HelpersTest, TransportImplementation)
+{
+  std::string impl = transport::getTransportImplementation();
+  EXPECT_FALSE(impl.empty());
+
+  ASSERT_TRUE(gz::utils::setenv("GZ_TRANSPORT_IMPLEMENTATION", "abc"));
+
+  impl = transport::getTransportImplementation();
+  EXPECT_EQ("abc", impl);
+
+  // This call unsets the environment variable on Windows.
+  ASSERT_TRUE(gz::utils::setenv("GZ_TRANSPORT_IMPLEMENTATION", ""));
+
+  impl = transport::getTransportImplementation();
+  std::string value;
+  if (gz::utils::env("GZ_TRANSPORT_IMPLEMENTATION", value, true))
+    EXPECT_TRUE(impl.empty());
+  else
+    EXPECT_EQ("zeromq", impl);
+}

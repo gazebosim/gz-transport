@@ -52,6 +52,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//:gz-transport",
+        "//:gz-transport-discovery-header",
         "@sqlite3",
     ],
 )

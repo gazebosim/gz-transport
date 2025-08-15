@@ -15,6 +15,13 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
     ${ZeroMQ_TARGET}
 )
 
+if (HAVE_ZENOH)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+    PRIVATE
+      zenohcxx::zenohc
+  )
+endif()
+
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   SYSTEM PUBLIC
     $<TARGET_PROPERTY:protobuf::libprotobuf,INTERFACE_INCLUDE_DIRECTORIES>
