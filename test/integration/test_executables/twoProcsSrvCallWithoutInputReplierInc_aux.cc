@@ -16,8 +16,7 @@
 */
 #include <gz/msgs/int32.pb.h>
 
-#include <chrono>
-#include <climits>
+#include <limits>
 #include <string>
 
 #include "gz/transport/Node.hh"
@@ -31,7 +30,6 @@ using namespace gz;
 
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int g_data = 5;
-static int kForever = INT_MAX;
 
 //////////////////////////////////////////////////
 /// \brief Provide a service without input.
@@ -47,8 +45,8 @@ void runReplier()
   transport::Node node;
   EXPECT_TRUE(node.Advertise(g_topic, srvWithoutInput));
 
-  // Run the node forever. Should be killed by the test that uses this.
-  std::this_thread::sleep_for(std::chrono::milliseconds(kForever));
+  // Run the node until we get an input in stdin indicating we should exit
+  std::cin.ignore(std::numeric_limits<std::streamsize>::max());
 }
 
 //////////////////////////////////////////////////
