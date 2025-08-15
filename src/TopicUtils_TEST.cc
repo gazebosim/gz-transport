@@ -129,7 +129,8 @@ TEST(TopicUtilsTest, decomposeMsgLivelinessToken)
   std::string msgType;
 
   EXPECT_TRUE(transport::TopicUtils::DecomposeLivelinessToken(
-    "@gz/%hostname:user/processUUID/nodeUUID/nodeUUID/MP/%/%/%/%foo/gz::msgs::StringMsg/%/%",
+    "@gz/%hostname:user/processUUID/nodeUUID/nodeUUID/MP/%/%/%/%foo/"
+    "gz::msgs::StringMsg/%/%",
     prefix, partition, topic, pUUID, nUUID, entityType, msgType));
   EXPECT_EQ(std::string("@gz"), prefix);
   EXPECT_EQ(std::string("/hostname:user"), partition);
@@ -154,8 +155,8 @@ TEST(TopicUtilsTest, decomposeSrvLivelinessToken)
   std::string repType;
 
   EXPECT_TRUE(transport::TopicUtils::DecomposeLivelinessToken(
-    "@gz/%hostname:user/processUUID/nodeUUID/nodeUUID/SS/%/%/%/%foo/gz.msgs.StringMsg&"
-    "gz.msgs.Int32/%/%",
+    "@gz/%hostname:user/processUUID/nodeUUID/nodeUUID/SS/%/%/%/%foo/"
+    "gz.msgs.StringMsg&gz.msgs.Int32/%/%",
     prefix, partition, topic, pUUID, nUUID, entityType, reqType, repType));
   EXPECT_EQ(std::string("@gz"), prefix);
   EXPECT_EQ(std::string("/hostname:user"), partition);
@@ -349,7 +350,8 @@ TEST(TopicUtilsTest, CreateMsgLivelinessToken)
     "@/hostname:user@/foo", "processUUID", "nodeUUID", "MP",
     "gz::msgs::StringMsg");
   EXPECT_EQ(
-    "@gz/%hostname:user/processUUID/nodeUUID/nodeUUID/MP/%/%/%/%foo/gz::msgs::StringMsg/%/%", token);
+    "@gz/%hostname:user/processUUID/nodeUUID/nodeUUID/MP/%/%/%/%foo/"
+    "gz::msgs::StringMsg/%/%", token);
 }
 
 //////////////////////////////////////////////////

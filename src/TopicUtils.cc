@@ -36,6 +36,7 @@ const std::string TopicUtils::kTypeSeparator = "&";
 /// \brief A common prefix for all liveliness tokens.
 const std::string TopicUtils::kTokenPrefix = "@gz";
 
+/// \brief A replacement for the slash when mangling names.
 const char TopicUtils::kSlashReplacement = '%';
 
 //////////////////////////////////////////////////
@@ -472,8 +473,6 @@ std::string TopicUtils::MangleName(const std::string &_input)
   {
     if (_input[i] == '/')
       output += kSlashReplacement;
-    else if (_input[i] == '@')
-      output += '_';
     else
       output += _input[i];
   }
@@ -488,8 +487,6 @@ std::string TopicUtils::DemangleName(const std::string &_input)
   {
     if (_input[i] == kSlashReplacement)
       output += '/';
-    else if (_input[i] == '_')
-      output += '@';
     else
       output += _input[i];
   }

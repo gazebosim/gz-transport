@@ -110,6 +110,10 @@ namespace gz::transport
     std::string token = TopicUtils::CreateLivelinessToken(
       _service, this->dataPtr->pUuid, this->dataPtr->nUuid, "SS",
       this->ReqTypeName(), this->RepTypeName());
+
+    if (token.empty())
+      return;
+
     this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
       _session->liveliness_declare_token(token));
   }
