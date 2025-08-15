@@ -15,8 +15,6 @@
  *
 */
 
-#include <iostream>
-
 #include <algorithm>
 #include <regex>
 #include <string>
@@ -28,13 +26,13 @@ namespace gz::transport
 {
 
 /// \brief The separator used within the liveliness token.
-const std::string TopicUtils::kTokenSeparator = "/";
+const char TopicUtils::kTokenSeparator[] = "/";
 
 /// \brief The separator used to concatenate type names.
-const std::string TopicUtils::kTypeSeparator = "&";
+const char TopicUtils::kTypeSeparator[] = "&";
 
 /// \brief A common prefix for all liveliness tokens.
-const std::string TopicUtils::kTokenPrefix = "@gz";
+const char TopicUtils::kTokenPrefix[] = "@gz";
 
 /// \brief A replacement for the slash when mangling names.
 const char TopicUtils::kSlashReplacement = '%';
@@ -416,7 +414,7 @@ std::string TopicUtils::CreateLivelinessTokenHelper(
     return "";
 
   return
-    kTokenPrefix + kTokenSeparator +
+    std::string(kTokenPrefix) + kTokenSeparator +
     MangleName(partition) + kTokenSeparator +
     _pUuid + kTokenSeparator +
     _nUuid + kTokenSeparator +
@@ -486,7 +484,7 @@ std::string TopicUtils::DemangleName(const std::string &_input)
   for (std::size_t i = 0; i < _input.length(); ++i)
   {
     if (_input[i] == kSlashReplacement)
-      output += '/';
+      output += kTokenSeparator;
     else
       output += _input[i];
   }

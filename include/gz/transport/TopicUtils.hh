@@ -356,13 +356,13 @@ namespace gz::transport
     public: static const uint16_t kMaxNameLength = 65535;
 
     /// \brief The separator used within the liveliness token.
-    public: static const std::string kTokenSeparator;
+    public: static const char kTokenSeparator[];
 
     /// \brief The separator used to concatenate type names.
-    public: static const std::string kTypeSeparator;
+    public: static const char kTypeSeparator[];
 
     /// \brief A common prefix for all liveliness tokens.
-    public: static const std::string kTokenPrefix;
+    public: static const char kTokenPrefix[];
 
     /// \brief A replacement for the slash when mangling names.
     public: static const char kSlashReplacement;
