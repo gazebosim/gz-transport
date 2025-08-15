@@ -310,11 +310,11 @@ namespace gz
 
           if (_sample.get_kind() == Z_SAMPLE_KIND_PUT)
           {
-            if (entityType == "pub")
+            if (entityType == "MP")
             {
               this->info.AddPublisher(pub);
             }
-            else if (entityType == "sub" && this->pUuid != pUUID)
+            else if (entityType == "MS" && this->pUuid != pUUID)
             {
               this->remoteSubscribers.AddPublisher(pub);
               if (this->registrationCb)
@@ -330,12 +330,12 @@ namespace gz
           }
           else if (_sample.get_kind() == Z_SAMPLE_KIND_DELETE)
           {
-            if (entityType == "pub")
+            if (entityType == "MP")
             {
               this->info.DelPublisherByNode("@" + partition + "@" + pub.Topic(),
                 pub.PUuid(), pub.NUuid());
             }
-            else if (entityType == "sub" && this->pUuid != pUUID)
+            else if (entityType == "MS" && this->pUuid != pUUID)
             {
               this->remoteSubscribers.DelPublisherByNode("@" + partition + "@" +
                 pub.Topic(), pub.PUuid(), pub.NUuid());
@@ -381,7 +381,7 @@ namespace gz
 
           if (_sample.get_kind() == Z_SAMPLE_KIND_PUT)
           {
-            if (entityType == "srv")
+            if (entityType == "SS")
             {
               if (!this->info.AddPublisher(pub))
                 return;
@@ -397,7 +397,7 @@ namespace gz
           }
           else if (_sample.get_kind() == Z_SAMPLE_KIND_DELETE)
           {
-            if (entityType == "srv")
+            if (entityType == "SS")
             {
               this->info.DelPublisherByNode("@" + partition + "@" + pub.Topic(),
                 pub.PUuid(), pub.NUuid());
@@ -445,9 +445,11 @@ namespace gz
       {
         zenoh::Session::LivelinessSubscriberOptions opts;
         opts.history = true;
+
+        // Notice the Zenoh hermetic namespace starting with @.
         this->livelinessSubscriber = std::make_unique<zenoh::Subscriber<void>>(
           _session->liveliness_declare_subscriber(
-            "**", _cb, zenoh::closures::none, std::move(opts)));
+            "@gz/**", _cb, zenoh::closures::none, std::move(opts)));
 
         this->initialized = true;
         this->useZenoh = true;

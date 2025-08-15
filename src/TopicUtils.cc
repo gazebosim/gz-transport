@@ -18,11 +18,25 @@
 #include <algorithm>
 #include <regex>
 #include <string>
+#include <vector>
 
 #include "gz/transport/TopicUtils.hh"
 
 namespace gz::transport
 {
+
+/// \brief The separator used within the liveliness token.
+const char TopicUtils::kTokenSeparator[] = "/";
+
+/// \brief The separator used to concatenate type names.
+const char TopicUtils::kTypeSeparator[] = "&";
+
+/// \brief A common prefix for all liveliness tokens.
+const char TopicUtils::kTokenPrefix[] = "@gz";
+
+/// \brief A replacement for the slash when mangling names.
+const char TopicUtils::kSlashReplacement = '%';
+
 //////////////////////////////////////////////////
 bool TopicUtils::IsValidNamespace(const std::string &_ns)
 {
@@ -128,9 +142,9 @@ bool TopicUtils::FullyQualifiedName(const std::string &_partition,
 
 //////////////////////////////////////////////////
 bool TopicUtils::DecomposeFullyQualifiedTopic(
-    const std::string &_fullyQualifiedName,
-    std::string &_partition,
-    std::string &_namespaceAndTopic)
+  const std::string &_fullyQualifiedName,
+  std::string &_partition,
+  std::string &_namespaceAndTopic)
 {
   const std::size_t firstAt = _fullyQualifiedName.find_first_of("@");
   const std::size_t lastAt = _fullyQualifiedName.find_last_of("@");
@@ -157,47 +171,43 @@ bool TopicUtils::DecomposeFullyQualifiedTopic(
 }
 
 //////////////////////////////////////////////////
-bool TopicUtils::DecomposeLivelinessToken(
-    const std::string &_token,
-    std::string &_prefix,
-    std::string &_partition,
-    std::string &_namespaceAndTopic,
-    std::string &_pUUID,
-    std::string &_nUUID,
-    std::string &_entityType,
-    std::string &_msgType)
+bool TopicUtils::DecomposeLivelinessTokenHelper(
+  const std::string &_token,
+  std::string &_prefix,
+  std::string &_partition,
+  std::string &_namespaceAndTopic,
+  std::string &_pUUID,
+  std::string &_nUUID,
+  std::string &_entityType,
+  std::string &_remainingToken)
 {
   auto nDelims = static_cast<int>(
-    std::count(_token.begin(), _token.end(), '@'));
-  if (nDelims != 6)
+    std::count(_token.begin(), _token.end(), '/'));
+  if (nDelims < 10)
     return false;
 
   std::string token = _token;
 
   std::size_t firstAt = token.find_first_of("@");
-  if ( firstAt == 0)
+  if ( firstAt != 0)
     return false;
 
+  firstAt = token.find_first_of("/");
+
+  // Prefix
   std::string possiblePrefix = token.substr(0, firstAt);
   token.erase(0, firstAt + 1);
 
-  firstAt = token.find_first_of("@");
+  firstAt = token.find_first_of("/");
   if ( firstAt == 0)
     return false;
 
   // Partition
   std::string possiblePartition = token.substr(0, firstAt);
+  possiblePartition = DemangleName(possiblePartition);
   token.erase(0, firstAt + 1);
 
-  firstAt = token.find_first_of("@");
-  if ( firstAt == 0)
-    return false;
-
-  // Topic
-  std::string possibleTopic = token.substr(0, firstAt);
-  token.erase(0, firstAt + 1);
-
-  firstAt = token.find_first_of("@");
+  firstAt = token.find_first_of("/");
   if ( firstAt == 0)
     return false;
 
@@ -205,7 +215,7 @@ bool TopicUtils::DecomposeLivelinessToken(
   std::string possibleProcUUID = token.substr(0, firstAt);
   token.erase(0, firstAt + 1);
 
-  firstAt = token.find_first_of("@");
+  firstAt = token.find_first_of("/");
   if ( firstAt == 0)
     return false;
 
@@ -213,7 +223,15 @@ bool TopicUtils::DecomposeLivelinessToken(
   std::string possibleNodeUUID = token.substr(0, firstAt);
   token.erase(0, firstAt + 1);
 
-  firstAt = token.find_first_of("@");
+  firstAt = token.find_first_of("/");
+  if ( firstAt == 0)
+    return false;
+
+  // Entity UUID
+  std::string unused = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  firstAt = token.find_first_of("/");
   if ( firstAt == 0)
     return false;
 
@@ -221,13 +239,41 @@ bool TopicUtils::DecomposeLivelinessToken(
   std::string possibleEntityType = token.substr(0, firstAt);
   token.erase(0, firstAt + 1);
 
-  // MsgType
-  std::string possibleMsgType = token;
+  firstAt = token.find_first_of("/");
+  if ( firstAt == 0)
+    return false;
+
+  // Mangled enclave
+  unused = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  firstAt = token.find_first_of("/");
+  if ( firstAt == 0)
+    return false;
+
+  // Mangled namespace
+  unused = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  firstAt = token.find_first_of("/");
+  if ( firstAt == 0)
+    return false;
+
+  // Node name
+  unused = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  firstAt = token.find_first_of("/");
+  if ( firstAt == 0)
+    return false;
+
+  // Topic
+  std::string possibleTopic = token.substr(0, firstAt);
+  possibleTopic = DemangleName(possibleTopic);
+  token.erase(0, firstAt + 1);
 
   if (!IsValidPartition(possiblePartition) || !IsValidTopic(possibleTopic))
-  {
     return false;
-  }
 
   _prefix = possiblePrefix;
   _partition = possiblePartition;
@@ -235,6 +281,50 @@ bool TopicUtils::DecomposeLivelinessToken(
   _pUUID = possibleProcUUID;
   _nUUID = possibleNodeUUID;
   _entityType = possibleEntityType;
+  _remainingToken = token;
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::DecomposeLivelinessToken(
+  const std::string &_token,
+  std::string &_prefix,
+  std::string &_partition,
+  std::string &_namespaceAndTopic,
+  std::string &_pUUID,
+  std::string &_nUUID,
+  std::string &_entityType,
+  std::string &_msgType)
+{
+  std::string token;
+  if (!DecomposeLivelinessTokenHelper(_token, _prefix, _partition,
+        _namespaceAndTopic, _pUUID, _nUUID, _entityType, token))
+  {
+    return false;
+  }
+
+  auto nDelims = static_cast<int>(
+    std::count(token.begin(), token.end(), '/'));
+  if (nDelims != 2)
+    return false;
+
+  std::size_t firstAt = token.find_first_of("/");
+
+  // TypeName
+  std::string possibleMsgType = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  firstAt = token.find_first_of("/");
+  if ( firstAt == 0)
+    return false;
+
+  // Type hash
+  std::string unused = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  // QoS
+  unused = token;
+
   _msgType = possibleMsgType;
   return true;
 }
@@ -251,84 +341,44 @@ bool TopicUtils::DecomposeLivelinessToken(
     std::string &_reqType,
     std::string &_repType)
 {
-  auto nDelims = static_cast<int>(
-    std::count(_token.begin(), _token.end(), '@'));
-  if (nDelims != 7)
-    return false;
-
-  std::string token = _token;
-
-  std::size_t firstAt = token.find_first_of("@");
-  if ( firstAt == 0)
-    return false;
-
-  std::string possiblePrefix = token.substr(0, firstAt);
-  token.erase(0, firstAt + 1);
-
-  firstAt = token.find_first_of("@");
-  if ( firstAt == 0)
-    return false;
-
-  // Partition
-  std::string possiblePartition = token.substr(0, firstAt);
-  token.erase(0, firstAt + 1);
-
-  firstAt = token.find_first_of("@");
-  if ( firstAt == 0)
-    return false;
-
-  // Topic
-  std::string possibleTopic = token.substr(0, firstAt);
-  token.erase(0, firstAt + 1);
-
-  firstAt = token.find_first_of("@");
-  if ( firstAt == 0)
-    return false;
-
-  // Process UUID
-  std::string possibleProcUUID = token.substr(0, firstAt);
-  token.erase(0, firstAt + 1);
-
-  firstAt = token.find_first_of("@");
-  if ( firstAt == 0)
-    return false;
-
-  // Node UUID
-  std::string possibleNodeUUID = token.substr(0, firstAt);
-  token.erase(0, firstAt + 1);
-
-  firstAt = token.find_first_of("@");
-  if ( firstAt == 0)
-    return false;
-
-  // Entity type
-  std::string possibleEntityType = token.substr(0, firstAt);
-  token.erase(0, firstAt + 1);
-
-  firstAt = token.find_first_of("@");
-  if ( firstAt == 0)
-    return false;
-
-  // ReqType
-  std::string possibleReqType = token.substr(0, firstAt);;
-  token.erase(0, firstAt + 1);
-
-  // RepType
-  std::string possibleRepType = token;
-
-  if (!IsValidPartition(possiblePartition) || !IsValidTopic(possibleTopic))
+  std::string token;
+  if (!DecomposeLivelinessTokenHelper(_token, _prefix, _partition,
+        _namespaceAndTopic, _pUUID, _nUUID, _entityType, token))
   {
     return false;
   }
 
-  _prefix = possiblePrefix;
-  _partition = possiblePartition;
-  _namespaceAndTopic = possibleTopic;
-  _pUUID = possibleProcUUID;
-  _nUUID = possibleNodeUUID;
-  _entityType = possibleEntityType;
-  _reqType = possibleReqType;
-  _repType = possibleRepType;
+  auto nDelims = static_cast<int>(
+    std::count(token.begin(), token.end(), '/'));
+  if (nDelims != 2)
+    return false;
+
+  std::size_t firstAt = token.find_first_of("/");
+
+  // TypeName
+  std::string mangledTypes = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  std::vector<std::string> types;
+  if (!DemangleType(mangledTypes, types))
+    return false;
+
+  if (types.size() != 2u)
+    return false;
+
+  firstAt = token.find_first_of("/");
+  if ( firstAt == 0)
+    return false;
+
+  // Type hash
+  std::string unused = token.substr(0, firstAt);
+  token.erase(0, firstAt + 1);
+
+  // QoS
+  unused = token;
+
+  _reqType = types.at(0);
+  _repType = types.at(1);
   return true;
 }
 
@@ -352,20 +402,44 @@ std::string TopicUtils::AsValidTopic(const std::string &_topic)
 }
 
 //////////////////////////////////////////////////
+std::string TopicUtils::CreateLivelinessTokenHelper(
+  const std::string &_fullyQualifiedTopic,
+  const std::string &_pUuid,
+  const std::string &_nUuid,
+  const std::string &_entityType)
+{
+  std::string partition;
+  std::string topic;
+  if (!DecomposeFullyQualifiedTopic(_fullyQualifiedTopic, partition, topic))
+    return "";
+
+  return
+    std::string(kTokenPrefix) + kTokenSeparator +
+    MangleName(partition) + kTokenSeparator +
+    _pUuid + kTokenSeparator +
+    _nUuid + kTokenSeparator +
+    _nUuid + kTokenSeparator +
+    _entityType + kTokenSeparator +
+    "%" + kTokenSeparator +
+    "%" + kTokenSeparator +
+    "%" + kTokenSeparator +
+    MangleName(topic) + kTokenSeparator;
+}
+
+//////////////////////////////////////////////////
 std::string TopicUtils::CreateLivelinessToken(
   const std::string &_fullyQualifiedTopic,
   const std::string &_pUuid,
   const std::string &_nUuid,
   const std::string &_entityType,
-  const std::string &_msgTypeName)
+  const std::string &_typeName)
 {
   return
-    kTokenPrefix +
-    _fullyQualifiedTopic + kTokenSeparator +
-    _pUuid + kTokenSeparator +
-    _nUuid + kTokenSeparator +
-    _entityType + kTokenSeparator +
-    _msgTypeName;
+    CreateLivelinessTokenHelper(
+      _fullyQualifiedTopic, _pUuid, _nUuid, _entityType) +
+    _typeName + kTokenSeparator +
+    "%" + kTokenSeparator +
+    "%";
 }
 
 //////////////////////////////////////////////////
@@ -377,13 +451,99 @@ std::string TopicUtils::CreateLivelinessToken(
   const std::string &_reqTypeName,
   const std::string &_repTypeName)
 {
+  std::string mangledTypes;
+  if (!MangleType({_reqTypeName, _repTypeName}, mangledTypes))
+    return "";
+
   return
-    kTokenPrefix +
-    _fullyQualifiedTopic + kTokenSeparator +
-    _pUuid + kTokenSeparator +
-    _nUuid + kTokenSeparator +
-    _entityType + kTokenSeparator +
-    _reqTypeName + kTokenSeparator +
-    _repTypeName;
+    CreateLivelinessTokenHelper(
+      _fullyQualifiedTopic, _pUuid, _nUuid, _entityType) +
+    mangledTypes + kTokenSeparator +
+    "%" + kTokenSeparator +
+    "%";
+}
+
+//////////////////////////////////////////////////
+std::string TopicUtils::MangleName(const std::string &_input)
+{
+  std::string output = "";
+  for (std::size_t i = 0; i < _input.length(); ++i)
+  {
+    if (_input[i] == '/')
+      output += kSlashReplacement;
+    else
+      output += _input[i];
+  }
+  return output;
+}
+
+//////////////////////////////////////////////////
+std::string TopicUtils::DemangleName(const std::string &_input)
+{
+  std::string output = "";
+  for (std::size_t i = 0; i < _input.length(); ++i)
+  {
+    if (_input[i] == kSlashReplacement)
+      output += kTokenSeparator;
+    else
+      output += _input[i];
+  }
+  return output;
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::MangleType(const std::vector<std::string> &_input,
+  std::string &_output)
+{
+  _output.clear();
+
+  if (_input.empty())
+    return false;
+
+  for (auto type : _input)
+  {
+    if (type.empty())
+      return false;
+
+    if (type.find_first_of(kTypeSeparator) != std::string::npos)
+      return false;
+
+    _output += type + kTypeSeparator;
+  }
+
+  _output.pop_back();
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::DemangleType(const std::string &_input,
+  std::vector<std::string> &_output)
+{
+  _output.clear();
+
+  if (_input.empty())
+    return false;
+
+  std::string token = _input;
+
+  std::size_t firstAt = token.find_first_of(kTypeSeparator);
+  while (firstAt != std::string::npos)
+  {
+    std::string type = token.substr(0, firstAt);
+
+    if (type.empty())
+      return false;
+
+    _output.push_back(type);
+    token.erase(0, firstAt + 1);
+    firstAt = token.find_first_of(kTypeSeparator);
+  }
+
+  if (token.empty())
+    return false;
+
+  _output.push_back(token);
+
+  return true;
 }
 }  // namespace gz::transport
