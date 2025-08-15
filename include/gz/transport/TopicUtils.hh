@@ -260,6 +260,10 @@ namespace gz::transport
       std::string &_repType);
 
     /// \brief Create a partial liveliness token.
+    ///
+    /// We're using the ROS 2 liveliness token convention.
+    /// https://github.com/ros2/rmw_zenoh/blob/rolling/docs/design.md#graph-cache
+    ///
     /// \param[in] _fullyQualifiedTopic The fully qualified topic.
     /// \param[in] _pUuid The process UUID.
     /// \param[in] _nUuid The node UUID.
@@ -275,6 +279,10 @@ namespace gz::transport
       const std::string &_entityType);
 
     /// \brief Create a liveliness token.
+    ///
+    /// We're using the ROS 2 liveliness token convention.
+    /// https://github.com/ros2/rmw_zenoh/blob/rolling/docs/design.md#graph-cache
+    ///
     /// \param[in] _fullyQualifiedTopic The fully qualified topic.
     /// \param[in] _pUuid The process UUID.
     /// \param[in] _nUuid The node UUID.
@@ -282,11 +290,7 @@ namespace gz::transport
     ///   * MP for a message publisher.
     ///   * MS for a message subscription.
     ///   * SS for a service server.
-    ///
-    /// We're using the ROS 2 liveliness token convention.
-    /// https://github.com/ros2/rmw_zenoh/blob/rolling/docs/design.md#graph-cache
-    ///
-    /// \param[in] _msgTypeName The message type.
+    /// \param[in] _typeName The message type.
     /// \return The liveliness token.
     public: static std::string CreateLivelinessToken(
       const std::string &_fullyQualifiedTopic,
@@ -296,6 +300,10 @@ namespace gz::transport
       const std::string &_typeName);
 
     /// \brief Create a liveliness token.
+    ///
+    /// We're using the ROS 2 liveliness token convention.
+    /// https://github.com/ros2/rmw_zenoh/blob/rolling/docs/design.md#graph-cache
+    ///
     /// \param[in] _fullyQualifiedTopic The fully qualified topic.
     /// \param[in] _pUuid The process UUID.
     /// \param[in] _nUuid The node UUID.
@@ -305,10 +313,6 @@ namespace gz::transport
     ///   * SS for a service server.
     /// \param[in] _reqTypeName The service request type.
     /// \param[in] _repTypeName The service response type.
-    ///
-    /// We're using the ROS 2 liveliness token convention.
-    /// https://github.com/ros2/rmw_zenoh/blob/rolling/docs/design.md#graph-cache
-    ///
     /// \return The liveliness token.
     public: static std::string CreateLivelinessToken(
       const std::string &_fullyQualifiedTopic,
