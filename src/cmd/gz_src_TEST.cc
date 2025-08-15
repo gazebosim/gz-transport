@@ -14,8 +14,9 @@
  * limitations under the License.
  *
 */
-#include "gtest/gtest.h"
 
+#include <google/protobuf/text_format.h>
+#include "gtest/gtest.h"
 #include <gz/msgs/int32.pb.h>
 
 #include <future>
@@ -271,7 +272,9 @@ TEST(gzTest, cmdTopicEchoOutputFormats)
   auto defaultOutput = std::async(std::launch::async, getSubscriberOutput,
                                   MsgOutputFormat::kDefault);
 
-  cmdTopicPub(g_topic.c_str(), g_intType.c_str(), msg.DebugString().c_str());
+  std::string str;
+  ASSERT_TRUE(google::protobuf::TextFormat::PrintToString(msg, &str));
+  cmdTopicPub(g_topic.c_str(), g_intType.c_str(), str.c_str());
   EXPECT_EQ("data: 5\n\n", defaultOutput.get());
 
   clearIOStreams(stdOutBuffer, stdErrBuffer);
@@ -280,7 +283,8 @@ TEST(gzTest, cmdTopicEchoOutputFormats)
                                MsgOutputFormat::kJSON);
 
   msg.set_data(10);
-  cmdTopicPub(g_topic.c_str(), g_intType.c_str(), msg.DebugString().c_str());
+  ASSERT_TRUE(google::protobuf::TextFormat::PrintToString(msg, &str));
+  cmdTopicPub(g_topic.c_str(), g_intType.c_str(), str.c_str());
   EXPECT_EQ("{\"data\":10}\n", jsonOutput.get());
 
   clearIOStreams(stdOutBuffer, stdErrBuffer);

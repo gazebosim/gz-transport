@@ -20,6 +20,7 @@
 #pragma warning(disable: 4251)
 #endif
 #include <google/protobuf/message.h>
+#include <google/protobuf/text_format.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -36,7 +37,11 @@ void cb(const google::protobuf::Message &_msg,
         const gz::transport::MessageInfo &_info)
 {
   std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
-  std::cout << _msg.DebugString() << std::endl;
+
+  if (std::string str; google::protobuf::TextFormat::PrintToString(_msg, &str))
+    std::cout << str << std::endl;
+  else
+    std::cerr << "Error printing message" << std::endl;
 }
 
 //////////////////////////////////////////////////
