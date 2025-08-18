@@ -1184,8 +1184,12 @@ Node::Publisher Node::Advertise(const std::string &_topic,
      zenoh::KeyExpr(fullyQualifiedTopic));
 
     std::string token = TopicUtils::CreateLivelinessToken(
-      fullyQualifiedTopic, this->Shared()->pUuid, this->NodeUuid(), "pub",
+      fullyQualifiedTopic, this->Shared()->pUuid, this->NodeUuid(), "MP",
       _msgTypeName);
+
+    if (token.empty())
+      return Publisher();
+
     auto zToken =
       this->Shared()->dataPtr->session->liveliness_declare_token(token);
 
