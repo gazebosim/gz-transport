@@ -16,6 +16,7 @@
 */
 
 #include <google/protobuf/message.h>
+#include <google/protobuf/text_format.h>
 #include <iostream>
 #include <string>
 #include <gz/transport.hh>
@@ -28,7 +29,11 @@ void cb(const google::protobuf::Message &_msg,
         const gz::transport::MessageInfo &_info)
 {
   std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
-  std::cout << _msg.DebugString() << std::endl;
+
+  if (std::string str; google::protobuf::TextFormat::PrintToString(_msg, &str))
+    std::cout << str << std::endl;
+  else
+    std::cerr << "Error printing message" << std::endl;
 }
 
 //////////////////////////////////////////////////

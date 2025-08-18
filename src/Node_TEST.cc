@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <google/protobuf/text_format.h>
 
 #include <chrono>
 #include <csignal>
@@ -125,7 +126,8 @@ void rawCbInfo(const char *_msgData, const size_t _size,
 /// \brief A generic callback.
 void genericCb(const transport::ProtoMsg &_msg)
 {
-  std::string content = _msg.DebugString();
+  std::string content;
+  ASSERT_TRUE(google::protobuf::TextFormat::PrintToString(_msg, &content));
   EXPECT_TRUE(content.find(std::to_string(data)) != std::string::npos);
   genericCbExecuted = true;
 }

@@ -344,8 +344,8 @@ subscribers contain a specific protobuf parameter, such as
 possible to create a generic subscriber callback that can receive messages of
 different types. This use case might be interesting if you are building a bridge
 between Ignition Transport and another protocol or if you want to just print the
-content of a generic protobuf message using `DebugString()`, among other use
-cases.
+content of a generic protobuf message using
+`google::protobuf::TextFormat::PrintToString()`, among other use cases.
 
 Download the [subscriber_generic.cc](https://github.com/ignitionrobotics/ign-transport/raw/main/example/subscriber_generic.cc) file within the `ign_transport_tutorial` folder and open it with your favorite editor:
 
@@ -363,7 +363,11 @@ void cb(const google::protobuf::Message &_msg,
         const gz::transport::MessageInfo &_info)
 {
   std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
-  std::cout << _msg.DebugString() << std::endl;
+
+  if (std::string str; google::protobuf::TextFormat::PrintToString(_msg, &str))
+    std::cout << str << std::endl;
+  else
+    std::cerr << "Error printing message" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -396,7 +400,11 @@ void cb(const google::protobuf::Message &_msg,
         const gz::transport::MessageInfo &_info)
 {
   std::cout << "Topic: [" << _info.Topic() << "]" << std::endl;
-  std::cout << _msg.DebugString() << std::endl;
+
+  if (std::string str; google::protobuf::TextFormat::PrintToString(_msg, &str))
+    std::cout << str << std::endl;
+  else
+    std::cerr << "Error printing message" << std::endl;
 }
 ```
 

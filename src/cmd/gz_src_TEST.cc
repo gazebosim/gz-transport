@@ -15,6 +15,8 @@
  *
 */
 
+#include <google/protobuf/text_format.h>
+
 #include <future>
 #include <string>
 #include <iostream>
@@ -271,7 +273,9 @@ TEST(ignTest, cmdTopicEchoOutputFormats)
   auto defaultOutput = std::async(std::launch::async, getSubscriberOutput,
                                   MsgOutputFormat::kDefault);
 
-  cmdTopicPub(g_topic.c_str(), g_intType.c_str(), msg.DebugString().c_str());
+  std::string str;
+  ASSERT_TRUE(google::protobuf::TextFormat::PrintToString(msg, &str));
+  cmdTopicPub(g_topic.c_str(), g_intType.c_str(), str.c_str());
   EXPECT_EQ("data: 5\n\n", defaultOutput.get());
 
   clearIOStreams(stdOutBuffer, stdErrBuffer);
@@ -280,7 +284,8 @@ TEST(ignTest, cmdTopicEchoOutputFormats)
                                MsgOutputFormat::kJSON);
 
   msg.set_data(10);
-  cmdTopicPub(g_topic.c_str(), g_intType.c_str(), msg.DebugString().c_str());
+  ASSERT_TRUE(google::protobuf::TextFormat::PrintToString(msg, &str));
+  cmdTopicPub(g_topic.c_str(), g_intType.c_str(), str.c_str());
   EXPECT_EQ("{\"data\":10}\n", jsonOutput.get());
 
   clearIOStreams(stdOutBuffer, stdErrBuffer);
