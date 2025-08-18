@@ -76,6 +76,8 @@ void VerifyMessage(const gz::transport::log::Message &_msg,
 TEST(recorder,
   GZ_UTILS_TEST_DISABLED_ON_MAC(BeginRecordingTopicsBeforeAdvertisement))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   // Remember to include a leading slash so that the VerifyTopic lambda below
   // will work correctly. gz-transport automatically adds a leading slash to
   // topics that don't specify one.
@@ -146,6 +148,8 @@ TEST(recorder,
 /// so we only test to see that we received the very last message.
 TEST(recorder, BeginRecordingTopicsAfterAdvertisement)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics = {"/foo", "/bar"};
 
   const std::string logName =
@@ -272,12 +276,16 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
 //////////////////////////////////////////////////
 TEST(recorder, BeginRecordingPatternBeforeAdvertisement)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   RecordPatternBeforeAdvertisement(std::regex(".*foo.*"));
 }
 
 //////////////////////////////////////////////////
 TEST(recorder, BeginRecordingAllBeforeAdvertisement)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   RecordPatternBeforeAdvertisement(std::regex(".*"));
 }
 
@@ -287,6 +295,8 @@ TEST(recorder, BeginRecordingAllBeforeAdvertisement)
 /// data queue.
 TEST(recorder, DataWriterQueue)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   // Remember to include a leading slash so that the VerifyTopic lambda below
   // will work correctly. gz-transport automatically adds a leading slash to
   // topics that don't specify one.
@@ -376,6 +386,8 @@ TEST(recorder, DataWriterQueue)
 /// Test that clock is properly recorded
 TEST(recorder, DataWriterQueueClockUpdates)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   // Remember to include a leading slash so that the VerifyTopic lambda below
   // will work correctly. gz-transport automatically adds a leading slash to
   // topics that don't specify one.
@@ -517,6 +529,8 @@ void TestBufferSizeSettings(const std::optional<std::size_t> &_bufferSize,
 /// Test default buffer size setting
 TEST(recorder, DataWriterQueueDefaultBufferSize)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   TestBufferSizeSettings(std::nullopt, 50);
 }
 
@@ -524,6 +538,8 @@ TEST(recorder, DataWriterQueueDefaultBufferSize)
 /// Test infinite buffer size setting
 TEST(recorder, DataWriterQueueInfiniteBufferSize)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   TestBufferSizeSettings(0, 50);
 }
 
@@ -532,6 +548,8 @@ TEST(recorder, DataWriterQueueInfiniteBufferSize)
 /// still get recorded
 TEST(recorder, DataWriterQueueLargeMessages)
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   TestBufferSizeSettings(1, 1);
 }
 

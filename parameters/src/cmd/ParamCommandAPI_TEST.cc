@@ -26,6 +26,8 @@
 
 #include "gtest/gtest.h"
 
+#include "test_utils.hh"
+
 using namespace gz;
 using namespace transport;
 using namespace transport::parameters;

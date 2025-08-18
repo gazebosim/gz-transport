@@ -5,6 +5,11 @@ gz_add_component(log SOURCES ${sources} GET_TARGET_NAME log_lib_target)
 target_link_libraries(${log_lib_target}
   PRIVATE SQLite3::SQLite3)
 
+if (HAVE_ZENOH)
+  target_link_libraries(${log_lib_target}
+    PRIVATE zenohcxx::zenohc)
+endif()
+
 if (MSVC)
   # Warning #4251 is the "dll-interface" warning that tells you when types used
   # by a class are not being exported. These generated source files have private

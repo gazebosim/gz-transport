@@ -18,8 +18,6 @@
 #ifndef GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 #define GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 
-#include <zmq.hpp>
-
 #include <atomic>
 #include <list>
 #include <map>
@@ -29,8 +27,14 @@
 #include <unordered_set>
 #include <vector>
 
-#include "gz/transport/Discovery.hh"
+#include <zmq.hpp>
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
+
+#include "gz/transport/config.hh"
 #include "gz/transport/Node.hh"
+#include "Discovery.hh"
 
 namespace gz::transport
 {
@@ -54,6 +58,10 @@ namespace gz::transport
   {
     // Constructor
     public: NodeSharedPrivate() :
+#ifdef HAVE_ZENOH
+              session(new zenoh::Session(
+                zenoh::Session::open(zenoh::Config::create_default()))),
+#endif
               context(new zmq::context_t(1)),
               publisher(new zmq::socket_t(*context, ZMQ_PUB)),
               subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
@@ -82,6 +90,11 @@ namespace gz::transport
     /// value if the validation wasn't succeed.
     public: int NonNegativeEnvVar(const std::string &_envVar,
                                   int _defaultValue) const;
+
+#ifdef HAVE_ZENOH
+    /// \Pointer to the Zenoh session.
+    public: std::shared_ptr<zenoh::Session> session;
+#endif
 
     //////////////////////////////////////////////////
     ///////    Declare here the ZMQ Context    ///////
@@ -185,6 +198,18 @@ namespace gz::transport
     /// \brief used to signal when new work is available
     public: std::condition_variable signalNewPub;
 
+    /// \brief Service thread used to process the srvQueue.
+    public: std::thread srvThread;
+
+    /// \brief Mutex to protect the srvThread and srvQueue.
+    public: std::mutex srvThreadMutex;
+
+    /// \brief List onto which new srv publishers are pushed.
+    public: std::list<ServicePublisher> srvQueue;
+
+    /// \brief Used to signal when new work is available.
+    public: std::condition_variable signalNewSrv;
+
     /// \brief Handles local publication of messages on the pubQueue.
     public: void PublishThread();
 
@@ -206,6 +231,32 @@ namespace gz::transport
     /// \brief A map of node UUID and its subscribed topics
     public: std::unordered_map<std::string, std::unordered_set<std::string>>
             topicsSubscribed;
+
+    /// \brief Service call repliers.
+    public: HandlerStorage<IRepHandler> repliers;
+
+    /// \brief Pending service call requests.
+    public: HandlerStorage<IReqHandler> requests;
+
+    /// \brief Print activity to stdout.
+    public: int verbose = false;
+
+    /// \brief My pub/sub address.
+    public: std::string myAddress;
+
+    /// \brief My requester service call address.
+    public: std::string myRequesterAddress;
+
+    /// \brief My replier service call address.
+    public: std::string myReplierAddress;
+
+    /// \brief IP address of this host.
+    public: std::string hostAddr;
+
+    /// \brief Underlying middleware implementation.
+    /// Supported values are: [zenoh, zeromq].
+    public: std::string gzImplementation =
+                std::string(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION);
   };
   }
 }

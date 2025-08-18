@@ -97,7 +97,7 @@ void runSubscriber()
   // Subscribe to topic using a mix of Subscribe / CreateSubscriber APIs
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
   EXPECT_TRUE(node.SubscribeRaw(g_topic, cbRaw,
-                                msgs::Vector3d().GetTypeName()));
+                                std::string(msgs::Vector3d().GetTypeName())));
   transport::Node::Subscriber sub = node.CreateSubscriber(g_topic, cbCreateSub);
   EXPECT_TRUE(sub);
   transport::Node::Subscriber sub2 = node.CreateSubscriber(g_topic,
@@ -175,7 +175,6 @@ int main(int argc, char **argv)
 
   // Set the partition name for this test.
   gz::utils::setenv("GZ_PARTITION", argv[1]);
-  gz::utils::setenv("GZ_TRANSPORT_TOPIC_STATISTICS", "1");
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
