@@ -201,7 +201,7 @@ namespace gz::transport
     ///   * MP for a message publisher.
     ///   * MS for a message subscription.
     ///   * SS for a service server.
-    /// \param[out] _TypeName The message type component.
+    /// \param[out] _typeName The message type component.
     /// \return True if all the components were set.
     public: static bool DecomposeLivelinessToken(
       const std::string &_token,
