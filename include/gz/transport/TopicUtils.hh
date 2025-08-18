@@ -211,7 +211,7 @@ namespace gz::transport
       std::string &_pUUID,
       std::string &_nUUID,
       std::string &_entityType,
-      std::string &_TypeName);
+      std::string &_typeName);
 
     /// \brief Decompose a Zenoh liveliness token into its components.
     ///
