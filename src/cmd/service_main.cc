@@ -130,7 +130,7 @@ void addServiceFlags(CLI::App &_app)
 R"(Request a service.
 TEXT is the input data.
 The format expected is
-the same used by Protobuf DebugString(). E.g.:
+the same used by google::protobuf::TextFormat::PrintToString(). E.g.:
   gz service -s /echo \
     --reqtype gz.msgs.StringMsg \
     --reptype gz.msgs.StringMsg \
