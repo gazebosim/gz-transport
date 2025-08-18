@@ -155,7 +155,7 @@ R"(Calculate the frequency of a topic:
       },
 R"(Publish a message.
 TEXT is the message data. The format expected is
-the same used by Protobuf DebugString(). E.g.:
+the same used by google::protobuf::TextFormat::PrintToString(). E.g.:
   gz topic -t /foo -m gz.msgs.StringMsg \
     -p 'data:"Custom data"')")
     ->needs(topicOpt)
