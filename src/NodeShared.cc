@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <google/protobuf/text_format.h>
 #include <gz/msgs/empty.pb.h>
 
 #include <zmq.hpp>
@@ -1883,9 +1884,20 @@ void NodeSharedPrivate::PublishThread()
       }
       catch (...)
       {
-        std::cerr << "Exception occurred in a local callback "
+        if (std::string str;
+            google::protobuf::TextFormat::PrintToString(
+              *(msgDetails->msgCopy), &str))
+        {
+          std::cerr << "Exception occurred in a local callback "
           << "on topic [" << msgDetails->info.Topic() << "] with message ["
-          << msgDetails->msgCopy->DebugString() << "]" << std::endl;
+          << str << "]" << std::endl;
+        }
+        else
+        {
+          std::cerr << "Exception occurred in a local callback "
+          << "on topic [" << msgDetails->info.Topic() << "]. Unable to show msg"
+          << std::endl;
+        }
       }
     }
 
@@ -1899,10 +1911,20 @@ void NodeSharedPrivate::PublishThread()
       }
       catch (...)
       {
-        std::cerr << "Exception occured in a local raw callback "
-          << "on topic [" << msgDetails->info.Topic() << "] with "
-          << "message [" << msgDetails->msgCopy->DebugString() << "]"
+        if (std::string str;
+            google::protobuf::TextFormat::PrintToString(
+              *(msgDetails->msgCopy), &str))
+        {
+          std::cerr << "Exception occurred in a local raw callback "
+          << "on topic [" << msgDetails->info.Topic() << "] with message ["
+          << str << "]" << std::endl;
+        }
+        else
+        {
+          std::cerr << "Exception occurred in a local raw callback "
+          << "on topic [" << msgDetails->info.Topic() << "]. Unable to show msg"
           << std::endl;
+        }
       }
     }
   }
