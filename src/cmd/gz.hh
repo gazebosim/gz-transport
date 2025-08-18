@@ -39,8 +39,8 @@ extern "C" void cmdServiceList();
 /// \brief External hook to execute 'ign topic -p' from the command line.
 /// \param[in] _topic Topic name.
 /// \param[in] _msgType Message type.
-/// \param[in] _msgData The format expected is the same used by Protobuf
-/// DebugString().
+/// \param[in] _msgData The format expected is the same used by
+/// google::protobuf::TextFormat::PrintToString().
 /// E.g.: cmdTopicPub("/foo", "ignition.msgs.StringMsg",
 ///                   "'data:\"Custom data\"');
 extern "C" void cmdTopicPub(const char *_topic,
@@ -53,7 +53,8 @@ extern "C" void cmdTopicPub(const char *_topic,
 /// \param[in] _repType Message type used in the response.
 /// \param[in] _timeout The request will timeout after '_timeout' ms.
 /// \param[in] _reqData Input data sent in the request.
-/// The format expected is the same used by Protobuf DebugString().
+/// The format expected is the same used by
+/// google::protobuf::TextFormat::PrintToString().
 /// E.g.: cmdServiceReq("/bar", "ignition.msgs.StringMsg",
 ///                     "ignition.msgs.StringMsg", 1000,
 ///                     "'data:\"Custom data\"');
@@ -67,10 +68,11 @@ extern "C" {
   /// \brief Enum used for specifing the message output format for functions
   /// like cmdTopicEcho.
   enum class MsgOutputFormat {
-    // Default. Currently, this is Protobuf's DebugString output format.
+    // Default. Currently, this is google::protobuf::TextFormat::PrintToString()
+    // output format.
     kDefault,
 
-    // Output format used in Protobuf's Message::DebugString.
+    // Output format used in google::protobuf::TextFormat::PrintToString()..
     kDebugString,
 
     // JSON output.
