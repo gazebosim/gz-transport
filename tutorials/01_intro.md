@@ -16,8 +16,9 @@ Gazebo Transport uses
 as the data type for communicating between nodes. Users can define their own
 messages using the Protobuf utils, and then exchange them between the nodes.
 Gazebo Transport discovers, serializes and delivers messages to the
-destinations using a combination of custom code and
-[ZeroMQ](http://zeromq.org/).
+destinations using a combination of custom code and a middleware backend.
+Currently, two middleware backends are available:
+[ZeroMQ](http://zeromq.org/) and [Zenoh](https://zenoh.io/).
 
 ## What programming language can I use with Gazebo Transport?
 
