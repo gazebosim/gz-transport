@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <string>
 #include <optional>
+#include <vector>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -128,21 +129,25 @@ namespace gz::transport
       std::string &_partition,
       std::string &_namespaceAndTopic);
 
-    /// \brief Decompose a Zenoh liveliness token into its components.
+    /// \brief Partially decompose a Zenoh liveliness token into its components.
     ///
     /// Given a Zenoh liveliness token with the following syntax:
     ///
-    /// \<PREFIX\>\@\<PARTITION\>\@\<NAMESPACE\>/\<TOPIC\>@\<ProcUUID\>
-    /// \@\<NodeUUID\>\@\<EntityType\>\@\<MsgType\>
+    /// \<prefix\>/\<partition\>/\<session_id\>/\<node_id\>/\<entity_id\>/
+    /// \<entity_kind\>/\<mangled_enclave\>/\<mangled_namespace\>/\<node_name\>/
+    /// \<mangled_qualified_name\>/\<type_name\>/\<type_hash\>/\<qos\>
     ///
-    /// The _prefix output argument will be set to \<PREFIX\>, the _partition
-    /// output argument will be set to \<PARTITION\>, the
-    /// _namespaceAndTopic output argument will be set to
-    /// \<NAMESPACE\>/\<TOPIC\>, the _pUUID output argument will be set to
-    /// \<ProcUUID\>, the _nUUID output argument will be set to
-    /// \<NodeUUID\>, the _entityType output argument will be set to
-    /// \<EntityType\>, the _msgType output argument will be set to
-    /// \<MsgType\>.
+    /// The _prefix output argument will be set from \<prefix\>, the _partition
+    /// output argument will be set from \<partition\>, the
+    /// _namespaceAndTopic output argument will be set and unmangled from
+    /// \<mangled_namespace\>/\<mangled_qualified_name\>, the _pUUID output
+    /// argument will be set from \<session_id\>, the _nUUID output argument
+    /// will be set from \<node_id\>, the _entityType output argument will be
+    /// set from \<entity_kind\>, the _remainingToken output argument will be
+    /// set from the remaining token to be processed afterwards.
+    ///
+    /// We're using the ROS 2 liveliness token convention.
+    /// https://github.com/ros2/rmw_zenoh/blob/rolling/docs/design.md#graph-cache
     ///
     /// \param[in] _token The Zenoh liveliness token.
     /// \param[out] _prefix The prefix component.
@@ -153,7 +158,51 @@ namespace gz::transport
     /// \param[out] _pUUID The process UUID component.
     /// \param[out] _nUUID The node UUID component.
     /// \param[out] _entityType The entity type (pub, sub) component.
-    /// \param[out] _msgType The message type component.
+    /// \param[out] _remainingToken The part of the token unprocessed.
+    /// \return True if all the components were set.
+    public: static bool DecomposeLivelinessTokenHelper(
+      const std::string &_token,
+      std::string &_prefix,
+      std::string &_partition,
+      std::string &_namespaceAndTopic,
+      std::string &_pUUID,
+      std::string &_nUUID,
+      std::string &_entityType,
+      std::string &_remainingToken);
+
+    /// \brief Decompose a Zenoh liveliness token into its components.
+    ///
+    /// Given a Zenoh liveliness token with the following syntax:
+    ///
+    /// \<prefix\>/\<partition\>/\<session_id\>/\<node_id\>/\<entity_id\>/
+    /// \<entity_kind\>/\<mangled_enclave\>/\<mangled_namespace\>/\<node_name\>/
+    /// \<mangled_qualified_name\>/\<type_name\>/\<type_hash\>/\<qos\>
+    ///
+    /// The _prefix output argument will be set from \<prefix\>, the _partition
+    /// output argument will be set from \<partition\>, the
+    /// _namespaceAndTopic output argument will be set and unmangled from
+    /// \<mangled_namespace\>/\<mangled_qualified_name\>, the _pUUID output
+    /// argument will be set from \<session_id\>, the _nUUID output argument
+    /// will be set from \<node_id\>, the _entityType output argument will be
+    /// set from \<entity_kind\>, the _msgType output argument will be set from
+    /// \<type_name\>.
+    ///
+    /// We're using the ROS 2 liveliness token convention.
+    /// https://github.com/ros2/rmw_zenoh/blob/rolling/docs/design.md#graph-cache
+    ///
+    /// \param[in] _token The Zenoh liveliness token.
+    /// \param[out] _prefix The prefix component.
+    /// \param[out] _partition The partition component.
+    /// \param[out] _namespaceAndTopic The namespace and topic name component.
+    /// Note that there is no way to distinguish between where a namespace
+    /// ends and a topic name begins, since topic names may contain slashes.
+    /// \param[out] _pUUID The process UUID component.
+    /// \param[out] _nUUID The node UUID component.
+    /// \param[out] _entityType The entity type.
+    ///   * MP for a message publisher.
+    ///   * MS for a message subscription.
+    ///   * SS for a service server.
+    /// \param[out] _typeName The message type component.
     /// \return True if all the components were set.
     public: static bool DecomposeLivelinessToken(
       const std::string &_token,
@@ -163,24 +212,27 @@ namespace gz::transport
       std::string &_pUUID,
       std::string &_nUUID,
       std::string &_entityType,
-      std::string &_msgType);
+      std::string &_typeName);
 
     /// \brief Decompose a Zenoh liveliness token into its components.
     ///
     /// Given a Zenoh liveliness token with the following syntax:
     ///
-    /// \<PREFIX\>\@\<PARTITION\>\@\<NAMESPACE\>/\<TOPIC\>@\<ProcUUID\>
-    /// \@\<NodeUUID\>\@\<EntityType\>\@\<ReqType\>\@\<RepType\>
+    /// \<prefix\>/\<partition\>/\<session_id\>/\<node_id\>/\<entity_id\>/
+    /// \<entity_kind\>/\<mangled_enclave\>/\<mangled_namespace\>/\<node_name\>/
+    /// \<mangled_qualified_name\>/\<type_name\>/\<type_hash\>/\<qos\>
     ///
-    /// The _prefix output argument will be set to \<PREFIX\>, the _partition
-    /// output argument will be set to \<PARTITION\>, the
-    /// _namespaceAndTopic output argument will be set to
-    /// \<NAMESPACE\>/\<TOPIC\>, the _pUUID output argument will be set to
-    /// \<ProcUUID\>, the _nUUID output argument will be set to
-    /// \<NodeUUID\>, the _entityType output argument will be set to
-    /// \<EntityType\>, the _reqType output argument will be set to
-    /// \<ReqType\>, the _repType output argument will be set to
-    /// \<RepType\>.
+    /// The _prefix output argument will be set from \<prefix\>, the _partition
+    /// output argument will be set from \<partition\>, the
+    /// _namespaceAndTopic output argument will be set and unmangled from
+    /// \<mangled_namespace\>/\<mangled_qualified_name\>, the _pUUID output
+    /// argument will be set from \<session_id\>, the _nUUID output argument
+    /// will be set from \<node_id\>, the _entityType output argument will be
+    /// set from \<entity_kind\>, the _reqType and _reptype output arguments
+    /// will be set from unmangling \<type_name\>.
+    ///
+    /// We're using the ROS 2 liveliness token convention.
+    /// https://github.com/ros2/rmw_zenoh/blob/rolling/docs/design.md#graph-cache
     ///
     /// \param[in] _token The Zenoh liveliness token.
     /// \param[out] _prefix The prefix component.
@@ -190,7 +242,10 @@ namespace gz::transport
     /// ends and a topic name begins, since topic names may contain slashes.
     /// \param[out] _pUUID The process UUID component.
     /// \param[out] _nUUID The node UUID component.
-    /// \param[out] _entityType The entity type (pub, sub) component.
+    /// \param[out] _entityType The entity type.
+    ///   * MP for a message publisher.
+    ///   * MS for a message subscription.
+    ///   * SS for a service server.
     /// \param[out] _reqType The service request message type.
     /// \param[out] _repType The service response message type.
     /// \return True if all the components were set.
@@ -205,25 +260,58 @@ namespace gz::transport
       std::string &_reqType,
       std::string &_repType);
 
-    /// \brief Create a liveliness token.
+    /// \brief Create a partial liveliness token.
+    ///
+    /// We're using the ROS 2 liveliness token convention.
+    /// https://github.com/ros2/rmw_zenoh/blob/rolling/docs/design.md#graph-cache
+    ///
     /// \param[in] _fullyQualifiedTopic The fully qualified topic.
     /// \param[in] _pUuid The process UUID.
     /// \param[in] _nUuid The node UUID.
-    /// \param[in] _entityType The entity type (pub, sub, srv).
-    /// \param[in] _msgTypeName The message type.
+    /// \param[in] _entityType The entity type.
+    ///   * MP for a message publisher.
+    ///   * MS for a message subscription.
+    ///   * SS for a service server.
+    /// \return A partial liveliness token.
+    public: static std::string CreateLivelinessTokenHelper(
+      const std::string &_fullyQualifiedTopic,
+      const std::string &_pUuid,
+      const std::string &_nUuid,
+      const std::string &_entityType);
+
+    /// \brief Create a liveliness token.
+    ///
+    /// We're using the ROS 2 liveliness token convention.
+    /// https://github.com/ros2/rmw_zenoh/blob/rolling/docs/design.md#graph-cache
+    ///
+    /// \param[in] _fullyQualifiedTopic The fully qualified topic.
+    /// \param[in] _pUuid The process UUID.
+    /// \param[in] _nUuid The node UUID.
+    /// \param[in] _entityType The entity type.
+    ///   * MP for a message publisher.
+    ///   * MS for a message subscription.
+    ///   * SS for a service server.
+    /// \param[in] _typeName The message type.
     /// \return The liveliness token.
     public: static std::string CreateLivelinessToken(
       const std::string &_fullyQualifiedTopic,
       const std::string &_pUuid,
       const std::string &_nUuid,
       const std::string &_entityType,
-      const std::string &_msgTypeName);
+      const std::string &_typeName);
 
     /// \brief Create a liveliness token.
+    ///
+    /// We're using the ROS 2 liveliness token convention.
+    /// https://github.com/ros2/rmw_zenoh/blob/rolling/docs/design.md#graph-cache
+    ///
     /// \param[in] _fullyQualifiedTopic The fully qualified topic.
     /// \param[in] _pUuid The process UUID.
     /// \param[in] _nUuid The node UUID.
-    /// \param[in] _entityType The entity type (pub, sub, srv).
+    /// \param[in] _entityType The entity type.
+    ///   * MP for a message publisher.
+    ///   * MS for a message subscription.
+    ///   * SS for a service server.
     /// \param[in] _reqTypeName The service request type.
     /// \param[in] _repTypeName The service response type.
     /// \return The liveliness token.
@@ -243,16 +331,46 @@ namespace gz::transport
     /// \return A valid topic, or empty string if not possible to convert.
     public: static std::string AsValidTopic(const std::string &_topic);
 
+    /// \brief Replace "/" instances with "%".
+    /// \param[in] _input Input name.
+    /// \return The mangled name.
+    public: static std::string MangleName(const std::string &_input);
+
+    /// \brief Recompose a previously mangled name.
+    /// \param[in] _input Input mangled name.
+    /// \return The unmangled name.
+    public: static std::string DemangleName(const std::string &_input);
+
+    /// \brief Mangle multiple types into a single string using "&" as delimiter
+    /// \param[in] _input Input vector with types.
+    /// \param[out] _output The mangled string.
+    /// \return True if the mangled worked succesfully.
+    public: static bool MangleType(const std::vector<std::string> &_input,
+                                   std::string &_output);
+
+    /// \brief Recompose a previously mangled type.
+    /// \param[in] _input Input mangled type.
+    /// \param[out] _output The unmangled vector with types.
+    /// \return True if the demanged worked succesfully.
+    public: static bool DemangleType(const std::string &_input,
+                                     std::vector<std::string> &_output);
+
     /// \brief The kMaxNameLength specifies the maximum number of characters
     /// allowed in a namespace, a partition name, a topic name, and a fully
     /// qualified topic name.
     public: static const uint16_t kMaxNameLength = 65535;
 
     /// \brief The separator used within the liveliness token.
-    public: static constexpr const char *kTokenSeparator = "@";
+    public: static const char kTokenSeparator[];
+
+    /// \brief The separator used to concatenate type names.
+    public: static const char kTypeSeparator[];
 
     /// \brief A common prefix for all liveliness tokens.
-    public: static constexpr const char *kTokenPrefix = "gz";
+    public: static const char kTokenPrefix[];
+
+    /// \brief A replacement for the slash when mangling names.
+    public: static const char kSlashReplacement;
   };
 
 

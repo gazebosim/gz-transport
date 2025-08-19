@@ -603,7 +603,6 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
       this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
                                std::move(options));
-
     }
   }
 #endif
@@ -618,12 +617,12 @@ bool Node::Publisher::PublishRaw(
     const std::string &_msgData,
     const std::string &_msgType)
 {
-  if (!this->dataPtr->Valid())
+  if (!this->Valid())
     return false;
 
   const std::string &publisherMsgType = this->dataPtr->publisher.MsgTypeName();
 
-  if (publisherMsgType  != _msgType && publisherMsgType != kGenericMessageType)
+  if (publisherMsgType != _msgType && publisherMsgType != kGenericMessageType)
   {
     std::cerr << "Node::Publisher::PublishRaw() type mismatch.\n"
               << "\t* Type advertised: "
@@ -632,7 +631,7 @@ bool Node::Publisher::PublishRaw(
     return false;
   }
 
-  if (!this->dataPtr->UpdateThrottling())
+  if (!this->UpdateThrottling())
     return true;
 
   const std::string &topic = this->dataPtr->publisher.Topic();
@@ -655,18 +654,39 @@ bool Node::Publisher::PublishRaw(
     const std::size_t msgSize = _msgData.size();
     char *msgBuffer = static_cast<char *>(new char[msgSize]);
     memcpy(msgBuffer, _msgData.c_str(), msgSize);
-    auto myDeallocator = [](void *_buffer, void * /*_hint*/)
-    {
-      delete[] reinterpret_cast<char*>(_buffer);
-    };
 
-    // Note: This will copy _msgData (i.e. not zero copy)
-    if (!this->dataPtr->shared->Publish(
-          this->dataPtr->publisher.Topic(),
-          msgBuffer, msgSize, myDeallocator, _msgType))
+    std::string impl = this->dataPtr->shared->GzImplementation();
+    if (impl == "zeromq")
     {
-      return false;
+      auto myDeallocator = [](void *_buffer, void * /*_hint*/)
+      {
+        delete[] reinterpret_cast<char*>(_buffer);
+      };
+
+      // Note: This will copy _msgData (i.e. not zero copy)
+      if (!this->dataPtr->shared->Publish(
+            this->dataPtr->publisher.Topic(),
+            msgBuffer, msgSize, myDeallocator, _msgType))
+      {
+        return false;
+      }
     }
+#ifdef HAVE_ZENOH
+    else if (impl == "zenoh")
+    {
+      zenoh::Publisher::PutOptions options;
+      // Add message type as an attachment.
+      options.attachment = this->dataPtr->publisher.MsgTypeName();
+
+      // Zenoh will call this lambda once Bytes objects are destroyed
+      auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+      auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
+      this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
+                               std::move(options));
+    }
+#endif
+    else
+      return false;
   }
 
   return true;
@@ -1184,8 +1204,12 @@ Node::Publisher Node::Advertise(const std::string &_topic,
      zenoh::KeyExpr(fullyQualifiedTopic));
 
     std::string token = TopicUtils::CreateLivelinessToken(
-      fullyQualifiedTopic, this->Shared()->pUuid, this->NodeUuid(), "pub",
+      fullyQualifiedTopic, this->Shared()->pUuid, this->NodeUuid(), "MP",
       _msgTypeName);
+
+    if (token.empty())
+      return Publisher();
+
     auto zToken =
       this->Shared()->dataPtr->session->liveliness_declare_token(token);
 
