@@ -58,10 +58,6 @@ namespace gz::transport
   {
     // Constructor
     public: NodeSharedPrivate() :
-#ifdef HAVE_ZENOH
-              session(new zenoh::Session(
-                zenoh::Session::open(zenoh::Config::create_default()))),
-#endif
               context(new zmq::context_t(1)),
               publisher(new zmq::socket_t(*context, ZMQ_PUB)),
               subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
@@ -69,6 +65,27 @@ namespace gz::transport
               responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
               replier(new zmq::socket_t(*context, ZMQ_ROUTER))
     {
+      // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
+      std::string gzImpl;
+      if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
+      {
+        std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
+        if (gzImpl == "zeromq" || gzImpl == "zenoh")
+          this->gzImplementation = gzImpl;
+        else
+        {
+          std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
+                    << gzImpl << "]. Ignoring this value" << std::endl;
+        }
+      }
+
+#ifdef HAVE_ZENOH
+      if (this->gzImplementation == "zenoh")
+      {
+        this->session = std::make_shared<zenoh::Session>(
+          zenoh::Session::open(zenoh::Config::create_default()));
+      }
+#endif
     }
 
     /// \brief Initialize security
