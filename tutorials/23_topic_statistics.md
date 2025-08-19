@@ -4,6 +4,9 @@ Previous Tutorial: \ref development
 
 ## Overview
 
+**Note: This feature is only available when using the zeromq middleware
+backend.**
+
 Topic statistics provides a mechanism to quantify transport performance
 between a publisher and subscriber. When enabled, a subscriber on a topic
 can measure:

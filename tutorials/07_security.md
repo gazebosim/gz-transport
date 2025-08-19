@@ -5,6 +5,9 @@ Previous Tutorial: \ref python
 
 ## Overview
 
+**Note: This feature is only available when using the zeromq middleware
+backend.**
+
 Gazebo Transport's default mode of communication is insecure, which means
 no authentication or encryption is used. Insecure communication is the
 default because it is simple to implement and use, supports introspection,
