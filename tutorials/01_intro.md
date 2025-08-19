@@ -25,15 +25,11 @@ Currently, two middleware backends are available:
 Gazebo Transport support an environment variable `GZ_TRANSPORT_IMPLEMENTATION`
 that allows the user to select the middleware backend to use.
 
-| Environment variable        | Allowed values |
-| :-------------------------: | :------------: |
-| GZ_TRANSPORT_IMPLEMENTATION | zeromq, zenoh  |
-
-zeromq is the default middleware backend and the recommended option for
+`zeromq` is the default middleware backend and the recommended option for
 production code.
 
-Please, review \ref envvars to learn about the environment variables that can
-be used with each middleware backend.
+Please, review the \ref envvars section to learn about the environment variables
+that can be used with each middleware backend.
 
 ## What programming language can I use with Gazebo Transport?
 
