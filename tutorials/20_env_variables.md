@@ -7,7 +7,8 @@ Previous Tutorial: \ref logging
 
 Similar to how you can programmatically customize the behavior of your
 nodes or specify some options when you advertise a topic, it is possible to
-use an environment variable to tweak the behavior of Gazebo Transport.
+use an environment variable to tweak the behavior of Gazebo Transport. Some of
+the environment variables are only available for specific middleware backends.
 Below are descriptions of the available environment variables:
 
 * **GZ_DISCOVERY_MSG_PORT**
@@ -15,15 +16,18 @@ Below are descriptions of the available environment variables:
     you should use the range [1024-65535].
     * *Description*: UDP port used for message discovery. The default value is
     10317.
+    * *Available in backend:*: zeromq
 * **GZ_DISCOVERY_MULTICAST_IP**
     * *Value allowed*: Any multicast IP address
     * *Description*: Multicast IP address used for communicating all the
     discovery messages. The default value is 239.255.0.7.
+    * *Available in backend:*: zeromq
 * **GZ_DISCOVERY_SRV_PORT**
     * *Value allowed*: Any non-negative number in range [0-65535]. In practice
     you should use the range [1024-65535].
     * *Description*: UDP port used for service discovery. The default value is
     10318.
+    * *Available in backend:*: zeromq
 * **GZ_IP**
     * *Value allowed*: Any local IP address
     * *Description*: When you have
@@ -33,6 +37,7 @@ Below are descriptions of the available environment variables:
     requesting services you don't need to use this option because the
     discovery service will try all the available network interfaces during
     the search of the topic/service.
+    * *Available in backend:*: zeromq
 * **GZ_PARTITION**
     * *Value allowed*: Any partition value
     * *Default value*: `<HOSTNAME>:<USERNAME>` where `<HOSTNAME>` is the
@@ -42,6 +47,7 @@ Below are descriptions of the available environment variables:
     inside this process. Note that an alternative partition name  declared
     programmatically and  passed to the constructor of a Node class will take
     priority over *GZ_PARTITION*.
+    * *Available in backend:*: zeromq, zenoh
 * **GZ_RELAY**
     * *Value allowed*: Colon delimited list of IP addresses
     * *Description*: Connects the nodes
@@ -52,17 +58,25 @@ Below are descriptions of the available environment variables:
     address of another node from the other network. Note that only one GZ_RELAY
     link is needed for bidirectional communication between nodes of two
     different networks.
+    * *Available in backend:*: zeromq
+* **GZ_TRANSPORT_IMPLEMENTATION**
+    * *Value allowed*: [zeromq, zenoh]
+    * *Default value*: zeromq
+    * *Description*: Sets the middleware backend.
+    * *Available in backend:*: zeromq, zenoh
 * **GZ_TRANSPORT_LOG_SQL_PATH**
     * *Value allowed*: Any path
     * *Description*: Path to the SQL files used by logging. This does not
     normally need to be set. It is useful to developers who are testing changes
     to the schema, and it is used by unit tests.
+    * *Available in backend:*: zeromq, zenoh
 * **GZ_TRANSPORT_PASSWORD**
     * *Value allowed*: Any string value
     * *Description*: A password, used in combination with
     *GZ_TRANSPORT_USERNAME*, for basic authentication. Authentication is
     enabled when both *GZ_TRANSPORT_USERNAME* and *GZ_TRANSPORT_PASSWORD*
     are specified.
+    * *Available in backend:*: zeromq
 * **GZ_TRANSPORT_RCVHWM**
     * *Value allowed*: Any non-negative number.
     * *Description*: Specifies the capacity of the buffer (High Water Mark)
@@ -72,6 +86,7 @@ Below are descriptions of the available environment variables:
     buffer, so your buffer will grow until you run out of memory (and probably
     crash). If your buffer reaches the maximum capacity data will be dropped.
     * *Default value*: 1000.
+    * *Available in backend:*: zeromq
 * **GZ_TRANSPORT_SNDHWM**
     * *Value allowed*: Any non-negative number.
     * *Description*: Specifies the capacity of the buffer (High Water Mark)
@@ -81,6 +96,7 @@ Below are descriptions of the available environment variables:
     buffer, so your buffer will grow until you run out of memory (and probably
     crash). If your buffer reaches the maximum capacity data will be dropped.
     * *Default value*: 1000.
+    * *Available in backend:*: zeromq
 * **GZ_TRANSPORT_TOPIC_STATISTICS**
     * *Value allowed*: 1/0
     * *Description*: Enable topic statistics. A value of 1 will enable topic
@@ -89,12 +105,15 @@ Below are descriptions of the available environment variables:
     The publish and subscriber must use the same value, otherwise they won't
     be able to communicate.
     * *Default value*: 0
+    * *Available in backend:*: zeromq
 * **GZ_TRANSPORT_USERNAME**
     * *Value allowed*: Any string value
     * *Description*: A username, used in combination with
     *GZ_TRANSPORT_PASSWORD*, for basic authentication. Authentication is
     enabled when both *GZ_TRANSPORT_USERNAME* and *GZ_TRANSPORT_PASSWORD*
     are specified.
+    * *Available in backend:*: zeromq
 * **GZ_VERBOSE**
     * *Value allowed*: 1/0
     * *Description*: Show debug information.
+    * *Available in backend:*: zeromq, zenoh
