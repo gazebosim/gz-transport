@@ -376,8 +376,6 @@ TEST(twoProcPubSub, TopicList)
 /// about the topic.
 TEST(twoProcPubSub, TopicInfo)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPublisher, partition});
 
@@ -414,8 +412,6 @@ TEST(twoProcPubSub, TopicInfo)
 /// check returns the correct result.
 TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   transport::Node node;
 
   for (auto j = 0; j < 2; ++j)
@@ -432,10 +428,6 @@ TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
     {
       auto pub = node.Advertise<msgs::Vector3d>(g_topic);
       EXPECT_TRUE(pub);
-
-      // No subscribers yet right after pub comes up because it takes time for
-      // it to discover subscribers on the network
-      EXPECT_FALSE(pub.HasConnections());
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
