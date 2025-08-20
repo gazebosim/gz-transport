@@ -16,8 +16,20 @@ Gazebo Transport uses
 as the data type for communicating between nodes. Users can define their own
 messages using the Protobuf utils, and then exchange them between the nodes.
 Gazebo Transport discovers, serializes and delivers messages to the
-destinations using a combination of custom code and
-[ZeroMQ](http://zeromq.org/).
+destinations using a combination of custom code and a middleware backend.
+Currently, two middleware backends are available:
+[ZeroMQ](http://zeromq.org/) and [Zenoh](https://zenoh.io/).
+
+## How do I specify my middleware backend?
+
+Gazebo Transport support an environment variable `GZ_TRANSPORT_IMPLEMENTATION`
+that allows the user to select the middleware backend to use.
+
+`zeromq` is the default middleware backend and the recommended option for
+production code.
+
+Please, review the \ref envvars section to learn about the environment variables
+that can be used with each middleware backend.
 
 ## What programming language can I use with Gazebo Transport?
 

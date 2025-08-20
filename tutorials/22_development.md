@@ -5,6 +5,9 @@ Previous Tutorial: \ref envvars
 
 ## Overview
 
+**Note: This section describes some high level concepts of Gazebo Transport
+but the implementation details only apply to the zeromq middleware backend.**
+
 The purpose of this section is to describe the internal design of Gazebo
 Transport. You don't need to read this section if you just want to use the
 library in your code. This section will help you to understand our source code
