@@ -162,7 +162,7 @@ TEST(LogCommandAPI, RecordFailedToOpen)
 {
   // Tested command: gz log record --file '!@#$%^&*(:;[{]})?/.|' --pattern '.*'
   const std::string cmd =
-    kGzLogCommand + "record --file '!@#$%^&*(:;[{]})?/.|' --pattern '.*'";
+    kGzLogCommand + "record --file \"!@#$%^&*(:;[{]})?/.|\" --pattern '.*'";
   const std::string output = customExecStr(cmd);
   const std::string expectedOutput =
     "Failed to open the requested sqlite3 database\n"
@@ -178,7 +178,7 @@ TEST(LogCommandAPI, PlaybackFailedToOpen)
   // Tested command:
   // gz log playback --file '!@#$%^&*(:;[{]})?/.|' --pattern '.*' --wait 0
   const std::string cmd =
-    kGzLogCommand + "playback --file '!@#$%^&*(:;[{]})?/.|' "
+    kGzLogCommand + "playback --file \"!@#$%^&*(:;[{]})?/.|\" "
     "--pattern '.*' --wait 0";
   const std::string output = customExecStr(cmd);
   const std::string expectedOutput =
