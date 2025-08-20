@@ -5,6 +5,9 @@ Previous Tutorial: \ref security
 
 ## Overview
 
+**Note: This feature is only available when using the zeromq middleware
+backend.**
+
 In this tutorial, we are going to create two nodes that are not able to
 communicate with the default configuration of Gazebo Transport. This
 limitation arises when the nodes are separated by a router, typically when they

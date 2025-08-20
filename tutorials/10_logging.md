@@ -148,19 +148,19 @@ cmake --build . --config Release
 
 ## Running the examples
 
-> **NOTE**
-> It is essential to have a valid value of `GZ_PARTITION` environment variable
-> and to have it set to the same value in all open terminals. As `GZ_PARTITION`
-> is based on hostname and username, especially Windows and Mac users might
-> have problems due to spaces in their username, which are not a valid character
-> in `GZ_PARTITION`. gz-transport prints error `Invalid partition name` in such
-> case. To resolve that, set `GZ_PARTITION` explicitly to a valid value:
-> ```bash
-> # Linux and Mac
-> export GZ_PARTITION=test
-> # Windows
-> set GZ_PARTITION=test
-> ```
+**NOTE:**
+It is essential to have a valid value of `GZ_PARTITION` environment variable
+and to have it set to the same value in all open terminals. As `GZ_PARTITION`
+is based on hostname and username, especially Windows and Mac users might
+have problems due to spaces in their username, which are not a valid character
+in `GZ_PARTITION`. gz-transport prints error `Invalid partition name` in such
+case. To resolve that, set `GZ_PARTITION` explicitly to a valid value:
+```bash
+# Linux and Mac
+export GZ_PARTITION=test
+# Windows
+set GZ_PARTITION=test
+```
 
 Open two new terminals and from your `build/` directory run the recorder.
 
