@@ -332,12 +332,12 @@ namespace gz
           {
             if (entityType == "MP")
             {
-              this->info.DelPublisherByNode("@" + partition + "@" + pub.Topic(),
-                pub.PUuid(), pub.NUuid());
+              this->info.DelPublisherByNode(
+                pub.Topic(), pub.PUuid(), pub.NUuid());
             }
             else if (entityType == "MS" && this->pUuid != pUUID)
             {
-              this->remoteSubscribers.DelPublisherByNode("@" + partition + "@" +
+              this->remoteSubscribers.DelPublisherByNode(
                 pub.Topic(), pub.PUuid(), pub.NUuid());
               if (this->unregistrationCb)
                 this->unregistrationCb(pub);
@@ -399,8 +399,8 @@ namespace gz
           {
             if (entityType == "SS")
             {
-              this->info.DelPublisherByNode("@" + partition + "@" + pub.Topic(),
-                pub.PUuid(), pub.NUuid());
+              this->info.DelPublisherByNode(
+                pub.Topic(), pub.PUuid(), pub.NUuid());
             }
             if (this->verbose)
             {

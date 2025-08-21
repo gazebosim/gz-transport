@@ -203,7 +203,7 @@ namespace gz::transport
     /// \param[out] _info Map of publishers requested.
     /// \return true if at least there is one publisher stored.
     public: bool Publishers(const std::string &_topic,
-                           std::map<std::string, std::vector<T>> &_info) const
+                            std::map<std::string, std::vector<T>> &_info) const
     {
       if (!this->HasTopic(_topic))
         return false;
