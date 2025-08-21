@@ -247,20 +247,6 @@ NodeShared::NodeShared()
     this->dataPtr->topicStatsEnabled = (gzStats == "1");
   }
 
-  // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
-  std::string gzImpl;
-  if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
-  {
-    std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
-    if (gzImpl == "zeromq" || gzImpl == "zenoh")
-      this->dataPtr->gzImplementation = gzImpl;
-    else
-    {
-      std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
-                << gzImpl << "]. Ignoring this value" << std::endl;
-    }
-  }
-
   // My process UUID.
   Uuid uuid;
   this->pUuid = uuid.ToString();
