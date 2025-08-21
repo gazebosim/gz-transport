@@ -1,6 +1,6 @@
 ## Gazebo Transport 15.X
 
-### Gazebo Transport 15.0.0 (2025-08-26)
+### Gazebo Transport 15.0.0 (2025-09-xx)
 
 1. **Baseline:** this includes all changes from 14.1.0 and earlier.
 
@@ -55,47 +55,14 @@
 1. Bump gz-cmake and others in jetty
     * [Pull request #634](https://github.com/gazebosim/gz-transport/pull/634)
 
-1. Add move constructor / assignment operator to Node::Subscriber
-    * [Pull request #625](https://github.com/gazebosim/gz-transport/pull/625)
-
-1. Allow programmatic configuration of unicast relays.
-    * [Pull request #498](https://github.com/gazebosim/gz-transport/pull/498)
-
-1. Adds new Node::CreateSubscriber API
-    * [Pull request #608](https://github.com/gazebosim/gz-transport/pull/608)
-
 1. Disable Jammy CI
     * [Pull request #616](https://github.com/gazebosim/gz-transport/pull/616)
-
-1. Cast nanoseconds to int64_t
-    * [Pull request #607](https://github.com/gazebosim/gz-transport/pull/607)
 
 1. Build python bindings without version number
     * [Pull request #604](https://github.com/gazebosim/gz-transport/pull/604)
 
-1. Set GZ_IP=127.0.0.1 in tests needing network
-    * [Pull request #595](https://github.com/gazebosim/gz-transport/pull/595)
-
 1. Remove major version from package name
     * [Pull request #594](https://github.com/gazebosim/gz-transport/pull/594)
-
-1. Remove subscribers after publisher ends
-    * [Pull request #587](https://github.com/gazebosim/gz-transport/pull/587)
-
-1. Update maintainer email
-    * [Pull request #579](https://github.com/gazebosim/gz-transport/pull/579)
-
-1. Code cleanup
-    * [Pull request #578](https://github.com/gazebosim/gz-transport/pull/578)
-
-1. Unhide cmake warning when Python3 Development is not found
-    * [Pull request #565](https://github.com/gazebosim/gz-transport/pull/565)
-
-1. Remove unused MessagePublisherPrivate forward declaration.
-    * [Pull request #570](https://github.com/gazebosim/gz-transport/pull/570)
-
-1. Add compatibility with protobuf 28
-    * [Pull request #541](https://github.com/gazebosim/gz-transport/pull/541)
 
 ## Gazebo Transport 14.X
 
