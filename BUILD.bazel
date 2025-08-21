@@ -107,6 +107,7 @@ cc_binary(
     deps = [
         ":gz-transport",
         "@com_google_protobuf//:json_util",
+        "@com_google_protobuf//:protobuf",
         "@gz-msgs",
         "@gz-utils//cli:GzFormatter",
         "@gz-utils//cli:cli11",
@@ -126,6 +127,7 @@ cc_binary(
     deps = [
         ":gz-transport",
         "@com_google_protobuf//:json_util",
+        "@com_google_protobuf//:protobuf",
         "@gz-msgs",
         "@gz-utils//cli:GzFormatter",
         "@gz-utils//cli:cli11",
