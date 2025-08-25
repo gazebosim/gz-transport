@@ -199,7 +199,19 @@ Recorder::Implementation::Implementation()
   };
 
   this->discovery->ConnectionsCb(cb);
-  this->discovery->Start();
+  if (shared->GzImplementation() == "zeromq")
+  {
+    this->discovery->Start();
+  }
+  else if (shared->GzImplementation() == "zenoh")
+  {
+#ifdef HAVE_ZENOH
+    this->discovery->Start(shared->Session(),
+                           std::bind(&MsgDiscovery::LivelinessMsgDataHandler,
+                                     this->discovery.get(),
+                                     std::placeholders::_1));
+#endif
+  }
 }
 
 //////////////////////////////////////////////////

@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <string>
+#include <vector>
 
 #include "gz/transport/Node.hh"
 #include "gz/transport/TransportTypes.hh"
@@ -105,7 +106,7 @@ void cbRaw(const char * /*_msgData*/, const size_t /*_size*/,
 /// the advertised types.
 TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 {
-  auto pi = gz::utils::Subprocess(
+  auto pi = testing::SubprocessJoinWrapper(
     {test_executables::kTwoProcsPublisher, partition});
 
   reset();
@@ -126,7 +127,7 @@ TEST(twoProcPubSub, PubSubWrongTypesOnSubscription)
 /// \brief Same as above, but using a raw subscription.
 TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 {
-  auto pi = gz::utils::Subprocess(
+  auto pi = testing::SubprocessJoinWrapper(
     {test_executables::kTwoProcsPublisher, partition});
 
   reset();
@@ -152,7 +153,7 @@ TEST(twoProcPubSub, PubRawSubWrongTypesOnSubscription)
 /// (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 {
-  auto pi = gz::utils::Subprocess(
+  auto pi = testing::SubprocessJoinWrapper(
     {test_executables::kTwoProcsPublisher, partition});
 
   reset();
@@ -185,7 +186,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoSubscribers)
 /// callbacks are executed (correct and generic).
 TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 {
-  auto pi = gz::utils::Subprocess(
+  auto pi = testing::SubprocessJoinWrapper(
     {test_executables::kTwoProcsPublisher, partition});
 
   reset();
@@ -242,7 +243,7 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
 /// the prompt termination of the publisher.
 TEST(twoProcPubSub, FastPublisher)
 {
-  auto pi = gz::utils::Subprocess(
+  auto pi = testing::SubprocessJoinWrapper(
     {test_executables::kFastPub, partition});
 
   reset();
@@ -258,7 +259,7 @@ TEST(twoProcPubSub, FastPublisher)
 /// by the subscriber.
 TEST(twoProcPubSub, SubThrottled)
 {
-  auto pi = gz::utils::Subprocess(
+  auto pi = testing::SubprocessJoinWrapper(
     {test_executables::kPub, partition});
 
   reset();
@@ -284,7 +285,7 @@ TEST(twoProcPubSub, SubThrottled)
 /// processes. The publisher publishes at a throttled frequency.
 TEST(twoProcPubSub, PubThrottled)
 {
-  auto pi = gz::utils::Subprocess(
+  auto pi = testing::SubprocessJoinWrapper(
     {test_executables::kPubThrottled, partition});
 
   reset();
@@ -308,7 +309,7 @@ TEST(twoProcPubSub, PubThrottled)
 /// using a callback that accepts message information.
 TEST(twoProcPubSub, PubSubMessageInfo)
 {
-  auto pi = gz::utils::Subprocess(
+  auto pi = testing::SubprocessJoinWrapper(
     {test_executables::kTwoProcsPublisher, partition});
   reset();
 
@@ -330,7 +331,7 @@ TEST(twoProcPubSub, PubSubMessageInfo)
 /// available topics.
 TEST(twoProcPubSub, TopicList)
 {
-  auto pi = gz::utils::Subprocess(
+  auto pi = testing::SubprocessJoinWrapper(
     {test_executables::kTwoProcsPublisher, partition});
 
   reset();
@@ -376,7 +377,7 @@ TEST(twoProcPubSub, TopicList)
 /// about the topic.
 TEST(twoProcPubSub, TopicInfo)
 {
-  auto pi = gz::utils::Subprocess(
+  auto pi = testing::SubprocessJoinWrapper(
     {test_executables::kTwoProcsPublisher, partition});
 
   reset();
@@ -417,7 +418,7 @@ TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
   for (auto j = 0; j < 2; ++j)
   {
     // Start subscriber process before a publisher is created
-    auto pi = gz::utils::Subprocess(
+    auto pi = testing::SubprocessJoinWrapper(
        {test_executables::kTwoProcsPubSubSingleSubscriber, partition});
 
     // Sleep for subscriber process to fully come up
@@ -460,7 +461,7 @@ TEST(twoProcPubSub, PubSubTwoProcsMixedSubscribers)
   // No subscribers yet.
   EXPECT_FALSE(pub.HasConnections());
 
-  auto pi = gz::utils::Subprocess(
+  auto pi = testing::SubprocessJoinWrapper(
     {test_executables::kTwoProcsPubSubMixedSubscribers, partition});
 
   msgs::Vector3d msg;

@@ -43,6 +43,7 @@
 #include "gz/transport/Export.hh"
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/SubscribeOptions.hh"
+#include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 
@@ -419,7 +420,7 @@ namespace gz::transport
     /// \param[in] _topic The topic associated to this callback.
     public: void SetCallback(const RawCallback &_cb,
                              std::shared_ptr<zenoh::Session> _session,
-                             const std::string &_topic);
+                             const FullyQualifiedTopic &_fullyQualifiedTopic);
 #endif
 
     /// \brief Executes the raw callback registered for this handler.

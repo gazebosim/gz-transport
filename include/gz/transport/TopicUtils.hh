@@ -20,6 +20,7 @@
 
 #include <cstdint>
 #include <string>
+#include <optional>
 #include <vector>
 
 #include "gz/transport/config.hh"
@@ -370,6 +371,66 @@ namespace gz::transport
 
     /// \brief A replacement for the slash when mangling names.
     public: static const char kSlashReplacement;
+  };
+
+
+  /// \brief Type for fully qualified topics
+  class FullyQualifiedTopic
+  {
+    /// \brief Constructor
+    /// \param[in] _partition Partition
+    /// \param[in] _ns Namespace
+    /// \param[in] _topic Unqualified topic
+    /// \sa TopicUtils::FullyQualifiedName
+    public: FullyQualifiedTopic(const std::string &_partition,
+                                const std::string &_ns,
+                                const std::string &_topic)
+        : partition(_partition), ns(_ns), topic(_topic)
+    {
+      this->fullTopic.emplace();
+      if (!TopicUtils::FullyQualifiedName(_partition, _ns, _topic,
+                                          *this->fullTopic))
+      {
+        this->fullTopic.reset();
+      }
+    }
+    /// \brief Gets the partition
+    /// \return partition
+    const std::string &Partition() const
+    {
+      return this->partition;
+    }
+    /// \brief Gets the namespace
+    /// \return namespace
+    const std::string &Namespace() const
+    {
+      return this->ns;
+    }
+    /// \brief Gets the topic
+    /// \return topic
+    const std::string &Topic() const
+    {
+      return this->topic;
+    }
+    /// \brief Gets the fully qualified topic if it is valid
+    /// \return THe fully qualified topic if valid, otherwise std::nullopt
+    std::optional<std::string> FullTopic() const
+    {
+      return this->fullTopic;
+    }
+
+    /// \brief The partition
+    private: const std::string partition;
+
+    /// \brief The namespace
+    private: const std::string ns;
+
+    /// \brief The topic
+    private: const std::string topic;
+
+    /// \brief The fully qualified topic if valid (if partition, namespace and
+    /// topic are correct)
+    private: std::optional<std::string> fullTopic;
   };
   }
 }
