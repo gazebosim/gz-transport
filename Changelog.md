@@ -8,6 +8,7 @@
     * [Pull request #691](https://github.com/gazebosim/gz-transport/pull/691)
     * [Pull request #686](https://github.com/gazebosim/gz-transport/pull/686)
     * [Pull request #684](https://github.com/gazebosim/gz-transport/pull/684)
+    * [Pull request #681](https://github.com/gazebosim/gz-transport/pull/681)
     * [Pull request #665](https://github.com/gazebosim/gz-transport/pull/665)
 
 1. Properly terminate auxiliary processes when test exits
