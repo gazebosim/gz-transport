@@ -202,6 +202,8 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayNoSuchTopic))
 /// the original.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
@@ -269,6 +271,8 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplayLogRegex))
 /// that the playback matches the original.
 TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(RemoveTopic))
 {
+  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
+
   std::vector<std::string> topics = {"/foo", "/bar", "/baz"};
 
   std::vector<MessageInformation> incomingData;
