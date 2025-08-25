@@ -1,0 +1,1 @@
+Experimental support from the core team to add a github action that checks that each PR includes changelog information and a metadata about the version bump required.
