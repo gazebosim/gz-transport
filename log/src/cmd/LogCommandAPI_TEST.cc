@@ -17,29 +17,40 @@
 
 #include <gtest/gtest.h>
 
-#include <string>
-#include <vector>
+#include <iostream>
+#include <stdio.h>
 
-#include <gz/utils/Subprocess.hh>
+#ifdef _WIN32
+  #define popen _popen
+  #define pclose _pclose
+#endif
 
-static const std::string kGzLogCommand(std::string(GZ_PATH));
-
-/////////////////////////////////////////////////
-struct ProcessOutput
-{
-  int code{-1};
-  std::string cout;
-  std::string cerr;
-};
+static const std::string kGzLogCommand(std::string(GZ_PATH) + " log ");
 
 /////////////////////////////////////////////////
-ProcessOutput customExecStr(const std::vector<std::string> &_args)
+std::string customExecStr(std::string _cmd)
 {
-  auto fullArgs = std::vector<std::string>{kGzLogCommand, "log"};
-  std::copy(std::begin(_args), std::end(_args), std::back_inserter(fullArgs));
-  auto proc = gz::utils::Subprocess(fullArgs);
-  auto return_code = proc.Join();
-  return {return_code, proc.Stdout(), proc.Stderr()};
+  std::cout << "Running command [" << _cmd << "]" << std::endl;
+
+  _cmd += " 2>&1";
+  FILE *pipe = popen(_cmd.c_str(), "r");
+
+  if (!pipe)
+    return "ERROR";
+
+  char buffer[128];
+  std::string result = "";
+
+  while (!feof(pipe))
+  {
+    if (fgets(buffer, 128, pipe) != nullptr)
+    {
+      result += buffer;
+    }
+  }
+
+  pclose(pipe);
+  return result;
 }
 
 //////////////////////////////////////////////////
@@ -47,13 +58,12 @@ ProcessOutput customExecStr(const std::vector<std::string> &_args)
 TEST(LogCommandAPI, RecordBadRegex)
 {
   // Tested command: gz log record --file ':memory:' --pattern '*'
-  auto output = customExecStr({
-      "record",
-      "--file", ":memory:",
-      "--pattern", "*"});
+  const std::string cmd =
+    kGzLogCommand + "record --file ':memory:' --pattern '*'";
+  const std::string output = customExecStr(cmd);
   const std::string expectedOutput = "Regex pattern is invalid\n";
 
-  EXPECT_NE(output.cerr.find(expectedOutput), std::string::npos);
+  EXPECT_NE(output.find(expectedOutput), std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -61,14 +71,13 @@ TEST(LogCommandAPI, RecordBadRegex)
 TEST(LogCommandAPI, PlaybackBadRegex)
 {
   // Tested command: gz log record --file ':memory:' --pattern '*' --wait 0
-  auto output = customExecStr({
-      "playback",
-      "--file", ":memory:",
-      "--pattern", "*",
-      "--wait", "0"});
+  const std::string cmd =
+    kGzLogCommand + "playback --file ':memory:' --pattern '*' "
+    "--wait 0";
+  const std::string output = customExecStr(cmd);
   const std::string expectedOutput = "Regex pattern is invalid\n";
 
-  EXPECT_NE(output.cerr.find(expectedOutput), std::string::npos);
+  EXPECT_NE(output.find(expectedOutput), std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -78,85 +87,72 @@ TEST(LogCommandAPI, PlaybackBadRemap)
   // Tested command:
   // gz log playback --file ':memory:' --pattern '.*' --wait 0 --remap '/foo' -f
   {
-    auto output = customExecStr({
-        "playback",
-        "--file", ":memory:",
-        "--pattern", ".*",
-        "--wait", "0",
-        "--remap", "/foo",
-        "-f"});
+    const std::string cmd =
+      kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
+      "--wait 0 --remap '/foo' -f";
+    const std::string output = customExecStr(cmd);
     const std::string expectedOutput =
       "Invalid remap as := delimiter is missing\n";
 
-    EXPECT_NE(output.cerr.find(expectedOutput), std::string::npos);
+    EXPECT_NE(output.find(expectedOutput), std::string::npos);
   }
 
   // Tested command:
   // gz log playback --file ':memory:' --pattern '.*' --wait 0 --remap '/foo:='
   {
-    auto output = customExecStr({
-        "playback",
-        "--file", ":memory:",
-        "--pattern", ".*",
-        "--wait", "0",
-        "--remap", "/foo:="});
+    const std::string cmd =
+      kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
+      "--wait 0 --remap '/foo:='";
+    const std::string output = customExecStr(cmd);
     const std::string expectedOutput =
       "Invalid topic name []\n"
       "Invalid remap of topics\n";
 
-    EXPECT_NE(output.cerr.find(expectedOutput), std::string::npos);
+    EXPECT_NE(output.find(expectedOutput), std::string::npos);
   }
 
   // Tested command:
   // gz log playback --file ':memory:' --pattern '.*'
   // --wait 0 --remap '/foo:=' -f
   {
-    auto output = customExecStr({
-        "playback",
-        "--file", ":memory:",
-        "--pattern", ".*",
-        "--wait", "0",
-        "--remap", "/foo:=",
-        "-f"});
+    const std::string cmd =
+      kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
+      "--wait 0 --remap '/foo:=' -f";
+    const std::string output = customExecStr(cmd);
     const std::string expectedOutput =
       "Invalid topic name []\n"
       "Invalid remap of topics\n";
 
-    EXPECT_NE(output.cerr.find(expectedOutput), std::string::npos);
+    EXPECT_NE(output.find(expectedOutput), std::string::npos);
   }
 
   // Tested command:
   // gz log playback --file ':memory:' --pattern '.*' --wait 0 --remap ':=/bar'
   {
-    auto output = customExecStr({
-        "playback",
-        "--file", ":memory:",
-        "--pattern", ".*",
-        "--wait", "0",
-        "--remap", ":=/bar"});
+    const std::string cmd =
+      kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
+      "--wait 0 --remap ':=/bar'";
+    const std::string output = customExecStr(cmd);
     const std::string expectedOutput =
       "Invalid topic name []\n"
       "Invalid remap of topics\n";
 
-    EXPECT_NE(output.cerr.find(expectedOutput), std::string::npos);
+    EXPECT_NE(output.find(expectedOutput), std::string::npos);
   }
 
   // Tested command:
   // gz log playback --file ':memory:' --pattern '.*'
   // --wait 0 --remap ':=/bar' -f
   {
-    auto output = customExecStr({
-        "playback",
-        "--file", ":memory:",
-        "--pattern", ".*",
-        "--wait", "0",
-        "--remap", ":=/bar",
-        "-f"});
+    const std::string cmd =
+      kGzLogCommand + "playback --file ':memory:' --pattern '.*' "
+      "--wait 0 --remap ':=/bar' -f";
+    const std::string output = customExecStr(cmd);
     const std::string expectedOutput =
       "Invalid topic name []\n"
       "Invalid remap of topics\n";
 
-    EXPECT_NE(output.cerr.find(expectedOutput), std::string::npos);
+    EXPECT_NE(output.find(expectedOutput), std::string::npos);
   }
 }
 
@@ -165,15 +161,14 @@ TEST(LogCommandAPI, PlaybackBadRemap)
 TEST(LogCommandAPI, RecordFailedToOpen)
 {
   // Tested command: gz log record --file '!@#$%^&*(:;[{]})?/.|' --pattern '.*'
-  auto output = customExecStr({
-      "record",
-      "--file", "!@#$%^&*(:;[{]})?/.|",
-      "--pattern", ".*"});
+  const std::string cmd =
+    kGzLogCommand + "record --file \"!@#$%^&*(:;[{]})?/.|\" --pattern '.*'";
+  const std::string output = customExecStr(cmd);
   const std::string expectedOutput =
     "Failed to open the requested sqlite3 database\n"
     "Failed to open or create file [!@#$%^&*(:;[{]})?/.|]\n";
 
-  EXPECT_NE(output.cerr.find(expectedOutput), std::string::npos);
+  EXPECT_NE(output.find(expectedOutput), std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -182,14 +177,13 @@ TEST(LogCommandAPI, PlaybackFailedToOpen)
 {
   // Tested command:
   // gz log playback --file '!@#$%^&*(:;[{]})?/.|' --pattern '.*' --wait 0
-  auto output = customExecStr({
-      "playback",
-      "--file", "!@#$%^&*(:;[{]})?/.|",
-      "--pattern", ".*",
-      "--wait", "0"});
+  const std::string cmd =
+    kGzLogCommand + "playback --file \"!@#$%^&*(:;[{]})?/.|\" "
+    "--pattern '.*' --wait 0";
+  const std::string output = customExecStr(cmd);
   const std::string expectedOutput =
     "Failed to open the requested sqlite3 database\n"
     "Could not open file [!@#$%^&*(:;[{]})?/.|]\n";
 
-  EXPECT_NE(output.cerr.find(expectedOutput), std::string::npos);
+  EXPECT_NE(output.find(expectedOutput), std::string::npos);
 }
