@@ -36,11 +36,15 @@ transport::log::PlaybackHandlePtr g_playbackHandler;
 //////////////////////////////////////////////////
 void verbosity(const int _level)
 {
+  if (_level < 0 || _level > 4)
+  {
+    std::cerr << "Invalid verbosity level\n";
+  }
   transport::log::__verbosity = _level;
 }
 
 //////////////////////////////////////////////////
-void recordTopics(const char *_file, const char *_pattern, int _force)
+void recordTopics(const char *_file, const char *_pattern, bool _force)
 {
   if (_force)
   {

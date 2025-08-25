@@ -37,7 +37,7 @@ struct LogOptions
   std::string pattern{".+"};
 
   /// \brief Flag to for file overwrite
-  int force{0};
+  bool force{0};
 
   /// \brief Remap of topics
   std::string remap{""};
@@ -124,7 +124,7 @@ void addPlaybackFlags(CLI::App *_app)
 //////////////////////////////////////////////////
 int main(int argc, char** argv)
 {
-  CLI::App app{"Record and playback Gazebo Transport topics"};
+  CLI::App app{"Record and playback Gazebo Transport topics", "gz log"};
 
   app.add_flag_callback("-v,--version", [](){
       std::cout << GZ_TRANSPORT_VERSION_FULL << std::endl;
@@ -141,6 +141,8 @@ int main(int argc, char** argv)
                                         "Transport topics");
   addCommonFlags(playbackApp);
   addPlaybackFlags(playbackApp);
+
+  app.require_subcommand(1);
 
   app.formatter(std::make_shared<GzFormatter>(&app));
   CLI11_PARSE(app, argc, argv);

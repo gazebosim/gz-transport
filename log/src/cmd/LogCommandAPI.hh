@@ -28,7 +28,7 @@ void verbosity(const int _level);
 void recordTopics(
   const char *_file,
   const char *_pattern,
-  int _force);
+  bool _force);
 
 /// \brief Playback topics whose name matches the given pattern
 /// \param[in] _file Path to the log file to playback
