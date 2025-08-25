@@ -242,14 +242,20 @@ namespace gz::transport
   void RawSubscriptionHandler::SetCallback(
     const RawCallback &_cb,
     std::shared_ptr<zenoh::Session> _session,
-    const std::string &_topic)
+    const FullyQualifiedTopic &_fullyQualifiedTopic)
   {
-    zenoh::KeyExpr keyexpr(_topic);
-    MessageInfo msgInfo;
-    msgInfo.SetTopic(_topic);
-    msgInfo.SetType(this->TypeName());
-    auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
+    if (!_fullyQualifiedTopic.FullTopic())
     {
+      std::cerr << "Fully qualified topic is not valid\n";
+      return;
+    }
+    zenoh::KeyExpr keyexpr(*_fullyQualifiedTopic.FullTopic());
+
+    auto dataHandler =
+        [this, _fullyQualifiedTopic](const zenoh::Sample &_sample)
+    {
+      MessageInfo msgInfo;
+      msgInfo.SetTopic(_fullyQualifiedTopic.Topic());
       auto attachment = _sample.get_attachment();
       if (attachment.has_value())
       {
@@ -261,6 +267,7 @@ namespace gz::transport
           return;
         }
 
+        msgInfo.SetType(msgType);
         auto payload = _sample.get_payload().as_string();
 
         this->RunRawCallback(payload.c_str(), payload.size(), msgInfo);
@@ -277,7 +284,8 @@ namespace gz::transport
         keyexpr, dataHandler, zenoh::closures::none));
 
     std::string token = TopicUtils::CreateLivelinessToken(
-      _topic, this->ProcUuid(), this->NodeUuid(), "MS", this->TypeName());
+        *_fullyQualifiedTopic.FullTopic(), this->ProcUuid(), this->NodeUuid(),
+        "MS", this->TypeName());
 
     if (token.empty())
       return;
