@@ -7,7 +7,6 @@ on:
       - 'ign-transport[0-9]?'
       - 'gz-transport[0-9]?'
       - 'main'
-      - 'iche033/zenoh_actions'
 
 jobs:
   noble-ci:
