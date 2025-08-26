@@ -9,7 +9,7 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-transport/tree/main/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-transport/tree/main)
+Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-transport/tree/gz-transport15/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-transport/tree/gz-transport15)
 Ubuntu Noble  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-gz-transport15-noble-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-gz-transport15-noble-amd64)
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-gz-transport15-homebrew-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-gz-transport15-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-15-cnlwin)](https://build.osrfoundation.org/job/gz_transport-15-cnlwin/)
@@ -60,7 +60,7 @@ See the [installation tutorial](https://gazebosim.org/api/transport/15/installat
 # Usage
 
 See [tutorials](https://gazebosim.org/api/transport/15/tutorials.html)
-and the [example directory](https://github.com/gazebosim/gz-transport/blob/main/example/)
+and the [example directory](https://github.com/gazebosim/gz-transport/blob/gz-transport15/example/)
 in the source code.
 
 ## Known issue of command line tools
@@ -98,12 +98,12 @@ gz-transport
 # Contributing
 
 Please see
-[CONTRIBUTING.md](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://github.com/gazebosim/gz-sim/blob/gz-transport15/CONTRIBUTING.md).
 
 # Code of Conduct
 
 Please see
-[CODE_OF_CONDUCT.md](https://github.com/gazebosim/gz-sim/blob/main/CODE_OF_CONDUCT.md).
+[CODE_OF_CONDUCT.md](https://github.com/gazebosim/gz-sim/blob/gz-transport15/CODE_OF_CONDUCT.md).
 
 # Versioning
 
@@ -116,5 +116,5 @@ version and release information.
 # License
 
 This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
-See also the [LICENSE](https://github.com/gazebosim/gz-transport/raw/main/LICENSE)
+See also the [LICENSE](https://github.com/gazebosim/gz-transport/raw/gz-transport15/LICENSE)
 file.
