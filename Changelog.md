@@ -1,6 +1,72 @@
 ## Gazebo Transport 15.X
 
-### Gazebo Transport 15.0.0 (20XX-XX-XX)
+### Gazebo Transport 15.0.0 (2025-09-xx)
+
+1. **Baseline:** this includes all changes from 14.1.0 and earlier.
+
+1. Zenoh integration
+    * [Pull request #691](https://github.com/gazebosim/gz-transport/pull/691)
+    * [Pull request #686](https://github.com/gazebosim/gz-transport/pull/686)
+    * [Pull request #684](https://github.com/gazebosim/gz-transport/pull/684)
+    * [Pull request #681](https://github.com/gazebosim/gz-transport/pull/681)
+    * [Pull request #665](https://github.com/gazebosim/gz-transport/pull/665)
+
+1. Properly terminate auxiliary processes when test exits
+    * [Pull request #680](https://github.com/gazebosim/gz-transport/pull/680)
+
+1. Replace DebugString() with PrintToString()
+    * [Pull request #685](https://github.com/gazebosim/gz-transport/pull/685)
+
+1. [Bazel] Update gz-discovery-header deps
+    * [Pull request #683](https://github.com/gazebosim/gz-transport/pull/683)
+
+1. Fix Helpers_TEST on windows
+    * [Pull request #682](https://github.com/gazebosim/gz-transport/pull/682)
+
+1. Fix compatibility with protobuf v30 (cpp 6.30.0) regression
+    * [Pull request #672](https://github.com/gazebosim/gz-transport/pull/672)
+
+1. Fix deadlock in service requests when running local callbacks
+    * [Pull request #671](https://github.com/gazebosim/gz-transport/pull/671)
+
+1. BugFix :  Failure to catch after throwing an error causes a crash
+    * [Pull request #662](https://github.com/gazebosim/gz-transport/pull/662)
+
+1. Standalone gz log executable
+    * [Pull request #658](https://github.com/gazebosim/gz-transport/pull/658)
+
+1. Clean up namespaces
+    * [Pull request #653](https://github.com/gazebosim/gz-transport/pull/653)
+    * [Pull request #649](https://github.com/gazebosim/gz-transport/pull/649)
+    * [Pull request #642](https://github.com/gazebosim/gz-transport/pull/642)
+    * [Pull request #637](https://github.com/gazebosim/gz-transport/pull/637)
+
+1. parameters: use gz.msgs instead of gz_msgs
+    * [Pull request #648](https://github.com/gazebosim/gz-transport/pull/648)
+
+1. parameters: support non-qualified message names
+    * [Pull request #647](https://github.com/gazebosim/gz-transport/pull/647)
+
+1. Client_TEST: check more APIs, more error output
+    * [Pull request #646](https://github.com/gazebosim/gz-transport/pull/646)
+
+1. Remove deprecated functions.
+    * [Pull request #641](https://github.com/gazebosim/gz-transport/pull/641)
+
+1. [Bazel] Bump libzmq dep to 4.3.5.bcr.3
+    * [Pull request #636](https://github.com/gazebosim/gz-transport/pull/636)
+
+1. Bump gz-cmake and others in jetty
+    * [Pull request #634](https://github.com/gazebosim/gz-transport/pull/634)
+
+1. Disable Jammy CI
+    * [Pull request #616](https://github.com/gazebosim/gz-transport/pull/616)
+
+1. Build python bindings without version number
+    * [Pull request #604](https://github.com/gazebosim/gz-transport/pull/604)
+
+1. Remove major version from package name
+    * [Pull request #594](https://github.com/gazebosim/gz-transport/pull/594)
 
 ## Gazebo Transport 14.X
 
