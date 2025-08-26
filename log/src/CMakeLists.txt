@@ -1,5 +1,4 @@
 gz_get_libsources_and_unittests(sources gtest_sources)
-list(APPEND sources cmd/LogCommandAPI.cc)
 
 gz_add_component(log SOURCES ${sources} GET_TARGET_NAME log_lib_target)
 
@@ -64,6 +63,4 @@ target_include_directories(${log_lib_target}
     # while being built.
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
 
-if(NOT WIN32)
-  add_subdirectory(cmd)
-endif()
+add_subdirectory(cmd)

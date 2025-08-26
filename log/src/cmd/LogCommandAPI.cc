@@ -18,6 +18,7 @@
 #include "LogCommandAPI.hh"
 
 #include <csignal>
+#include <filesystem>
 #include <iostream>
 #include <regex>
 #include <string>
@@ -33,20 +34,32 @@ using namespace gz;
 transport::log::PlaybackHandlePtr g_playbackHandler;
 
 //////////////////////////////////////////////////
-int verbosity(int _level)
+void verbosity(const int _level)
 {
   if (_level < 0 || _level > 4)
   {
     std::cerr << "Invalid verbosity level\n";
-    return INVALID_VERSION;
   }
   transport::log::__verbosity = _level;
-  return SUCCESS;
 }
 
 //////////////////////////////////////////////////
-int recordTopics(const char *_file, const char *_pattern)
+void recordTopics(const char *_file, const char *_pattern, bool _force)
 {
+  if (_force)
+  {
+    try
+    {
+      std::filesystem::remove(_file);
+      LDBG("Deleted existing file.\n");
+    }
+    catch(const std::filesystem::filesystem_error &e)
+    {
+      LERR("Unable to delete existing file.\n");
+      return;
+    }
+  }
+
   std::regex regexPattern;
   try
   {
@@ -55,23 +68,21 @@ int recordTopics(const char *_file, const char *_pattern)
   catch (const std::regex_error &e)
   {
     LERR("Regex pattern is invalid\n");
-    return BAD_REGEX;
+    return;
   }
 
   transport::log::Recorder recorder;
 
   if (recorder.AddTopic(regexPattern) < 0)
-    return FAILED_TO_SUBSCRIBE;
+    return;
 
   if (recorder.Start(_file) != transport::log::RecorderError::SUCCESS)
-    return FAILED_TO_OPEN;
+    return;
 
   // Wait until signaled (SIGINT, SIGTERM)
   transport::waitForShutdown();
   LDBG("Shutting down\n");
   recorder.Stop();
-
-  return SUCCESS;
 }
 
 //////////////////////////////////////////////////
@@ -81,8 +92,8 @@ void playbackSignHandler(int) // NOLINT
 }
 
 //////////////////////////////////////////////////
-int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
-  const char *_remap, int _fast)
+void playbackTopics(const char *_file, const char *_pattern,
+    const int _wait_ms, const char *_remap, int _fast)
 {
   std::regex regexPattern;
   try
@@ -92,7 +103,7 @@ int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
   catch (const std::regex_error &e)
   {
     LERR("Regex pattern is invalid\n");
-    return BAD_REGEX;
+    return;
   }
 
   // Parse remapping.
@@ -103,21 +114,30 @@ int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
     // Sanity check: It should contain the := delimiter.
     auto delim = remap.find(":=");
     if (delim == std::string::npos)
-      return INVALID_REMAP;
+    {
+      LERR("Invalid remap as := delimiter is missing\n");
+      return;
+    }
 
     std::string from = remap.substr(0, delim);
     std::string to = remap.substr(delim + 2, remap.size() - delim - 1);
 
     if (!nodeOptions.AddTopicRemap(from, to))
-      return INVALID_REMAP;
+    {
+      LERR("Invalid remap of topics\n");
+      return;
+    }
   }
 
   transport::log::Playback player(_file, nodeOptions);
   if (!player.Valid())
-    return FAILED_TO_OPEN;
+    return;
 
   if (player.AddTopic(regexPattern) < 0)
-    return FAILED_TO_ADVERTISE;
+  {
+    LERR("Failed to advertise topic(s)\n");
+    return;
+  }
 
   std::this_thread::sleep_for(std::chrono::milliseconds(_wait_ms));
 
@@ -130,10 +150,9 @@ int playbackTopics(const char *_file, const char *_pattern, const int _wait_ms,
     g_playbackHandler = player.Start(std::chrono::seconds(1), true);
 
   if (!g_playbackHandler)
-    return FAILED_TO_OPEN;
+    return;
 
   // Wait until playback finishes
   g_playbackHandler->WaitUntilFinished();
   LDBG("Shutting down\n");
-  return SUCCESS;
 }
