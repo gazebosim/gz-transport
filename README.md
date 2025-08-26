@@ -10,9 +10,9 @@
 Build | Status
 -- | --
 Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-transport/tree/main/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-transport/tree/main)
-Ubuntu Noble  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-main-noble-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-main-noble-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-main-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-main-clowin)](https://build.osrfoundation.org/job/gz_transport-main-clowin/)
+Ubuntu Noble  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-gz-transport15-noble-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-gz-transport15-noble-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-ci-gz-transport15-homebrew-amd64)](https://build.osrfoundation.org/job/gz_transport-ci-gz-transport15-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_transport-15-cnlwin)](https://build.osrfoundation.org/job/gz_transport-15-cnlwin/)
 
 Gazebo Transport, a component of [Gazebo](https://gazebosim.org), provides fast and efficient asynchronous message passing, services, and data logging.
 
@@ -55,11 +55,11 @@ combination of custom code and ZeroMQ.
 
 # Install
 
-See the [installation tutorial](https://gazebosim.org/api/transport/14/installation.html).
+See the [installation tutorial](https://gazebosim.org/api/transport/15/installation.html).
 
 # Usage
 
-See [tutorials](https://gazebosim.org/api/transport/14/tutorials.html)
+See [tutorials](https://gazebosim.org/api/transport/15/tutorials.html)
 and the [example directory](https://github.com/gazebosim/gz-transport/blob/main/example/)
 in the source code.
 
@@ -79,7 +79,7 @@ This issue is tracked [here](https://github.com/gazebosim/gz-tools/issues/61).
 
 # Documentation
 
-Visit the [documentation page](https://gazebosim.org/api/transport/14/index.html).
+Visit the [documentation page](https://gazebosim.org/api/transport/15/index.html).
 
 # Folder Structure
 
