@@ -32,6 +32,9 @@
 1. BugFix :  Failure to catch after throwing an error causes a crash
     * [Pull request #662](https://github.com/gazebosim/gz-transport/pull/662)
 
+1. Standalone gz log executable
+    * [Pull request #658](https://github.com/gazebosim/gz-transport/pull/658)
+
 1. Clean up namespaces
     * [Pull request #653](https://github.com/gazebosim/gz-transport/pull/653)
     * [Pull request #649](https://github.com/gazebosim/gz-transport/pull/649)
