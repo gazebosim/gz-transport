@@ -91,6 +91,8 @@ cc_library(
     visibility = ["//:__subpackages__"],
     deps = [
         ":gz-transport",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
     ],
 )
 
