@@ -17,12 +17,9 @@ You can find all Gazebo Transport versions at [https://gazebosim.org/libs/transp
 Setup your computer to accept software from
 *packages.osrfoundation.org*:
 ```
-sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
-```
+sudo curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
 
-Setup keys:
-```
-wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
 ```
 
 Install Gazebo Transport:
@@ -93,7 +90,7 @@ sudo apt-get remove libgz-transport.*-dev
 
 Install prerequisites. A clean Ubuntu system will need:
 ```
-sudo apt-get install git cmake pkg-config python ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs12-dev libgz-utils4-cli-dev
+sudo apt-get install git cmake pkg-config python3 python3-pybind11 python3-pytest ruby-ronn libprotoc-dev libprotobuf-dev protobuf-compiler uuid-dev libzmq3-dev libgz-msgs12-dev libgz-utils4-cli-dev libzenohc-dev libzenohcpp-dev libsqlite3-dev
 ```
 
 ### macOS
