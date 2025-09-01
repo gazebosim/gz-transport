@@ -13,11 +13,14 @@ rest of the world. The service consumers are the nodes that request the function
 offered by the provider. Note that in Gazebo Transport the location of the
 service is hidden. The discovery layer of the library is in charge of
 discovering and keeping an updated list of services available.
+<<<<<<< HEAD
 
 Multiple nodes can advertise the same service. When a request is made, only one
 of the available service providers will handle it. There is no guarantee of
 which provider will be selected. If one provider becomes unavailable, the
 remaining providers can still handle subsequent requests.
+=======
+>>>>>>> 2705fb8 (Fix small typo in services tutorial (#703))
 
 In the next tutorial, one node will be the service provider that offers an
 *echo* service, whereas the other node will be the service consumer requesting
