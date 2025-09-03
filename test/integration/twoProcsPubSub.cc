@@ -79,10 +79,13 @@ void cbInfo(const msgs::Int32 &_msg,
 
 //////////////////////////////////////////////////
 /// \brief A generic callback.
-void genericCb(const transport::ProtoMsg &/*_msg*/)
+void genericCb(const transport::ProtoMsg &/*_msg*/,
+               const transport::MessageInfo &_info)
 {
   genericCbExecuted = true;
   ++counter;
+
+  EXPECT_EQ(_info.Topic().find("@"), std::string::npos);
 }
 
 //////////////////////////////////////////////////
