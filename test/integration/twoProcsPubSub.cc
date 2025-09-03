@@ -79,10 +79,13 @@ void cbInfo(const msgs::Int32 &_msg,
 
 //////////////////////////////////////////////////
 /// \brief A generic callback.
-void genericCb(const transport::ProtoMsg &/*_msg*/)
+void genericCb(const transport::ProtoMsg &/*_msg*/,
+               const transport::MessageInfo &_info)
 {
   genericCbExecuted = true;
   ++counter;
+
+  EXPECT_EQ(_info.Topic().find("@"), std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -210,9 +213,10 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
   };
 
   auto genericCb = [&](const char *, const size_t /*_size*/,
-                       const transport::MessageInfo &)
+                       const transport::MessageInfo &_info)
   {
     genericRawCbExecuted = true;
+    EXPECT_EQ(_info.Topic().find("@"), std::string::npos);
   };
 
   transport::Node node1;

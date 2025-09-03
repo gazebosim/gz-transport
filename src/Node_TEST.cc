@@ -126,12 +126,15 @@ void rawCbInfo(const char *_msgData, const size_t _size,
 
 //////////////////////////////////////////////////
 /// \brief A generic callback.
-void genericCb(const transport::ProtoMsg &_msg)
+void genericCb(const transport::ProtoMsg &_msg,
+               const transport::MessageInfo &_info)
 {
   std::string content;
   ASSERT_TRUE(google::protobuf::TextFormat::PrintToString(_msg, &content));
   EXPECT_TRUE(content.find(std::to_string(data)) != std::string::npos);
   genericCbExecuted = true;
+
+  EXPECT_EQ(_info.Topic().find("@"), std::string::npos);
 }
 
 //////////////////////////////////////////////////
