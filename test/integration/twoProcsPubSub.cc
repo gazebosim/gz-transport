@@ -210,9 +210,10 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
   };
 
   auto genericCb = [&](const char *, const size_t /*_size*/,
-                       const transport::MessageInfo &)
+                       const transport::MessageInfo &_info)
   {
     genericRawCbExecuted = true;
+    EXPECT_EQ(_info.Topic().find("@"), std::string::npos);
   };
 
   transport::Node node1;
