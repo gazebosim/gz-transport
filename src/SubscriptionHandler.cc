@@ -175,7 +175,8 @@ namespace gz::transport
 
         auto output = this->CreateMsg(
           _sample.get_payload().as_string(), msgType);
-        this->RunLocalCallback(*output, msgInfo);
+        if (output)
+          this->RunLocalCallback(*output, msgInfo);
       }
       else
       {
