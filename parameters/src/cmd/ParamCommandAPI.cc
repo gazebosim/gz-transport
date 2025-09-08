@@ -38,6 +38,11 @@ using namespace transport;
 //////////////////////////////////////////////////
 extern "C" void cmdParametersList(const char * _ns)
 {
+  if (!_ns)
+  {
+    std::cerr << "Error: Namespace is null" << std::endl;
+    return;
+  }
   parameters::ParametersClient client{_ns};
 
   std::cout << std::endl << "Listing parameters, registry namespace [" << _ns
@@ -56,6 +61,11 @@ extern "C" void cmdParametersList(const char * _ns)
 
 //////////////////////////////////////////////////
 extern "C" void cmdParameterGet(const char * _ns, const char *_paramName) {
+  if (!_ns || !_paramName)
+  {
+    std::cerr << "Error: Namespace or parameter name is null" << std::endl;
+    return;
+  }
   parameters::ParametersClient client{_ns};
 
   std::cout << std::endl << "Getting parameter [" << _paramName
@@ -89,6 +99,16 @@ extern "C" void cmdParameterSet(
     const char * _ns, const char *_paramName, const char * _paramType,
     const char *_paramValue)
 {
+  if (!_ns || !_paramName)
+  {
+    std::cerr << "Error: Namespace or parameter name is null" << std::endl;
+    return;
+  }
+  if (!_paramType || !_paramValue)
+  {
+    std::cerr << "Error: Parameter type or value is null" << std::endl;
+    return;
+  }
   parameters::ParametersClient client{_ns};
 
   std::cout << std::endl << "Setting parameter [" << _paramName
