@@ -4,7 +4,26 @@
 
 1. **Baseline:** this includes all changes from 14.1.0 and earlier.
 
+1. Add null-check for gz param parameters in three functions to prevent crashes
+    * [Pull request #710](https://github.com/gazebosim/gz-transport/pull/710)
+
+1. Fix small typo in services tutorial
+    * [Pull request #703](https://github.com/gazebosim/gz-transport/pull/703)
+
+1. Fix Dockerfile and update relay tutorial
+    * [Pull request #702](https://github.com/gazebosim/gz-transport/pull/702)
+
+1. Update installation instructions for Ubuntu source
+    * [Pull request #700](https://github.com/gazebosim/gz-transport/pull/700)
+
+1. Update bazel module to use jetty release branches
+    * [Pull request #699](https://github.com/gazebosim/gz-transport/pull/699)
+
 1. Zenoh integration
+    * [Pull request #708](https://github.com/gazebosim/gz-transport/pull/708)
+    * [Pull request #707](https://github.com/gazebosim/gz-transport/pull/707)
+    * [Pull request #697](https://github.com/gazebosim/gz-transport/pull/697)
+    * [Pull request #696](https://github.com/gazebosim/gz-transport/pull/696)
     * [Pull request #691](https://github.com/gazebosim/gz-transport/pull/691)
     * [Pull request #686](https://github.com/gazebosim/gz-transport/pull/686)
     * [Pull request #684](https://github.com/gazebosim/gz-transport/pull/684)
