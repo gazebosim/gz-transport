@@ -63,6 +63,9 @@ cc_library(
     copts = [
         "-Wno-deprecated-declarations",
     ],
+    defines = [
+        'GZ_TRANSPORT_DEFAULT_IMPLEMENTATION=\\"zeromq\\"',
+    ],
     features = [
         # Layering check fails for clang build due to no module exporting
         # `google/protobuf/stubs/common.h`. Unfortunately, the bazel target that
@@ -79,9 +82,6 @@ cc_library(
         "@gz-utils//:SuppressWarning",
         "@libuuid",
         "@libzmq",
-    ],
-    defines = [
-        'GZ_TRANSPORT_DEFAULT_IMPLEMENTATION=\\"zeromq\\"'
     ],
 )
 
@@ -134,22 +134,27 @@ cc_binary(
     ],
 )
 
-# test_sources = glob(
-#     include = ["src/*_TEST.cc"],
-# )
+test_sources = glob(
+    include = ["src/*_TEST.cc"],
+)
 
-# [cc_test(
-#     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
-#     srcs = [src],
-#     env = {
-#         "GZ_BAZEL": "1",
-#         "GZ_BAZEL_PATH": "transport",
-#     },
-#     deps = [
-#         ":transport",
-#         GZ_ROOT + "common/testing",
-#         GZ_ROOT + "transport/test:utils",
-#         "@gtest",
-#         "@gtest//:gtest_main",
-#     ],
-# ) for src in test_sources]
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    env = {
+        "GZ_BAZEL": "1",
+        "GZ_BAZEL_PATH": "transport",
+    },
+    deps = [
+        ":gz-transport",
+        ":gz-transport-discovery-header",
+        "//test:utils",
+        "@com_google_protobuf//:protobuf",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-common//testing",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-utils//:Environment",
+        "@gz-utils//:ExtraTestMacros",
+    ],
+) for src in test_sources]
