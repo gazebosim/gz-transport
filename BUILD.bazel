@@ -149,10 +149,14 @@ test_sources = glob(
     },
     deps = [
         ":gz-transport",
+        ":gz-transport-discovery-header",
         "//test:utils",
+        "@com_google_protobuf//:protobuf",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
         "@gz-common//testing",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-utils//:Environment",
         "@gz-utils//:ExtraTestMacros",
     ],
 ) for src in test_sources]
