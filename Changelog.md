@@ -1,8 +1,11 @@
 ## Gazebo Transport 15.X
 
-### Gazebo Transport 15.0.0 (2025-09-xx)
+### Gazebo Transport 15.0.0 (2025-09-30)
 
 1. **Baseline:** this includes all changes from 14.1.0 and earlier.
+
+1. [bazel] Enable unit tests
+    * [Pull request #715](https://github.com/gazebosim/gz-transport/pull/715)
 
 1. Add null-check for gz param parameters in three functions to prevent crashes
     * [Pull request #710](https://github.com/gazebosim/gz-transport/pull/710)
