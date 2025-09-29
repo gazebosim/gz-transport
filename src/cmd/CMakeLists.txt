@@ -67,6 +67,14 @@ if (TARGET UNIT_gz_TEST)
   )
 endif()
 
+if (TARGET UNIT_gz_src_TEST)
+  set(_env_vars)
+  list(APPEND _env_vars "GZ_IP=127.0.0.1")
+  set_tests_properties(UNIT_gz_src_TEST
+    PROPERTIES ENVIRONMENT "${_env_vars}"
+  )
+endif()
+
 #===============================================================================
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
