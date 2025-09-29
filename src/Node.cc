@@ -326,6 +326,7 @@ bool Node::Subscriber::Valid() const
 
 //////////////////////////////////////////////////
 Node::Subscriber::Subscriber(Node::Subscriber &&_other)
+  : dataPtr(std::make_shared<SubscriberPrivate>())
 {
   *this = std::move(_other);
 }
