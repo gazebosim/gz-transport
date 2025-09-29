@@ -204,6 +204,131 @@ class Node::PublisherPrivate
 };
 
 //////////////////////////////////////////////////
+<<<<<<< HEAD
+=======
+/// \internal
+/// \brief Private data for Node::Subscriber class.
+class Node::SubscriberPrivate
+{
+  /// \brief Constructor
+  public: SubscriberPrivate()
+    : shared(NodeShared::Instance())
+  {
+  }
+
+  /// \brief Check if this subscriber is valid
+  /// \return True if topic, node and handler ids are not empty.
+  public: bool Valid()
+  {
+    return !this->topic.empty() && !this->hUuid.empty() &&
+           !this->nUuid.empty();
+  }
+
+  /// \brief Pointer to the object shared between all the nodes within the
+  /// same process.
+  public: NodeShared *shared = nullptr;
+
+  /// \brief Topic name
+  public: std::string topic;
+
+  /// \brief Node UUID
+  public: std::string nUuid;
+
+  /// \brief Node options
+  public: NodeOptions nOpts;
+
+  /// \brief Handler UUID
+  public: std::string hUuid;
+};
+
+//////////////////////////////////////////////////
+Node::Subscriber::Subscriber()
+  : dataPtr(std::make_shared<SubscriberPrivate>())
+{
+}
+
+//////////////////////////////////////////////////
+Node::Subscriber::Subscriber(const std::string &_topic,
+                             const std::string &_nUuid,
+                             const NodeOptions &_nOpts,
+                             const std::string &_hUuid)
+  : dataPtr(std::make_shared<SubscriberPrivate>())
+{
+  this->dataPtr->topic = _topic;
+  this->dataPtr->nUuid = _nUuid;
+  this->dataPtr->nOpts = _nOpts;
+  this->dataPtr->hUuid = _hUuid;
+}
+
+//////////////////////////////////////////////////
+Node::Subscriber::~Subscriber()
+{
+  this->Unsubscribe();
+}
+
+//////////////////////////////////////////////////
+bool Node::Subscriber::Unsubscribe()
+{
+  if (!this->Valid())
+    return false;
+
+  bool res = this->dataPtr->shared->Unsubscribe(this->dataPtr->topic,
+      this->dataPtr->nUuid, this->dataPtr->nOpts, this->dataPtr->hUuid);
+
+  // Invalidate the subscriber
+  this->dataPtr->topic.clear();
+  this->dataPtr->nUuid.clear();
+  this->dataPtr->hUuid.clear();
+  this->dataPtr->nOpts = NodeOptions();
+
+  return res;
+}
+
+//////////////////////////////////////////////////
+Node::Subscriber::operator bool()
+{
+  return this->Valid();
+}
+
+//////////////////////////////////////////////////
+Node::Subscriber::operator bool() const
+{
+  return this->Valid();
+}
+
+//////////////////////////////////////////////////
+bool Node::Subscriber::Valid() const
+{
+  return this->dataPtr->Valid();
+}
+
+//////////////////////////////////////////////////
+Node::Subscriber::Subscriber(Node::Subscriber &&_other)
+  : dataPtr(std::make_shared<SubscriberPrivate>())
+{
+  *this = std::move(_other);
+}
+
+//////////////////////////////////////////////////
+Node::Subscriber &Node::Subscriber::operator=(Node::Subscriber &&_other)
+{
+  this->dataPtr->topic = _other.dataPtr->topic;
+  this->dataPtr->nUuid = _other.dataPtr->nUuid;
+  this->dataPtr->hUuid = _other.dataPtr->hUuid;
+  this->dataPtr->nOpts = _other.dataPtr->nOpts;
+
+  // Invalidate the other subscriber so it does not remove
+  // the subscription handler when it is destroyed.
+  _other.dataPtr->topic.clear();
+  _other.dataPtr->nUuid.clear();
+  _other.dataPtr->hUuid.clear();
+  _other.dataPtr->nOpts = NodeOptions();
+
+  return *this;
+}
+
+//////////////////////////////////////////////////
+>>>>>>> ede1091 (Initialize move constructor (#718))
 Node::Publisher::Publisher()
   : dataPtr(std::make_shared<PublisherPrivate>())
 {
