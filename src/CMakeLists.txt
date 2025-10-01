@@ -10,8 +10,8 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
     gz-utils::gz-utils
     gz-msgs::gz-msgs
-    CPPZMQ::CPPZMQ
   PRIVATE
+    CPPZMQ::CPPZMQ
     ${ZeroMQ_TARGET}
 )
 
