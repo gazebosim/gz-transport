@@ -5,6 +5,37 @@ project(gz-transport-examples)
 # Find the Gazebo Transport library
 find_package(gz-transport QUIET REQUIRED OPTIONAL_COMPONENTS log)
 
+########################################
+# Find Zenoh
+gz_find_package(zenohc PRIVATE QUIET)
+gz_find_package(zenohcxx PRIVATE QUIET)
+
+# If both zenohc and zenohcpp packages are not found then
+# look for these pacakages installed by ROS 2 zenoh_cpp_vendor package
+if (NOT zenohc_FOUND AND NOT zenohcxx_FOUND)
+  # Set CMAKE_PREFIX_PATH in order to find ROS 2 packages from plain cmake
+  # package, see https://github.com/ament/ament_cmake/issues/304
+  set(ros2_zenoh_cmake_path "/opt/ros/$ENV{ROS_DISTRO}/opt/zenoh_cpp_vendor/lib/cmake")
+  if (EXISTS ${ros2_zenoh_cmake_path})
+    list(PREPEND CMAKE_PREFIX_PATH ${ros2_zenoh_cmake_path})
+    gz_find_package(zenohc PRIVATE QUIET)
+    gz_find_package(zenohcxx PRIVATE QUIET)
+  endif()
+endif ()
+
+if (NOT zenohcxx_FOUND)
+  message (STATUS "Looking for zenohcxx - not found")
+  set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
+elseif (NOT zenohc_FOUND)
+  message (STATUS "Looking for zenohc - not found")
+  set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
+else ()
+  message (STATUS "Looking for zenohcxx and zenohc - found")
+  set (HAVE_ZENOH ON CACHE BOOL "HAVE ZENOH" FORCE)
+  list(APPEND EXTRA_TEST_LIB_DEPS "zenohcxx::zenohc")
+  list(APPEND GZ_TRANSPORT_IMPLEMENTATION_LIST "zenoh")
+endif ()
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/msgs/")
   # Message generation. Only required when using custom Protobuf messages.
   find_package(Protobuf REQUIRED)
@@ -160,6 +191,19 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_raw.cc")
   target_link_libraries(subscriber_raw
     gz-transport::core
   )
+endif()
+
+if (HAVE_ZENOH)
+  if (EXISTS "${CMAKE_SOURCE_DIR}/zenoh_echo.cc")
+    gz_find_package(zenohc PRIVATE QUIET)
+    gz_find_package(zenohcxx PRIVATE QUIET)
+
+    add_executable(zenoh_echo zenoh_echo.cc)
+    target_link_libraries(zenoh_echo
+      gz-transport::core
+      zenohcxx::zenohc
+    )
+  endif()
 endif()
 
 # Logging examples.
