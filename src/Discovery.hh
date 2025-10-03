@@ -1570,10 +1570,13 @@ namespace gz
       {
         static std::string gzStats;
         static int topicStats;
+        static bool versionInitialized = false;
 
-        if (env("GZ_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
+        if (!versionInitialized &&
+            env("GZ_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
         {
           topicStats = (gzStats == "1");
+          versionInitialized = true;
         }
 
         return this->kWireVersion + (topicStats * 100);
