@@ -70,8 +70,10 @@ int main(int argc, char **argv)
     }
   };
 
-  std::string topic = "@/cold:caguero@/foo";
-  std::string token = "@gz/%cold:caguero/dce0e931-41e9-480f-8910-67d42e36978c/1acf56d8-ae1f-4876-bbbe-577092a63c6e/1acf56d8-ae1f-4876-bbbe-577092a63c6e/MS/%/%/%/%foo/gz.msgs.StringMsg/%/%";
+  gz::transport::NodeOptions opts;
+  std::string partition = opts.Partition();
+  std::string topic = "@/" + partition + "@/foo";
+  std::string token = "@gz/%" + partition + "/dce0e931-41e9-480f-8910-67d42e36978c/1acf56d8-ae1f-4876-bbbe-577092a63c6e/1acf56d8-ae1f-4876-bbbe-577092a63c6e/MS/%/%/%/%foo/gz.msgs.StringMsg/%/%";
 
   auto zSub = session->declare_subscriber(
     topic, dataHandler, zenoh::closures::none);
