@@ -34,7 +34,7 @@
 int main(int argc, char **argv)
 {
   // Zenoh session.
-  std::unique_ptr<zenoh::Session> session = 
+  std::unique_ptr<zenoh::Session> session =
     std::make_unique<zenoh::Session>(
       zenoh::Session::open(zenoh::Config::create_default()));
 
