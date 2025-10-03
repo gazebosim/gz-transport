@@ -195,9 +195,6 @@ endif()
 
 if (HAVE_ZENOH)
   if (EXISTS "${CMAKE_SOURCE_DIR}/zenoh_echo.cc")
-    gz_find_package(zenohc PRIVATE QUIET)
-    gz_find_package(zenohcxx PRIVATE QUIET)
-
     add_executable(zenoh_echo zenoh_echo.cc)
     target_link_libraries(zenoh_echo
       gz-transport::core
