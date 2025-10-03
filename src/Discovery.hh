@@ -1568,16 +1568,17 @@ namespace gz
       /// \return The discovery version.
       private: uint8_t Version() const
       {
-        static std::string gzStats;
+        std::string gzStats;
         static int topicStats;
-        static bool versionInitialized = false;
+        static std::atomic_bool versionInitialized = false;
 
         if (!versionInitialized &&
             env("GZ_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
         {
           topicStats = (gzStats == "1");
-          versionInitialized = true;
         }
+
+        versionInitialized = true;
 
         return this->kWireVersion + (topicStats * 100);
       }
