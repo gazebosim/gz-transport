@@ -80,7 +80,6 @@ int main(int argc, char **argv)
 
   auto zToken = std::make_unique<zenoh::LivelinessToken>(
     session->liveliness_declare_token(token));
-          
   // Zzzzzz.
   gz::transport::waitForShutdown();
 
