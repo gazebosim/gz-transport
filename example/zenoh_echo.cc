@@ -47,7 +47,6 @@ int main(int argc, char **argv)
       std::cerr << "Unable to find attachment. Ignoring message." << std::endl;
       return;
     }
-    
     auto msgType = attachment->get().as_string();
     auto msgPtr = gz::msgs::Factory::New(msgType);
     if (!msgPtr)
