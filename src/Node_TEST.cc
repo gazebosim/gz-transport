@@ -973,6 +973,15 @@ TEST(NodeSubTest, BoolOperatorTest)
 }
 
 //////////////////////////////////////////////////
+/// \brief Exercise the Subscriber move constructor.
+TEST(NodeTest, MoveSubscriber)
+{
+  transport::Node node;
+  std::vector<transport::Node::Subscriber> subscribers;
+  subscribers.emplace_back(node.CreateSubscriber(g_topic, cb));
+}
+
+//////////////////////////////////////////////////
 /// \brief Subscribe to a topic using CreateSubscriber API
 TEST(NodeTest, PubSubWithCreateSubscriber)
 {
