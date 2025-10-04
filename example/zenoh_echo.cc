@@ -70,13 +70,23 @@ int main(int argc, char **argv)
     }
   };
 
+  // Let's create a liveliness token containing some metainformation of the
+  // subscriber. The token is used to construct the graph cache.
   gz::transport::NodeOptions opts;
   std::string partition = opts.Partition();
-  std::string topic = "@/" + partition + "@/foo";
-  std::string token = "@gz/%" + partition + "/dce0e931-41e9-480f-8910-67d42e36978c/1acf56d8-ae1f-4876-bbbe-577092a63c6e/1acf56d8-ae1f-4876-bbbe-577092a63c6e/MS/%/%/%/%foo/gz.msgs.StringMsg/%/%";
+  std::string topic = "foo";
+  std::string fullyQualifiedTopic = "@/" + partition + "@/" + topic;
+  std::string sessionId = "/dce0e931-41e9-480f-8910-67d42e36978c";
+  std::string nodeId = "/1acf56d8-ae1f-4876-bbbe-577092a63c6e";
+  std::string entityId = "/1acf56d8-ae1f-4876-bbbe-577092a63c6e";
+  std::string entityKind = "/MS";
+  std::string typeName = "/gz.msgs.StringMsg";
+
+  std::string token = "@gz/%" + partition + sessionId + nodeId + entityId +
+    entityKind + "/%/%/%/%" + topic + typeName + "/%/%";
 
   auto zSub = session->declare_subscriber(
-    topic, dataHandler, zenoh::closures::none);
+    fullyQualifiedTopic, dataHandler, zenoh::closures::none);
 
   auto zToken = std::make_unique<zenoh::LivelinessToken>(
     session->liveliness_declare_token(token));
