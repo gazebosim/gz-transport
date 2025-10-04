@@ -34,7 +34,7 @@
 int main(int argc, char **argv)
 {
   // Zenoh session.
-  std::unique_ptr<zenoh::Session> session = 
+  std::unique_ptr<zenoh::Session> session =
     std::make_unique<zenoh::Session>(
       zenoh::Session::open(zenoh::Config::create_default()));
 
@@ -47,7 +47,6 @@ int main(int argc, char **argv)
       std::cerr << "Unable to find attachment. Ignoring message." << std::endl;
       return;
     }
-    
     auto msgType = attachment->get().as_string();
     auto msgPtr = gz::msgs::Factory::New(msgType);
     if (!msgPtr)
@@ -90,7 +89,6 @@ int main(int argc, char **argv)
 
   auto zToken = std::make_unique<zenoh::LivelinessToken>(
     session->liveliness_declare_token(token));
-          
   // Zzzzzz.
   gz::transport::waitForShutdown();
 
