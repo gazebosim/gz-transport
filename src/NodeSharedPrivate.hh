@@ -34,6 +34,7 @@
 #endif
 
 #include "gz/transport/config.hh"
+#include "gz/transport/getargs.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
 
@@ -83,8 +84,32 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
       if (this->gzImplementation == "zenoh")
       {
-        this->session = std::make_shared<zenoh::Session>(
-          zenoh::Session::open(zenoh::Config::create_default()));
+        try
+        {
+          // Set the configuration file.
+          std::string zenohConfigPath;
+          if (env("GZ_ZENOH_CONFIG_PATH", zenohConfigPath) &&
+              !zenohConfigPath.empty())
+          {
+            std::cerr << "Zenoh config path: " << zenohConfigPath << std::endl;
+
+            auto _argc = 3;
+            char *_argv[] = {strdup("ignore"), strdup("-c"), strdup(zenohConfigPath.c_str())};
+            auto &&[config, args] =
+              ConfigCliArgParser(_argc, _argv)
+                .run();
+
+            this->session = std::make_shared<zenoh::Session>(
+              zenoh::Session::open(std::move(config)));
+          }
+          else
+          {
+            this->session = std::make_shared<zenoh::Session>(
+              zenoh::Session::open(zenoh::Config::create_default()));
+          }
+        } catch (zenoh::ZException &_e) {
+          std::cout << "Received an error :" << _e.what() << "\n";
+        }
       }
 #endif
     }
