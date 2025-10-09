@@ -42,6 +42,7 @@
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+#include <gz/utils/Environment.hh>
 
 #include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
@@ -2081,6 +2082,37 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
   }
   return numVal;
 }
+
+#ifdef HAVE_ZENOH
+/////////////////////////////////////////////////
+std::string NodeSharedPrivate::ZenohConfigFile() const
+{
+  // Check if the GZ_ZENOH_CONFIG_PATH env variable is set.
+  std::string zenohConfigPath;
+  if (gz::utils::env("GZ_ZENOH_CONFIG_PATH", zenohConfigPath) &&
+      !zenohConfigPath.empty())
+  {
+    return zenohConfigPath;
+  }
+
+  // Check if the default config file exists.
+  std::string defaultConfigPath;
+  if (gz::utils::env(GZ_HOMEDIR, defaultConfigPath) &&
+      !defaultConfigPath.empty())
+  {
+    defaultConfigPath = std::filesystem::path(defaultConfigPath) / ".gz" /
+      "transport" / "gz_zenoh_session.json5";
+    if (std::filesystem::exists(defaultConfigPath) &&
+      std::filesystem::is_regular_file(defaultConfigPath))
+    {
+      return defaultConfigPath;
+    }
+  }
+
+  // Configuration file not found.
+  return "";
+}
+#endif
 
 /////////////////////////////////////////////////
 void NodeShared::AddGlobalRelay(const std::string& _relayAddress)

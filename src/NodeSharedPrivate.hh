@@ -34,7 +34,7 @@
 #endif
 
 #include "gz/transport/config.hh"
-#include "gz/transport/getargs.hh"
+#include "getargs.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
 
@@ -84,31 +84,29 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
       if (this->gzImplementation == "zenoh")
       {
-        try
+        auto sessionConfigFile = ZenohConfigFile();
+        if (sessionConfigFile.empty())
         {
-          // Set the configuration file.
-          std::string zenohConfigPath;
-          if (env("GZ_ZENOH_CONFIG_PATH", zenohConfigPath) &&
-              !zenohConfigPath.empty())
+          // No config file.
+          this->session = std::make_shared<zenoh::Session>(
+            zenoh::Session::open(zenoh::Config::create_default()));
+        }
+        else
+        {
+          try
           {
-            std::cerr << "Zenoh config path: " << zenohConfigPath << std::endl;
-
             auto _argc = 3;
-            char *_argv[] = {strdup("ignore"), strdup("-c"), strdup(zenohConfigPath.c_str())};
+            char *_argv[] = {strdup("ignore"), strdup("-c"),
+                             strdup(sessionConfigFile.c_str())};
             auto &&[config, args] =
               ConfigCliArgParser(_argc, _argv)
                 .run();
 
             this->session = std::make_shared<zenoh::Session>(
               zenoh::Session::open(std::move(config)));
+          } catch (zenoh::ZException &_e) {
+            std::cerr << "Error creating session:" << _e.what() << "\n";
           }
-          else
-          {
-            this->session = std::make_shared<zenoh::Session>(
-              zenoh::Session::open(zenoh::Config::create_default()));
-          }
-        } catch (zenoh::ZException &_e) {
-          std::cout << "Received an error :" << _e.what() << "\n";
         }
       }
 #endif
@@ -135,6 +133,16 @@ namespace gz::transport
                                   int _defaultValue) const;
 
 #ifdef HAVE_ZENOH
+    /// \brief Get the path to the Zenoh config file.
+    /// We check a few different options from higher to lower priority:
+    /// 1. If the environment variable GZ_ZENOH_CONFIG_PATH is set.
+    /// 2. If the default configuration file exists at:
+    ///     $HOME / .gz / transport / gz_zenoh_session/json5
+    /// If none of the previous options succeed, no configuration file is used.
+    /// \return The path to the Zenoh configuration file or empty string if
+    /// no config file was found.
+    public: std::string ZenohConfigFile() const;
+
     /// \Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
 #endif
