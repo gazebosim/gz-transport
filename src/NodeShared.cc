@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <cstring>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -2085,14 +2086,20 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
 
 #ifdef HAVE_ZENOH
 /////////////////////////////////////////////////
-std::string NodeSharedPrivate::ZenohConfigFile() const
+zenoh::Config NodeSharedPrivate::ZenohConfig() const
 {
-  // Check if the GZ_ZENOH_CONFIG_PATH env variable is set.
-  std::string zenohConfigPath;
-  if (gz::utils::env("GZ_ZENOH_CONFIG_PATH", zenohConfigPath) &&
-      !zenohConfigPath.empty())
+  try
   {
-    return zenohConfigPath;
+    zenoh::ZResult result;
+    zenoh::Config config = zenoh::Config::from_env(&result);
+    if (result == Z_OK)
+    {
+      std::cerr << "Config from ZENOH_CONFIG env" << std::endl;
+      return config;
+    }
+  } catch (zenoh::ZException &_e)
+  {
+    std::cerr << "Error parsing config file:" << _e.what() << "\n";
   }
 
   // Check if the default config file exists.
@@ -2105,12 +2112,26 @@ std::string NodeSharedPrivate::ZenohConfigFile() const
     if (std::filesystem::exists(defaultConfigPath) &&
       std::filesystem::is_regular_file(defaultConfigPath))
     {
-      return defaultConfigPath;
+      try
+      {
+        zenoh::ZResult result;
+        zenoh::Config config = zenoh::Config::from_file(defaultConfigPath,
+          &result);
+        if (result == Z_OK)
+        {
+          std::cerr << "Config from [" << defaultConfigPath << "]" << std::endl;
+          return config;
+        }
+      } catch (zenoh::ZException &_e)
+      {
+        std::cerr << "Error parsing config file:" << _e.what() << "\n";
+      }
     }
   }
 
   // Configuration file not found.
-  return "";
+  std::cerr << "Default config" << std::endl;
+  return zenoh::Config::create_default();
 }
 #endif
 

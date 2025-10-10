@@ -34,7 +34,6 @@
 #endif
 
 #include "gz/transport/config.hh"
-#include "getargs.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
 
@@ -84,30 +83,9 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
       if (this->gzImplementation == "zenoh")
       {
-        auto sessionConfigFile = ZenohConfigFile();
-        if (sessionConfigFile.empty())
-        {
-          // No config file.
-          this->session = std::make_shared<zenoh::Session>(
-            zenoh::Session::open(zenoh::Config::create_default()));
-        }
-        else
-        {
-          try
-          {
-            auto _argc = 3;
-            char *_argv[] = {strdup("ignore"), strdup("-c"),
-                             strdup(sessionConfigFile.c_str())};
-            auto &&[config, args] =
-              ConfigCliArgParser(_argc, _argv)
-                .run();
-
-            this->session = std::make_shared<zenoh::Session>(
-              zenoh::Session::open(std::move(config)));
-          } catch (zenoh::ZException &_e) {
-            std::cerr << "Error creating session:" << _e.what() << "\n";
-          }
-        }
+        auto config = ZenohConfig();
+        this->session = std::make_shared<zenoh::Session>(
+          zenoh::Session::open(std::move(config)));
       }
 #endif
     }
@@ -141,7 +119,7 @@ namespace gz::transport
     /// If none of the previous options succeed, no configuration file is used.
     /// \return The path to the Zenoh configuration file or empty string if
     /// no config file was found.
-    public: std::string ZenohConfigFile() const;
+    public: zenoh::Config ZenohConfig() const;
 
     /// \Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
