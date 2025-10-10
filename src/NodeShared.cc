@@ -2096,11 +2096,6 @@ zenoh::Config NodeSharedPrivate::ZenohConfig()
       }
       return config;
     }
-    else
-    {
-      std::cerr << "Unagle to load Zenoh config file from ZENOH_CONFIG env."
-                << std::endl;
-    }
   } catch (zenoh::ZException &_e)
   {
     std::cerr << "Error parsing Zenoh config file: " << _e.what() << "\n";
