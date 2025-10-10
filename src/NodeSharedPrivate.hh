@@ -66,6 +66,13 @@ namespace gz::transport
               responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
               replier(new zmq::socket_t(*context, ZMQ_ROUTER))
     {
+      // If GZ_VERBOSE=1 enable the verbose mode.
+      std::string gzVerbose;
+      if (env("GZ_VERBOSE", gzVerbose) && !gzVerbose.empty())
+      {
+        this->verbose = (gzVerbose == "1");
+      }
+
       // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
       std::string gzImpl;
       if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
@@ -119,7 +126,7 @@ namespace gz::transport
     /// If none of the previous options succeed, no configuration file is used.
     /// \return The path to the Zenoh configuration file or empty string if
     /// no config file was found.
-    public: zenoh::Config ZenohConfig() const;
+    public: zenoh::Config ZenohConfig();
 
     /// \Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
