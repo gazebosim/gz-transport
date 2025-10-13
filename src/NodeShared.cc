@@ -84,7 +84,6 @@ bool userPass(std::string &_user, std::string &_pass)
 
 //////////////////////////////////////////////////
 // Helper to send messages
-#ifdef GZ_ZMQ_POST_4_3_1
 int sendHelper(zmq::socket_t &_pub, const std::string &_data,
     const zmq::send_flags &_type)
 {
@@ -96,13 +95,11 @@ int sendHelper(zmq::socket_t &_pub, const std::string &_data,
   else
     return *res;
 }
-#endif
 
 int sendHelper(zmq::socket_t &_pub, const std::string &_data, int _type)
 {
   zmq::message_t msg(_data.data(), _data.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
   zmq::send_flags flags = zmq::send_flags::none;
   switch (_type)
   {
@@ -118,9 +115,6 @@ int sendHelper(zmq::socket_t &_pub, const std::string &_data, int _type)
       break;
   }
   return sendHelper(_pub, _data, flags);
-#else
-  return _pub.send(msg, _type);
-#endif
 }
 
 //////////////////////////////////////////////////
@@ -129,11 +123,7 @@ std::string receiveHelper(zmq::socket_t &_socket)
 {
   zmq::message_t msg(0);
 
-#ifdef GZ_ZMQ_POST_4_3_1
   if (!_socket.recv(msg))
-#else
-  if (!_socket.recv(&msg, 0))
-#endif
     return std::string();
 
   return std::string(reinterpret_cast<char *>(msg.data()), msg.size());
@@ -145,17 +135,10 @@ std::string receiveHelper(zmq::socket_t &_socket)
 void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 {
   std::cerr << _err << std::endl;
-#ifdef GZ_ZMQ_POST_4_3_1
   sendHelper(_socket, "400", zmq::send_flags::sndmore);
   sendHelper(_socket, _err, zmq::send_flags::sndmore);
   sendHelper(_socket, "", zmq::send_flags::sndmore);
   sendHelper(_socket, "", zmq::send_flags::none);
-#else
-  sendHelper(_socket, "400", ZMQ_SNDMORE);
-  sendHelper(_socket, _err, ZMQ_SNDMORE);
-  sendHelper(_socket, "", ZMQ_SNDMORE);
-  sendHelper(_socket, "", 0);
-#endif
 }
 
 namespace gz::transport
@@ -408,15 +391,9 @@ bool NodeShared::Publish(
     // Send the messages
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-#ifdef GZ_ZMQ_POST_4_3_1
     this->dataPtr->publisher->send(msg0, zmq::send_flags::sndmore);
     this->dataPtr->publisher->send(msg1, zmq::send_flags::sndmore);
     this->dataPtr->publisher->send(msg2, zmq::send_flags::sndmore);
-#else
-    this->dataPtr->publisher->send(msg0, ZMQ_SNDMORE);
-    this->dataPtr->publisher->send(msg1, ZMQ_SNDMORE);
-    this->dataPtr->publisher->send(msg2, ZMQ_SNDMORE);
-#endif
 
     if (this->dataPtr->topicStatsEnabled)
     {
@@ -429,21 +406,12 @@ bool NodeShared::Publish(
       meta.stamp = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::steady_clock::now().time_since_epoch()).count();
       zmq::message_t msg4(&meta, sizeof(meta));
-#ifdef GZ_ZMQ_POST_4_3_1
       this->dataPtr->publisher->send(msg3, zmq::send_flags::sndmore);
       this->dataPtr->publisher->send(msg4, zmq::send_flags::none);
-#else
-      this->dataPtr->publisher->send(msg3, ZMQ_SNDMORE);
-      this->dataPtr->publisher->send(msg4, 0);
-#endif
     }
     else
     {
-#ifdef GZ_ZMQ_POST_4_3_1
       this->dataPtr->publisher->send(msg3, zmq::send_flags::none);
-#else
-      this->dataPtr->publisher->send(msg3, 0);
-#endif
     }
   }
   catch(const zmq::error_t& ze)
@@ -470,46 +438,26 @@ void NodeShared::RecvMsgUpdate()
 
     try
     {
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->subscriber->recv(msg))
-#else
-      if (!this->dataPtr->subscriber->recv(&msg, 0))
-#endif
         return;
       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
       // TODO(caguero): Use this as extra metadata for the subscriber.
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->subscriber->recv(msg))
-#else
-      if (!this->dataPtr->subscriber->recv(&msg, 0))
-#endif
         return;
       sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->subscriber->recv(msg))
-#else
-      if (!this->dataPtr->subscriber->recv(&msg, 0))
-#endif
         return;
       data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->subscriber->recv(msg))
-#else
-      if (!this->dataPtr->subscriber->recv(&msg, 0))
-#endif
         return;
       msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
       if (this->dataPtr->topicStatsEnabled)
       {
-#ifdef GZ_ZMQ_POST_4_3_1
         if (!this->dataPtr->subscriber->recv(msg))
-#else
-        if (!this->dataPtr->subscriber->recv(&msg, 0))
-#endif
           return;
         PublicationMetadata *meta =
           reinterpret_cast<PublicationMetadata *>(msg.data());
@@ -680,74 +628,38 @@ void NodeShared::RecvSrvRequest()
 
     try
     {
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->replier->recv(msg))
-#else
-      if (!this->dataPtr->replier->recv(&msg, 0))
-#endif
         return;
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->replier->recv(msg))
-#else
-      if (!this->dataPtr->replier->recv(&msg, 0))
-#endif
         return;
       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->replier->recv(msg))
-#else
-      if (!this->dataPtr->replier->recv(&msg, 0))
-#endif
         return;
       sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->replier->recv(msg))
-#else
-      if (!this->dataPtr->replier->recv(&msg, 0))
-#endif
         return;
       dstId = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->replier->recv(msg))
-#else
-      if (!this->dataPtr->replier->recv(&msg, 0))
-#endif
         return;
       nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->replier->recv(msg))
-#else
-      if (!this->dataPtr->replier->recv(&msg, 0))
-#endif
         return;
       reqUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->replier->recv(msg))
-#else
-      if (!this->dataPtr->replier->recv(&msg, 0))
-#endif
         return;
       req = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->replier->recv(msg))
-#else
-      if (!this->dataPtr->replier->recv(&msg, 0))
-#endif
         return;
       reqType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->replier->recv(msg))
-#else
-      if (!this->dataPtr->replier->recv(&msg, 0))
-#endif
         return;
       repType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
     }
@@ -806,51 +718,27 @@ void NodeShared::RecvSrvRequest()
 
       response.rebuild(dstId.size());
       memcpy(response.data(), dstId.data(), dstId.size());
-#ifdef GZ_ZMQ_POST_4_3_1
       this->dataPtr->replier->send(response, zmq::send_flags::sndmore);
-#else
-      this->dataPtr->replier->send(response, ZMQ_SNDMORE);
-#endif
 
       response.rebuild(topic.size());
       memcpy(response.data(), topic.data(), topic.size());
-#ifdef GZ_ZMQ_POST_4_3_1
       this->dataPtr->replier->send(response, zmq::send_flags::sndmore);
-#else
-      this->dataPtr->replier->send(response, ZMQ_SNDMORE);
-#endif
 
       response.rebuild(nodeUuid.size());
       memcpy(response.data(), nodeUuid.data(), nodeUuid.size());
-#ifdef GZ_ZMQ_POST_4_3_1
       this->dataPtr->replier->send(response, zmq::send_flags::sndmore);
-#else
-      this->dataPtr->replier->send(response, ZMQ_SNDMORE);
-#endif
 
       response.rebuild(reqUuid.size());
       memcpy(response.data(), reqUuid.data(), reqUuid.size());
-#ifdef GZ_ZMQ_POST_4_3_1
       this->dataPtr->replier->send(response, zmq::send_flags::sndmore);
-#else
-      this->dataPtr->replier->send(response, ZMQ_SNDMORE);
-#endif
 
       response.rebuild(rep.size());
       memcpy(response.data(), rep.data(), rep.size());
-#ifdef GZ_ZMQ_POST_4_3_1
       this->dataPtr->replier->send(response, zmq::send_flags::sndmore);
-#else
-      this->dataPtr->replier->send(response, ZMQ_SNDMORE);
-#endif
 
       response.rebuild(resultStr.size());
       memcpy(response.data(), resultStr.data(), resultStr.size());
-#ifdef GZ_ZMQ_POST_4_3_1
       this->dataPtr->replier->send(response, zmq::send_flags::none);
-#else
-      this->dataPtr->replier->send(response, 0);
-#endif
     }
     catch(const zmq::error_t &_error)
     {
@@ -886,50 +774,26 @@ void NodeShared::RecvSrvResponse()
 
     try
     {
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->responseReceiver->recv(msg))
-#else
-      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
-#endif
         return;
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->responseReceiver->recv(msg))
-#else
-      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
-#endif
         return;
       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->responseReceiver->recv(msg))
-#else
-      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
-#endif
         return;
       nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->responseReceiver->recv(msg))
-#else
-      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
-#endif
         return;
       reqUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->responseReceiver->recv(msg))
-#else
-      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
-#endif
         return;
       rep = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-#ifdef GZ_ZMQ_POST_4_3_1
       if (!this->dataPtr->responseReceiver->recv(msg))
-#else
-      if (!this->dataPtr->responseReceiver->recv(&msg, 0))
-#endif
         return;
       resultStr = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
       result = resultStr == "1";
@@ -1065,77 +929,41 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
           msg.rebuild(responserId.size());
           memcpy(msg.data(), responserId.data(), responserId.size());
-#ifdef GZ_ZMQ_POST_4_3_1
           this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
 
           msg.rebuild(_topic.size());
           memcpy(msg.data(), _topic.data(), _topic.size());
-#ifdef GZ_ZMQ_POST_4_3_1
           this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
 
           msg.rebuild(this->dataPtr->myRequesterAddress.size());
           memcpy(msg.data(), this->dataPtr->myRequesterAddress.data(),
             this->dataPtr->myRequesterAddress.size());
-#ifdef GZ_ZMQ_POST_4_3_1
           this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
 
           std::string myId = this->responseReceiverId.ToString();
           msg.rebuild(myId.size());
           memcpy(msg.data(), myId.data(), myId.size());
-#ifdef GZ_ZMQ_POST_4_3_1
           this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
 
           msg.rebuild(nodeUuid.size());
           memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
-#ifdef GZ_ZMQ_POST_4_3_1
           this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
 
           msg.rebuild(reqUuid.size());
           memcpy(msg.data(), reqUuid.data(), reqUuid.size());
-#ifdef GZ_ZMQ_POST_4_3_1
           this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
 
           msg.rebuild(data.size());
           memcpy(msg.data(), data.data(), data.size());
-#ifdef GZ_ZMQ_POST_4_3_1
           this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
 
           msg.rebuild(_reqType.size());
           memcpy(msg.data(), _reqType.data(), _reqType.size());
-#ifdef GZ_ZMQ_POST_4_3_1
           this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
-#else
-          this->dataPtr->requester->send(msg, ZMQ_SNDMORE);
-#endif
 
           msg.rebuild(_repType.size());
           memcpy(msg.data(), _repType.data(), _repType.size());
-#ifdef GZ_ZMQ_POST_4_3_1
           this->dataPtr->requester->send(msg, zmq::send_flags::none);
-#else
-          this->dataPtr->requester->send(msg, 0);
-#endif
         }
         catch(const zmq::error_t& /*ze*/)
         {
@@ -1187,12 +1015,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
       this->dataPtr->subscriber->connect(addr.c_str());
 
     // Add a new filter for the topic.
-#ifdef GZ_CPPZMQ_POST_4_7_0
     this->dataPtr->subscriber->set(zmq::sockopt::subscribe, topic);
-#else
-    this->dataPtr->subscriber->setsockopt(ZMQ_SUBSCRIBE,
-        topic.data(), topic.size());
-#endif
 
     // Register the new connection with the publisher.
     this->connections.AddPublisher(_pub);
@@ -1402,29 +1225,18 @@ bool NodeShared::InitializeSockets()
     this->dataPtr->SecurityInit();
 
     int lingerVal = 0;
-#ifdef GZ_CPPZMQ_POST_4_7_0
     this->dataPtr->publisher->set(zmq::sockopt::linger, lingerVal);
-#else
-    this->dataPtr->publisher->setsockopt(ZMQ_LINGER,
-        &lingerVal, sizeof(lingerVal));
-#endif
 
     // Set the capacity of the buffer for receiving messages.
     int rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
       "GZ_TRANSPORT_RCVHWM", kDefaultRcvHwm);
 
-#ifdef GZ_CPPZMQ_POST_4_7_0
     this->dataPtr->subscriber->set(zmq::sockopt::rcvhwm, rcvQueueVal);
-#else
-    this->dataPtr->subscriber->setsockopt(ZMQ_RCVHWM,
-          &rcvQueueVal, sizeof(rcvQueueVal));
-#endif
 
     // Set the capacity of the buffer for sending messages.
     int sndQueueVal = this->dataPtr->NonNegativeEnvVar(
       "GZ_TRANSPORT_SNDHWM", kDefaultSndHwm);
 
-#ifdef GZ_CPPZMQ_POST_4_7_0
     this->dataPtr->publisher->set(zmq::sockopt::sndhwm, sndQueueVal);
 
     this->dataPtr->publisher->bind(anyTcpEp.c_str());
@@ -1450,43 +1262,6 @@ bool NodeShared::InitializeSockets()
 
     this->dataPtr->requester->set(zmq::sockopt::linger, lingerVal);
     this->dataPtr->requester->set(zmq::sockopt::router_mandatory, routeOn);
-#else
-    char bindEndPoint[1024];
-    this->dataPtr->publisher->setsockopt(ZMQ_SNDHWM,
-        &sndQueueVal, sizeof(sndQueueVal));
-
-    this->dataPtr->publisher->bind(anyTcpEp.c_str());
-    size_t size = sizeof(bindEndPoint);
-    this->dataPtr->publisher->getsockopt(ZMQ_LAST_ENDPOINT,
-        &bindEndPoint, &size);
-    this->myAddress = bindEndPoint;
-
-    // ResponseReceiver socket listening in a random port.
-    std::string id = this->responseReceiverId.ToString();
-    this->dataPtr->responseReceiver->setsockopt(ZMQ_IDENTITY,
-        id.c_str(), id.size());
-    this->dataPtr->responseReceiver->bind(anyTcpEp.c_str());
-    this->dataPtr->responseReceiver->getsockopt(ZMQ_LAST_ENDPOINT,
-        &bindEndPoint, &size);
-    this->myRequesterAddress = bindEndPoint;
-
-    // Replier socket listening in a random port.
-    id = this->replierId.ToString();
-    this->dataPtr->replier->setsockopt(ZMQ_IDENTITY, id.c_str(), id.size());
-    int RouteOn = 1;
-    this->dataPtr->replier->setsockopt(ZMQ_LINGER,
-        &lingerVal, sizeof(lingerVal));
-    this->dataPtr->replier->setsockopt(ZMQ_ROUTER_MANDATORY,
-        &RouteOn, sizeof(RouteOn));
-    this->dataPtr->replier->bind(anyTcpEp.c_str());
-    this->dataPtr->replier->getsockopt(ZMQ_LAST_ENDPOINT, &bindEndPoint, &size);
-    this->myReplierAddress = bindEndPoint;
-
-    this->dataPtr->requester->setsockopt(ZMQ_LINGER,
-        &lingerVal, sizeof(lingerVal));
-    this->dataPtr->requester->setsockopt(ZMQ_ROUTER_MANDATORY, &RouteOn,
-      sizeof(RouteOn));
-#endif
   }
   catch(const zmq::error_t& ze)
   {
@@ -1524,12 +1299,7 @@ int NodeShared::RcvHwm()
   int rcvHwm;
   try
   {
-#ifdef GZ_CPPZMQ_POST_4_7_0
     rcvHwm = this->dataPtr->subscriber->get(zmq::sockopt::rcvhwm);
-#else
-    size_t rcvHwmSize = sizeof(rcvHwm);
-    this->dataPtr->subscriber->getsockopt(ZMQ_RCVHWM, &rcvHwm, &rcvHwmSize);
-#endif
   }
   catch (zmq::error_t &_e)
   {
@@ -1545,12 +1315,7 @@ int NodeShared::SndHwm()
   int sndHwm;
   try
   {
-#ifdef GZ_CPPZMQ_POST_4_7_0
     sndHwm = this->dataPtr->publisher->get(zmq::sockopt::sndhwm);
-#else
-    size_t sndHwmSize = sizeof(sndHwm);
-    this->dataPtr->publisher->getsockopt(ZMQ_SNDHWM, &sndHwm, &sndHwmSize);
-#endif
   }
   catch (zmq::error_t &_e)
   {
@@ -1696,13 +1461,8 @@ void NodeSharedPrivate::SecurityOnNewConnection()
   // See issue #74
   if (userPass(user, pass))
   {
-#ifdef GZ_CPPZMQ_POST_4_7_0
     this->subscriber->set(zmq::sockopt::plain_username, user);
     this->subscriber->set(zmq::sockopt::plain_password, pass);
-#else
-    this->subscriber->setsockopt(ZMQ_PLAIN_USERNAME, user.c_str(), user.size());
-    this->subscriber->setsockopt(ZMQ_PLAIN_PASSWORD, pass.c_str(), pass.size());
-#endif
   }
 }
 
@@ -1721,15 +1481,8 @@ void NodeSharedPrivate::SecurityInit()
     int asPlainSecurityServer = static_cast<int>(
         ZmqPlainSecurityServerOptions::ZMQ_PLAIN_SECURITY_SERVER_ENABLED);
 
-#ifdef GZ_CPPZMQ_POST_4_7_0
     this->publisher->set(zmq::sockopt::plain_server, asPlainSecurityServer);
     this->publisher->set(zmq::sockopt::zap_domain, kGzAuthDomain);
-#else
-    this->publisher->setsockopt(ZMQ_PLAIN_SERVER,
-        &asPlainSecurityServer, sizeof(asPlainSecurityServer));
-    this->publisher->setsockopt(ZMQ_ZAP_DOMAIN, kGzAuthDomain,
-        std::strlen(kGzAuthDomain));
-#endif
   }
 }
 
@@ -1841,28 +1594,16 @@ void NodeSharedPrivate::AccessControlHandler()
           continue;
         }
 
-#ifdef GZ_ZMQ_POST_4_3_1
         sendHelper(*sock, version, zmq::send_flags::sndmore);
         sendHelper(*sock, sequence, zmq::send_flags::sndmore);
-#else
-        sendHelper(*sock, version, ZMQ_SNDMORE);
-        sendHelper(*sock, sequence, ZMQ_SNDMORE);
-#endif
 
         // Check the username and password
         if (givenUsername == user && givenPassword == pass)
         {
-#ifdef GZ_ZMQ_POST_4_3_1
           sendHelper(*sock, "200", zmq::send_flags::sndmore);
           sendHelper(*sock, "OK", zmq::send_flags::sndmore);
           sendHelper(*sock, "anonymous", zmq::send_flags::sndmore);
           sendHelper(*sock, "", zmq::send_flags::none);
-#else
-          sendHelper(*sock, "200", ZMQ_SNDMORE);
-          sendHelper(*sock, "OK", ZMQ_SNDMORE);
-          sendHelper(*sock, "anonymous", ZMQ_SNDMORE);
-          sendHelper(*sock, "", 0);
-#endif
         }
         else
         {
@@ -2272,13 +2013,8 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
   // Remove the filter for this topic if I am the last subscriber.
   if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
   {
-#ifdef GZ_CPPZMQ_POST_4_7_0
     this->dataPtr->subscriber->set(
       zmq::sockopt::unsubscribe, fullyQualifiedTopic);
-#else
-    this->dataPtr->subscriber->setsockopt(
-      ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(), fullyQualifiedTopic.size());
-#endif
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
