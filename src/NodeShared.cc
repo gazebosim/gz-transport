@@ -2104,12 +2104,11 @@ zenoh::Config NodeSharedPrivate::ZenohConfig()
 
   // Check if the default user config file exists.
   std::string userConfigDir;
-  if (gz::utils::env(GZ_HOMEDIR, userConfigDir) &&
-      !userConfigDir.empty())
+  if (gz::utils::env(GZ_HOMEDIR, userConfigDir) && !userConfigDir.empty())
   {
-    userConfigDir = fs::path(userConfigDir) / ".gz" / "transport";
+    fs::path userConfigDirPath = fs::path(userConfigDir) / ".gz" / "transport";
     fs::path userConfigFilePath =
-      userConfigDir / fs::path("gz_zenoh_session_config.json5");
+      userConfigDirPath / fs::path("gz_zenoh_session_config.json5");
     if (!fs::exists(userConfigFilePath))
     {
       // Let's create default user config files.
@@ -2120,16 +2119,16 @@ zenoh::Config NodeSharedPrivate::ZenohConfig()
 
       // Create directories if needed.
       std::error_code ec;
-      fs::create_directories(userConfigDir, ec);
+      fs::create_directories(userConfigDirPath, ec);
 
-      if (fs::exists(userConfigDir) && fs::is_directory(userConfigDir))
+      if (fs::exists(userConfigDirPath) && fs::is_directory(userConfigDirPath))
       {
         for (auto name : {"gz_zenoh_router_config.json5",
                           "gz_zenoh_session_config.json5"})
         {
           const auto copyOptions = fs::copy_options::skip_existing;
           fs::path installedConfigFilePath = installedConfigDir / name;
-          fs::path newUserConfigFilePath = fs::path(userConfigDir) / name;
+          fs::path newUserConfigFilePath = userConfigDirPath / name;
 
           auto ret = fs::copy_file(installedConfigFilePath,
             newUserConfigFilePath, copyOptions, ec);
