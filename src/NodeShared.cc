@@ -2153,8 +2153,8 @@ zenoh::Config NodeSharedPrivate::ZenohConfig()
       try
       {
         zenoh::ZResult result;
-        zenoh::Config config = zenoh::Config::from_file(userConfigFilePath,
-          &result);
+        zenoh::Config config = zenoh::Config::from_file(
+          userConfigFilePath.c_str(), &result);
         if (result == Z_OK)
         {
           if (this->verbose)
