@@ -49,6 +49,7 @@
 #include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
 
+namespace fs = std::filesystem;
 using namespace std::chrono_literals;
 
 const char kGzAuthDomain[] = "gz-auth";
@@ -2106,36 +2107,31 @@ zenoh::Config NodeSharedPrivate::ZenohConfig()
   if (gz::utils::env(GZ_HOMEDIR, userConfigDir) &&
       !userConfigDir.empty())
   {
-    userConfigDir = std::filesystem::path(userConfigDir) /
-      ".gz" / "transport";
-    std::filesystem::path userConfigFilePath =
-      userConfigDir / std::filesystem::path("gz_zenoh_session_config.json5");
-    if (!std::filesystem::exists(userConfigFilePath))
+    userConfigDir = fs::path(userConfigDir) / ".gz" / "transport";
+    fs::path userConfigFilePath =
+      userConfigDir / fs::path("gz_zenoh_session_config.json5");
+    if (!fs::exists(userConfigFilePath))
     {
       // Let's create default user config files.
-      std::filesystem::path installedConfigDir =
-        std::filesystem::path(GZ_TRANSPORT_INSTALL_PREFIX) /
-        std::filesystem::path(GZ_TRANSPORT_INSTALL_SHARE_PATH) /
+      fs::path installedConfigDir =
+        fs::path(GZ_TRANSPORT_INSTALL_PREFIX) /
+        fs::path(GZ_TRANSPORT_INSTALL_SHARE_PATH) /
         "gz-transport" / "conf";
 
       // Create directories if needed.
       std::error_code ec;
-      std::filesystem::create_directories(userConfigDir, ec);
+      fs::create_directories(userConfigDir, ec);
 
-      if (std::filesystem::exists(userConfigDir) &&
-        std::filesystem::is_directory(userConfigDir))
+      if (fs::exists(userConfigDir) && fs::is_directory(userConfigDir))
       {
         for (auto name : {"gz_zenoh_router_config.json5",
                           "gz_zenoh_session_config.json5"})
         {
-          const auto copyOptions =
-            std::filesystem::copy_options::skip_existing;
-          std::filesystem::path installedConfigFilePath =
-            installedConfigDir / name;
-          std::filesystem::path newUserConfigFilePath =
-            std::filesystem::path(userConfigDir) / name;
+          const auto copyOptions = fs::copy_options::skip_existing;
+          fs::path installedConfigFilePath = installedConfigDir / name;
+          fs::path newUserConfigFilePath = fs::path(userConfigDir) / name;
 
-          auto ret = std::filesystem::copy_file(installedConfigFilePath,
+          auto ret = fs::copy_file(installedConfigFilePath,
             newUserConfigFilePath, copyOptions, ec);
           if (ret)
           {
@@ -2152,8 +2148,8 @@ zenoh::Config NodeSharedPrivate::ZenohConfig()
       }
     }
 
-    if (std::filesystem::exists(userConfigFilePath) &&
-        std::filesystem::is_regular_file(userConfigFilePath))
+    if (fs::exists(userConfigFilePath) &&
+        fs::is_regular_file(userConfigFilePath))
     {
       try
       {
