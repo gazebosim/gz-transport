@@ -5,10 +5,6 @@ project(gz-transport-examples)
 # Find the Gazebo Transport library
 find_package(gz-transport QUIET REQUIRED OPTIONAL_COMPONENTS log)
 
-########################################
-# Find Zenoh
-find_package(zenoh_cpp_vendor QUIET)
-
 if (EXISTS "${CMAKE_SOURCE_DIR}/msgs/")
   # Message generation. Only required when using custom Protobuf messages.
   find_package(Protobuf REQUIRED)
@@ -164,16 +160,6 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/subscriber_raw.cc")
   target_link_libraries(subscriber_raw
     gz-transport::core
   )
-endif()
-
-if (HAVE_ZENOH)
-  if (EXISTS "${CMAKE_SOURCE_DIR}/zenoh_echo.cc")
-    add_executable(zenoh_echo zenoh_echo.cc)
-    target_link_libraries(zenoh_echo
-      gz-transport::core
-      zenohcxx::zenohc
-    )
-  endif()
 endif()
 
 # Logging examples.
