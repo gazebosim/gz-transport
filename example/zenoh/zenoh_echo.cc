@@ -16,8 +16,10 @@
 */
 
 // Instructions:
-// Terminal 1: GZ_PARTITION=echo GZ_TRANSPORT_IMPLEMENTATION=zenoh ./publisher
-// Terminal 2: ./zenoh_echo
+// Terminal 1: GZ_PARTITION=zenoh GZ_TRANSPORT_IMPLEMENTATION=zenoh ./publisher
+// Terminal 2:
+//   . /opt/ros/rolling/setup.bash
+//   ./zenoh_echo
 
 //! [complete]
 #include <google/protobuf/text_format.h>
