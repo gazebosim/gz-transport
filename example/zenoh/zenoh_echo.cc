@@ -77,9 +77,12 @@ int main(int argc, char **argv)
   std::string partition = "zenoh";
   std::string topic = "foo";
   std::string fullyQualifiedTopic = "@/" + partition + "@/" + topic;
+
+  // Randomly generated UUIDs.
   std::string sessionId = "/dce0e931-41e9-480f-8910-67d42e36978c";
   std::string nodeId = "/1acf56d8-ae1f-4876-bbbe-577092a63c6e";
   std::string entityId = "/1acf56d8-ae1f-4876-bbbe-577092a63c6e";
+
   std::string entityKind = "/MS";
   std::string typeName = "/gz.msgs.StringMsg";
 
