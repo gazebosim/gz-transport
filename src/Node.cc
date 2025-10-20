@@ -125,7 +125,9 @@ class Node::PublisherPrivate
     : shared(NodeShared::Instance()),
       publisher(_publisher),
       zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub))),
-      zToken(std::make_unique<zenoh::LivelinessToken>(std::move(_zToken)))
+      zToken(std::make_unique<zenoh::LivelinessToken>(std::move(_zToken))),
+      provider(std::make_unique<zenoh::PosixShmProvider>(
+        zenoh::MemoryLayout(5000000, zenoh::AllocAlignment({2}))))
   {
   }
 #endif
@@ -214,6 +216,8 @@ class Node::PublisherPrivate
 
   /// \brief The liveliness token.
   public: std::unique_ptr<zenoh::LivelinessToken> zToken;
+
+  public: std::unique_ptr<zenoh::PosixShmProvider> provider;
 #endif
 
   /// \brief Timestamp of the last callback executed.
@@ -599,11 +603,18 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       // Add message type as an attachment.
       options.attachment = this->dataPtr->publisher.MsgTypeName();
 
+      // SHM
+      auto allocResult = this->dataPtr->provider->alloc_gc_defrag_blocking(
+        msgSize, zenoh::AllocAlignment({0}));
+      zenoh::ZShmMut &&buf = std::get<zenoh::ZShmMut>(std::move(allocResult));
+      memcpy(buf.data(), msgBuffer, msgSize);
+      this->dataPtr->zPub->put(std::move(buf), std::move(options));
+
       // Zenoh will call this lambda once Bytes objects are destroyed
-      auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-      auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
-      this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
-                               std::move(options));
+      // auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+      // auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
+      // this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
+      //                          std::move(options));
     }
   }
 #endif
