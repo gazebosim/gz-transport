@@ -22,11 +22,12 @@
 //! [complete]
 #include <google/protobuf/text_format.h>
 
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <gz/msgs.hh>
-#include <gz/transport.hh>
+#include <thread>
+#include <gz/msgs/Factory.hh>
 
 #include <zenoh.hxx>
 
@@ -71,25 +72,27 @@ int main(int argc, char **argv)
 
   // Let's create a liveliness token containing some metainformation of the
   // subscriber. The token is used to construct the graph cache.
-  gz::transport::NodeOptions opts;
-  std::string partition = opts.Partition();
+  std::string partition = "zenoh";
   std::string topic = "foo";
   std::string fullyQualifiedTopic = "@/" + partition + "@/" + topic;
-  std::string sessionId = "dce0e931-41e9-480f-8910-67d42e36978c";
-  std::string nodeId = "1acf56d8-ae1f-4876-bbbe-577092a63c6e";
-  std::string entityKind = "MS";
-  std::string typeName = "gz.msgs.StringMsg";
+  std::string sessionId = "/dce0e931-41e9-480f-8910-67d42e36978c";
+  std::string nodeId = "/1acf56d8-ae1f-4876-bbbe-577092a63c6e";
+  std::string entityId = "/1acf56d8-ae1f-4876-bbbe-577092a63c6e";
+  std::string entityKind = "/MS";
+  std::string typeName = "/gz.msgs.StringMsg";
 
-  std::string token = gz::transport::TopicUtils::CreateLivelinessToken(
-    fullyQualifiedTopic, sessionId, nodeId, entityKind, typeName);
+  std::string token = "@gz/%" + partition + sessionId + nodeId + entityId +
+    entityKind + "/%/%/%/%" + topic + typeName + "/%/%";
 
   auto zSub = session->declare_subscriber(
     fullyQualifiedTopic, dataHandler, zenoh::closures::none);
 
   auto zToken = std::make_unique<zenoh::LivelinessToken>(
     session->liveliness_declare_token(token));
+
   // Zzzzzz.
-  gz::transport::waitForShutdown();
+  while (true)
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
   return 0;
 }
