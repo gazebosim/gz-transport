@@ -16,7 +16,7 @@
 */
 
 // Instructions:
-// Terminal 1: GZ_TRANSPORT_IMPLEMENTATION=zenoh ./publisher
+// Terminal 1: GZ_PARTITION=echo GZ_TRANSPORT_IMPLEMENTATION=zenoh ./publisher
 // Terminal 2: ./zenoh_echo
 
 //! [complete]
