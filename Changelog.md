@@ -1,5 +1,80 @@
 ## Gazebo Transport 13.X
 
+### Gazebo Transport 13.4.2 (2025-10-21)
+
+1. Fix deadlock in service requests when running local callbacks
+    * [Pull request #671](https://github.com/gazebosim/gz-transport/pull/671)
+
+1. Initialize move constructor
+    * [Pull request #718](https://github.com/gazebosim/gz-transport/pull/718)
+
+1. Set GZ_IP for gz_src_TEST
+    * [Pull request #723](https://github.com/gazebosim/gz-transport/pull/723)
+
+1. Add null-check for `gz param` parameters in three functions to prevent crashes
+    * [Pull request #709](https://github.com/gazebosim/gz-transport/pull/709)
+
+1. Fix small typo in services tutorial
+    * [Pull request #703](https://github.com/gazebosim/gz-transport/pull/703)
+
+1. Replace DebugString() with PrintToString()
+    * [Pull request #685](https://github.com/gazebosim/gz-transport/pull/685)
+
+1. Fix compatibility with protobuf v30 (cpp 6.30.0) regression
+    * [Pull request #672](https://github.com/gazebosim/gz-transport/pull/672)
+
+1. BugFix :  Failure to catch after throwing an error causes a crash
+    * [Pull request #662](https://github.com/gazebosim/gz-transport/pull/662)
+
+1. Clean up namespaces
+    * [Pull request #656](https://github.com/gazebosim/gz-transport/pull/656)
+    * [Pull request #655](https://github.com/gazebosim/gz-transport/pull/655)
+    * [Pull request #652](https://github.com/gazebosim/gz-transport/pull/652)
+    * [Pull request #651](https://github.com/gazebosim/gz-transport/pull/651)
+    * [Pull request #645](https://github.com/gazebosim/gz-transport/pull/645)
+    * [Pull request #644](https://github.com/gazebosim/gz-transport/pull/644)
+    * [Pull request #640](https://github.com/gazebosim/gz-transport/pull/640)
+    * [Pull request #639](https://github.com/gazebosim/gz-transport/pull/639)
+
+1. Add move constructor / assignment operator to Node::Subscriber
+    * [Pull request #625](https://github.com/gazebosim/gz-transport/pull/625)
+
+1. Allow programmatic configuration of unicast relays.
+    * [Pull request #498](https://github.com/gazebosim/gz-transport/pull/498)
+
+1. Fix compatibility with protobuf v30 (cpp 6.30.0)
+    * [Pull request #619](https://github.com/gazebosim/gz-transport/pull/619)
+
+1. Cast nanoseconds to int64_t
+    * [Pull request #612](https://github.com/gazebosim/gz-transport/pull/612)
+
+1. Support cmake 4.0
+    * [Pull request #605](https://github.com/gazebosim/gz-transport/pull/605)
+
+1. Set GZ_IP=127.0.0.1 in tests needing network
+    * [Pull request #595](https://github.com/gazebosim/gz-transport/pull/595)
+
+1. Remove subscribers after publisher ends
+    * [Pull request #587](https://github.com/gazebosim/gz-transport/pull/587)
+
+1. Remove unused MessagePublisherPrivate forward declaration
+    * [Pull request #570](https://github.com/gazebosim/gz-transport/pull/579)
+
+1. Code cleanup
+    * [Pull request #578](https://github.com/gazebosim/gz-transport/pull/578)
+
+1. Update maintainer email
+    * [Pull request #579](https://github.com/gazebosim/gz-transport/pull/79)
+
+1. Unhide cmake warning when Python3 Development is not found
+    * [Pull request #565](https://github.com/gazebosim/gz-transport/pull/565)
+
+1. Fix flakiness in the TopicInfo test
+    * [Pull request #551](https://github.com/gazebosim/gz-transport/pull/551)
+
+1. Disable playback.ReplayStep for windows
+    * [Pull request #517](https://github.com/gazebosim/gz-transport/pull/517)
+
 ### Gazebo Transport 13.4.1 (2025-01-30)
 
 1. Add compatibility with protobuf 28
