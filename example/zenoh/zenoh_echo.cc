@@ -18,7 +18,7 @@
 // Instructions:
 // Terminal 1: GZ_PARTITION=zenoh GZ_TRANSPORT_IMPLEMENTATION=zenoh ./publisher
 // Terminal 2:
-//   . /opt/ros/rolling/setup.bash
+//   . /opt/ros/rolling/setup.bash (if Zenoh is installed via zenoh_cpp_vendor)
 //   ./zenoh_echo
 
 //! [complete]
