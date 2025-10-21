@@ -1,6 +1,6 @@
 ## Gazebo Transport 13.X
 
-### Gazebo Transport 13.4.2 (2025-10-21)
+### Gazebo Transport 13.5.0 (2025-10-21)
 
 1. Fix deadlock in service requests when running local callbacks
     * [Pull request #671](https://github.com/gazebosim/gz-transport/pull/671)
