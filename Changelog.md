@@ -1,5 +1,76 @@
 ## Gazebo Transport 14.X
 
+### Gazebo Transport 14.2.0 (2025-10-21)
+
+1. Fix deadlock in service requests when running local callbacks
+    * [Pull request #671](https://github.com/gazebosim/gz-transport/pull/671)
+
+1. Initialize move constructor
+    * [Pull request #718](https://github.com/gazebosim/gz-transport/pull/718)
+
+1. Set GZ_IP for gz_src_TEST
+    * [Pull request #723](https://github.com/gazebosim/gz-transport/pull/723)
+
+1. Add null-check for `gz param` parameters in three functions to prevent crashes
+    * [Pull request #709](https://github.com/gazebosim/gz-transport/pull/709)
+
+1. Fix small typo in services tutorial
+    * [Pull request #703](https://github.com/gazebosim/gz-transport/pull/703)
+
+1. Replace DebugString() with PrintToString()
+    * [Pull request #685](https://github.com/gazebosim/gz-transport/pull/685)
+
+1. Fix compatibility with protobuf v30 (cpp 6.30.0) regression
+    * [Pull request #672](https://github.com/gazebosim/gz-transport/pull/672)
+
+1. BugFix :  Failure to catch after throwing an error causes a crash
+    * [Pull request #662](https://github.com/gazebosim/gz-transport/pull/662)
+
+1. Clean up namespaces
+    * [Pull request #653](https://github.com/gazebosim/gz-transport/pull/653)
+    * [Pull request #649](https://github.com/gazebosim/gz-transport/pull/649)
+    * [Pull request #642](https://github.com/gazebosim/gz-transport/pull/642)
+    * [Pull request #637](https://github.com/gazebosim/gz-transport/pull/637)
+
+1. [Bazel] Bump libzmq dep to 4.3.5.bcr.3
+    * [Pull request #636](https://github.com/gazebosim/gz-transport/pull/636)
+
+1. Add move constructor / assignment operator to Node::Subscriber
+    * [Pull request #625](https://github.com/gazebosim/gz-transport/pull/625)
+
+1. Allow programmatic configuration of unicast relays.
+    * [Pull request #498](https://github.com/gazebosim/gz-transport/pull/498)
+
+1. Fix compatibility with protobuf v30 (cpp 6.30.0)
+    * [Pull request #615](https://github.com/gazebosim/gz-transport/pull/615)
+
+1. Cast nanoseconds to int64_t
+    * [Pull request #607](https://github.com/gazebosim/gz-transport/pull/607)
+
+1. Support cmake 4.0
+    * [Pull request #603](https://github.com/gazebosim/gz-transport/pull/603)
+
+1. Set GZ_IP=127.0.0.1 in tests needing network
+    * [Pull request #595](https://github.com/gazebosim/gz-transport/pull/595)
+
+1. Remove subscribers after publisher ends
+    * [Pull request #587](https://github.com/gazebosim/gz-transport/pull/587)
+
+1. Remove unused MessagePublisherPrivate forward declaration.
+    * [Pull request #570](https://github.com/gazebosim/gz-transport/pull/570)
+
+1. Code cleanup
+    * [Pull request #578](https://github.com/gazebosim/gz-transport/pull/578)
+
+1. Update maintainer email
+    * [Pull request #579](https://github.com/gazebosim/gz-transport/pull/79)
+
+1. Unhide cmake warning when Python3 Development is not found
+    * [Pull request #565](https://github.com/gazebosim/gz-transport/pull/565)
+
+1. Add compatibility with protobuf 28
+    * [Pull request #541](https://github.com/gazebosim/gz-transport/pull/541)
+
 ### Gazebo Transport 14.1.0 (2025-05-13)
 
 1. Migrate bazel build setup to use bzlmod
