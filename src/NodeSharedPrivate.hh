@@ -26,6 +26,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <zmq.hpp>
@@ -66,6 +67,13 @@ namespace gz::transport
               responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
               replier(new zmq::socket_t(*context, ZMQ_ROUTER))
     {
+      // If GZ_VERBOSE=1 enable the verbose mode.
+      std::string gzVerbose;
+      if (env("GZ_VERBOSE", gzVerbose) && !gzVerbose.empty())
+      {
+        this->verbose = (gzVerbose == "1");
+      }
+
       // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
       std::string gzImpl;
       if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
@@ -83,8 +91,9 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
       if (this->gzImplementation == "zenoh")
       {
+        auto config = ZenohConfig();
         this->session = std::make_shared<zenoh::Session>(
-          zenoh::Session::open(zenoh::Config::create_default()));
+          zenoh::Session::open(std::move(config)));
       }
 #endif
     }
@@ -110,6 +119,16 @@ namespace gz::transport
                                   int _defaultValue) const;
 
 #ifdef HAVE_ZENOH
+    /// \brief Get the path to the Zenoh config file.
+    /// We check a few different options from higher to lower priority:
+    /// 1. If the environment variable GZ_ZENOH_CONFIG_PATH is set.
+    /// 2. If the default configuration file exists at:
+    ///     $HOME / .gz / transport / gz_zenoh_session/json5
+    /// If none of the previous options succeed, no configuration file is used.
+    /// \return The path to the Zenoh configuration file or empty string if
+    /// no config file was found.
+    public: zenoh::Config ZenohConfig();
+
     /// \Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
 #endif
