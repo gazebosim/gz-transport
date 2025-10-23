@@ -6,6 +6,14 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Gazebo Transport 15.X to 16.X
+
+### Removed
+
+1. Removed zeromq from public header and CMake target. Specifically,
+    * Removed `zmq.hpp` include header in `include/gz/transport/Helpers.hh`,
+    * Made the `CPPZMQ::CPPCMQ` target in `src/CMakeLists.txt` `PRIVATE`.
+
 ## Gazebo Transport 14.X to 15.X
 
 ### Removed
