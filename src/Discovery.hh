@@ -1767,7 +1767,7 @@ namespace gz
     };
 
     /// \brief wireVersion definition.
-    /// \TODO(caguero): Remove static in Gazebo K.
+    /// \TODO(caguero): Remove in Gazebo K.
     template<typename Pub>
     uint8_t Discovery<Pub>::wireVersion = 10u;
 
