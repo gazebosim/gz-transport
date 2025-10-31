@@ -1656,7 +1656,7 @@ namespace gz
       /// \brief Wire protocol version. Bump up the version number if you modify
       /// the wire protocol (for discovery or message/service exchange).
       /// \TODO(caguero): Remove static in Gazebo K.
-      private: static uint8_t wireVersion;
+      private: static inline uint8_t wireVersion;
 
       /// \brief Port used to broadcast the discovery messages.
       private: int port;
@@ -1765,11 +1765,6 @@ namespace gz
       /// \brief ToDo: Find a better way.
       private: bool useZenoh = false;
     };
-
-    /// \brief wireVersion definition.
-    /// \TODO(caguero): Remove in Gazebo K.
-    template<typename Pub>
-    uint8_t Discovery<Pub>::wireVersion = 10u;
 
     /// \def MsgDiscovery
     /// \brief A discovery object for topics.
