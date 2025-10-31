@@ -66,6 +66,9 @@ test_sources = glob(
 [cc_test(
     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
     srcs = [src],
+    copts = [
+        "-Wno-private-header",  # Required for Descriptor_TEST
+    ],
     data = [
         "test/data/state.tlog",
     ],

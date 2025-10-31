@@ -53,6 +53,7 @@ test_executables = [
         "//:gz-transport",
         "@googletest//:gtest",
         "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-utils//:Environment",
     ],
 ) for name in test_executables]
 
@@ -102,5 +103,7 @@ integration_test_sources = [
         "@googletest//:gtest",
         "@googletest//:gtest_main",
         "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-utils//:Environment",
+        "@gz-utils//:Subprocess",
     ],
 ) for src in integration_test_sources]
