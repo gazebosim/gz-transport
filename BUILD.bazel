@@ -95,6 +95,7 @@ cc_binary(
     deps = [
         ":gz-transport",
         "@com_google_protobuf//:json_util",
+        "@com_google_protobuf//:protobuf",
         "@gz-msgs",
         "@gz-utils//cli:GzFormatter",
         "@gz-utils//cli:cli11",
@@ -114,28 +115,33 @@ cc_binary(
     deps = [
         ":gz-transport",
         "@com_google_protobuf//:json_util",
+        "@com_google_protobuf//:protobuf",
         "@gz-msgs",
         "@gz-utils//cli:GzFormatter",
         "@gz-utils//cli:cli11",
     ],
 )
 
-# test_sources = glob(
-#     include = ["src/*_TEST.cc"],
-# )
+test_sources = glob(
+    include = ["src/*_TEST.cc"],
+)
 
-# [cc_test(
-#     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
-#     srcs = [src],
-#     env = {
-#         "GZ_BAZEL": "1",
-#         "GZ_BAZEL_PATH": "transport",
-#     },
-#     deps = [
-#         ":transport",
-#         GZ_ROOT + "common/testing",
-#         GZ_ROOT + "transport/test:utils",
-#         "@gtest",
-#         "@gtest//:gtest_main",
-#     ],
-# ) for src in test_sources]
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    env = {
+        "GZ_BAZEL": "1",
+        "GZ_BAZEL_PATH": "transport",
+    },
+    deps = [
+        ":gz-transport",
+        "//test:utils",
+        "@com_google_protobuf//:protobuf",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-common//testing",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-utils//:Environment",
+        "@gz-utils//:ExtraTestMacros",
+    ],
+) for src in test_sources]
