@@ -74,6 +74,15 @@ integration_test_sources = [
     "twoProcsSrvCallWithoutOutputStress.cc",
 ]
 
+# Found with
+# bazel test test:all --runs_per_test 10
+flaky_test_srcs = [
+    "twoProcsPubSub.cc",
+    "twoProcsSrvCall.cc",
+    "twoProcsSrvCallWithoutInput.cc",
+    "twoProcsSrvCallWithoutOutput.cc",
+]
+
 [cc_test(
     name = "INTEGRATION_" + src.replace(".cc", ""),
     srcs = ["integration/" + src],
@@ -106,4 +115,4 @@ integration_test_sources = [
         "@gz-utils//:Environment",
         "@gz-utils//:Subprocess",
     ],
-) for src in integration_test_sources]
+) for src in integration_test_sources if src not in flaky_test_srcs]
