@@ -15,9 +15,16 @@ bazel_dep(name = "sqlite3", version = "3.49.1")
 
 # Gazebo Dependencies
 bazel_dep(name = "rules_gazebo", version = "0.0.2")
+bazel_dep(name = "gz-common")
 bazel_dep(name = "gz-math")
 bazel_dep(name = "gz-utils")
 bazel_dep(name = "gz-msgs")
+
+archive_override(
+    module_name = "gz-common",
+    strip_prefix = "gz-common-gz-common6",
+    urls = ["https://github.com/gazebosim/gz-common/archive/refs/heads/gz-common6.tar.gz"],
+)
 
 archive_override(
     module_name = "gz-math",
