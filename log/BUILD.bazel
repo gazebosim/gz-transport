@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_gazebo//gazebo:headers.bzl", "gz_configure_header", "gz_export_header")
 
 package(
@@ -56,30 +57,30 @@ cc_library(
     ],
 )
 
-# test_sources = glob(
-#     include = ["src/*_TEST.cc"],
-#     exclude = ["src/LogCommandAPI_TEST.cc"],
-# )
+test_sources = glob(
+    include = ["src/*_TEST.cc"],
+    exclude = ["src/LogCommandAPI_TEST.cc"],
+)
 
-# [cc_test(
-#     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
-#     srcs = [src],
-#     data = [
-#         "test/data/state.tlog",
-#     ],
-#     defines = [
-#         'GZ_TRANSPORT_LOG_TEST_PATH=\\"transport/log/test\\"',
-#         'CORRUPT_DB_TEST_PATH=\\"transport/log/test/data/state.tlog\\"',
-#     ],
-#     env = {
-#         "GZ_BAZEL": "1",
-#         "GZ_BAZEL_PATH": "transport",
-#     },
-#     deps = [
-#         ":log",
-#         GZ_ROOT + "common/testing",
-#         GZ_ROOT + "transport/test:utils",
-#         "@gtest",
-#         "@gtest//:gtest_main",
-#     ],
-# ) for src in test_sources]
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = [
+        "-Wno-private-header",  # Required for Descriptor_TEST
+    ],
+    data = [
+        "test/data/state.tlog",
+    ],
+    defines = ['CORRUPT_DB_TEST_PATH=\\"log/test/data/state.tlog\\"'],
+    env = {
+        "GZ_BAZEL": "1",
+        "GZ_TRANSPORT_LOG_SQL_PATH": "log/sql",
+    },
+    deps = [
+        ":log",
+        "//test:utils",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-common//testing",
+    ],
+) for src in test_sources]
