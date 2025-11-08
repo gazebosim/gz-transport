@@ -158,6 +158,11 @@ namespace gz
           this->hostInterfaces = determineInterfaces();
         }
 
+        // Update the wire version if GZ_TRANSPORT_TOPIC_STATISTICS is set.
+        std::string gzStats;
+        if (env("GZ_TRANSPORT_TOPIC_STATISTICS", gzStats) && gzStats == "1")
+          this->wireVersion += 100;
+
 #ifdef _WIN32
         WORD wVersionRequested;
         WSADATA wsaData;
@@ -1568,15 +1573,7 @@ namespace gz
       /// \return The discovery version.
       private: uint8_t Version() const
       {
-        static std::string gzStats;
-        static int topicStats;
-
-        if (env("GZ_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
-        {
-          topicStats = (gzStats == "1");
-        }
-
-        return this->kWireVersion + (topicStats * 100);
+        return this->wireVersion;
       }
 
       /// \brief Register a new network interface in the discovery system.
@@ -1653,7 +1650,13 @@ namespace gz
 
       /// \brief Wire protocol version. Bump up the version number if you modify
       /// the wire protocol (for discovery or message/service exchange).
+      /// Note: Deprecated: Use wireVersion instead.
       private: static const uint8_t kWireVersion = 10;
+
+      /// \brief Wire protocol version. Bump up the version number if you modify
+      /// the wire protocol (for discovery or message/service exchange).
+      /// \TODO(caguero): Remove static in Gazebo K.
+      private: static inline uint8_t wireVersion;
 
       /// \brief Port used to broadcast the discovery messages.
       private: int port;
