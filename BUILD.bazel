@@ -1,3 +1,5 @@
+load("@buildifier_prebuilt//:rules.bzl", "buildifier", "buildifier_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_gazebo//gazebo:headers.bzl", "gz_configure_header", "gz_export_header")
 load("@rules_license//rules:license.bzl", "license")
 
@@ -26,6 +28,7 @@ gz_configure_header(
     name = "Config",
     src = "include/gz/transport/config.hh.in",
     out = "include/gz/transport/config.hh",
+    defines = ["HAVE_IFADDRS=1"],
     package_xml = "package.xml",
 )
 
@@ -141,10 +144,7 @@ test_sources = glob(
 [cc_test(
     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
     srcs = [src],
-    env = {
-        "GZ_BAZEL": "1",
-        "GZ_BAZEL_PATH": "transport",
-    },
+    env = {"GZ_BAZEL": "1"},
     deps = [
         ":gz-transport",
         ":gz-transport-discovery-header",
@@ -158,3 +158,19 @@ test_sources = glob(
         "@gz-utils//:ExtraTestMacros",
     ],
 ) for src in test_sources]
+
+buildifier(
+    name = "buildifier.fix",
+    exclude_patterns = ["./.git/*"],
+    lint_mode = "fix",
+    mode = "fix",
+)
+
+buildifier_test(
+    name = "buildifier.test",
+    exclude_patterns = ["./.git/*"],
+    lint_mode = "warn",
+    mode = "diff",
+    no_sandbox = True,
+    workspace = "//:MODULE.bazel",
+)
