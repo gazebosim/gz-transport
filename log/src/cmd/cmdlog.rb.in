@@ -36,7 +36,7 @@ class Cmd
       exe_name = File.expand_path(File.join(File.dirname(__FILE__), exe_name))
     end
     conf_version = LIBRARY_VERSION
-    exe_version = `#{exe_name} --version`.strip
+    exe_version = `#{exe_name} --version record`.strip
 
     # Sanity check: Verify that the version of the yaml file matches the version
     # of the library that we are using.
