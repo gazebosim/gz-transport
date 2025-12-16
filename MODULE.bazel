@@ -1,5 +1,6 @@
 module(
     name = "gz-transport",
+    compatibility_level = 14,
 )
 
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
@@ -14,32 +15,8 @@ bazel_dep(name = "sqlite3", version = "3.49.1")
 bazel_dep(name = "rules_cc", version = "0.1.2")
 
 # Gazebo Dependencies
-bazel_dep(name = "rules_gazebo", version = "0.0.2")
-bazel_dep(name = "gz-common")
-bazel_dep(name = "gz-math")
-bazel_dep(name = "gz-utils")
-bazel_dep(name = "gz-msgs")
-
-archive_override(
-    module_name = "gz-common",
-    strip_prefix = "gz-common-gz-common6",
-    urls = ["https://github.com/gazebosim/gz-common/archive/refs/heads/gz-common6.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-math",
-    strip_prefix = "gz-math-gz-math8",
-    urls = ["https://github.com/gazebosim/gz-math/archive/refs/heads/gz-math8.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-utils",
-    strip_prefix = "gz-utils-gz-utils3",
-    urls = ["https://github.com/gazebosim/gz-utils/archive/refs/heads/gz-utils3.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-msgs",
-    strip_prefix = "gz-msgs-gz-msgs11",
-    urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/gz-msgs11.tar.gz"],
-)
+bazel_dep(name = "rules_gazebo", version = "0.0.6")
+bazel_dep(name = "gz-common", version = "6.2.1")
+bazel_dep(name = "gz-math", version = "8.1.1.bcr.1")
+bazel_dep(name = "gz-msgs", version = "11.1.0.bcr.2")
+bazel_dep(name = "gz-utils", version = "3.1.1")
