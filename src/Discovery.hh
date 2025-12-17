@@ -1650,13 +1650,7 @@ namespace gz
 
       /// \brief Wire protocol version. Bump up the version number if you modify
       /// the wire protocol (for discovery or message/service exchange).
-      /// Note: Deprecated: Use wireVersion instead.
-      private: static const uint8_t kWireVersion = 10;
-
-      /// \brief Wire protocol version. Bump up the version number if you modify
-      /// the wire protocol (for discovery or message/service exchange).
-      /// \TODO(caguero): Remove static in Gazebo K.
-      private: static inline uint8_t wireVersion;
+      private: uint8_t wireVersion = 10;
 
       /// \brief Port used to broadcast the discovery messages.
       private: int port;
