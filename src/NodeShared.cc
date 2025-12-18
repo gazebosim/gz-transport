@@ -1166,6 +1166,10 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 //////////////////////////////////////////////////
 void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 {
+  std::string impl = this->GzImplementation();
+  if (impl != "zeromq")
+    return;
+
   std::string topic = _pub.Topic();
   std::string addr = _pub.Addr();
   std::string procUuid = _pub.PUuid();
