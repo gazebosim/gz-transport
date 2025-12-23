@@ -1785,7 +1785,7 @@ void NodeShared::EnableStats(const std::string &_topic, bool _enable,
   }
   else
   {
-    this->dataPtr->enabledTopicStatistics.extract(_topic);
+    this->dataPtr->enabledTopicStatistics.erase(_topic);
     // \todo Also cleanup topicStats.
   }
 }
