@@ -994,6 +994,10 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 //////////////////////////////////////////////////
 void NodeShared::OnNewConnection(const MessagePublisher &_pub)
 {
+  std::string impl = this->GzImplementation();
+  if (impl != "zeromq")
+    return;
+
   std::string topic = _pub.Topic();
   std::string addr = _pub.Addr();
   std::string procUuid = _pub.PUuid();
@@ -1781,7 +1785,7 @@ void NodeShared::EnableStats(const std::string &_topic, bool _enable,
   }
   else
   {
-    this->dataPtr->enabledTopicStatistics.extract(_topic);
+    this->dataPtr->enabledTopicStatistics.erase(_topic);
     // \todo Also cleanup topicStats.
   }
 }

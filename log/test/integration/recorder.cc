@@ -272,16 +272,12 @@ void RecordPatternBeforeAdvertisement(const std::regex &_pattern)
 //////////////////////////////////////////////////
 TEST(recorder, BeginRecordingPatternBeforeAdvertisement)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   RecordPatternBeforeAdvertisement(std::regex(".*foo.*"));
 }
 
 //////////////////////////////////////////////////
 TEST(recorder, BeginRecordingAllBeforeAdvertisement)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh")
-
   RecordPatternBeforeAdvertisement(std::regex(".*"));
 }
 
