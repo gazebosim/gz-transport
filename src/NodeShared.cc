@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <cstring>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -35,6 +36,7 @@
 #include <zmq.hpp>
 
 #include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/RepHandler.hh"
@@ -42,10 +44,12 @@
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+#include <gz/utils/Environment.hh>
 
 #include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
 
+namespace fs = std::filesystem;
 using namespace std::chrono_literals;
 
 const char kGzAuthDomain[] = "gz-auth";
@@ -187,13 +191,6 @@ NodeShared *NodeShared::Instance()
 NodeShared::NodeShared()
   : dataPtr(new NodeSharedPrivate)
 {
-  // If GZ_VERBOSE=1 enable the verbose mode.
-  std::string gzVerbose;
-  if (env("GZ_VERBOSE", gzVerbose) && !gzVerbose.empty())
-  {
-    this->dataPtr->verbose = (gzVerbose == "1");
-  }
-
   // Set the multicast IP used for discovery.
   std::string envDiscoveryIp;
   if (env("GZ_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
@@ -1826,6 +1823,106 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
   }
   return numVal;
 }
+
+#ifdef HAVE_ZENOH
+/////////////////////////////////////////////////
+zenoh::Config NodeSharedPrivate::ZenohConfig()
+{
+  // Check if the ZENOH_CONFIG env variable exists.
+  try
+  {
+    zenoh::ZResult result;
+    zenoh::Config config = zenoh::Config::from_env(&result);
+    if (result == Z_OK)
+    {
+      if (this->verbose)
+      {
+        std::cout << "Zenoh config file loaded from ZENOH_CONFIG env"
+                  << std::endl;
+      }
+      return config;
+    }
+  } catch (zenoh::ZException &_e)
+  {
+    std::cerr << "Error parsing Zenoh config file: " << _e.what() << "\n";
+  }
+
+  // Check if the default user config file exists.
+  std::string userConfigDir;
+  if (gz::utils::env(GZ_HOMEDIR, userConfigDir) && !userConfigDir.empty())
+  {
+    fs::path userConfigDirPath = fs::path(userConfigDir) / ".gz" / "transport";
+    fs::path userConfigFilePath =
+      userConfigDirPath / fs::path("gz_zenoh_session_config.json5");
+    if (!fs::exists(userConfigFilePath))
+    {
+      // Let's create default user config files.
+      fs::path installedConfigDir =
+        fs::path(GZ_TRANSPORT_INSTALL_PREFIX) /
+        fs::path(GZ_TRANSPORT_INSTALL_SHARE_PATH) /
+        "gz-transport" / "conf";
+
+      // Create directories if needed.
+      std::error_code ec;
+      fs::create_directories(userConfigDirPath, ec);
+
+      if (fs::exists(userConfigDirPath) && fs::is_directory(userConfigDirPath))
+      {
+        for (auto name : {"gz_zenoh_router_config.json5",
+                          "gz_zenoh_session_config.json5"})
+        {
+          const auto copyOptions = fs::copy_options::skip_existing;
+          fs::path installedConfigFilePath = installedConfigDir / name;
+          fs::path newUserConfigFilePath = userConfigDirPath / name;
+
+          auto ret = fs::copy_file(installedConfigFilePath,
+            newUserConfigFilePath, copyOptions, ec);
+          if (ret)
+          {
+            std::cout << "New user config file created ["
+                      << newUserConfigFilePath << "]" << std::endl;
+          }
+          else
+          {
+            std::cerr << "Unable to create user config file ["
+                      << newUserConfigFilePath << "]. Reason: "
+                      << ec.message() << std::endl;
+          }
+        }
+      }
+    }
+
+    if (fs::exists(userConfigFilePath) &&
+        fs::is_regular_file(userConfigFilePath))
+    {
+      try
+      {
+        zenoh::ZResult result;
+        zenoh::Config config = zenoh::Config::from_file(
+          userConfigFilePath.string(), &result);
+        if (result == Z_OK)
+        {
+          if (this->verbose)
+          {
+            std::cout << "Zenoh config file loaded from [" << userConfigFilePath
+                      << "]" << std::endl;
+          }
+          return config;
+        }
+      } catch (zenoh::ZException &_e)
+      {
+        std::cerr << "Error parsing Zenoh config file:" << _e.what() << "\n";
+      }
+    }
+  }
+
+  // Configuration file not found.
+  if (this->verbose)
+    std::cout << "Zenoh default config loaded" << std::endl;
+
+  return zenoh::Config::create_default();
+}
+#endif
 
 /////////////////////////////////////////////////
 void NodeShared::AddGlobalRelay(const std::string& _relayAddress)

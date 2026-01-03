@@ -25,3 +25,8 @@ configure_file(
 # Install the yaml configuration files in an unversioned location.
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.yaml
   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
+
+# Install default Zenoh config files.
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gz-${GZ_DESIGNATION}
+  FILES_MATCHING PATTERN "*.json5")
