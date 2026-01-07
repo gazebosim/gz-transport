@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 
 # Detect if we are doing a standalone build of the bindings, using an external gz-transport
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  find_package(gz-cmake REQUIRED)
+  find_package(gz-cmake 5 REQUIRED)
   gz_get_package_xml_version(${CMAKE_SOURCE_DIR}/../package.xml PACKAGE_XML)
   project(gz-transport-python VERSION ${PACKAGE_XML_VERSION})
-  find_package(gz-transport REQUIRED)
+  find_package(gz-transport 15 REQUIRED)
   set(PROJECT_LIBRARY_TARGET_NAME "gz-transport::gz-transport")
   # require python dependencies to be found
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)

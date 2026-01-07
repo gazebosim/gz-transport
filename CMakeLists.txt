@@ -9,7 +9,7 @@ project(gz-transport VERSION 15.0.1)
 # Find gz-cmake
 #============================================================================
 # If you get an error at this line, you need to install gz-cmake
-find_package(gz-cmake REQUIRED)
+find_package(gz-cmake 5 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -141,11 +141,11 @@ endif()
 
 #--------------------------------------
 # Find gz-utils
-gz_find_package(gz-utils REQUIRED COMPONENTS cli)
+gz_find_package(gz-utils VERSION 4 REQUIRED COMPONENTS cli)
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs REQUIRED)
+gz_find_package(gz-msgs VERSION 12 REQUIRED)
 
 #--------------------------------------
 # Find ifaddrs
