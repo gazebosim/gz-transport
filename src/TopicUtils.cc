@@ -15,11 +15,8 @@
  *
 */
 
-<<<<<<< HEAD
-#include <regex>
-=======
+
 #include <algorithm>
->>>>>>> 3aeb7fa (Refactor TopicUtils::AsValidTopic() removing regex (#777))
 #include <string>
 
 #include "gz/transport/TopicUtils.hh"
