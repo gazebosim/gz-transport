@@ -1,0 +1,4 @@
+{
+  // Test config file - uses "client" mode to verify correct config loading
+  mode: "client",
+}

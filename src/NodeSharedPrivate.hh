@@ -18,14 +18,16 @@
 #ifndef GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 #define GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 
+#include <algorithm>
 #include <atomic>
+#include <filesystem>
 #include <list>
 #include <map>
 #include <memory>
-#include <algorithm>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <zmq.hpp>
@@ -34,6 +36,7 @@
 #endif
 
 #include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
 
@@ -66,6 +69,13 @@ namespace gz::transport
               responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
               replier(new zmq::socket_t(*context, ZMQ_ROUTER))
     {
+      // If GZ_VERBOSE=1 enable the verbose mode.
+      std::string gzVerbose;
+      if (env("GZ_VERBOSE", gzVerbose) && !gzVerbose.empty())
+      {
+        this->verbose = (gzVerbose == "1");
+      }
+
       // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
       std::string gzImpl;
       if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
@@ -83,8 +93,9 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
       if (this->gzImplementation == "zenoh")
       {
+        auto config = ZenohConfig();
         this->session = std::make_shared<zenoh::Session>(
-          zenoh::Session::open(zenoh::Config::create_default()));
+          zenoh::Session::open(std::move(config)));
       }
 #endif
     }
@@ -110,7 +121,23 @@ namespace gz::transport
                                   int _defaultValue) const;
 
 #ifdef HAVE_ZENOH
-    /// \Pointer to the Zenoh session.
+    /// \brief Get the Zenoh configuration.
+    /// We check a few different options from higher to lower priority:
+    /// 1. If the environment variable ZENOH_CONFIG is set.
+    /// 2. If the default configuration file exists at:
+    ///     $HOME/.gz/transport/gz_zenoh_session_config.json5
+    /// If none of the previous options succeed, the default config is used.
+    /// \return The Zenoh configuration object.
+    public: GZ_TRANSPORT_VISIBLE zenoh::Config ZenohConfig();
+
+    /// \brief Copy default Zenoh config files to the user config directory.
+    /// \param[in] _installedConfigDir Path to the installed config directory.
+    /// \param[in] _userConfigDirPath Path to the user config directory.
+    public: GZ_TRANSPORT_VISIBLE void CopyDefaultConfigFiles(
+      const std::filesystem::path &_installedConfigDir,
+      const std::filesystem::path &_userConfigDirPath);
+
+    /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
 #endif
 
