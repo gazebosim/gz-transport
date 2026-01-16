@@ -10,3 +10,7 @@ build --strip=never
 build --strict_system_includes
 build --fission=dbg
 build --features=per_object_debug_info
+
+# OS specific settings
+build --enable_platform_specific_config
+build:macos --macos_minimum_os=10.15
