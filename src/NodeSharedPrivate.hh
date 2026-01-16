@@ -121,15 +121,15 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
     /// \brief Get the path to the Zenoh config file.
     /// We check a few different options from higher to lower priority:
-    /// 1. If the environment variable GZ_ZENOH_CONFIG_PATH is set.
+    /// 1. If the environment variable ZENOH_CONFIG is set.
     /// 2. If the default configuration file exists at:
-    ///     $HOME / .gz / transport / gz_zenoh_session/json5
+    ///     $HOME / .gz / transport / gz_zenoh_session_config.json5
     /// If none of the previous options succeed, no configuration file is used.
-    /// \return The path to the Zenoh configuration file or empty string if
+    /// \return The Zenoh configuration file or empty string if
     /// no config file was found.
     public: zenoh::Config ZenohConfig();
 
-    /// \Pointer to the Zenoh session.
+    /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
 #endif
 

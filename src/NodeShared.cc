@@ -1879,8 +1879,11 @@ zenoh::Config NodeSharedPrivate::ZenohConfig()
             newUserConfigFilePath, copyOptions, ec);
           if (ret)
           {
-            std::cout << "New user config file created ["
-                      << newUserConfigFilePath << "]" << std::endl;
+            if (this->verbose)
+            {
+              std::cout << "New user config file created ["
+                        << newUserConfigFilePath << "]" << std::endl;
+            }
           }
           else
           {
@@ -1911,7 +1914,7 @@ zenoh::Config NodeSharedPrivate::ZenohConfig()
         }
       } catch (zenoh::ZException &_e)
       {
-        std::cerr << "Error parsing Zenoh config file:" << _e.what() << "\n";
+        std::cerr << "Error parsing Zenoh config file: " << _e.what() << "\n";
       }
     }
   }
