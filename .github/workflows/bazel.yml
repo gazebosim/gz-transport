@@ -1,9 +1,10 @@
 name: Bazel CI
 on:
-  push:
-    branches: [gz-transport14, main]
   pull_request:
-    branches: [gz-transport14, main]
+  push:
+    branches:
+      - 'gz-transport[1-9]?[0-9]'
+      - 'main'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -21,3 +22,4 @@ jobs:
         [
           {"folder": ".", "bzlmodEnabled": false},
         ]
+      exclude_windows: true

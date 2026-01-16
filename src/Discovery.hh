@@ -362,10 +362,8 @@ namespace gz
           }
         }
 
-        // TODO(azeey) Uncommenting the following two lines causes a crash for
-        // some reason.
-        // if (cb)
-        //   cb(pub);
+        if (cb)
+          cb(pub);
       }
 
       //////////////////////////////////////////////////
