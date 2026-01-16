@@ -16,7 +16,6 @@
 */
 
 #include <algorithm>
-#include <regex>
 #include <string>
 #include <vector>
 
@@ -385,18 +384,43 @@ bool TopicUtils::DecomposeLivelinessToken(
 //////////////////////////////////////////////////
 std::string TopicUtils::AsValidTopic(const std::string &_topic)
 {
-  std::string validTopic{_topic};
+  std::string validTopic;
+  validTopic.reserve(_topic.size());
 
-  // Substitute spaces with _
-  validTopic = std::regex_replace(validTopic, std::regex(" "), "_");
+  for (std::size_t i = 0; i < _topic.size(); ++i)
+  {
+    char c = _topic[i];
 
-  // Remove special characters and combinations
-  validTopic = std::regex_replace(validTopic, std::regex("@|~|//|:="), "");
+    // Substitute spaces with '_'.
+    if (c == ' ')
+    {
+      validTopic += '_';
+      continue;
+    }
+
+    // Skip '@' and '~'.
+    if (c == '@' || c == '~')
+      continue;
+
+    // Skip ":=".
+    if (c == ':' && i + 1 < _topic.size() && _topic[i + 1] == '=')
+    {
+      ++i;
+      continue;
+    }
+
+    // Skip "//".
+    if (c == '/' && i + 1 < _topic.size() && _topic[i + 1] == '/')
+    {
+      ++i;
+      continue;
+    }
+
+    validTopic += c;
+  }
 
   if (!IsValidTopic(validTopic))
-  {
     return std::string();
-  }
 
   return validTopic;
 }
