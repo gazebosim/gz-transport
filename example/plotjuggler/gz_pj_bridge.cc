@@ -1,78 +1,24 @@
 #include <chrono>
 #include <iostream>
+#include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <thread>
 #include <vector>
 
 // Gazebo Includes
-#include <gz/msgs/Factory.hh>
 #include <gz/transport/Node.hh>
 
 // Protobuf Includes
 #include <google/protobuf/descriptor.h>
-#include <google/protobuf/descriptor.pb.h>
+#include <google/protobuf/dynamic_message.h>
+#include <google/protobuf/util/json_util.h>
 
 // ZeroMQ Includes
 #include <zmq.hpp>
 
 using namespace std::chrono_literals;
-
-namespace
-{
-// Recursively add a FileDescriptor and its dependencies to a FileDescriptorSet
-void AddFileDescriptor(const google::protobuf::FileDescriptor *file_desc,
-                       google::protobuf::FileDescriptorSet *desc_set,
-                       std::set<std::string> &visited_files)
-{
-  if (!file_desc)
-  {
-    return;
-  }
-  std::string file_name(file_desc->name());
-  if (visited_files.count(file_name) > 0)
-  {
-    return;
-  }
-  visited_files.insert(file_name);
-
-  // Add dependencies first
-  for (int i = 0; i < file_desc->dependency_count(); ++i)
-  {
-    AddFileDescriptor(file_desc->dependency(i), desc_set, visited_files);
-  }
-
-  // Add the file descriptor itself
-  google::protobuf::FileDescriptorProto *file_proto = desc_set->add_file();
-  file_desc->CopyTo(file_proto);
-}
-
-// Get the serialized FileDescriptorSet for a given message type
-std::string GetSchema(const std::string &msg_type)
-{
-  const auto *pool = google::protobuf::DescriptorPool::generated_pool();
-  const google::protobuf::Descriptor *descriptor =
-      pool->FindMessageTypeByName(msg_type);
-
-  if (!descriptor)
-  {
-    std::cerr << "Could not find descriptor for type: " << msg_type << std::endl;
-    return "";
-  }
-
-  google::protobuf::FileDescriptorSet desc_set;
-  std::set<std::string> visited_files;
-  AddFileDescriptor(descriptor->file(), &desc_set, visited_files);
-
-  std::string schema_str;
-  if (!desc_set.SerializeToString(&schema_str))
-  {
-    std::cerr << "Failed to serialize FileDescriptorSet" << std::endl;
-    return "";
-  }
-  return schema_str;
-}
-}  // namespace
 
 class Bridge
 {
@@ -98,23 +44,85 @@ private:
   zmq::context_t ctx_;
   zmq::socket_t pub_;
   std::set<std::string> subscribed_topics_;
+  std::map<std::string, std::string> topic_to_type_;
+  google::protobuf::DynamicMessageFactory factory_;
 
-  // The Generic Callback to forward raw protobuf messages
+  // The Generic Callback to convert and forward protobuf messages as JSON
   void OnMessage(const char *_msg_data, size_t _msg_len,
                  const gz::transport::MessageInfo &_info)
   {
-    // 1. Get timestamp as a double
+    const auto &topic = _info.Topic();
+    auto it = topic_to_type_.find(topic);
+    if (it == topic_to_type_.end())
+    {
+      return;
+    }
+    const auto &msg_type = it->second;
+
+    // Get descriptor from the generated pool
+    const auto *pool = google::protobuf::DescriptorPool::generated_pool();
+    const google::protobuf::Descriptor *descriptor =
+        pool->FindMessageTypeByName(msg_type);
+    if (!descriptor)
+    {
+      std::cerr << "OnMessage: Could not find descriptor for type: "
+                << msg_type << std::endl;
+      return;
+    }
+
+    // Create a dynamic message from the descriptor
+    const google::protobuf::Message *prototype = factory_.GetPrototype(descriptor);
+    if (!prototype)
+    {
+      std::cerr << "OnMessage: Could not get prototype for type: "
+                << msg_type << std::endl;
+      return;
+    }
+
+    std::unique_ptr<google::protobuf::Message> msg(prototype->New());
+    if (!msg->ParseFromArray(_msg_data, _msg_len))
+    {
+      std::cerr << "OnMessage: Failed to parse message of type: "
+                << msg_type << std::endl;
+      return;
+    }
+
+    // Convert the message to a JSON string
+    std::string msg_json_string;
+    google::protobuf::json::PrintOptions options;
+    options.always_print_fields_with_no_presence  = true;
+    options.preserve_proto_field_names = true;
+    // PlotJuggler does not support quoted integer values
+    options.unquote_int64_if_possible = true;
+    auto status = google::protobuf::util::MessageToJsonString(
+        *msg, &msg_json_string, options);
+
+    if (!status.ok())
+    {
+      std::cerr << "OnMessage: Failed to convert to JSON: "
+                << status.ToString() << std::endl;
+      return;
+    }
+
+    // Get a timestamp
     double timestamp = std::chrono::duration<double>(
                            std::chrono::system_clock::now().time_since_epoch())
                            .count();
 
-    // 2. Send multipart DATA message over ZMQ
-    // Format: [ "DATA", topic_name, timestamp, raw_protobuf_bytes ]
-    pub_.send(zmq::buffer("DATA"), zmq::send_flags::sndmore);
-    pub_.send(zmq::buffer(_info.Topic()), zmq::send_flags::sndmore);
-    pub_.send(zmq::buffer(&timestamp, sizeof(timestamp)),
-              zmq::send_flags::sndmore);
-    pub_.send(zmq::buffer(_msg_data, _msg_len));
+    // Create the final JSON payload for PlotJuggler
+    // Format: { "timestamp": 123.456, "values": { ... original message ... } }
+    char final_json[msg_json_string.length() + 100];
+    snprintf(final_json, sizeof(final_json),
+             "{\"timestamp\":%f,\"values\":%s}",
+             timestamp, msg_json_string.c_str());
+
+    // if (topic == "/stats")
+    // {
+    //   std::cout << final_json << "\n";
+    // }
+    // Send a 2-part ZMQ message: [ topic_name, json_payload ]
+    pub_.send(zmq::buffer(topic), zmq::send_flags::sndmore);
+    pub_.send(zmq::buffer(std::string(final_json)));
   }
 
   void UpdateSubscriptions()
@@ -145,21 +153,7 @@ private:
         std::cout << "[+] Subscribed: " << topic << " [" << msg_type << "]"
                   << std::endl;
         subscribed_topics_.insert(topic);
-
-        // Get schema and send it to PlotJuggler
-        std::string schema = GetSchema(msg_type);
-        if (!schema.empty())
-        {
-          // Send multipart SCHEMA message
-          // Format: [ "SCHEMA", topic_name, type_name, serialized_schema ]
-          pub_.send(zmq::buffer("SCHEMA"), zmq::send_flags::sndmore);
-          pub_.send(zmq::buffer(topic), zmq::send_flags::sndmore);
-          pub_.send(zmq::buffer(msg_type), zmq::send_flags::sndmore);
-          pub_.send(zmq::buffer(schema));
-
-          std::cout << "    -> Sent schema for [" << msg_type << "]"
-                    << std::endl;
-        }
+        topic_to_type_[topic] = msg_type;
       }
     }
   }
@@ -171,3 +165,4 @@ int main()
   bridge.Run();
   return 0;
 }
+
