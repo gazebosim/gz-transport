@@ -15,8 +15,6 @@
  *
 */
 
-
-#include <algorithm>
 #include <string>
 
 #include "gz/transport/TopicUtils.hh"
