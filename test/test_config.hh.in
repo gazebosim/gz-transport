@@ -24,6 +24,10 @@ constexpr const char * kGzVersion = "@PROJECT_VERSION_FULL@";
 constexpr const char* kTransportBashCompletion = TRANSPORT_BASH_COMPLETION_SH;
 #endif  // TRANSPORT_BASH_COMPLETION_SH
 
+#ifdef GZ_ZENOH_TEST_CONFIG
+constexpr const char* kZenohTestConfig = GZ_ZENOH_TEST_CONFIG;
+#endif  // GZ_ZENOH_TEST_CONFIG
+
 namespace test_executables
 {
 

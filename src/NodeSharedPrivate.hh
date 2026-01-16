@@ -36,6 +36,7 @@
 #endif
 
 #include "gz/transport/config.hh"
+#include "gz/transport/Export.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
 
@@ -127,12 +128,12 @@ namespace gz::transport
     ///     $HOME/.gz/transport/gz_zenoh_session_config.json5
     /// If none of the previous options succeed, the default config is used.
     /// \return The Zenoh configuration object.
-    public: zenoh::Config ZenohConfig();
+    public: GZ_TRANSPORT_VISIBLE zenoh::Config ZenohConfig();
 
     /// \brief Copy default Zenoh config files to the user config directory.
     /// \param[in] _installedConfigDir Path to the installed config directory.
     /// \param[in] _userConfigDirPath Path to the user config directory.
-    public: void CopyDefaultConfigFiles(
+    public: GZ_TRANSPORT_VISIBLE void CopyDefaultConfigFiles(
       const std::filesystem::path &_installedConfigDir,
       const std::filesystem::path &_userConfigDirPath);
 
