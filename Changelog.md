@@ -8,10 +8,8 @@
 1. Find jetty packages with explicit version
     * [Pull request #774](https://github.com/gazebosim/gz-transport/pull/774)
 
-1. [bazel/infra] Disable windows CI
+1. Bazel updates
     * [Pull request #757](https://github.com/gazebosim/gz-transport/pull/757)
-
-1. [bazel/infra] Add manual BCR release workflow
     * [Pull request #756](https://github.com/gazebosim/gz-transport/pull/756)
 
 1. Fix unused-result complaint
