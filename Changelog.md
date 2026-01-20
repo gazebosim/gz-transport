@@ -18,7 +18,7 @@
     * [Pull request #763](https://github.com/gazebosim/gz-transport/pull/763)
 
 1. Enable remaining Zenoh tests (#761)
-    * [Pull request #761) (#762](https://github.com/gazebosim/gz-transport/pull/761) (#762)
+    * [Pull request #762](https://github.com/gazebosim/gz-transport/pull/762)
 
 ### Gazebo Transport 15.0.1 (2025-12-17)
 
