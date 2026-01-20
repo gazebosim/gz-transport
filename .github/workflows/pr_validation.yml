@@ -1,0 +1,14 @@
+name: PR Metadata Validation
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR Metadata Validation
+        uses: gazebo-tooling/pr-data-action@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          changelog-dir: '.changelog'
