@@ -1,1 +1,1 @@
-This is not a conventional commit format
+feat: add experimental PR metadata validation github action
