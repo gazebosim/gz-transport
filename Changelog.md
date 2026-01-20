@@ -1,5 +1,25 @@
 ## Gazebo Transport 15.X
 
+### Gazebo Transport 15.0.2 (2026-01-20)
+
+1. Refactor TopicUtils::AsValidTopic() removing regex (#777)
+    * [Pull request #778](https://github.com/gazebosim/gz-transport/pull/778)
+
+1. Find jetty packages with explicit version
+    * [Pull request #774](https://github.com/gazebosim/gz-transport/pull/774)
+
+1. [bazel/infra] Disable windows CI
+    * [Pull request #757](https://github.com/gazebosim/gz-transport/pull/757)
+
+1. [bazel/infra] Add manual BCR release workflow
+    * [Pull request #756](https://github.com/gazebosim/gz-transport/pull/756)
+
+1. Fix unused-result complaint
+    * [Pull request #763](https://github.com/gazebosim/gz-transport/pull/763)
+
+1. Enable remaining Zenoh tests (#761)
+    * [Pull request #761) (#762](https://github.com/gazebosim/gz-transport/pull/761) (#762)
+
 ### Gazebo Transport 15.0.1 (2025-12-17)
 
 1. Only check GZ_TRANSPORT_TOPIC_STATISTICS once
