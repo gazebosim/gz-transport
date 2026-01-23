@@ -23,3 +23,6 @@ jobs:
           {"folder": ".", "bzlmodEnabled": false},
         ]
       exclude_windows: true
+      # Use opt compilation mode to prevent perf-related test flakiness.
+      # This only adds a couple minutes of build time overhead.
+      bazel_test_command: "bazel test -c opt --test_output=errors //..."
