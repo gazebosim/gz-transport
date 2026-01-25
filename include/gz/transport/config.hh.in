@@ -32,9 +32,6 @@
 
 #define GZ_TRANSPORT_VERSION_HEADER "Gazebo Transport, version ${PROJECT_VERSION_FULL}\nCopyright (C) 2017 Open Source Robotics Foundation.\nReleased under the Apache 2.0 License.\n\n"
 
-#define GZ_TRANSPORT_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}"
-#define GZ_TRANSPORT_INSTALL_SHARE_PATH "${CMAKE_INSTALL_DATAROOTDIR}"
-
 #cmakedefine HAVE_IFADDRS 1
 #cmakedefine UBUNTU_FOCAL 1
 #cmakedefine HAVE_ZENOH 1

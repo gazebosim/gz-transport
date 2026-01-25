@@ -37,62 +37,20 @@ namespace fs = std::filesystem;
 /// \brief Test loading config from ZENOH_CONFIG env variable.
 TEST(ZenohConfigTest, LoadFromEnvVariable)
 {
-  // Set ZENOH_CONFIG to point to our test config file (mode: "client")
+  // Set ZENOH_CONFIG to point to our test config file
   ASSERT_TRUE(gz::utils::setenv("ZENOH_CONFIG", kZenohTestConfig));
 
   gz::transport::NodeSharedPrivate nodePrivate;
   auto config = nodePrivate.ZenohConfig();
 
-  // The test config has mode: "client", verify it was loaded
+  // The test config has id: "1234567890abcdef", verify it was loaded.
   // get() returns value in JSON format (with quotes)
-  auto mode = config.get("mode");
-  EXPECT_EQ("\"client\"", mode)
-    << "Config should have mode 'client' from test config file";
+  auto id = config.get("id");
+  EXPECT_EQ("\"1234567890abcdef\"", id)
+    << "Config should have id '1234567890abcdef' from test config file";
 
   // Clean up
   ASSERT_TRUE(gz::utils::unsetenv("ZENOH_CONFIG"));
-}
-
-//////////////////////////////////////////////////
-/// \brief Test loading config from user config path.
-TEST(ZenohConfigTest, LoadFromUserConfig)
-{
-  // Ensure ZENOH_CONFIG is not set
-  gz::utils::unsetenv("ZENOH_CONFIG");
-
-  // Create a temporary directory to act as home
-  fs::path tempHome = fs::temp_directory_path() /
-    ("gz_test_home_" + testing::getRandomNumber());
-  fs::create_directories(tempHome);
-
-  // Set GZ_HOMEDIR to the temporary directory
-  std::string originalHome;
-  bool hadOriginalHome = gz::utils::env(GZ_HOMEDIR, originalHome);
-  ASSERT_TRUE(gz::utils::setenv(GZ_HOMEDIR, tempHome.string()));
-
-  // Create test user config with mode: "client"
-  fs::path userConfigDir = tempHome / ".gz" / "transport";
-  fs::path userConfigFile = userConfigDir / "gz_zenoh_session_config.json5";
-  fs::create_directories(userConfigDir);
-  {
-    std::ofstream ofs(userConfigFile);
-    ofs << "{ mode: \"client\" }";
-  }
-
-  gz::transport::NodeSharedPrivate nodePrivate;
-  auto config = nodePrivate.ZenohConfig();
-
-  // get() returns value in JSON format (with quotes)
-  auto mode = config.get("mode");
-  EXPECT_EQ("\"client\"", mode)
-    << "Config should have mode 'client' from user config file";
-
-  // Restore original GZ_HOMEDIR and clean up
-  if (hadOriginalHome)
-    gz::utils::setenv(GZ_HOMEDIR, originalHome);
-  else
-    gz::utils::unsetenv(GZ_HOMEDIR);
-  fs::remove_all(tempHome);
 }
 
 //////////////////////////////////////////////////
@@ -102,31 +60,14 @@ TEST(ZenohConfigTest, LoadDefaultConfig)
   // Ensure ZENOH_CONFIG is not set
   gz::utils::unsetenv("ZENOH_CONFIG");
 
-  // Create an empty temporary directory to act as home
-  fs::path tempHome = fs::temp_directory_path() /
-    ("gz_test_home_" + testing::getRandomNumber());
-  fs::create_directories(tempHome);
-
-  // Set GZ_HOMEDIR to the temporary directory (no config files there)
-  std::string originalHome;
-  bool hadOriginalHome = gz::utils::env(GZ_HOMEDIR, originalHome);
-  ASSERT_TRUE(gz::utils::setenv(GZ_HOMEDIR, tempHome.string()));
-
   gz::transport::NodeSharedPrivate nodePrivate;
   auto config = nodePrivate.ZenohConfig();
 
-  // Default zenoh config has mode: "peer"
+  // The test config has id: "1234567890abcdef", verify it was NOT loaded.
   // get() returns value in JSON format (with quotes)
-  auto mode = config.get("mode");
-  EXPECT_EQ("\"peer\"", mode)
-    << "Default config should have mode 'peer'";
-
-  // Restore original GZ_HOMEDIR and clean up
-  if (hadOriginalHome)
-    gz::utils::setenv(GZ_HOMEDIR, originalHome);
-  else
-    gz::utils::unsetenv(GZ_HOMEDIR);
-  fs::remove_all(tempHome);
+  auto id = config.get("id");
+  EXPECT_NE("\"1234567890abcdef\"", id)
+    << "Config should NOT have id '1234567890abcdef' from test config file";
 }
 
 #endif  // HAVE_ZENOH

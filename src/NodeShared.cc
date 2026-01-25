@@ -19,7 +19,6 @@
 
 #include <chrono>
 #include <cstring>
-#include <filesystem>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -44,22 +43,13 @@
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
-#include <gz/utils/Environment.hh>
 
 #include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
 
-namespace fs = std::filesystem;
 using namespace std::chrono_literals;
 
 const char kGzAuthDomain[] = "gz-auth";
-
-#ifdef HAVE_ZENOH
-static constexpr const char* kZenohRouterConfigFile =
-  "gz_zenoh_router_config.json5";
-static constexpr const char* kZenohSessionConfigFile =
-  "gz_zenoh_session_config.json5";
-#endif
 
 // Enum that encapsulates the possible values for ZeroMQ's setsocketopt
 // for ZMQ_PLAIN_SERVER. A value of 1 enables
@@ -1833,54 +1823,6 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
 
 #ifdef HAVE_ZENOH
 /////////////////////////////////////////////////
-void NodeSharedPrivate::CopyDefaultConfigFiles(
-  const fs::path &_installedConfigDir,
-  const fs::path &_userConfigDirPath)
-{
-  if (!fs::exists(_installedConfigDir))
-  {
-    std::cerr << "Installed config directory not found ["
-              << _installedConfigDir << "]" << std::endl;
-    return;
-  }
-
-  if (!fs::exists(_userConfigDirPath) || !fs::is_directory(_userConfigDirPath))
-    return;
-
-  for (auto name : {kZenohRouterConfigFile, kZenohSessionConfigFile})
-  {
-    const auto copyOptions = fs::copy_options::skip_existing;
-    fs::path installedConfigFilePath = _installedConfigDir / name;
-    fs::path newUserConfigFilePath = _userConfigDirPath / name;
-
-    if (!fs::exists(installedConfigFilePath))
-    {
-      std::cerr << "Source config file not found ["
-                << installedConfigFilePath << "]" << std::endl;
-      continue;
-    }
-
-    std::error_code ec;
-    auto ret = fs::copy_file(installedConfigFilePath,
-      newUserConfigFilePath, copyOptions, ec);
-    if (ret)
-    {
-      if (this->verbose)
-      {
-        std::cout << "New user config file created ["
-                  << newUserConfigFilePath << "]" << std::endl;
-      }
-    }
-    else
-    {
-      std::cerr << "Unable to create user config file ["
-                << newUserConfigFilePath << "]. Reason: "
-                << ec.message() << std::endl;
-    }
-  }
-}
-
-/////////////////////////////////////////////////
 zenoh::Config NodeSharedPrivate::ZenohConfig()
 {
   // Check if the ZENOH_CONFIG env variable exists.
@@ -1900,63 +1842,6 @@ zenoh::Config NodeSharedPrivate::ZenohConfig()
   } catch (zenoh::ZException &_e)
   {
     std::cerr << "Error parsing Zenoh config file: " << _e.what() << "\n";
-  }
-
-  // Check if the default user config file exists.
-  std::string userConfigDir;
-  if (!gz::utils::env(GZ_HOMEDIR, userConfigDir) || userConfigDir.empty())
-  {
-    if (this->verbose)
-      std::cout << "Zenoh default config loaded" << std::endl;
-    return zenoh::Config::create_default();
-  }
-
-  fs::path userConfigDirPath = fs::path(userConfigDir) / ".gz" / "transport";
-  fs::path userConfigFilePath = userConfigDirPath / kZenohSessionConfigFile;
-
-  // Create default user config files if they don't exist.
-  if (!fs::exists(userConfigFilePath))
-  {
-    fs::path installedConfigDir =
-      fs::path(GZ_TRANSPORT_INSTALL_PREFIX) /
-      GZ_TRANSPORT_INSTALL_SHARE_PATH /
-      "gz-transport" / "conf";
-
-    std::error_code ec;
-    fs::create_directories(userConfigDirPath, ec);
-    if (ec)
-    {
-      std::cerr << "Unable to create user config directory ["
-                << userConfigDirPath << "]. Reason: " << ec.message()
-                << std::endl;
-    }
-    else
-    {
-      this->CopyDefaultConfigFiles(installedConfigDir, userConfigDirPath);
-    }
-  }
-
-  // Try to load the user config file.
-  if (fs::exists(userConfigFilePath) && fs::is_regular_file(userConfigFilePath))
-  {
-    try
-    {
-      zenoh::ZResult result;
-      zenoh::Config config = zenoh::Config::from_file(
-        userConfigFilePath.string(), &result);
-      if (result == Z_OK)
-      {
-        if (this->verbose)
-        {
-          std::cout << "Zenoh config file loaded from [" << userConfigFilePath
-                    << "]" << std::endl;
-        }
-        return config;
-      }
-    } catch (zenoh::ZException &_e)
-    {
-      std::cerr << "Error parsing Zenoh config file: " << _e.what() << "\n";
-    }
   }
 
   if (this->verbose)
