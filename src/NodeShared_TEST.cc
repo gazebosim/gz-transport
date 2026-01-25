@@ -19,19 +19,11 @@
 
 #ifdef HAVE_ZENOH
 
-#include <filesystem>
-#include <fstream>
-#include <string>
-
 #include <gtest/gtest.h>
 #include <gz/utils/Environment.hh>
 
-#include "gz/transport/Helpers.hh"
 #include "NodeSharedPrivate.hh"
 #include "test_config.hh"
-#include "test_utils.hh"
-
-namespace fs = std::filesystem;
 
 //////////////////////////////////////////////////
 /// \brief Test loading config from ZENOH_CONFIG env variable.
