@@ -144,7 +144,10 @@ test_sources = glob(
 [cc_test(
     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
     srcs = [src],
-    env = {"GZ_BAZEL": "1"},
+    env = {
+        "GZ_BAZEL": "1",
+        "GZ_IP": "127.0.0.1",
+    },
     deps = [
         ":gz-transport",
         ":gz-transport-discovery-header",
