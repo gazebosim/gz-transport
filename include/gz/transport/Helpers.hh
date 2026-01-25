@@ -30,12 +30,6 @@
 
 namespace gz::transport
 {
-#ifdef _WIN32
-# define GZ_HOMEDIR "USERPROFILE"
-#else
-# define GZ_HOMEDIR "HOME"
-#endif
-
   // Inline bracket to help doxygen filtering.
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
   //

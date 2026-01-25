@@ -35,7 +35,6 @@
 #include <zmq.hpp>
 
 #include "gz/transport/AdvertiseOptions.hh"
-#include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/RepHandler.hh"
