@@ -23,7 +23,8 @@ cc_library(
     includes = ["."],
     visibility = ["//:__subpackages__"],
     deps = [
-        "@gz-utils",
+        "//:gz-transport",
+        "@gz-utils//:Subprocess",
     ],
 )
 
