@@ -197,4 +197,141 @@ std::string TopicUtils::AsValidTopic(const std::string &_topic)
 
   return validTopic;
 }
+<<<<<<< HEAD
+=======
+
+//////////////////////////////////////////////////
+std::string TopicUtils::CreateLivelinessTokenHelper(
+  const std::string &_fullyQualifiedTopic,
+  const std::string &_pUuid,
+  const std::string &_nUuid,
+  const std::string &_entityType)
+{
+  std::string partition;
+  std::string topic;
+  if (!DecomposeFullyQualifiedTopic(_fullyQualifiedTopic, partition, topic))
+    return "";
+
+  return
+    std::string(kTokenPrefix) + kTokenSeparator +
+    MangleName(partition) + kTokenSeparator +
+    _pUuid + kTokenSeparator +
+    _nUuid + kTokenSeparator +
+    _nUuid + kTokenSeparator +
+    _entityType + kTokenSeparator +
+    "%" + kTokenSeparator +
+    "%" + kTokenSeparator +
+    "%" + kTokenSeparator +
+    MangleName(topic) + kTokenSeparator;
+}
+
+//////////////////////////////////////////////////
+std::string TopicUtils::CreateLivelinessToken(
+  const std::string &_fullyQualifiedTopic,
+  const std::string &_pUuid,
+  const std::string &_nUuid,
+  const std::string &_entityType,
+  const std::string &_typeName)
+{
+  return
+    CreateLivelinessTokenHelper(
+      _fullyQualifiedTopic, _pUuid, _nUuid, _entityType) +
+    _typeName + kTokenSeparator +
+    "%" + kTokenSeparator +
+    "%";
+}
+
+//////////////////////////////////////////////////
+std::string TopicUtils::CreateLivelinessToken(
+  const std::string &_fullyQualifiedTopic,
+  const std::string &_pUuid,
+  const std::string &_nUuid,
+  const std::string &_entityType,
+  const std::string &_reqTypeName,
+  const std::string &_repTypeName)
+{
+  std::string mangledTypes;
+  if (!MangleType({_reqTypeName, _repTypeName}, mangledTypes))
+    return "";
+
+  return
+    CreateLivelinessTokenHelper(
+      _fullyQualifiedTopic, _pUuid, _nUuid, _entityType) +
+    mangledTypes + kTokenSeparator +
+    "%" + kTokenSeparator +
+    "%";
+}
+
+//////////////////////////////////////////////////
+std::string TopicUtils::MangleName(const std::string &_input)
+{
+  std::string output = _input;
+  std::replace(output.begin(), output.end(), '/', kSlashReplacement);
+  return output;
+}
+
+//////////////////////////////////////////////////
+std::string TopicUtils::DemangleName(const std::string &_input)
+{
+  std::string output = _input;
+  std::replace(output.begin(), output.end(), kSlashReplacement, '/');
+  return output;
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::MangleType(const std::vector<std::string> &_input,
+  std::string &_output)
+{
+  _output.clear();
+
+  if (_input.empty())
+    return false;
+
+  for (const auto &type : _input)
+  {
+    if (type.empty())
+      return false;
+
+    if (type.find_first_of(kTypeSeparator) != std::string::npos)
+      return false;
+
+    _output += type + kTypeSeparator;
+  }
+
+  _output.pop_back();
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool TopicUtils::DemangleType(const std::string &_input,
+  std::vector<std::string> &_output)
+{
+  _output.clear();
+
+  if (_input.empty())
+    return false;
+
+  std::string token = _input;
+
+  std::size_t firstAt = token.find_first_of(kTypeSeparator);
+  while (firstAt != std::string::npos)
+  {
+    std::string type = token.substr(0, firstAt);
+
+    if (type.empty())
+      return false;
+
+    _output.push_back(type);
+    token.erase(0, firstAt + 1);
+    firstAt = token.find_first_of(kTypeSeparator);
+  }
+
+  if (token.empty())
+    return false;
+
+  _output.push_back(token);
+
+  return true;
+}
+>>>>>>> 18734a4 ([TopicUtils] Optimize MangleName(), DemangleName() and MangleType(). (#788))
 }  // namespace gz::transport
