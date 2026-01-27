@@ -187,13 +187,6 @@ NodeShared *NodeShared::Instance()
 NodeShared::NodeShared()
   : dataPtr(new NodeSharedPrivate)
 {
-  // If GZ_VERBOSE=1 enable the verbose mode.
-  std::string gzVerbose;
-  if (env("GZ_VERBOSE", gzVerbose) && !gzVerbose.empty())
-  {
-    this->dataPtr->verbose = (gzVerbose == "1");
-  }
-
   // Set the multicast IP used for discovery.
   std::string envDiscoveryIp;
   if (env("GZ_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
@@ -1826,6 +1819,36 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
   }
   return numVal;
 }
+
+#ifdef HAVE_ZENOH
+/////////////////////////////////////////////////
+zenoh::Config NodeSharedPrivate::ZenohConfig()
+{
+  // Check if the ZENOH_CONFIG env variable exists.
+  try
+  {
+    zenoh::ZResult result;
+    zenoh::Config config = zenoh::Config::from_env(&result);
+    if (result == Z_OK)
+    {
+      if (this->verbose)
+      {
+        std::cout << "Zenoh config file loaded from ZENOH_CONFIG env"
+                  << std::endl;
+      }
+      return config;
+    }
+  } catch (zenoh::ZException &_e)
+  {
+    std::cerr << "Error parsing Zenoh config file: " << _e.what() << "\n";
+  }
+
+  if (this->verbose)
+    std::cout << "Zenoh default config loaded" << std::endl;
+
+  return zenoh::Config::create_default();
+}
+#endif
 
 /////////////////////////////////////////////////
 void NodeShared::AddGlobalRelay(const std::string& _relayAddress)
