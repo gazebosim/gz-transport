@@ -1,5 +1,76 @@
 ## Gazebo Transport 11.X
 
+### Gazebo Transport 11.4.2 (2026-01-29)
+
+1. Fortress: disable Ubuntu Focal CI
+    * [Pull request #789](https://github.com/gazebosim/gz-transport/pull/789)
+
+1. Refactor TopicUtils::AsValidTopic() removing regex
+    * [Pull request #777](https://github.com/gazebosim/gz-transport/pull/777)
+
+1. Use auto for loop iterators
+    * [Pull request #326](https://github.com/gazebosim/gz-transport/pull/326)
+
+1. Fix unused-result complaint
+    * [Pull request #763](https://github.com/gazebosim/gz-transport/pull/763)
+
+1. Fix deadlock in service requests when running local callbacks
+    * [Pull request #671](https://github.com/gazebosim/gz-transport/pull/671)
+
+1. Set IGN_IP for gz_src_TEST
+    * [Pull request #730](https://github.com/gazebosim/gz-transport/pull/730)
+
+1. Set GZ_IP for gz_src_TEST
+    * [Pull request #723](https://github.com/gazebosim/gz-transport/pull/723)
+
+1. Set GZ_IP=127.0.0.1 in tests needing network
+    * [Pull request #595](https://github.com/gazebosim/gz-transport/pull/595)
+
+1. Add null-check for `gz param` parameters in three functions to prevent crashes
+    * [Pull request #709](https://github.com/gazebosim/gz-transport/pull/709)
+
+1. Fix small typo in services tutorial
+    * [Pull request #703](https://github.com/gazebosim/gz-transport/pull/703)
+
+1. Replace DebugString() with PrintToString()
+    * [Pull request #685](https://github.com/gazebosim/gz-transport/pull/685)
+
+1. Fix compatibility with protobuf v30 (cpp 6.30.0)
+    * [Pull request #499](https://github.com/gazebosim/gz-transport/pull/499)
+
+1. Add compatibility with protobuf 28
+    * [Pull request #674](https://github.com/gazebosim/gz-transport/pull/674)
+
+1. Clean up namespaces:
+    * [Pull request #653](https://github.com/gazebosim/gz-transport/pull/653)
+    * [Pull request #649](https://github.com/gazebosim/gz-transport/pull/649)
+    * [Pull request #642](https://github.com/gazebosim/gz-transport/pull/642)
+    * [Pull request #637](https://github.com/gazebosim/gz-transport/pull/637)
+
+1. Cast nanoseconds to int64_t
+    * [Pull request #607](https://github.com/gazebosim/gz-transport/pull/607)
+
+1. Remove subscribers after publisher ends
+    * [Pull request #587](https://github.com/gazebosim/gz-transport/pull/587)
+
+1. Remove unused MessagePublisherPrivate forward declaration
+    * [Pull request #570](https://github.com/gazebosim/gz-transport/pull/570)
+
+1. Update maintainer email
+    * [Pull request #579](https://github.com/gazebosim/gz-transport/pull/579)
+
+1. Fix flakiness in the TopicInfo test
+    * [Pull request #551](https://github.com/gazebosim/gz-transport/pull/551)
+
+1. Disable playback.ReplayStep for windows
+    * [Pull request #517](https://github.com/gazebosim/gz-transport/pull/517)
+
+1. Update github action workflows
+    * [Pull request #460](https://github.com/gazebosim/gz-transport/pull/460)
+
+1. Adds the subcommands for the log command
+    * [Pull request #451](https://github.com/gazebosim/gz-transport/pull/451)
+
 ### Gazebo Transport 11.4.1 (2023-09-01)
 
 1. Fix topic/service list inconsistency
