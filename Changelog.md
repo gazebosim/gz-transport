@@ -36,7 +36,7 @@
     * [Pull request #685](https://github.com/gazebosim/gz-transport/pull/685)
 
 1. Fix compatibility with protobuf v30 (cpp 6.30.0)
-    * [Pull request #499](https://github.com/gazebosim/gz-transport/pull/499
+    * [Pull request #499](https://github.com/gazebosim/gz-transport/pull/499)
 
 1. Add compatibility with protobuf 28
     * [Pull request #674](https://github.com/gazebosim/gz-transport/pull/674)
