@@ -1820,24 +1820,6 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
   return numVal;
 }
 
-#ifdef HAVE_ZENOH
-/////////////////////////////////////////////////
-zenoh::Config NodeSharedPrivate::ZenohConfig(ZenohConfigSource &_configSource)
-{
-  // Check if the ZENOH_CONFIG env variable exists.
-  zenoh::ZResult result;
-  zenoh::Config config = zenoh::Config::from_env(&result);
-  if (result == Z_OK)
-  {
-    _configSource = ZenohConfigSource::kFromEnvVariable;
-    return config;
-  }
-
-  _configSource = ZenohConfigSource::kDefault;
-  return zenoh::Config::create_default();
-}
-#endif
-
 /////////////////////////////////////////////////
 void NodeShared::AddGlobalRelay(const std::string& _relayAddress)
 {

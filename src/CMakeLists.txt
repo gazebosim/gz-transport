@@ -58,17 +58,5 @@ if(MSVC)
   endif()
 endif()
 
-# UNIT_NodeShared_TEST needs NodeShared.cc to access NodeSharedPrivate methods
-# that are not exported from the library.
-if(TARGET UNIT_NodeShared_TEST)
-  target_sources(UNIT_NodeShared_TEST PRIVATE
-    NodeShared.cc
-    SubscriptionHandler.cc
-  )
-  if(HAVE_ZENOH)
-    target_link_libraries(UNIT_NodeShared_TEST zenohcxx::zenohc)
-  endif()
-endif()
-
 # Command line support.
 add_subdirectory(cmd)

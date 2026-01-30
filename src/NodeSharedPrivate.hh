@@ -142,7 +142,20 @@ namespace gz::transport
     /// Otherwise, use the default Zenoh configuration.
     /// \param[out] _configSource The source of the configuration.
     /// \return The Zenoh configuration object.
-    public: zenoh::Config ZenohConfig(ZenohConfigSource &_configSource);
+    public: inline zenoh::Config ZenohConfig(ZenohConfigSource &_configSource)
+            {
+              // Check if the ZENOH_CONFIG env variable exists.
+              zenoh::ZResult result;
+              zenoh::Config config = zenoh::Config::from_env(&result);
+              if (result == Z_OK)
+              {
+                _configSource = ZenohConfigSource::kFromEnvVariable;
+                return config;
+              }
+
+              _configSource = ZenohConfigSource::kDefault;
+              return zenoh::Config::create_default();
+            }
 
     /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
