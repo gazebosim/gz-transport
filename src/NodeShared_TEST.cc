@@ -25,6 +25,8 @@
 #include "NodeSharedPrivate.hh"
 #include "test_config.hh"
 
+using ZenohConfigSource = gz::transport::NodeSharedPrivate::ZenohConfigSource;
+
 //////////////////////////////////////////////////
 /// \brief Test loading config from ZENOH_CONFIG env variable.
 TEST(ZenohConfigTest, LoadFromEnvVariable)
@@ -33,7 +35,11 @@ TEST(ZenohConfigTest, LoadFromEnvVariable)
   ASSERT_TRUE(gz::utils::setenv("ZENOH_CONFIG", kZenohTestConfig));
 
   gz::transport::NodeSharedPrivate nodePrivate;
-  auto config = nodePrivate.ZenohConfig();
+  ZenohConfigSource source;
+  auto config = nodePrivate.ZenohConfig(source);
+
+  // Verify the config source is from environment variable
+  EXPECT_EQ(ZenohConfigSource::kFromEnvVariable, source);
 
   // The test config has id: "1234567890abcdef", verify it was loaded.
   // get() returns value in JSON format (with quotes)
@@ -53,7 +59,11 @@ TEST(ZenohConfigTest, LoadDefaultConfig)
   gz::utils::unsetenv("ZENOH_CONFIG");
 
   gz::transport::NodeSharedPrivate nodePrivate;
-  auto config = nodePrivate.ZenohConfig();
+  ZenohConfigSource source;
+  auto config = nodePrivate.ZenohConfig(source);
+
+  // Verify the config source is default
+  EXPECT_EQ(ZenohConfigSource::kDefault, source);
 
   // The test config has id: "1234567890abcdef", verify it was NOT loaded.
   // get() returns value in JSON format (with quotes)

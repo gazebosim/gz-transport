@@ -92,7 +92,15 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
       if (this->gzImplementation == "zenoh")
       {
-        auto config = ZenohConfig();
+        ZenohConfigSource configSource;
+        auto config = ZenohConfig(configSource);
+        if (this->verbose)
+        {
+          if (configSource == ZenohConfigSource::kFromEnvVariable)
+            std::cout << "Zenoh config loaded from ZENOH_CONFIG env" << std::endl;
+          else
+            std::cout << "Zenoh default config loaded" << std::endl;
+        }
         this->session = std::make_shared<zenoh::Session>(
           zenoh::Session::open(std::move(config)));
       }
@@ -120,11 +128,21 @@ namespace gz::transport
                                   int _defaultValue) const;
 
 #ifdef HAVE_ZENOH
+    /// \brief Enumeration for the source of Zenoh configuration.
+    public: enum class ZenohConfigSource
+            {
+              /// \brief Configuration loaded from ZENOH_CONFIG env variable.
+              kFromEnvVariable,
+              /// \brief Default Zenoh configuration.
+              kDefault
+            };
+
     /// \brief Get the Zenoh configuration.
     /// If the environment variable ZENOH_CONFIG is set, use that config file.
     /// Otherwise, use the default Zenoh configuration.
+    /// \param[out] _configSource The source of the configuration.
     /// \return The Zenoh configuration object.
-    public: GZ_TRANSPORT_VISIBLE zenoh::Config ZenohConfig();
+    public: zenoh::Config ZenohConfig(ZenohConfigSource &_configSource);
 
     /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;

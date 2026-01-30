@@ -1822,30 +1822,18 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
 
 #ifdef HAVE_ZENOH
 /////////////////////////////////////////////////
-zenoh::Config NodeSharedPrivate::ZenohConfig()
+zenoh::Config NodeSharedPrivate::ZenohConfig(ZenohConfigSource &_configSource)
 {
   // Check if the ZENOH_CONFIG env variable exists.
-  try
+  zenoh::ZResult result;
+  zenoh::Config config = zenoh::Config::from_env(&result);
+  if (result == Z_OK)
   {
-    zenoh::ZResult result;
-    zenoh::Config config = zenoh::Config::from_env(&result);
-    if (result == Z_OK)
-    {
-      if (this->verbose)
-      {
-        std::cout << "Zenoh config file loaded from ZENOH_CONFIG env"
-                  << std::endl;
-      }
-      return config;
-    }
-  } catch (zenoh::ZException &_e)
-  {
-    std::cerr << "Error parsing Zenoh config file: " << _e.what() << "\n";
+    _configSource = ZenohConfigSource::kFromEnvVariable;
+    return config;
   }
 
-  if (this->verbose)
-    std::cout << "Zenoh default config loaded" << std::endl;
-
+  _configSource = ZenohConfigSource::kDefault;
   return zenoh::Config::create_default();
 }
 #endif
