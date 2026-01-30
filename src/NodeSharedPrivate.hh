@@ -97,7 +97,7 @@ namespace gz::transport
         if (this->verbose)
         {
           if (configSource == ZenohConfigSource::kFromEnvVariable)
-            std::cout << "Zenoh config loaded from ZENOH_CONFIG env" << std::endl;
+            std::cout << "Zenoh config loaded from ZENOH_CONFIG" << std::endl;
           else
             std::cout << "Zenoh default config loaded" << std::endl;
         }
