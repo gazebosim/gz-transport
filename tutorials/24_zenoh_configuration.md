@@ -39,6 +39,21 @@ or when you need more control over message routing.
 First, install the Zenoh router by following the
 [official Zenoh installation guide](https://zenoh.io/docs/getting-started/installation/).
 
+**Important: Version Compatibility**
+
+The version of the Zenoh router (`zenohd`) must match the version of the Zenoh
+library that Gazebo Transport was compiled against.
+
+To check your installed Zenoh library version:
+
+```bash
+pkg-config --modversion zenohc
+```
+
+Then ensure you install the matching version of `zenohd`. For example, if your
+library version is `1.5.0`, download and install `zenohd` version `1.5.0` from
+the [Zenoh releases page](https://github.com/eclipse-zenoh/zenoh/releases).
+
 Then, download the ROS 2 default configuration files which provide a good
 starting point for router-based communication:
 
@@ -71,8 +86,7 @@ GZ_TRANSPORT_IMPLEMENTATION=zenoh ZENOH_CONFIG=/tmp/DEFAULT_RMW_ZENOH_SESSION_CO
 GZ_TRANSPORT_IMPLEMENTATION=zenoh ZENOH_CONFIG=/tmp/DEFAULT_RMW_ZENOH_SESSION_CONFIG.json5 ./build/bin/subscriber
 ```
 
-The subscriber should receive messages from the publisher. The router acts as
-the central point through which all messages flow.
+The subscriber should receive messages from the publisher.
 
 ### Verifying Router Dependency
 
