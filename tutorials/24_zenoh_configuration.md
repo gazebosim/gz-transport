@@ -46,6 +46,7 @@ library that Gazebo Transport was compiled against.
 
 To check your installed Zenoh library version:
 
+**Linux/macOS:**
 ```bash
 pkg-config --modversion zenohc
 ```
