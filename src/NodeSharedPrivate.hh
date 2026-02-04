@@ -58,15 +58,9 @@ namespace gz::transport
   class NodeSharedPrivate
   {
     // Constructor
-    public: NodeSharedPrivate() :
-              context(new zmq::context_t(1)),
-              publisher(new zmq::socket_t(*context, ZMQ_PUB)),
-              subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
-              requester(new zmq::socket_t(*context, ZMQ_ROUTER)),
-              responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
-              replier(new zmq::socket_t(*context, ZMQ_ROUTER))
+    public: NodeSharedPrivate()
     {
-      // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
+      // Determine implementation FIRST, before creating any resources.
       std::string gzImpl;
       if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
       {
@@ -80,8 +74,18 @@ namespace gz::transport
         }
       }
 
+      // Create resources based on implementation.
+      if (this->gzImplementation == "zeromq")
+      {
+        this->context.reset(new zmq::context_t(1));
+        this->publisher.reset(new zmq::socket_t(*context, ZMQ_PUB));
+        this->subscriber.reset(new zmq::socket_t(*context, ZMQ_SUB));
+        this->requester.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
+        this->responseReceiver.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
+        this->replier.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
+      }
 #ifdef HAVE_ZENOH
-      if (this->gzImplementation == "zenoh")
+      else if (this->gzImplementation == "zenoh")
       {
         this->session = std::make_shared<zenoh::Session>(
           zenoh::Session::open(zenoh::Config::create_default()));

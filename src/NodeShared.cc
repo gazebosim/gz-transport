@@ -241,29 +241,33 @@ NodeShared::NodeShared()
   this->dataPtr->srvDiscovery.reset(
       new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
 
-  // Initialize the 0MQ objects.
-  if (!this->InitializeSockets())
-    return;
-
-  if (this->dataPtr->verbose)
+  // Initialize and start ZMQ resources only for zeromq backend.
+  if (this->GzImplementation() == "zeromq")
   {
-    std::cout << "Host address: " << this->dataPtr->hostAddr << std::endl;
-    std::cout << "Process UUID: " << this->pUuid << std::endl;
-    std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
-              << this->msgDiscPort << "] for msg discovery\n";
-    std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
-              << this->srvDiscPort << "] for srv discovery\n";
-    std::cout << "Bind at: [" << this->dataPtr->myAddress << "] for pub/sub\n";
-    std::cout << "Bind at: [" << this->dataPtr->myReplierAddress << "]"
-              << " for srv. calls\n";
-    std::cout << "Identity for receiving srv. requests: ["
-              << this->replierId.ToString() << "]" << std::endl;
-    std::cout << "Identity for receiving srv. responses: ["
-              << this->responseReceiverId.ToString() << "]" << std::endl;
-  }
+    // Initialize the 0MQ objects.
+    if (!this->InitializeSockets())
+      return;
 
-  // Start the service thread.
-  this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
+    if (this->dataPtr->verbose)
+    {
+      std::cout << "Host address: " << this->dataPtr->hostAddr << std::endl;
+      std::cout << "Process UUID: " << this->pUuid << std::endl;
+      std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
+                << this->msgDiscPort << "] for msg discovery\n";
+      std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
+                << this->srvDiscPort << "] for srv discovery\n";
+      std::cout << "Bind at: [" << this->dataPtr->myAddress << "] for pub/sub\n";
+      std::cout << "Bind at: [" << this->dataPtr->myReplierAddress << "]"
+                << " for srv. calls\n";
+      std::cout << "Identity for receiving srv. requests: ["
+                << this->replierId.ToString() << "]" << std::endl;
+      std::cout << "Identity for receiving srv. responses: ["
+                << this->responseReceiverId.ToString() << "]" << std::endl;
+    }
+
+    // Start the ZMQ reception thread.
+    this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
+  }
 
   // Set the callback to notify discovery updates (new topics).
   this->dataPtr->msgDiscovery->ConnectionsCb(
@@ -1303,6 +1307,9 @@ bool NodeShared::AdvertisePublisher(const ServicePublisher &_publisher)
 /////////////////////////////////////////////////
 int NodeShared::RcvHwm()
 {
+  if (!this->dataPtr->subscriber)
+    return -1;
+
   int rcvHwm;
   try
   {
@@ -1319,6 +1326,9 @@ int NodeShared::RcvHwm()
 /////////////////////////////////////////////////
 int NodeShared::SndHwm()
 {
+  if (!this->dataPtr->publisher)
+    return -1;
+
   int sndHwm;
   try
   {
@@ -1476,6 +1486,10 @@ void NodeSharedPrivate::SecurityOnNewConnection()
 //////////////////////////////////////////////////
 void NodeSharedPrivate::SecurityInit()
 {
+  // Security is only applicable to zeromq backend.
+  if (this->gzImplementation != "zeromq")
+    return;
+
   // Check if a username and password has been set. If so, then
   // setup a PLAIN authentication server.
   std::string user, pass;
@@ -1917,11 +1931,14 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
   // in this node.
   this->RemoveSubscribedTopic(fullyQualifiedTopic, _nUuid);
 
-  // Remove the filter for this topic if I am the last subscriber.
-  if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
+  // Remove the ZMQ filter for this topic if I am the last subscriber.
+  if (this->GzImplementation() == "zeromq")
   {
-    this->dataPtr->subscriber->set(
-      zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+    if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
+    {
+      this->dataPtr->subscriber->set(
+        zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+    }
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
