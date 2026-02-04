@@ -241,8 +241,30 @@ NodeShared::NodeShared()
   this->dataPtr->srvDiscovery.reset(
       new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
 
-  // Initialize and start ZMQ resources only for zeromq backend.
-  if (this->GzImplementation() == "zeromq")
+  // Set the callback to notify discovery updates (new topics).
+  this->dataPtr->msgDiscovery->ConnectionsCb(
+      std::bind(&NodeShared::OnNewConnection, this, std::placeholders::_1));
+
+  // Set the callback to notify discovery updates (invalid topics).
+  this->dataPtr->msgDiscovery->DisconnectionsCb(
+      std::bind(&NodeShared::OnNewDisconnection, this, std::placeholders::_1));
+
+  this->dataPtr->msgDiscovery->RegistrationsCb(
+      std::bind(&NodeShared::OnNewRegistration, this, std::placeholders::_1));
+
+  this->dataPtr->msgDiscovery->UnregistrationsCb(
+      std::bind(&NodeShared::OnEndRegistration, this, std::placeholders::_1));
+
+  this->dataPtr->msgDiscovery->SubscribersCb(
+      std::bind(&NodeShared::OnSubscribers, this));
+
+  // Set the callback to notify svc discovery updates (new services).
+  this->dataPtr->srvDiscovery->ConnectionsCb(
+    std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
+
+  // Implementation-specific initialization.
+  std::string impl = this->GzImplementation();
+  if (impl == "zeromq")
   {
     // Initialize the 0MQ objects.
     if (!this->InitializeSockets())
@@ -267,31 +289,7 @@ NodeShared::NodeShared()
 
     // Start the ZMQ reception thread.
     this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
-  }
 
-  // Set the callback to notify discovery updates (new topics).
-  this->dataPtr->msgDiscovery->ConnectionsCb(
-      std::bind(&NodeShared::OnNewConnection, this, std::placeholders::_1));
-
-  // Set the callback to notify discovery updates (invalid topics).
-  this->dataPtr->msgDiscovery->DisconnectionsCb(
-      std::bind(&NodeShared::OnNewDisconnection, this, std::placeholders::_1));
-
-  this->dataPtr->msgDiscovery->RegistrationsCb(
-      std::bind(&NodeShared::OnNewRegistration, this, std::placeholders::_1));
-
-  this->dataPtr->msgDiscovery->UnregistrationsCb(
-      std::bind(&NodeShared::OnEndRegistration, this, std::placeholders::_1));
-
-  this->dataPtr->msgDiscovery->SubscribersCb(
-      std::bind(&NodeShared::OnSubscribers, this));
-
-  // Set the callback to notify svc discovery updates (new services).
-  this->dataPtr->srvDiscovery->ConnectionsCb(
-    std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
-
-  if (this->GzImplementation() == "zeromq")
-  {
     // Set the callback to notify svc discovery updates (invalid services).
     this->dataPtr->srvDiscovery->DisconnectionsCb(
       std::bind(&NodeShared::OnNewSrvDisconnection,
@@ -302,7 +300,7 @@ NodeShared::NodeShared()
     this->dataPtr->srvDiscovery->Start();
   }
 #ifdef HAVE_ZENOH
-  else if (this->GzImplementation() == "zenoh")
+  else if (impl == "zenoh")
   {
     this->dataPtr->msgDiscovery->Start(this->Session(),
       std::bind(&MsgDiscovery::LivelinessMsgDataHandler,
