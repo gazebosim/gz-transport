@@ -2563,13 +2563,9 @@ TEST(NodeTest, RcvHwm)
   // RcvHwm is only applicable to ZeroMQ backend.
   // For Zenoh, the function returns -1 since ZMQ sockets don't exist.
   if (transport::NodeShared::Instance()->GzImplementation() == "zeromq")
-  {
     EXPECT_EQ(transport::kDefaultRcvHwm, transport::rcvHwm());
-  }
   else
-  {
     EXPECT_EQ(-1, transport::rcvHwm());
-  }
 }
 
 //////////////////////////////////////////////////
@@ -2579,13 +2575,9 @@ TEST(NodeTest, SndHwm)
   // SndHwm is only applicable to ZeroMQ backend.
   // For Zenoh, the function returns -1 since ZMQ sockets don't exist.
   if (transport::NodeShared::Instance()->GzImplementation() == "zeromq")
-  {
     EXPECT_EQ(transport::kDefaultSndHwm, transport::sndHwm());
-  }
   else
-  {
     EXPECT_EQ(-1, transport::sndHwm());
-  }
 }
 
 //////////////////////////////////////////////////
