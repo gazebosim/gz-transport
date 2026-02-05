@@ -60,7 +60,7 @@ namespace gz::transport
     // Constructor
     public: NodeSharedPrivate()
     {
-      // Determine implementation FIRST, before creating any resources.
+      // Determine implementation first, before creating any resources.
       std::string gzImpl;
       if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
       {
