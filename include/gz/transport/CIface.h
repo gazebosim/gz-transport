@@ -58,13 +58,29 @@ extern "C" {
                       const char *_topic,
                       const char *_msgType);
 
+  /// \brief Publishes a message on a topic.
+  /// \param[in] _node Pointer to a node.
+  /// \param[in] _topic Topic on which to publish the message.
+  /// \param[in] _data Byte array of serialized data to publish.
+  /// \param[in] _size Size of the data in bytes.
+  /// \param[in] _msgType Name of the message type.
+  /// \return 0 on success.
+  int GZ_TRANSPORT_VISIBLE
+  gzTransportPublishRaw(GzTransportNode *_node,
+                        const char *_topic,
+                        const void *_data,
+                        size_t _size,
+                        const char *_msgType);
 
   /// \brief Publishes a message on a topic.
+  /// \deprecated Use gzTransportPublishRaw instead. This function is not
+  /// binary-safe and truncates data at null bytes.
   /// \param[in] _node Pointer to a node.
   /// \param[in] _topic Topic on which to publish the message.
   /// \param[in] _data Byte array of serialized data to publish.
   /// \param[in] _msgType Name of the message type.
   /// \return 0 on success.
+  GZ_DEPRECATED(15)
   int GZ_TRANSPORT_VISIBLE
   gzTransportPublish(GzTransportNode *_node,
                       const char *_topic,

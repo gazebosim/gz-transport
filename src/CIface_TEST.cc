@@ -20,10 +20,13 @@
 
 #include "gz/transport/CIface.h"
 
+#include <string>
 #include "test_utils.hh"
 #include <gz/utils/Environment.hh>
 
 static int count;
+static std::string receivedData;
+static size_t receivedSize;
 
 //////////////////////////////////////////////////
 /// \brief Function called each time a topic update is received.
@@ -38,6 +41,15 @@ void cb(const char *_data, size_t _size, const char *_msgType, void *_userData)
   msg.ParseFromArray(_data, _size);
   EXPECT_STREQ("gz.msgs.StringMsg", _msgType);
   EXPECT_EQ(msg.data(), "HELLO");
+  ++count;
+}
+
+//////////////////////////////////////////////////
+/// \brief Callback for binary safety test - stores raw data.
+void cbBinary(const char *_data, size_t _size, const char *, void *)
+{
+  receivedData = std::string(_data, _size);
+  receivedSize = _size;
   ++count;
 }
 
@@ -96,7 +108,7 @@ TEST(CIfaceTest, PubSub)
   msg.SerializeToArray(buffer, size);
 
   EXPECT_EQ(0,
-    gzTransportPublish(node, topic, buffer, msg.GetTypeName().data()));
+    gzTransportPublishRaw(node, topic, buffer, size, msg.GetTypeName().data()));
 
   EXPECT_EQ(2, count);
 
@@ -105,7 +117,7 @@ TEST(CIfaceTest, PubSub)
   // Unsubscribe
   ASSERT_EQ(0, gzTransportUnsubscribe(node, topic));
   EXPECT_EQ(0,
-    gzTransportPublish(node, topic, buffer, msg.GetTypeName().data()));
+    gzTransportPublishRaw(node, topic, buffer, size, msg.GetTypeName().data()));
   EXPECT_EQ(0, count);
 
   free(buffer);
@@ -153,12 +165,14 @@ TEST(CIfaceTest, PubSubPartitions)
 
   // Publish on "bar" partition
   EXPECT_EQ(0,
-    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().data()));
+    gzTransportPublishRaw(nodeBar, topic, buffer, size,
+                          msg.GetTypeName().data()));
   EXPECT_EQ(1, count);
 
   // Publish on default partition
   EXPECT_EQ(0,
-    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().data()));
+    gzTransportPublishRaw(nodeBar, topic, buffer, size,
+                          msg.GetTypeName().data()));
   EXPECT_EQ(2, count);
 
   count = 0;
@@ -166,7 +180,8 @@ TEST(CIfaceTest, PubSubPartitions)
   // Unsubscribe
   ASSERT_EQ(0, gzTransportUnsubscribe(nodeBar, topic));
   EXPECT_EQ(0,
-    gzTransportPublish(nodeBar, topic, buffer, msg.GetTypeName().data()));
+    gzTransportPublishRaw(nodeBar, topic, buffer, size,
+                          msg.GetTypeName().data()));
   EXPECT_EQ(0, count);
 
   free(buffer);
@@ -174,6 +189,46 @@ TEST(CIfaceTest, PubSubPartitions)
   EXPECT_EQ(nullptr, node);
   gzTransportNodeDestroy(&nodeBar);
   EXPECT_EQ(nullptr, nodeBar);
+}
+
+//////////////////////////////////////////////////
+TEST(CIfaceTest, PublishRawBinarySafe)
+{
+  count = 0;
+  receivedData.clear();
+  receivedSize = 0;
+
+  GzTransportNode *node = gzTransportNodeCreate(nullptr);
+  EXPECT_NE(nullptr, node);
+
+  const char *topic = "/binary_test";
+  const char *msgType = "gz.msgs.Bytes";
+
+  // Subscribe to receive raw binary data
+  ASSERT_EQ(0, gzTransportSubscribe(node, topic, cbBinary, nullptr));
+
+  // Test data with embedded null byte - "Hel\0lo" (6 bytes)
+  const char binaryData[] = {'H', 'e', 'l', '\0', 'l', 'o'};
+  size_t dataSize = sizeof(binaryData);  // 6 bytes
+
+  // Advertise the topic first
+  ASSERT_EQ(0, gzTransportAdvertise(node, topic, msgType));
+
+  // Publish using the new binary-safe function
+  EXPECT_EQ(0, 
+            gzTransportPublishRaw(node, topic, binaryData, dataSize, msgType));
+
+  // Verify subscriber receives all 6 bytes
+  EXPECT_EQ(1, count);
+  EXPECT_EQ(dataSize, receivedSize);
+  EXPECT_EQ(std::string(binaryData, dataSize), receivedData);
+
+  // Verify the data after the null byte is preserved
+  EXPECT_EQ('l', receivedData[4]);
+  EXPECT_EQ('o', receivedData[5]);
+
+  gzTransportNodeDestroy(&node);
+  EXPECT_EQ(nullptr, node);
 }
 
 //////////////////////////////////////////////////
