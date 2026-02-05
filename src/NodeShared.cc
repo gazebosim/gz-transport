@@ -278,7 +278,8 @@ NodeShared::NodeShared()
                 << this->msgDiscPort << "] for msg discovery\n";
       std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
                 << this->srvDiscPort << "] for srv discovery\n";
-      std::cout << "Bind at: [" << this->dataPtr->myAddress << "] for pub/sub\n";
+      std::cout << "Bind at: [" << this->dataPtr->myAddress
+                << "] for pub/sub\n";
       std::cout << "Bind at: [" << this->dataPtr->myReplierAddress << "]"
                 << " for srv. calls\n";
       std::cout << "Identity for receiving srv. requests: ["
