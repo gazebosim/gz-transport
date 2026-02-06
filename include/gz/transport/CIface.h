@@ -78,8 +78,7 @@ extern "C" {
   /// \param[in] _data Byte array of serialized data to publish.
   /// \param[in] _msgType Name of the message type.
   /// \return 0 on success.
-  /// Deprecated See gzTransportPublishRaw
-  GZ_DEPRECATED(15)
+  /// \deprecated See gzTransportPublishRaw
   int GZ_TRANSPORT_VISIBLE
   gzTransportPublish(GzTransportNode *_node,
                       const char *_topic,
