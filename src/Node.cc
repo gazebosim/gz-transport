@@ -44,6 +44,17 @@
 using namespace gz;
 using namespace transport;
 
+namespace
+{
+  /// \brief Minimum message size to use SHM (bytes).
+  /// Messages smaller than this use regular heap allocation.
+  /// Based on benchmarks, SHM overhead is only worthwhile for messages >= 128KB.
+  constexpr std::size_t kShmThreshold = 128 * 1024;  // 128KB
+
+  /// \brief Default SHM pool size (bytes)
+  constexpr std::size_t kDefaultShmPoolSize = 10 * 1024 * 1024;  // 10MB
+}  // namespace
+
 namespace gz::transport
 {
 inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
@@ -125,10 +136,30 @@ class Node::PublisherPrivate
     : shared(NodeShared::Instance()),
       publisher(_publisher),
       zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub))),
-      zToken(std::make_unique<zenoh::LivelinessToken>(std::move(_zToken))),
-      provider(std::make_unique<zenoh::PosixShmProvider>(
-        zenoh::MemoryLayout(5000000, zenoh::AllocAlignment({2}))))
+      zToken(std::make_unique<zenoh::LivelinessToken>(std::move(_zToken)))
   {
+    // SHM is enabled by default, can be disabled via GZ_TRANSPORT_ZENOH_SHM=0
+    bool shmEnabled = true;
+    std::string shmEnvValue;
+    if (env("GZ_TRANSPORT_ZENOH_SHM", shmEnvValue) &&
+        (shmEnvValue == "0" || shmEnvValue == "false"))
+    {
+      shmEnabled = false;
+    }
+
+    if (shmEnabled)
+    {
+      std::size_t poolSize = kDefaultShmPoolSize;
+      std::string poolSizeStr;
+      if (env("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE", poolSizeStr))
+      {
+        try { poolSize = std::stoul(poolSizeStr); }
+        catch (...) { /* use default */ }
+      }
+
+      this->provider = std::make_unique<zenoh::PosixShmProvider>(
+        zenoh::MemoryLayout(poolSize, zenoh::AllocAlignment({2})));
+    }
   }
 #endif
 
@@ -603,18 +634,36 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       // Add message type as an attachment.
       options.attachment = this->dataPtr->publisher.MsgTypeName();
 
-      // SHM
-      auto allocResult = this->dataPtr->provider->alloc_gc_defrag_blocking(
-        msgSize, zenoh::AllocAlignment({0}));
-      zenoh::ZShmMut &&buf = std::get<zenoh::ZShmMut>(std::move(allocResult));
-      memcpy(buf.data(), msgBuffer, msgSize);
-      this->dataPtr->zPub->put(std::move(buf), std::move(options));
+      // Try SHM if enabled and message is large enough
+      bool usedShm = false;
+      if (this->dataPtr->provider && msgSize >= kShmThreshold)
+      {
+        auto allocResult = this->dataPtr->provider->alloc_gc_defrag_blocking(
+          msgSize, zenoh::AllocAlignment({0}));
 
-      // Zenoh will call this lambda once Bytes objects are destroyed
-      // auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-      // auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
-      // this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
-      //                          std::move(options));
+        if (std::holds_alternative<zenoh::ZShmMut>(allocResult))
+        {
+          auto &&shmBuf = std::get<zenoh::ZShmMut>(std::move(allocResult));
+          memcpy(shmBuf.data(), msgBuffer, msgSize);
+          delete[] msgBuffer;  // Free heap buffer after copy
+          this->dataPtr->zPub->put(std::move(shmBuf), std::move(options));
+          usedShm = true;
+        }
+        // If allocation failed, fall through to heap-based publishing
+      }
+
+      if (!usedShm)
+      {
+        // Fallback: SHM disabled, too small, or allocation failed
+        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+        auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
+        this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
+                                 std::move(options));
+      }
+    }
+    else
+    {
+      delete[] msgBuffer;  // No remote subscribers, free the buffer
     }
   }
 #endif
@@ -690,11 +739,32 @@ bool Node::Publisher::PublishRaw(
       // Add message type as an attachment.
       options.attachment = this->dataPtr->publisher.MsgTypeName();
 
-      // Zenoh will call this lambda once Bytes objects are destroyed
-      auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-      auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
-      this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
-                               std::move(options));
+      // Try SHM if enabled and message is large enough
+      bool usedShm = false;
+      if (this->dataPtr->provider && msgSize >= kShmThreshold)
+      {
+        auto allocResult = this->dataPtr->provider->alloc_gc_defrag_blocking(
+          msgSize, zenoh::AllocAlignment({0}));
+
+        if (std::holds_alternative<zenoh::ZShmMut>(allocResult))
+        {
+          auto &&shmBuf = std::get<zenoh::ZShmMut>(std::move(allocResult));
+          memcpy(shmBuf.data(), msgBuffer, msgSize);
+          delete[] msgBuffer;  // Free heap buffer after copy
+          this->dataPtr->zPub->put(std::move(shmBuf), std::move(options));
+          usedShm = true;
+        }
+        // If allocation failed, fall through to heap-based publishing
+      }
+
+      if (!usedShm)
+      {
+        // Fallback: SHM disabled, too small, or allocation failed
+        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+        auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
+        this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
+                                 std::move(options));
+      }
     }
 #endif
     else

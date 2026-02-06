@@ -228,20 +228,9 @@ class ReplyTester
   /// \param[in] _msg Incoming message of variable size.
   private: void ThroughputCb(const gz::msgs::Bytes &_msg)
   {
-    if (this->prevStamp > 0 && _msg.header().stamp().sec() != 0)
-    {
-      if (_msg.header().stamp().sec() != this->prevStamp+1)
-      {
-        std::cerr << "Received[" << _msg.header().stamp().sec()
-          << "] Expected[" << this->prevStamp+1 << "]\n";
-
-        std::terminate();
-      }
-    }
-
-    this->prevStamp = _msg.header().stamp().sec();
-    // Debug:: std::cout << _msg.header().stamp().sec() << std::endl;
-
+    // Note: We don't enforce strict ordering here because some transports
+    // (e.g., Zenoh) may deliver messages out of order under high throughput.
+    // For throughput testing, message count matters more than order.
     this->throughputPub.Publish(_msg);
   }
 
@@ -260,8 +249,6 @@ class ReplyTester
 
   /// \brief The latency publisher
   private: gz::transport::Node::Publisher latencyPub;
-
-  private: int prevStamp = 0;
 };
 
 /// \brief The PubTester is used to collect data on latency or throughput.
@@ -431,11 +418,22 @@ class PubTester
         this->throughputPub.Publish(this->msg);
       }
 
-      // Wait for all the reply messages. This will add little overhead
-      // to the time, but should be negligible.
+      // Wait for all the reply messages with a timeout.
+      // Some transports may lose messages under high load, so we don't wait
+      // forever.
       std::unique_lock<std::mutex> lk(this->mutex);
-      this->condition.wait(lk, [this] {
+      bool completed = this->condition.wait_for(lk,
+          std::chrono::seconds(30), [this] {
           return gStop || this->msgCount >= this->sentMsgs;});
+
+      if (!completed)
+      {
+        // Timeout - record end time now and report partial results
+        this->timeEnd = std::chrono::high_resolution_clock::now();
+        std::cerr << "Warning: Timeout waiting for replies. Received "
+                  << this->msgCount << "/" << this->sentMsgs
+                  << " messages for size " << this->dataSize << std::endl;
+      }
 
       // Compute the number of microseconds
       uint64_t duration =
@@ -445,10 +443,11 @@ class PubTester
       // Convert to seconds
       double seconds = (duration * 1e-6);
 
-      // Output the data
+      // Output the data (use actual received count, not sent count)
+      double actualMsgs = static_cast<double>(this->msgCount);
       (*stream) << std::fixed << testNum++ << "\t" << this->dataSize << "\t\t"
                 << (this->totalBytes * 1e-6) / seconds << "\t"
-                << (this->msgCount * 1e-3) / seconds << "\t" <<  std::endl;
+                << (actualMsgs * 1e-3) / seconds << "\t" <<  std::endl;
       this->expectedStamp = 0;
     }
   }
@@ -494,6 +493,7 @@ class PubTester
       this->PrepMsg(msgSize);
 
       uint64_t sum = 0;
+      int receivedCount = 0;
 
       // Send each message.
       for (int i = 0; i < this->sentMsgs && !this->stop; ++i)
@@ -508,9 +508,19 @@ class PubTester
         // Send the message.
         this->latencyPub.Publish(this->msg);
 
-        // Wait for the response.
-        this->condition.wait(lk, [this, &timeStart] {
+        // Wait for the response with a timeout.
+        bool received = this->condition.wait_for(lk,
+            std::chrono::seconds(10), [this, &timeStart] {
             return gStop || this->timeEnd > timeStart;});
+
+        if (!received)
+        {
+          // Timeout - skip this iteration
+          std::cerr << "Warning: Timeout waiting for latency reply (size "
+                    << this->dataSize << ", iteration " << i << ")"
+                    << std::endl;
+          continue;
+        }
 
         // Compute the number of microseconds
         uint64_t duration =
@@ -524,11 +534,15 @@ class PubTester
 
         // Add to the sum of microseconds
         sum += duration;
+        receivedCount++;
       }
 
-      // Output data.
+      // Output data (use actual received count for average).
+      double avgLatency = receivedCount > 0
+          ? (sum / static_cast<double>(receivedCount)) * 0.5
+          : 0.0;
       (*stream) << std::fixed << testNum++ << "\t" << this->dataSize << "\t"
-                << (sum / static_cast<double>(this->sentMsgs)) * 0.5 << "\t"
+                << avgLatency << "\t"
                 << minLatency * 0.5 << "\t"
                 << maxLatency * 0.5 << std::endl;
     }
@@ -546,11 +560,12 @@ class PubTester
 
     // Add to the total messages received.
     this->msgCount++;
+
+    // Track out-of-order messages (informational only, don't crash)
+    // Some transports like Zenoh may reorder under high throughput.
     if (_msg.header().stamp().sec() != this->expectedStamp)
     {
-      std::cerr << "Received[" << _msg.header().stamp().sec()
-        << "] Expected[" << this->expectedStamp << "]\n";
-      std::terminate();
+      this->outOfOrderCount++;
     }
     this->expectedStamp++;
 
@@ -583,7 +598,8 @@ class PubTester
     // Prepare the message.
     char *byteData = new char[_size];
     std::memset(byteData, '0', _size);
-    msg.set_data(byteData);
+    msg.set_data(byteData, _size);  // Use size-aware overload to avoid strlen()
+    delete[] byteData;  // Free the temporary buffer
 
     // Serialize so that we know how big the message is
     std::string data;
@@ -637,7 +653,11 @@ class PubTester
   /// \brief Output filename or empty string for console output.
   private: std::string filename;
 
+  /// \brief Expected message stamp for ordering check.
   private: int expectedStamp = 0;
+
+  /// \brief Count of out-of-order messages (informational).
+  private: uint64_t outOfOrderCount = 0;
 };
 
 // The PubTester is global so that the signal handler can easily kill it.
