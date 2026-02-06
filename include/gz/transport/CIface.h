@@ -82,9 +82,9 @@ extern "C" {
   GZ_DEPRECATED(15)
   int GZ_TRANSPORT_VISIBLE
   gzTransportPublish(GzTransportNode *_node,
-                      const char *_topic,
-                      const void *_data,
-                      const char *_msgType);
+                     const char *_topic,
+                     const void *_data,
+                     const char *_msgType);
 
   /// \brief Subscribe to a topic, and register a callback.
   /// \param[in] _node Pointer to a node.
@@ -93,10 +93,11 @@ extern "C" {
   /// \param[in] _userData Arbitrary user data pointer.
   /// \return 0 on success.
   int GZ_TRANSPORT_VISIBLE
-  gzTransportSubscribe(GzTransportNode *_node,
-                const char *_topic,
-                void (*_callback)(const char *, size_t, const char *, void *),
-                void *_userData);
+  gzTransportSubscribe(
+                  GzTransportNode *_node,
+                  const char *_topic,
+                  void (*_callback)(const char *, size_t, const char *, void *),
+                  void *_userData);
 
   /// \brief Subscribe to a topic, and register a callback.
   /// \param[in] _node Pointer to a node.
