@@ -20,12 +20,13 @@
 
 #include "gz/transport/CIface.h"
 
+#include <cstring>
 #include <string>
 #include "test_utils.hh"
 #include <gz/utils/Environment.hh>
 
 static int count;
-static std::string receivedData;
+static char receivedData[256];
 static size_t receivedSize;
 
 //////////////////////////////////////////////////
@@ -48,7 +49,7 @@ void cb(const char *_data, size_t _size, const char *_msgType, void *_userData)
 /// \brief Callback for binary safety test - stores raw data.
 void cbBinary(const char *_data, size_t _size, const char *, void *)
 {
-  receivedData = std::string(_data, _size);
+  std::memcpy(receivedData, _data, _size);
   receivedSize = _size;
   ++count;
 }
@@ -195,7 +196,7 @@ TEST(CIfaceTest, PubSubPartitions)
 TEST(CIfaceTest, PublishRawBinarySafe)
 {
   count = 0;
-  receivedData.clear();
+  std::memset(receivedData, 0, sizeof(receivedData));
   receivedSize = 0;
 
   GzTransportNode *node = gzTransportNodeCreate(nullptr);
@@ -215,13 +216,13 @@ TEST(CIfaceTest, PublishRawBinarySafe)
   ASSERT_EQ(0, gzTransportAdvertise(node, topic, msgType));
 
   // Publish using the new binary-safe function
-  EXPECT_EQ(0, 
+  EXPECT_EQ(0,
             gzTransportPublishRaw(node, topic, binaryData, dataSize, msgType));
 
   // Verify subscriber receives all 6 bytes
   EXPECT_EQ(1, count);
   EXPECT_EQ(dataSize, receivedSize);
-  EXPECT_EQ(std::string(binaryData, dataSize), receivedData);
+  EXPECT_EQ(0, std::memcmp(binaryData, receivedData, dataSize));
 
   // Verify the data after the null byte is preserved
   EXPECT_EQ('l', receivedData[4]);
