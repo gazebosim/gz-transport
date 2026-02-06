@@ -79,6 +79,7 @@ extern "C" {
   /// \param[in] _msgType Name of the message type.
   /// \return 0 on success.
   /// \deprecated See gzTransportPublishRaw
+  GZ_DEPRECATED(15)
   int GZ_TRANSPORT_VISIBLE
   gzTransportPublish(GzTransportNode *_node,
                       const char *_topic,
