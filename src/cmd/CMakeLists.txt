@@ -85,8 +85,10 @@ if (TARGET UNIT_gz_TEST)
   set_tests_properties(
     UNIT_gz_TEST
     PROPERTIES
-    ENVIRONMENT
-      "${_env_vars}"
+    ENVIRONMENT "${_env_vars}"
+    # This test spawns subprocesses and relies on service discovery,
+    # which can be slow under load. Run serially to avoid flaky failures.
+    RUN_SERIAL TRUE
   )
 endif()
 
