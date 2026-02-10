@@ -51,6 +51,9 @@ TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
     req.set_data(i);
     ASSERT_TRUE(node.Request(g_topic, req));
   }
+
+  pi.Terminate();
+  pi.Join();
 }
 
 //////////////////////////////////////////////////

@@ -55,6 +55,9 @@ TEST(twoProcSrvCallWithoutInput, ThousandCalls)
     // Check the service response.
     ASSERT_TRUE(result);
   }
+
+  pi.Terminate();
+  pi.Join();
 }
 
 //////////////////////////////////////////////////

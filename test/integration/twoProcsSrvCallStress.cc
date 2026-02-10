@@ -58,6 +58,9 @@ TEST(twoProcSrvCall, ThousandCalls)
     ASSERT_TRUE(result);
     EXPECT_EQ(i, response.data());
   }
+
+  pi.Terminate();
+  pi.Join();
 }
 
 //////////////////////////////////////////////////

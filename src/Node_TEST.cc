@@ -21,6 +21,7 @@
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
+#include <atomic>
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
@@ -48,14 +49,14 @@ static std::mutex cbMutex;
 static std::condition_variable cbCondition;
 
 static int data = 5;
-static bool cbExecuted;
-static bool cb2Executed;
-static bool genericCbExecuted;
-static bool cbVectorExecuted;
-static bool srvExecuted;
-static bool responseExecuted;
-static bool wrongResponseExecuted;
-static int counter = 0;
+static std::atomic<bool> cbExecuted;
+static std::atomic<bool> cb2Executed;
+static std::atomic<bool> genericCbExecuted;
+static std::atomic<bool> cbVectorExecuted;
+static std::atomic<bool> srvExecuted;
+static std::atomic<bool> responseExecuted;
+static std::atomic<bool> wrongResponseExecuted;
+static std::atomic<int> counter{0};
 static bool terminatePub = false;
 
 //////////////////////////////////////////////////
@@ -474,7 +475,7 @@ void CreateSubscriber(const transport::NodeOptions &_nodeOptions)
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
   int i = 0;
-  while (i < 100 && !cbExecuted)
+  while (i < 300 && !cbExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -505,8 +506,12 @@ void CreatePubSubTwoThreads(
   // received.
   std::thread subscribeThread(CreateSubscriber, _nodeOptions);
 
-  // Wait some time until the subscriber is alive.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is alive.
+  {
+    int retries = 0;
+    while (!pub.HasConnections() && retries++ < 15)
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  }
 
   // Publish a msg on topic.
   EXPECT_TRUE(pub.Publish(msg));
@@ -1464,7 +1469,7 @@ TEST(NodeTest, ServiceCallAsync)
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
   int i = 0;
-  while (i < 100 && !srvExecuted)
+  while (i < 300 && !srvExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -1481,7 +1486,7 @@ TEST(NodeTest, ServiceCallAsync)
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
   i = 0;
-  while (i < 100 && !responseExecuted)
+  while (i < 300 && !responseExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -1525,7 +1530,7 @@ TEST(NodeTest, ServiceCallWithoutInputAsync)
   EXPECT_TRUE(node.Request(g_topic, response));
 
   int i = 0;
-  while (i < 100 && !srvExecuted)
+  while (i < 300 && !srvExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -1542,7 +1547,7 @@ TEST(NodeTest, ServiceCallWithoutInputAsync)
   EXPECT_TRUE(node.Request(g_topic, response));
 
   i = 0;
-  while (i < 100 && !responseExecuted)
+  while (i < 300 && !responseExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -1589,7 +1594,7 @@ TEST(NodeTest, ServiceWithoutOutputCallAsync)
   EXPECT_TRUE(node.Request(g_topic, req));
 
   int i = 0;
-  while (i < 100 && !srvExecuted)
+  while (i < 300 && !srvExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -1723,7 +1728,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
   int i = 0;
-  while (i < 100 && !srvExecuted)
+  while (i < 300 && !srvExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -1742,7 +1747,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
   i = 0;
-  while (i < 100 && counter < 3)
+  while (i < 300 && counter < 3)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -1780,7 +1785,7 @@ TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
   EXPECT_TRUE(node.Request(g_topic, response));
 
   int i = 0;
-  while (i < 100 && !srvExecuted)
+  while (i < 300 && !srvExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -1799,7 +1804,7 @@ TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
   EXPECT_TRUE(node.Request(g_topic, response));
 
   i = 0;
-  while (i < 100 && counter < 3)
+  while (i < 300 && counter < 3)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -1839,7 +1844,7 @@ TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
   EXPECT_TRUE(node.Request(g_topic, req));
 
   int i = 0;
-  while (i < 100 && !srvExecuted)
+  while (i < 300 && !srvExecuted)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;
@@ -1856,7 +1861,7 @@ TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
   EXPECT_TRUE(node.Request(g_topic, req));
 
   i = 0;
-  while (i < 100 && counter < 3)
+  while (i < 300 && counter < 3)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ++i;

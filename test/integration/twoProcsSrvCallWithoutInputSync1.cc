@@ -76,6 +76,9 @@ TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
   // Under heavy system load, the actual elapsed time may be significantly
   // longer than the timeout, so we only check the lower bound.
   EXPECT_GE(elapsed, timeout - 100);
+
+  pi.Terminate();
+  pi.Join();
 }
 
 //////////////////////////////////////////////////

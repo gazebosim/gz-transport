@@ -17,6 +17,7 @@
 #include <gz/msgs/int32.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
+#include <atomic>
 #include <chrono>
 #include <string>
 #include <vector>
@@ -37,12 +38,12 @@ static std::string partition;  // NOLINT(*)
 static std::string g_FQNPartition;  // NOLINT(*)
 static const std::string g_topic = "/foo";  // NOLINT(*)
 static std::string data = "bar";  // NOLINT(*)
-static bool cbExecuted = false;
-static bool cbInfoExecuted = false;
-static bool genericCbExecuted = false;
-static bool cbVectorExecuted = false;
-static bool cbRawExecuted = false;
-static int counter = 0;
+static std::atomic<bool> cbExecuted{false};
+static std::atomic<bool> cbInfoExecuted{false};
+static std::atomic<bool> genericCbExecuted{false};
+static std::atomic<bool> cbVectorExecuted{false};
+static std::atomic<bool> cbRawExecuted{false};
+static std::atomic<int> counter{0};
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -430,7 +431,11 @@ TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
       auto pub = node.Advertise<msgs::Vector3d>(g_topic);
       EXPECT_TRUE(pub);
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      {
+        int retries = 0;
+        while (!pub.HasConnections() && retries++ < 15)
+          std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      }
 
       // Now, we should have subscribers.
       EXPECT_TRUE(pub.HasConnections());
@@ -469,7 +474,11 @@ TEST(twoProcPubSub, PubSubTwoProcsMixedSubscribers)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  {
+    int retries = 0;
+    while (!pub.HasConnections() && retries++ < 15)
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  }
 
   // Now, we should have subscribers.
   EXPECT_TRUE(pub.HasConnections());

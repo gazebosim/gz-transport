@@ -17,6 +17,7 @@
 #include <gz/msgs/int32.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
+#include <atomic>
 #include <chrono>
 #include <cstdlib>
 #include <memory>
@@ -35,13 +36,13 @@
 
 using namespace gz;
 
-static bool g_responseExecuted;
-static bool g_wrongResponseExecuted;
+static std::atomic<bool> g_responseExecuted;
+static std::atomic<bool> g_wrongResponseExecuted;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
 static int g_data = 5;
-static int g_counter = 0;
+static std::atomic<int> g_counter = 0;
 
 //////////////////////////////////////////////////
 class twoProcSrvCallWithoutInput: public testing::Test {
