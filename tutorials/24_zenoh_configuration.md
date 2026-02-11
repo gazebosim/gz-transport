@@ -36,24 +36,24 @@ or when you need more control over message routing.
 
 ### Prerequisites
 
-First, install the Zenoh router by following the
+Install the Zenoh router by following the
 [official Zenoh installation guide](https://zenoh.io/docs/getting-started/installation/).
+We recommend installing the latest version of `zenohd` from the
+[Zenoh releases page](https://github.com/eclipse-zenoh/zenoh/releases).
 
-**Important: Version Compatibility**
+Alternatively, if you have ROS 2 installed with the `rmw_zenoh_cpp` package,
+you can use the router bundled with it:
 
-The version of the Zenoh router (`zenohd`) must match the version of the Zenoh
-library that Gazebo Transport was compiled against.
-
-To check your installed Zenoh library version:
-
-**Linux/macOS:**
 ```bash
-pkg-config --modversion zenohc
+ros2 run rmw_zenoh_cpp rmw_zenohd
 ```
 
-Then ensure you install the matching version of `zenohd`. For example, if your
-library version is `1.5.0`, download and install `zenohd` version `1.5.0` from
-the [Zenoh releases page](https://github.com/eclipse-zenoh/zenoh/releases).
+**Note: Version Compatibility**
+
+The Zenoh wire protocol is
+[backward-compatible within the 1.x series](https://zenoh.io/blog/2024-04-30-zenoh-electrode/),
+so the router does not need to exactly match the version of the Zenoh library
+that Gazebo Transport was compiled against.
 
 Then, download the ROS 2 default configuration files which provide a good
 starting point for router-based communication:
