@@ -36,7 +36,6 @@
 #endif
 
 #include "gz/transport/config.hh"
-#include "gz/transport/Export.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
 
