@@ -160,12 +160,7 @@ namespace gz::transport
                 std::string configPath(zenohConfigEnv);
 
                 // Check if the file exists and is a regular file.
-                if (!std::filesystem::is_regular_file(configPath))
-                {
-                  std::cerr << "Zenoh config file not found: "
-                            << configPath << "\n";
-                }
-                else
+                if (std::filesystem::is_regular_file(configPath))
                 {
                   // Try to load the config file.
                   zenoh::ZResult result;
@@ -177,6 +172,11 @@ namespace gz::transport
                     return config;
                   }
                   std::cerr << "Failed to parse Zenoh config file: "
+                            << configPath << "\n";
+                }
+                else
+                {
+                  std::cerr << "Zenoh config file not found: "
                             << configPath << "\n";
                 }
               }
