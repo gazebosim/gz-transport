@@ -13,8 +13,9 @@ target_compile_definitions(test_config INTERFACE
 # Location of the "gz" command
   "GZ_EXE=\"${HAVE_GZ_TOOLS}\""
   "TRANSPORT_BASH_COMPLETION_SH=\"${PROJECT_SOURCE_DIR}/src/cmd/transport.bash_completion.sh\""
-# Zenoh test config file
+# Zenoh test config files
   "GZ_ZENOH_TEST_CONFIG=\"${PROJECT_SOURCE_DIR}/test/config/gz_zenoh_test_config.json5\""
+  "GZ_ZENOH_INVALID_CONFIG=\"${PROJECT_SOURCE_DIR}/test/config/gz_zenoh_invalid_config.json5\""
 # Auxiliary executables for test
   "AUTH_PUB_SUB_SUBSCRIBER_INVALID_EXE=\"$<TARGET_FILE:authPubSubSubscriberInvalid_aux>\""
   "FAST_PUB_EXE=\"$<TARGET_FILE:fastPub_aux>\""

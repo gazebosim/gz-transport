@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <filesystem>
 #include <list>
 #include <map>
 #include <memory>
@@ -101,8 +102,17 @@ namespace gz::transport
           else
             std::cout << "Zenoh default config loaded" << std::endl;
         }
-        this->session = std::make_shared<zenoh::Session>(
-          zenoh::Session::open(std::move(config)));
+        try
+        {
+          this->session = std::make_shared<zenoh::Session>(
+            zenoh::Session::open(std::move(config)));
+        }
+        catch (const zenoh::ZException &e)
+        {
+          std::cerr << "Failed to open Zenoh session: "
+                    << e.what() << std::endl;
+          std::exit(EXIT_FAILURE);
+        }
       }
 #endif
     }
@@ -144,15 +154,34 @@ namespace gz::transport
     /// \return The Zenoh configuration object.
     public: inline zenoh::Config ZenohConfig(ZenohConfigSource &_configSource)
             {
-              // Check if the ZENOH_CONFIG env variable exists.
-              zenoh::ZResult result;
-              zenoh::Config config = zenoh::Config::from_env(&result);
-              if (result == Z_OK)
+              const char *zenohConfigEnv = std::getenv("ZENOH_CONFIG");
+              if (zenohConfigEnv)
               {
-                _configSource = ZenohConfigSource::kFromEnvVariable;
-                return config;
+                std::string configPath(zenohConfigEnv);
+
+                // Check if the file exists and is a regular file.
+                if (!std::filesystem::is_regular_file(configPath))
+                {
+                  std::cerr << "Zenoh config file not found: "
+                            << configPath << "\n";
+                }
+                else
+                {
+                  // Try to load the config file.
+                  zenoh::ZResult result;
+                  zenoh::Config config =
+                    zenoh::Config::from_file(configPath, &result);
+                  if (result == Z_OK)
+                  {
+                    _configSource = ZenohConfigSource::kFromEnvVariable;
+                    return config;
+                  }
+                  std::cerr << "Failed to parse Zenoh config file: "
+                            << configPath << "\n";
+                }
               }
 
+              // Fallback to default configuration.
               _configSource = ZenohConfigSource::kDefault;
               return zenoh::Config::create_default();
             }
