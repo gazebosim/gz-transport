@@ -109,6 +109,11 @@ namespace gz::transport
         }
         catch (const zenoh::ZException &e)
         {
+          // Exit cleanly rather than continuing with a null session,
+          // which would cause segfaults downstream. This can happen
+          // when using client mode without a reachable router. Users
+          // can configure connect.timeout_ms in the Zenoh config to
+          // wait for the router to become available.
           std::cerr << "Failed to open Zenoh session: "
                     << e.what() << std::endl;
           std::exit(EXIT_FAILURE);
