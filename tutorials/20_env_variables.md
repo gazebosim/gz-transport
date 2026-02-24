@@ -117,3 +117,12 @@ Below are descriptions of the available environment variables:
     * *Value allowed*: 1/0
     * *Description*: Show debug information.
     * *Available in backend:*: zeromq, zenoh
+* **ZENOH_CONFIG**
+    * *Value allowed*: Path to a Zenoh configuration file (JSON5 format)
+    * *Description*: Specifies a custom Zenoh configuration file. This allows
+    you to customize Zenoh session parameters such as connection endpoints,
+    scouting behavior, transport settings, and more. If not set, the default
+    Zenoh configuration is used. See the
+    [Zenoh documentation](https://zenoh.io/docs/manual/configuration/) for
+    details on available configuration options.
+    * *Available in backend:*: zenoh

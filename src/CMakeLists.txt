@@ -38,7 +38,7 @@ endif()
 # Build the unit tests.
 gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
   TEST_LIST test_list
-  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config)
+  LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config ${ZeroMQ_TARGET})
 
 foreach(test ${test_list})
   set(_env_vars)
