@@ -18,14 +18,16 @@
 #ifndef GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 #define GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 
+#include <algorithm>
 #include <atomic>
+#include <filesystem>
 #include <list>
 #include <map>
 #include <memory>
-#include <algorithm>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <zmq.hpp>
@@ -34,6 +36,7 @@
 #endif
 
 #include "gz/transport/config.hh"
+#include "gz/transport/Exception.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
 
@@ -57,7 +60,9 @@ namespace gz::transport
   // Private data class for NodeShared.
   class NodeSharedPrivate
   {
-    // Constructor
+    /// \brief Constructor.
+    /// \throws gz::transport::Exception if a Zenoh session cannot be opened
+    /// (e.g. when using client mode without a reachable router).
     public: NodeSharedPrivate() :
               context(new zmq::context_t(1)),
               publisher(new zmq::socket_t(*context, ZMQ_PUB)),
@@ -66,6 +71,13 @@ namespace gz::transport
               responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
               replier(new zmq::socket_t(*context, ZMQ_ROUTER))
     {
+      // If GZ_VERBOSE=1 enable the verbose mode.
+      std::string gzVerbose;
+      if (env("GZ_VERBOSE", gzVerbose) && !gzVerbose.empty())
+      {
+        this->verbose = (gzVerbose == "1");
+      }
+
       // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
       std::string gzImpl;
       if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
@@ -83,8 +95,30 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
       if (this->gzImplementation == "zenoh")
       {
-        this->session = std::make_shared<zenoh::Session>(
-          zenoh::Session::open(zenoh::Config::create_default()));
+        ZenohConfigSource configSource;
+        auto config = ZenohConfig(configSource);
+        if (this->verbose)
+        {
+          if (configSource == ZenohConfigSource::kFromEnvVariable)
+            std::cout << "Zenoh config loaded from ZENOH_CONFIG" << std::endl;
+          else
+            std::cout << "Zenoh default config loaded" << std::endl;
+        }
+        try
+        {
+          this->session = std::make_shared<zenoh::Session>(
+            zenoh::Session::open(std::move(config)));
+        }
+        catch (const zenoh::ZException &e)
+        {
+          // Throw rather than continuing with a null session, which
+          // would cause segfaults downstream. This can happen when
+          // using client mode without a reachable router. Users can
+          // configure connect.timeout_ms in the Zenoh config to wait
+          // for the router to become available.
+          throw gz::transport::Exception(
+            std::string("Failed to open Zenoh session: ") + e.what());
+        }
       }
 #endif
     }
@@ -110,7 +144,55 @@ namespace gz::transport
                                   int _defaultValue) const;
 
 #ifdef HAVE_ZENOH
-    /// \Pointer to the Zenoh session.
+    /// \brief Enumeration for the source of Zenoh configuration.
+    public: enum class ZenohConfigSource
+            {
+              /// \brief Configuration loaded from ZENOH_CONFIG env variable.
+              kFromEnvVariable,
+              /// \brief Default Zenoh configuration.
+              kDefault
+            };
+
+    /// \brief Get the Zenoh configuration.
+    /// If the environment variable ZENOH_CONFIG is set, use that config file.
+    /// Otherwise, use the default Zenoh configuration.
+    /// \param[out] _configSource The source of the configuration.
+    /// \return The Zenoh configuration object.
+    public: inline zenoh::Config ZenohConfig(ZenohConfigSource &_configSource)
+            {
+              const char *zenohConfigEnv = std::getenv("ZENOH_CONFIG");
+              if (zenohConfigEnv)
+              {
+                std::string configPath(zenohConfigEnv);
+
+                // Check if the file exists and is a regular file.
+                if (std::filesystem::is_regular_file(configPath))
+                {
+                  // Try to load the config file.
+                  zenoh::ZResult result;
+                  zenoh::Config config =
+                    zenoh::Config::from_file(configPath, &result);
+                  if (result == Z_OK)
+                  {
+                    _configSource = ZenohConfigSource::kFromEnvVariable;
+                    return config;
+                  }
+                  std::cerr << "Failed to parse Zenoh config file: "
+                            << configPath << "\n";
+                }
+                else
+                {
+                  std::cerr << "Zenoh config file not found: "
+                            << configPath << "\n";
+                }
+              }
+
+              // Fallback to default configuration.
+              _configSource = ZenohConfigSource::kDefault;
+              return zenoh::Config::create_default();
+            }
+
+    /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
 #endif
 

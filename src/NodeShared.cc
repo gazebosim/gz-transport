@@ -204,13 +204,6 @@ NodeShared *NodeShared::Instance()
 NodeShared::NodeShared()
   : dataPtr(new NodeSharedPrivate)
 {
-  // If GZ_VERBOSE=1 enable the verbose mode.
-  std::string gzVerbose;
-  if (env("GZ_VERBOSE", gzVerbose) && !gzVerbose.empty())
-  {
-    this->dataPtr->verbose = (gzVerbose == "1");
-  }
-
   // Set the multicast IP used for discovery.
   std::string envDiscoveryIp;
   if (env("GZ_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
