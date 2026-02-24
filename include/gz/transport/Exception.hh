@@ -29,7 +29,15 @@ namespace gz::transport
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
   //
   /// \brief Exception class for gz-transport errors.
-  class GZ_TRANSPORT_VISIBLE Exception : public std::runtime_error
+  class GZ_TRANSPORT_VISIBLE Exception :
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4275)
+#endif
+    public std::runtime_error
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
   {
     /// \brief Inherit constructors from std::runtime_error.
     public: using std::runtime_error::runtime_error;
