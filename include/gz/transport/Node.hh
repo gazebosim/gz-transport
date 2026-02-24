@@ -281,10 +281,15 @@ namespace gz::transport
 #endif
     };
 
+    /// \brief Default constructor.
+    /// \throws gz::transport::Exception if a Zenoh session cannot be opened
+    /// (e.g. when using client mode without a reachable router).
     public: Node();
 
     /// \brief Constructor.
     /// \param[in] _options Node options.
+    /// \throws gz::transport::Exception if a Zenoh session cannot be opened
+    /// (e.g. when using client mode without a reachable router).
     public: explicit Node(const NodeOptions &_options);
 
     /// \brief Destructor.
