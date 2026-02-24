@@ -36,6 +36,7 @@
 #endif
 
 #include "gz/transport/config.hh"
+#include "gz/transport/Exception.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
 
@@ -59,7 +60,9 @@ namespace gz::transport
   // Private data class for NodeShared.
   class NodeSharedPrivate
   {
-    // Constructor
+    /// \brief Constructor.
+    /// \throws gz::transport::Exception if a Zenoh session cannot be opened
+    /// (e.g. when using client mode without a reachable router).
     public: NodeSharedPrivate() :
               context(new zmq::context_t(1)),
               publisher(new zmq::socket_t(*context, ZMQ_PUB)),
@@ -108,14 +111,13 @@ namespace gz::transport
         }
         catch (const zenoh::ZException &e)
         {
-          // Exit cleanly rather than continuing with a null session,
-          // which would cause segfaults downstream. This can happen
-          // when using client mode without a reachable router. Users
-          // can configure connect.timeout_ms in the Zenoh config to
-          // wait for the router to become available.
-          std::cerr << "Failed to open Zenoh session: "
-                    << e.what() << std::endl;
-          std::exit(EXIT_FAILURE);
+          // Throw rather than continuing with a null session, which
+          // would cause segfaults downstream. This can happen when
+          // using client mode without a reachable router. Users can
+          // configure connect.timeout_ms in the Zenoh config to wait
+          // for the router to become available.
+          throw gz::transport::Exception(
+            std::string("Failed to open Zenoh session: ") + e.what());
         }
       }
 #endif

@@ -75,6 +75,8 @@ namespace gz::transport
     /// \brief NodeShared is a singleton. This method gets the
     /// NodeShared instance shared between all the nodes.
     /// \return Pointer to the current NodeShared instance.
+    /// \throws gz::transport::Exception if a Zenoh session cannot be opened
+    /// (e.g. when using client mode without a reachable router).
     public: static NodeShared *Instance();
 
     /// \brief Receive data and control messages.
@@ -388,6 +390,8 @@ namespace gz::transport
     public: HandlerStorage<IRepHandler> &Repliers();
 
     /// \brief Constructor.
+    /// \throws gz::transport::Exception if a Zenoh session cannot be opened
+    /// (e.g. when using client mode without a reachable router).
     protected: NodeShared();
 
     /// \brief Destructor.

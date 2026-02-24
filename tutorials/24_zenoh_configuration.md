@@ -88,6 +88,36 @@ subscriber examples using the Zenoh router for discovery. In this default
 configuration, the router helps nodes discover each other but data flows
 directly between peers.
 
+First, create a working directory and download the example files:
+
+```{.sh}
+mkdir ~/gz_transport_tutorial
+cd ~/gz_transport_tutorial
+```
+
+Download the [publisher.cc](https://github.com/gazebosim/gz-transport/raw/main/example/publisher.cc)
+and the [subscriber.cc](https://github.com/gazebosim/gz-transport/raw/main/example/subscriber.cc)
+files within the `gz_transport_tutorial` folder. Then, download the
+[CMakeLists.txt](https://github.com/gazebosim/gz-transport/raw/main/example/CMakeLists.txt)
+file within the same folder.
+
+```
+curl -sOL https://github.com/gazebosim/gz-transport/raw/main/example/publisher.cc
+curl -sOL https://github.com/gazebosim/gz-transport/raw/main/example/subscriber.cc
+curl -sOL https://github.com/gazebosim/gz-transport/raw/main/example/CMakeLists.txt
+```
+
+Once you have all the files, build the examples:
+
+```{.sh}
+mkdir build && cd build
+cmake ..
+make publisher subscriber
+```
+
+Now, open three terminals and run the following commands from the `build/`
+directory:
+
 **Terminal 1 - Start the Zenoh router:**
 
 ```bash
@@ -97,13 +127,13 @@ zenohd
 **Terminal 2 - Run the publisher:**
 
 ```bash
-GZ_TRANSPORT_IMPLEMENTATION=zenoh ZENOH_CONFIG=/tmp/gz_zenoh_session.json5 ./build/bin/publisher
+GZ_TRANSPORT_IMPLEMENTATION=zenoh ZENOH_CONFIG=/tmp/gz_zenoh_session.json5 ./publisher
 ```
 
 **Terminal 3 - Run the subscriber:**
 
 ```bash
-GZ_TRANSPORT_IMPLEMENTATION=zenoh ZENOH_CONFIG=/tmp/gz_zenoh_session.json5 ./build/bin/subscriber
+GZ_TRANSPORT_IMPLEMENTATION=zenoh ZENOH_CONFIG=/tmp/gz_zenoh_session.json5 ./subscriber
 ```
 
 The subscriber should receive messages from the publisher. Note that
