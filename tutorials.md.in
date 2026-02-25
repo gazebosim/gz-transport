@@ -19,7 +19,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 11. \subpage contribute "How to contribute"
 12. \subpage development "Development"
 13. \subpage topicstatistics "Topic Statistics"
-
+14. \subpage zenohconfig "Zenoh Configuration"
 
 ## License
 

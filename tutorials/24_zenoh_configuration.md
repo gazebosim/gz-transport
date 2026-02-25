@@ -62,7 +62,7 @@ is handled by the router:
 
 **Session configuration** (`/tmp/gz_zenoh_session.json5`):
 
-```json5
+```json
 {
   mode: "peer",
   connect: {
@@ -147,7 +147,7 @@ assists with discovery but data flows directly between nodes. If you want all
 data to flow through the router, change the session mode to `"client"` in
 `/tmp/gz_zenoh_session.json5`:
 
-```json5
+```json
   mode: "client",
 ```
 
