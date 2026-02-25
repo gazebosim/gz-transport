@@ -63,13 +63,7 @@ namespace gz::transport
     /// \brief Constructor.
     /// \throws gz::transport::Exception if a Zenoh session cannot be opened
     /// (e.g. when using client mode without a reachable router).
-    public: NodeSharedPrivate() :
-              context(new zmq::context_t(1)),
-              publisher(new zmq::socket_t(*context, ZMQ_PUB)),
-              subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
-              requester(new zmq::socket_t(*context, ZMQ_ROUTER)),
-              responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
-              replier(new zmq::socket_t(*context, ZMQ_ROUTER))
+    public: NodeSharedPrivate()
     {
       // Determine implementation first, before creating any resources.
       std::string gzImpl;
