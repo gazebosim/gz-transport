@@ -23,7 +23,8 @@ cc_library(
     includes = ["."],
     visibility = ["//:__subpackages__"],
     deps = [
-        "@gz-utils",
+        "//:gz-transport",
+        "@gz-utils//:Subprocess",
     ],
 )
 
@@ -104,7 +105,10 @@ flaky_test_srcs = [
         'TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_EXE=\\"./test/twoProcsSrvCallWithoutOutputReplier_aux\\"',
         'TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE=\\"./test/twoProcsSrvCallWithoutOutputReplierInc_aux\\"',
     ],
-    env = {"GZ_BAZEL": "1"},
+    env = {
+        "GZ_BAZEL": "1",
+        "GZ_IP": "127.0.0.1",
+    },
     deps = [
         ":Config",
         ":utils",
