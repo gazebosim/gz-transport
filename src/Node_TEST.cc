@@ -1784,6 +1784,8 @@ TEST(NodeTest, ServiceCallWithoutInputAsyncDirectLambda)
 /// directly (without pre-defining a std::function variable).
 TEST(NodeTest, ServiceCallWithoutOutputAsyncDirectLambda)
 {
+  reset();
+
   bool executed = false;
 
   transport::Node node;
@@ -1801,6 +1803,8 @@ TEST(NodeTest, ServiceCallWithoutOutputAsyncDirectLambda)
 
   EXPECT_TRUE(node.Request(g_topic, req));
   EXPECT_TRUE(executed);
+
+  reset();
 }
 
 //////////////////////////////////////////////////

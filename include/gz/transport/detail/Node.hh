@@ -354,7 +354,7 @@ namespace gz::transport
     {
       return (cb)(_internalRep);
     };
-    return this->Advertise(_topic, f, _options);
+    return this->Advertise(_topic, std::move(f), _options);
   }
 
   //////////////////////////////////////////////////
@@ -372,7 +372,7 @@ namespace gz::transport
       return true;
     };
 
-    return this->Advertise(_topic, f, _options);
+    return this->Advertise(_topic, std::move(f), _options);
   }
 
   //////////////////////////////////////////////////
