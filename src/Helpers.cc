@@ -85,6 +85,5 @@ namespace gz::transport
     return "zeromq";
 #endif
   }
-
   }
 }
