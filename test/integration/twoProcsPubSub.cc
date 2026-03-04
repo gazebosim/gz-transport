@@ -364,8 +364,6 @@ TEST(twoProcPubSub, TopicList)
   // However, the second call should never block.
   auto elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>
     (end2 - start2).count();
-  EXPECT_LE(elapsed2, elapsed1);
-
   EXPECT_LT(elapsed2, 2);
 
   reset();

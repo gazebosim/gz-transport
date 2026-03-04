@@ -25,6 +25,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include "gtest/gtest.h"
+
 #include <gz/utils/Environment.hh>
 #include <gz/utils/Subprocess.hh>
 

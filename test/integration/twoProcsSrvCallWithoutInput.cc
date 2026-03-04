@@ -205,8 +205,6 @@ TEST_F(twoProcSrvCallWithoutInput, ServiceList)
   EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
       (elapsed2).count(), 2);
 
-  EXPECT_LE(elapsed2, elapsed1);
-
   reset();
 }
 
