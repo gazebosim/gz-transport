@@ -29,7 +29,6 @@
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
-#include "gz/transport/WaitHelpers.hh"
 
 namespace gz::transport
 {
