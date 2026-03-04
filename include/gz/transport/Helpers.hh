@@ -18,13 +18,11 @@
 #ifndef GZ_TRANSPORT_HELPERS_HH_
 #define GZ_TRANSPORT_HELPERS_HH_
 
-#include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <limits>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "gz/transport/config.hh"

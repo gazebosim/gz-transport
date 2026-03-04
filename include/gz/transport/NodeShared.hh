@@ -573,7 +573,6 @@ namespace gz::transport
 
     /// \brief Internal data pointer.
     private: std::unique_ptr<NodeSharedPrivate> dataPtr;
-
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
