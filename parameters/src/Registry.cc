@@ -126,7 +126,10 @@ bool ParametersRegistryPrivate::GetParameter(const msgs::ParameterName &_req,
     if (it == this->parametersMap.end()) {
       return false;
     }
-    _res.mutable_data()->PackFrom(*it->second, "gz_msgs");
+    if (!_res.mutable_data()->PackFrom(*it->second, "gz_msgs"))
+    {
+      return false;
+    }
   }
   return true;
 }

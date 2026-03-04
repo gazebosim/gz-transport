@@ -1248,7 +1248,11 @@ bool Node::RequestRaw(const std::string &_topic,
     std::cerr << "Unable to create request of type[" << _requestType << "].\n";
     return false;
   }
-  req->ParseFromString(_request);
+  if (!req->ParseFromString(_request))
+  {
+    std::cerr << "Unable to parse request of type[" << _requestType << "].\n";
+    return false;
+  }
 
   std::unique_ptr<google::protobuf::Message> res =
     msgs::Factory::New(_responseType);
