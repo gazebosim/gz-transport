@@ -281,10 +281,15 @@ namespace gz::transport
 #endif
     };
 
+    /// \brief Default constructor.
+    /// \throws gz::transport::Exception if a Zenoh session cannot be opened
+    /// (e.g. when using client mode without a reachable router).
     public: Node();
 
     /// \brief Constructor.
     /// \param[in] _options Node options.
+    /// \throws gz::transport::Exception if a Zenoh session cannot be opened
+    /// (e.g. when using client mode without a reachable router).
     public: explicit Node(const NodeOptions &_options);
 
     /// \brief Destructor.
@@ -377,6 +382,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service.
     /// In this version the callback is a plain function pointer.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -395,6 +406,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without input parameter.
     /// In this version the callback is a free function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -412,6 +429,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without any output parameter.
     /// In this version the callback is a free function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -428,6 +451,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service.
     /// In this version the callback is a lambda function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -447,6 +476,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without input parameter.
     /// In this version the callback is a lambda function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -464,6 +499,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without any output parameter.
     /// In this version the callback is a lambda function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -480,6 +521,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service.
     /// In this version the callback is a member function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -500,6 +547,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without input parameter.
     /// In this version the callback is a member function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -519,6 +572,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without any output parameter.
     /// In this version the callback is a member function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
