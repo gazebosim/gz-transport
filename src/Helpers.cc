@@ -15,10 +15,8 @@
  *
 */
 
-#include <algorithm>
 #include <cstdlib>
 #include <string>
-#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -28,7 +26,6 @@
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
-#include "gz/transport/Node.hh"
 
 namespace gz::transport
 {
@@ -89,30 +86,5 @@ namespace gz::transport
 #endif
   }
 
-  //////////////////////////////////////////////////
-  bool waitForService(
-      const Node &_node,
-      const std::string &_service,
-      std::chrono::milliseconds _timeout)
-  {
-    return waitUntil([&]() {
-      std::vector<ServicePublisher> publishers;
-      _node.ServiceInfo(_service, publishers);
-      return !publishers.empty();
-    }, _timeout, std::chrono::milliseconds(100));
-  }
-
-  //////////////////////////////////////////////////
-  bool waitForTopic(
-      const Node &_node,
-      const std::string &_topic,
-      std::chrono::milliseconds _timeout)
-  {
-    return waitUntil([&]() {
-      std::vector<std::string> topics;
-      _node.TopicList(topics);
-      return std::find(topics.begin(), topics.end(), _topic) != topics.end();
-    }, _timeout, std::chrono::milliseconds(100));
-  }
   }
 }

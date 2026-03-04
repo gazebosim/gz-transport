@@ -8,6 +8,13 @@ release will remove the deprecated code.
 
 ## Gazebo Transport 15.X to 16.X
 
+### Moved
+
+1. Wait helper functions consolidated into `WaitHelpers.hh` / `WaitHelpers.cc`:
+    * `waitForShutdown()` moved from `Node.hh` / `Node.cc` to `WaitHelpers.hh` / `WaitHelpers.cc`.
+    * `waitUntil()`, `waitForService()`, `waitForTopic()` moved from `Helpers.hh` / `Helpers.cc` to `WaitHelpers.hh` / `WaitHelpers.cc`.
+    * Both `Node.hh` and `Helpers.hh` re-export via `#include "gz/transport/WaitHelpers.hh"`, so no code changes are required for existing users.
+
 ### Removed
 
 1. Removed zeromq from public header and CMake target. Specifically,

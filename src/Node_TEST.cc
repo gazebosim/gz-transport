@@ -2523,30 +2523,6 @@ TEST(NodePubTest, DestructionOrder)
 }
 
 //////////////////////////////////////////////////
-/// \brief Create a separate thread, block it calling waitForShutdown() and
-/// emit a SIGINT signal. Check that the transport library captures the signal
-/// and is able to terminate.
-TEST(NodeTest, waitForShutdownSIGINT)
-{
-  std::thread aThread([]{transport::waitForShutdown();});
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  raise(SIGINT);
-  aThread.join();
-}
-
-//////////////////////////////////////////////////
-/// \brief Create a separate thread, block it calling waitForShutdown() and
-/// emit a SIGTERM signal. Check that the transport library captures the signal
-/// and is able to terminate.
-TEST(NodeTest, waitForShutdownSIGTERM)
-{
-  std::thread aThread([]{transport::waitForShutdown();});
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  raise(SIGTERM);
-  aThread.join();
-}
-
-//////////////////////////////////////////////////
 /// \brief Test topic statistics with no statistics available.
 TEST(NodeTest, statistics)
 {
