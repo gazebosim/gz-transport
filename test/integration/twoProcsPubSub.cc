@@ -340,8 +340,7 @@ TEST(twoProcPubSub, TopicList)
   transport::Node node;
   std::vector<std::string> topics;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForTopic(node, g_topic));
 
   auto start1 = std::chrono::steady_clock::now();
   node.TopicList(topics);
@@ -387,8 +386,7 @@ TEST(twoProcPubSub, TopicInfo)
   std::vector<transport::MessagePublisher> publishers;
   std::vector<transport::MessagePublisher> subscribers;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForTopic(node, g_topic));
 
   EXPECT_FALSE(node.TopicInfo("@", publishers, subscribers));
   EXPECT_EQ(publishers.size(), 0u);
@@ -422,23 +420,15 @@ TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
     auto pi = testing::SubprocessJoinWrapper(
        {test_executables::kTwoProcsPubSubSingleSubscriber, partition});
 
-    // Sleep for subscriber process to fully come up
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
     // Reduce the publisher scope so that it is destroyed before the subscriber
     // process ends.
     {
       auto pub = node.Advertise<msgs::Vector3d>(g_topic);
       EXPECT_TRUE(pub);
 
-      {
-        int retries = 0;
-        while (!pub.HasConnections() && retries++ < 15)
-          std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      }
+      ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }))
+          << "No subscriber connections within timeout";
 
-      // Now, we should have subscribers.
-      EXPECT_TRUE(pub.HasConnections());
 
       msgs::Vector3d msg;
       msg.set_x(1.0);
@@ -474,14 +464,8 @@ TEST(twoProcPubSub, PubSubTwoProcsMixedSubscribers)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  {
-    int retries = 0;
-    while (!pub.HasConnections() && retries++ < 15)
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
-  }
-
-  // Now, we should have subscribers.
-  EXPECT_TRUE(pub.HasConnections());
+  ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }))
+      << "No subscriber connections within timeout";
 
   // Publish messages for a few seconds
   for (auto i = 0; i < 10; ++i)

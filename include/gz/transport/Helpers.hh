@@ -18,15 +18,19 @@
 #ifndef GZ_TRANSPORT_HELPERS_HH_
 #define GZ_TRANSPORT_HELPERS_HH_
 
+#include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <limits>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
+#include "gz/transport/Node.hh"
 
 namespace gz::transport
 {
@@ -58,6 +62,68 @@ namespace gz::transport
   /// \brief Get the name of the underlying transport implementation
   /// \returns Name of the transport implementation, e.g. "zeromq", "zenoh"
   std::string GZ_TRANSPORT_VISIBLE getTransportImplementation();
+
+  /// \brief Block until a predicate becomes true or a timeout expires.
+  /// Polls by calling _pred() repeatedly with _interval sleep between
+  /// checks. Uses steady_clock for monotonic timing.
+  /// \note An _interval of zero causes busy-waiting. Use a positive
+  /// interval in production code.
+  /// \param[in] _pred Callable returning bool. Checked repeatedly.
+  /// \param[in] _timeout Maximum time to wait (default 10 s).
+  /// \param[in] _interval Sleep between checks (default 10 ms).
+  /// \return True if the predicate became true, false on timeout.
+  template <typename Pred>
+  bool waitUntil(Pred _pred,
+                 std::chrono::milliseconds _timeout =
+                     std::chrono::milliseconds(10000),
+                 std::chrono::milliseconds _interval =
+                     std::chrono::milliseconds(10))
+  {
+    auto deadline = std::chrono::steady_clock::now() + _timeout;
+    while (std::chrono::steady_clock::now() < deadline)
+    {
+      if (_pred())
+        return true;
+      std::this_thread::sleep_for(_interval);
+    }
+    return _pred();
+  }
+
+  /// \brief Block until a service is discovered or a timeout expires.
+  /// \param[in] _node Node to query for service info.
+  /// \param[in] _service Fully-qualified service name.
+  /// \param[in] _timeout Maximum time to wait (default 10 s).
+  /// \return True if the service was discovered, false on timeout.
+  inline bool GZ_TRANSPORT_VISIBLE waitForService(
+      const Node &_node,
+      const std::string &_service,
+      std::chrono::milliseconds _timeout =
+          std::chrono::milliseconds(10000))
+  {
+    return waitUntil([&]() {
+      std::vector<ServicePublisher> publishers;
+      _node.ServiceInfo(_service, publishers);
+      return !publishers.empty();
+    }, _timeout, std::chrono::milliseconds(100));
+  }
+
+  /// \brief Block until a topic is discovered or a timeout expires.
+  /// \param[in] _node Node to query for topic list.
+  /// \param[in] _topic Fully-qualified topic name.
+  /// \param[in] _timeout Maximum time to wait (default 10 s).
+  /// \return True if the topic was discovered, false on timeout.
+  inline bool GZ_TRANSPORT_VISIBLE waitForTopic(
+      const Node &_node,
+      const std::string &_topic,
+      std::chrono::milliseconds _timeout =
+          std::chrono::milliseconds(10000))
+  {
+    return waitUntil([&]() {
+      std::vector<std::string> topics;
+      _node.TopicList(topics);
+      return std::find(topics.begin(), topics.end(), _topic) != topics.end();
+    }, _timeout, std::chrono::milliseconds(100));
+  }
 
   // Use safer functions on Windows
   #ifdef _MSC_VER

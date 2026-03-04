@@ -44,34 +44,10 @@ static std::string g_topic = "/foo"; // NOLINT(*)
 static std::atomic<int> g_counter = 0;
 
 //////////////////////////////////////////////////
-class twoProcSrvCallWithoutOutput: public testing::Test {
- protected:
-  void SetUp() override {
-    gz::utils::env("GZ_PARTITION", this->prevPartition);
-
-    // Get a random partition name.
-    this->partition = testing::getRandomNumber();
-
-    // Set the partition name for this process.
-    gz::utils::setenv("GZ_PARTITION", this->partition);
-
-    this->pi = std::make_unique<gz::utils::Subprocess>(
-      std::vector<std::string>({
-        test_executables::kTwoProcsSrvCallWithoutOutputReplier,
-        this->partition}));
+class twoProcSrvCallWithoutOutput: public testing::TwoProcSrvCallFixture {
+  std::string ReplierExecutable() const override {
+    return test_executables::kTwoProcsSrvCallWithoutOutputReplier;
   }
-
-  void TearDown() override {
-    gz::utils::setenv("GZ_PARTITION", this->prevPartition);
-
-    this->pi->Terminate();
-    this->pi->Join();
-  }
-
- private:
-  std::string prevPartition;
-  std::string partition;
-  std::unique_ptr<gz::utils::Subprocess> pi;
 };
 
 //////////////////////////////////////////////////
@@ -117,8 +93,7 @@ TEST_F(twoProcSrvCallWithoutOutput, ServiceList)
 
   transport::Node node;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForService(node, g_topic));
 
   std::vector<std::string> services;
   auto start1 = std::chrono::steady_clock::now();
@@ -160,8 +135,7 @@ TEST_F(twoProcSrvCallWithoutOutput, ServiceInfo)
   transport::Node node;
   std::vector<transport::ServicePublisher> publishers;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForService(node, g_topic));
 
   EXPECT_FALSE(node.ServiceInfo("@", publishers));
   EXPECT_EQ(publishers.size(), 0u);

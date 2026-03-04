@@ -44,33 +44,10 @@ static int data = 5;
 static std::atomic<int> counter = 0;
 
 //////////////////////////////////////////////////
-class twoProcSrvCall: public testing::Test {
- protected:
-  void SetUp() override {
-    gz::utils::env("GZ_PARTITION", this->prevPartition);
-
-    // Get a random partition name.
-    this->partition = testing::getRandomNumber();
-
-    // Set the partition name for this process.
-    gz::utils::setenv("GZ_PARTITION", this->partition);
-
-    this->pi = std::make_unique<gz::utils::Subprocess>(
-      std::vector<std::string>({
-        test_executables::kTwoProcsSrvCallReplier, this->partition}));
+class twoProcSrvCall: public testing::TwoProcSrvCallFixture {
+  std::string ReplierExecutable() const override {
+    return test_executables::kTwoProcsSrvCallReplier;
   }
-
-  void TearDown() override {
-    gz::utils::setenv("GZ_PARTITION", this->prevPartition);
-
-    this->pi->Terminate();
-    this->pi->Join();
-  }
-
- private:
-  std::string prevPartition;
-  std::string partition;
-  std::unique_ptr<gz::utils::Subprocess> pi;
 };
 
 //////////////////////////////////////////////////
@@ -113,12 +90,7 @@ TEST_F(twoProcSrvCall, SrvTwoProcs)
   transport::Node node;
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
-  int i = 0;
-  while (i < 300 && !responseExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return responseExecuted.load(); });
 
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
@@ -129,12 +101,7 @@ TEST_F(twoProcSrvCall, SrvTwoProcs)
 
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
-  i = 0;
-  while (i < 300 && !responseExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return responseExecuted.load(); });
 
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
@@ -249,8 +216,7 @@ TEST_F(twoProcSrvCall, ServiceList)
 
   transport::Node node;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForService(node, g_topic));
 
   std::vector<std::string> services;
   auto start1 = std::chrono::steady_clock::now();
@@ -293,8 +259,7 @@ TEST_F(twoProcSrvCall, ServiceInfo)
   transport::Node node;
   std::vector<transport::ServicePublisher> publishers;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForService(node, g_topic));
 
   EXPECT_FALSE(node.ServiceInfo("@", publishers));
   EXPECT_EQ(publishers.size(), 0u);

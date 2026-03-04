@@ -51,17 +51,11 @@ TEST(twoProcSrvCallWithoutInputSync1, SrvTwoProcs)
 
   transport::Node node;
 
-  // Wait for the service to be discovered. Use a retry loop instead of a
-  // fixed sleep to handle variable system load (e.g., when running tests
-  // in parallel).
-  bool connected = false;
-  for (int retries = 0; retries < 30 && !connected; ++retries)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    connected = node.Request(g_topic,
-      static_cast<unsigned int>(timeout), rep, result);
-  }
-  ASSERT_TRUE(connected);
+  ASSERT_TRUE(transport::waitForService(node, g_topic))
+      << "Service not discovered within timeout";
+
+  ASSERT_TRUE(node.Request(g_topic,
+      static_cast<unsigned int>(timeout), rep, result));
   EXPECT_TRUE(result);
 
   auto t1 = std::chrono::steady_clock::now();

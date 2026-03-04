@@ -19,10 +19,13 @@
 #define GZ_TRANSPORT_TEST_UTILS_HH_
 
 #include <climits>
+#include <memory>
 #include <random>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
+#include <gz/utils/Environment.hh>
 #include <gz/utils/Subprocess.hh>
 
 #include "gz/transport/Helpers.hh"
@@ -68,6 +71,32 @@ namespace testing
 
     /// \brief Underlying SubProcess object
     public: gz::utils::Subprocess proc;
+  };
+  /// \class TwoProcSrvCallFixture
+  /// \brief Base test fixture for two-process service call tests.
+  /// Subclasses override ReplierExecutable() to specify the replier binary.
+  class TwoProcSrvCallFixture : public testing::Test {
+   protected:
+    virtual std::string ReplierExecutable() const = 0;
+
+    void SetUp() override {
+      gz::utils::env("GZ_PARTITION", this->prevPartition);
+      this->partition = testing::getRandomNumber();
+      gz::utils::setenv("GZ_PARTITION", this->partition);
+      this->pi = std::make_unique<gz::utils::Subprocess>(
+        std::vector<std::string>({ReplierExecutable(), this->partition}));
+    }
+
+    void TearDown() override {
+      gz::utils::setenv("GZ_PARTITION", this->prevPartition);
+      this->pi->Terminate();
+      this->pi->Join();
+    }
+
+   private:
+    std::string prevPartition;
+    std::string partition;
+    std::unique_ptr<gz::utils::Subprocess> pi;
   };
 }  // namespace testing
 

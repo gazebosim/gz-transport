@@ -474,12 +474,7 @@ void CreateSubscriber(const transport::NodeOptions &_nodeOptions)
   transport::Node node(_nodeOptions);
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
-  int i = 0;
-  while (i < 300 && !cbExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 }
 
 //////////////////////////////////////////////////
@@ -507,11 +502,7 @@ void CreatePubSubTwoThreads(
   std::thread subscribeThread(CreateSubscriber, _nodeOptions);
 
   // Wait until the subscriber is alive.
-  {
-    int retries = 0;
-    while (!pub.HasConnections() && retries++ < 15)
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
-  }
+  transport::waitUntil([&]{ return pub.HasConnections(); });
 
   // Publish a msg on topic.
   EXPECT_TRUE(pub.Publish(msg));
@@ -1468,12 +1459,7 @@ TEST(NodeTest, ServiceCallAsync)
 
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
-  int i = 0;
-  while (i < 300 && !srvExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return srvExecuted.load(); });
 
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
@@ -1485,12 +1471,7 @@ TEST(NodeTest, ServiceCallAsync)
 
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
-  i = 0;
-  while (i < 300 && !responseExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return responseExecuted.load(); });
 
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
@@ -1529,12 +1510,7 @@ TEST(NodeTest, ServiceCallWithoutInputAsync)
 
   EXPECT_TRUE(node.Request(g_topic, response));
 
-  int i = 0;
-  while (i < 300 && !srvExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return srvExecuted.load(); });
 
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
@@ -1546,12 +1522,7 @@ TEST(NodeTest, ServiceCallWithoutInputAsync)
 
   EXPECT_TRUE(node.Request(g_topic, response));
 
-  i = 0;
-  while (i < 300 && !responseExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return responseExecuted.load(); });
 
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
@@ -1593,12 +1564,7 @@ TEST(NodeTest, ServiceWithoutOutputCallAsync)
 
   EXPECT_TRUE(node.Request(g_topic, req));
 
-  int i = 0;
-  while (i < 300 && !srvExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return srvExecuted.load(); });
 
   // Check that the service call was executed.
   EXPECT_TRUE(srvExecuted);
@@ -1727,12 +1693,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
 
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
-  int i = 0;
-  while (i < 300 && !srvExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return srvExecuted.load(); });
 
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
@@ -1746,12 +1707,7 @@ TEST(NodeTest, MultipleServiceCallAsync)
   EXPECT_TRUE(node.Request(g_topic, req, response));
   EXPECT_TRUE(node.Request(g_topic, req, response));
 
-  i = 0;
-  while (i < 300 && counter < 3)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return counter.load() >= 3; });
 
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
@@ -1784,12 +1740,7 @@ TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
 
   EXPECT_TRUE(node.Request(g_topic, response));
 
-  int i = 0;
-  while (i < 300 && !srvExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return srvExecuted.load(); });
 
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
@@ -1803,12 +1754,7 @@ TEST(NodeTest, MultipleServiceCallWithoutInputAsync)
   EXPECT_TRUE(node.Request(g_topic, response));
   EXPECT_TRUE(node.Request(g_topic, response));
 
-  i = 0;
-  while (i < 300 && counter < 3)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return counter.load() >= 3; });
 
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
@@ -1843,12 +1789,7 @@ TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
 
   EXPECT_TRUE(node.Request(g_topic, req));
 
-  int i = 0;
-  while (i < 300 && !srvExecuted)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return srvExecuted.load(); });
 
   // Check that the service call was executed.
   EXPECT_TRUE(srvExecuted);
@@ -1860,12 +1801,7 @@ TEST(NodeTest, MultipleServiceWithoutOutputCallAsync)
   EXPECT_TRUE(node.Request(g_topic, req));
   EXPECT_TRUE(node.Request(g_topic, req));
 
-  i = 0;
-  while (i < 300 && counter < 3)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ++i;
-  }
+  transport::waitUntil([&]{ return counter.load() >= 3; });
 
   // Check that the service call was executed.
   EXPECT_TRUE(srvExecuted);
