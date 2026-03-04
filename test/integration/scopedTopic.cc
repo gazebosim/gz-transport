@@ -58,6 +58,9 @@ TEST(ScopedTopicTest, ProcessTest)
   EXPECT_TRUE(pub.Publish(msg));
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_TRUE(pub.Publish(msg));
+
+  pi.Terminate();
+  pi.Join();
 }
 
 //////////////////////////////////////////////////

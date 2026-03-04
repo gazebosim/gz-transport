@@ -66,6 +66,9 @@ TEST(twoProcPubSubStats, PubSubTwoProcsThreeNodes)
     EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
+
+  pi.Terminate();
+  pi.Join();
 }
 
 //////////////////////////////////////////////////
@@ -98,6 +101,9 @@ TEST(twoProcPubSubStats, RawPubSubTwoProcsThreeNodes)
           std::string(msg.GetTypeName())));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
+
+  pi.Terminate();
+  pi.Join();
 }
 
 
