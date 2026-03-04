@@ -1923,8 +1923,11 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
     // Check if there are still local subscribers in this node. If so then we
     // are done here. Otherwise, let others know that this node is no longer
     // interested in the topic
-    if (this->localSubscribers.HasSubscriberForNode(fullyQualifiedTopic, _nUuid))
+    if (this->localSubscribers.HasSubscriberForNode(
+              fullyQualifiedTopic, _nUuid))
+    {
       return true;
+    }
 
     // No more susbcribers so remove the topic from the list of subscribed
     // topics in this node.
