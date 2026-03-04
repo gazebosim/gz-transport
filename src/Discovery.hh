@@ -262,6 +262,12 @@ namespace gz
       /// \brief Destructor.
       public: virtual ~Discovery()
       {
+#ifdef HAVE_ZENOH
+        // Destroy the Zenoh liveliness subscriber before any other cleanup,
+        // while the Zenoh session and its internals are still valid.
+        this->livelinessSubscriber.reset();
+#endif
+
         // Tell the service thread to terminate.
         this->exitMutex.lock();
         this->exit = true;

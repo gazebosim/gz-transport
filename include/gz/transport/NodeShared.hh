@@ -539,6 +539,12 @@ namespace gz::transport
       public: HandlerStorage<RawSubscriptionHandler> raw;
     };
 
+    /// \brief Internal data pointer. Declared before handler storage members
+    /// so it is destroyed after them (C++ destroys in reverse declaration
+    /// order), ensuring the Zenoh session remains valid while handlers that
+    /// hold Zenoh subscribers/queryables are cleaned up.
+    private: std::unique_ptr<NodeSharedPrivate> dataPtr;
+
     public: HandlerWrapper localSubscribers;
 
 #ifdef _WIN32
@@ -571,8 +577,6 @@ namespace gz::transport
     /// \brief IP address of this host.
     public: std::string hostAddr;
 
-    /// \brief Internal data pointer.
-    private: std::unique_ptr<NodeSharedPrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
