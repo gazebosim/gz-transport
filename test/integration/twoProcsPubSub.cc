@@ -342,26 +342,18 @@ TEST(twoProcPubSub, TopicList)
 
   ASSERT_TRUE(transport::waitForTopic(node, g_topic));
 
-  auto start1 = std::chrono::steady_clock::now();
   node.TopicList(topics);
-  auto end1 = std::chrono::steady_clock::now();
   ASSERT_EQ(topics.size(), 1u);
   EXPECT_EQ(topics.at(0), g_topic);
   topics.clear();
 
-  // Time elapsed to get the first topic list
-  auto elapsed1 = std::chrono::duration_cast<std::chrono::milliseconds>
-    (end1 - start1).count();
-
+  // The second call should never block since discovery already completed.
   auto start2 = std::chrono::steady_clock::now();
   node.TopicList(topics);
   auto end2 = std::chrono::steady_clock::now();
   EXPECT_EQ(topics.size(), 1u);
   EXPECT_EQ(topics.at(0), g_topic);
 
-  // The first TopicList() call might block if the discovery is still
-  // initializing (it may happen if we run this test alone).
-  // However, the second call should never block.
   auto elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>
     (end2 - start2).count();
   EXPECT_LT(elapsed2, 2);
