@@ -38,9 +38,9 @@ TEST(ParametersUtils, getIgnTypeFromAnyProto)
   google::protobuf::Any any;
 
   ignition::msgs::Boolean boolMsg;
-  any.PackFrom(boolMsg);
+  EXPECT_TRUE(any.PackFrom(boolMsg));
   EXPECT_EQ(*getIgnTypeFromAnyProto(any), "Boolean");
   ignition::msgs::StringMsg strMsg;
-  any.PackFrom(strMsg);
+  EXPECT_TRUE(any.PackFrom(strMsg));
   EXPECT_EQ(*getIgnTypeFromAnyProto(any), "StringMsg");
 }
