@@ -38,9 +38,17 @@ TEST(ParametersUtils, getGzTypeFromAnyProto)
   google::protobuf::Any any;
 
   gz::msgs::Boolean boolMsg;
+<<<<<<< HEAD
   any.PackFrom(boolMsg);
   EXPECT_EQ(*getGzTypeFromAnyProto(any), "Boolean");
   gz::msgs::StringMsg strMsg;
   any.PackFrom(strMsg);
   EXPECT_EQ(*getGzTypeFromAnyProto(any), "StringMsg");
+=======
+  EXPECT_TRUE(any.PackFrom(boolMsg));
+  EXPECT_EQ(*getGzTypeFromAnyProto(any), "gz.msgs.Boolean");
+  gz::msgs::StringMsg strMsg;
+  EXPECT_TRUE(any.PackFrom(strMsg));
+  EXPECT_EQ(*getGzTypeFromAnyProto(any), "gz.msgs.StringMsg");
+>>>>>>> eb5b8a0 (Fix unused-result warnings in tests (#811))
 }
