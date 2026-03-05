@@ -37,7 +37,7 @@ if (HAVE_ZENOH)
     zenohcxx::zenohc
   )
 endif()
-install(TARGETS ${topic_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${topic_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}/)
 
 # Build service CLI executable
 set(service_executable gz-transport-service)
@@ -52,7 +52,7 @@ if (HAVE_ZENOH)
     zenohcxx::zenohc
   )
 endif()
-install(TARGETS ${service_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+install(TARGETS ${service_executable} DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}/)
 
 # Build the unit tests.
 gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
@@ -100,10 +100,8 @@ endif()
 
 #===============================================================================
 # Generate the ruby script for internal testing.
-# Note that the major version of the library is included in the name.
-# Ex: cmdtransport0.rb
-set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
-set(cmd_script_configured_test "${CMAKE_CURRENT_BINARY_DIR}/test_cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb.configured")
+set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmd${GZ_DESIGNATION}.rb")
+set(cmd_script_configured_test "${CMAKE_CURRENT_BINARY_DIR}/test_cmd${GZ_DESIGNATION}.rb.configured")
 
 # Set the library_location variable to the full path of the library file within
 # the build directory.
@@ -123,15 +121,13 @@ file(GENERATE
 #===============================================================================
 # Used for the installed version.
 # Generate the ruby script that gets installed.
-# Note that the major version of the library is included in the name.
-# Ex: cmdtransport0.rb
-set(cmd_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmd${GZ_DESIGNATION}.rb")
 set(cmd_script_configured "${cmd_script_generated}.configured")
 
 # Set the library_location variable to the relative path to the library file
 # within the install directory structure.
-set(service_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${service_executable}>")
-set(topic_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${topic_executable}>")
+set(service_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}/$<TARGET_FILE_NAME:${service_executable}>")
+set(topic_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}/$<TARGET_FILE_NAME:${topic_executable}>")
 
 configure_file(
   "cmd${GZ_DESIGNATION}.rb.in"
@@ -151,9 +147,9 @@ install(FILES ${cmd_script_generated} DESTINATION lib/ruby/gz)
 # Tack version onto and install the bash completion script
 configure_file(
   "transport.bash_completion.sh"
-    "${CMAKE_CURRENT_BINARY_DIR}/transport${PROJECT_VERSION_MAJOR}.bash_completion.sh" @ONLY)
+    "${CMAKE_CURRENT_BINARY_DIR}/transport.bash_completion.sh" @ONLY)
 install(
   FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/transport${PROJECT_VERSION_MAJOR}.bash_completion.sh
+    ${CMAKE_CURRENT_BINARY_DIR}/transport.bash_completion.sh
   DESTINATION
-    ${CMAKE_INSTALL_DATAROOTDIR}/gz/gz${GZ_TOOLS_VER}.completion.d)
+    ${CMAKE_INSTALL_DATAROOTDIR}/gz/gz.completion.d)
