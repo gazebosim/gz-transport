@@ -32,8 +32,13 @@ void cb(const char *_data, size_t _size, const char *_msgType, void *_userData)
   EXPECT_EQ(42, *userData);
 
   gz::msgs::StringMsg msg;
+<<<<<<< HEAD
   msg.ParseFromArray(_data, _size);
   EXPECT_STREQ("ignition.msgs.StringMsg", _msgType);
+=======
+  EXPECT_TRUE(msg.ParseFromArray(_data, _size));
+  EXPECT_STREQ("gz.msgs.StringMsg", _msgType);
+>>>>>>> eb5b8a0 (Fix unused-result warnings in tests (#811))
   EXPECT_EQ(msg.data(), "HELLO");
   ++count;
 }
@@ -48,8 +53,13 @@ void cbNonConst(char *_data, size_t _size, char *_msgType, void *_userData)
   EXPECT_EQ(42, *userData);
 
   gz::msgs::StringMsg msg;
+<<<<<<< HEAD
   msg.ParseFromArray(_data, _size);
   EXPECT_STREQ("ignition.msgs.StringMsg", _msgType);
+=======
+  EXPECT_TRUE(msg.ParseFromArray(_data, _size));
+  EXPECT_STREQ("gz.msgs.StringMsg", _msgType);
+>>>>>>> eb5b8a0 (Fix unused-result warnings in tests (#811))
   EXPECT_EQ(msg.data(), "HELLO");
   ++count;
 }
@@ -90,7 +100,7 @@ TEST(CIfaceTest, PubSub)
   ASSERT_NE(nullptr, buffer);
 
   // Serialize the message.
-  msg.SerializeToArray(buffer, size);
+  EXPECT_TRUE(msg.SerializeToArray(buffer, size));
 
   EXPECT_EQ(0,
     ignTransportPublish(node, topic, buffer, msg.GetTypeName().data()));
@@ -145,7 +155,7 @@ TEST(CIfaceTest, PubSubPartitions)
   ASSERT_NE(nullptr, buffer);
 
   // Serialize the message.
-  msg.SerializeToArray(buffer, size);
+  EXPECT_TRUE(msg.SerializeToArray(buffer, size));
 
   // Publish on "bar" partition
   EXPECT_EQ(0,
