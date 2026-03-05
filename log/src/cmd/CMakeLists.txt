@@ -30,7 +30,6 @@ endif()
 
 #===============================================================================
 # Generate the ruby script for internal testing.
-# Ex: cmdlog0.rb
 set(gz_log_ruby_path
   "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmdlog")
 set(cmd_log_script_generated_test "${gz_log_ruby_path}.rb")
@@ -53,7 +52,6 @@ file(GENERATE
 )
 
 # Generate a configuration file for internal testing.
-# Ex: transportlog0.yaml
 configure_file(
   "transportlog.yaml.in"
   "${CMAKE_CURRENT_BINARY_DIR}/transportlog.yaml.configured"
@@ -68,7 +66,6 @@ file(GENERATE
 #===============================================================================
 # Used for the installed version.
 # Generate the ruby script that gets installed.
-# Ex: cmdlog0.rb
 set(cmd_log_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmdlog.rb")
 set(cmd_log_script_configured "${cmd_log_script_generated}.configured")
 
