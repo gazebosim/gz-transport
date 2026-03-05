@@ -119,15 +119,12 @@ ParametersRegistry & ParametersRegistry::operator=(
 bool ParametersRegistryPrivate::GetParameter(const msgs::ParameterName &_req,
   msgs::ParameterValue &_res)
 {
-  {
-    std::lock_guard guard{this->parametersMapMutex};
-    auto it = this->parametersMap.find(_req.name());
-    if (it == this->parametersMap.end()) {
-      return false;
-    }
-    _res.mutable_data()->PackFrom(*it->second, "ign_msgs");
+  std::lock_guard guard{this->parametersMapMutex};
+  auto it = this->parametersMap.find(_req.name());
+  if (it == this->parametersMap.end()) {
+    return false;
   }
-  return true;
+  return _res.mutable_data()->PackFrom(*it->second, "ign_msgs");
 }
 
 //////////////////////////////////////////////////

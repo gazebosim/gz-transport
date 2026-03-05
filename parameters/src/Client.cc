@@ -158,7 +158,10 @@ ParametersClient::SetParameter(
   msgs::ParameterError res;
 
   req.set_name(_parameterName);
-  req.mutable_value()->PackFrom(_msg);
+  if (!req.mutable_value()->PackFrom(_msg))
+  {
+    return ParameterResult{ParameterResultType::Unexpected, _parameterName};
+  }
 
   if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
@@ -195,7 +198,10 @@ ParametersClient::DeclareParameter(
   msgs::ParameterError res;
 
   req.set_name(_parameterName);
-  req.mutable_value()->PackFrom(_msg);
+  if (!req.mutable_value()->PackFrom(_msg))
+  {
+    return ParameterResult{ParameterResultType::Unexpected, _parameterName};
+  }
 
   if (!dataPtr->node.Request(service, req, dataPtr->timeoutMs, res, result))
   {
