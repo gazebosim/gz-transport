@@ -125,7 +125,12 @@ bool ParametersRegistryPrivate::GetParameter(const msgs::ParameterName &_req,
   if (it == this->parametersMap.end()) {
     return false;
   }
+#if PROTOBUF_VERSION < 3015000
+  _res.mutable_data()->PackFrom(*it->second, "gz_msgs");
+  return true;
+#else
   return _res.mutable_data()->PackFrom(*it->second, "gz_msgs");
+#endif
 }
 
 //////////////////////////////////////////////////
