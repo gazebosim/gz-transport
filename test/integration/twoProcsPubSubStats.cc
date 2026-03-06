@@ -57,10 +57,8 @@ TEST(twoProcPubSubStats, PubSubTwoProcsThreeNodes)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-  // Now, we should have subscribers.
-  EXPECT_TRUE(pub.HasConnections());
+  ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }))
+      << "No subscriber connections within timeout";
 
   // Publish messages for a few seconds
   for (auto i = 0; i < 10; ++i)
@@ -68,6 +66,9 @@ TEST(twoProcPubSubStats, PubSubTwoProcsThreeNodes)
     EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
+
+  pi.Terminate();
+  pi.Join();
 }
 
 //////////////////////////////////////////////////
@@ -90,13 +91,8 @@ TEST(twoProcPubSubStats, RawPubSubTwoProcsThreeNodes)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  unsigned int retries = 0u;
-
-  while (!pub.HasConnections() && retries++ < 5u)
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-  // Now, we should have subscribers.
-  EXPECT_LT(retries, 5u);
+  ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }))
+      << "No subscriber connections within timeout";
 
   // Publish messages for a few seconds
   for (auto i = 0; i < 10; ++i)
@@ -105,6 +101,9 @@ TEST(twoProcPubSubStats, RawPubSubTwoProcsThreeNodes)
           std::string(msg.GetTypeName())));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
+
+  pi.Terminate();
+  pi.Join();
 }
 
 

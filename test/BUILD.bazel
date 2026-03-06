@@ -24,6 +24,8 @@ cc_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//:gz-transport",
+        "@googletest//:gtest",
+        "@gz-utils//:Environment",
         "@gz-utils//:Subprocess",
     ],
 )

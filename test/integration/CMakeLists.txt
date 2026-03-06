@@ -33,6 +33,9 @@ foreach(test ${test_list})
   set(_env_vars)
   list(APPEND _env_vars "GZ_IP=127.0.0.1")
   set_property(TEST ${test} PROPERTY ENVIRONMENT "${_env_vars}")
+  # Two-process tests use multicast discovery which can fail when too many
+  # tests run simultaneously. Use a resource lock to limit concurrency.
+  set_property(TEST ${test} PROPERTY RESOURCE_LOCK "multicast_discovery")
 endforeach()
 
 set(auxiliary_files
