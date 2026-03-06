@@ -38,9 +38,17 @@ TEST(ParametersUtils, getGzTypeFromAnyProto)
   google::protobuf::Any any;
 
   gz::msgs::Boolean boolMsg;
+#if PROTOBUF_VERSION < 3015000
+  any.PackFrom(boolMsg);
+#else
   EXPECT_TRUE(any.PackFrom(boolMsg));
+#endif
   EXPECT_EQ(*getGzTypeFromAnyProto(any), "Boolean");
   gz::msgs::StringMsg strMsg;
+#if PROTOBUF_VERSION < 3015000
+  any.PackFrom(strMsg);
+#else
   EXPECT_TRUE(any.PackFrom(strMsg));
+#endif
   EXPECT_EQ(*getGzTypeFromAnyProto(any), "StringMsg");
 }
