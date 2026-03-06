@@ -1212,7 +1212,7 @@ bool Node::RequestRaw(const std::string &_topic,
   }
   if (!req->ParseFromString(_request))
   {
-    std::cerr << "Unable to parse request of type[" << _requestType << "].\n";
+    std::cerr << "Unable to parse from request string[" << _request << "].\n";
     return false;
   }
 
