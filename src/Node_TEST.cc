@@ -348,11 +348,11 @@ class MyTestClass
 
     // Request a valid service using RequestRaw.
     std::string reqStr, repStr, repTypeName;
-    req.SerializeToString(&reqStr);
+    EXPECT_TRUE(req.SerializeToString(&reqStr));
     EXPECT_TRUE(this->node.RequestRaw(g_topic, reqStr,
           std::string(req.GetTypeName()),
           std::string(rep.GetTypeName()), timeout, repStr, result));
-    rep.ParseFromString(repStr);
+    EXPECT_TRUE(rep.ParseFromString(repStr));
     ASSERT_TRUE(result);
     EXPECT_EQ(rep.data(), data);
     EXPECT_TRUE(this->callbackSrvExecuted);
