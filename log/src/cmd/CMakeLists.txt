@@ -9,7 +9,7 @@ target_link_libraries(${log_executable}
 
 install(
   TARGETS ${log_executable}
-  DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
+  DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}/
 )
 
 if(BUILD_TESTING AND HAVE_GZ_TOOLS)
@@ -30,13 +30,11 @@ endif()
 
 #===============================================================================
 # Generate the ruby script for internal testing.
-# Note that the major version of the library is included in the name.
-# Ex: cmdlog0.rb
 set(gz_log_ruby_path
-  "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmdlog${PROJECT_VERSION_MAJOR}")
+  "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmdlog")
 set(cmd_log_script_generated_test "${gz_log_ruby_path}.rb")
 set(cmd_log_script_configured_test
-  "${CMAKE_CURRENT_BINARY_DIR}/test_cmdlog${PROJECT_VERSION_MAJOR}.rb.configured")
+  "${CMAKE_CURRENT_BINARY_DIR}/test_cmdlog.rb.configured")
 
 # Set the log_exe_location variable to the full path of the executable
 # within the build directory
@@ -54,30 +52,26 @@ file(GENERATE
 )
 
 # Generate a configuration file for internal testing.
-# Note that the major version of the library is included in the name.
-# Ex: transportlog0.yaml
 configure_file(
   "transportlog.yaml.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/transportlog${PROJECT_VERSION_MAJOR}.yaml.configured"
+  "${CMAKE_CURRENT_BINARY_DIR}/transportlog.yaml.configured"
   @ONLY
 )
 
 file(GENERATE
-  OUTPUT "${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>/transportlog${PROJECT_VERSION_MAJOR}.yaml"
-  INPUT "${CMAKE_CURRENT_BINARY_DIR}/transportlog${PROJECT_VERSION_MAJOR}.yaml.configured"
+  OUTPUT "${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>/transportlog.yaml"
+  INPUT "${CMAKE_CURRENT_BINARY_DIR}/transportlog.yaml.configured"
 )
 
 #===============================================================================
 # Used for the installed version.
 # Generate the ruby script that gets installed.
-# Note that the major version of the library is included in the name.
-# Ex: cmdlog0.rb
-set(cmd_log_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmdlog${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_log_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmdlog.rb")
 set(cmd_log_script_configured "${cmd_log_script_generated}.configured")
 
 # Set the log_exe_location variable to the relative path to the executable
 # within the install directory structure.
-set(log_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${log_executable}>")
+set(log_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}/$<TARGET_FILE_NAME:${log_executable}>")
 
 configure_file(
   "cmdlog.rb.in"
@@ -92,9 +86,9 @@ file(GENERATE
 install(FILES ${cmd_log_script_generated} DESTINATION lib/ruby/gz)
 
 # Used for the installed version.
-set(gz_log_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmdlog${PROJECT_VERSION_MAJOR}")
+set(gz_log_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmdlog")
 
-set(transportlog_configured "${CMAKE_CURRENT_BINARY_DIR}/transportlog${PROJECT_VERSION_MAJOR}.yaml")
+set(transportlog_configured "${CMAKE_CURRENT_BINARY_DIR}/transportlog.yaml")
 configure_file(
   "transportlog.yaml.in"
   ${transportlog_configured}
