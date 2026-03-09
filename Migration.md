@@ -8,6 +8,22 @@ release will remove the deprecated code.
 
 ## Gazebo Transport 15.X to 16.X
 
+### Deprecations
+
+1. The `gzTransportPublish` function in `CIface.h` has been deprecated because
+   it is not binary-safe (truncates data at null bytes). Use `gzTransportPublishRaw`
+   instead, which takes an explicit size parameter:
+   ```c
+   // Deprecated (not binary-safe):
+   int gzTransportPublish(GzTransportNode *_node, const char *_topic,
+                         const void *_data, const char *_msgType);
+
+   // Use this instead:
+   int gzTransportPublishRaw(GzTransportNode *_node, const char *_topic,
+                            const void *_data, size_t _size, const char *_msgType);
+   ```
+   * [GitHub issue 773](https://github.com/gazebosim/gz-transport/issues/773)
+
 ### Removed
 
 1. Removed zeromq from public header and CMake target. Specifically,
