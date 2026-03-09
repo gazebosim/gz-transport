@@ -81,8 +81,8 @@ int main(int argc, char **argv)
   // Publish messages at 1Hz.
   while (!g_terminatePub)
   {
-    gzTransportPublish(node, topic, buffer, msg.GetTypeName().c_str());
-    gzTransportPublish(nodeRed, topic, bufferRed,
+    gzTransportPublishRaw(node, topic, buffer, size, msg.GetTypeName().c_str());
+    gzTransportPublishRaw(nodeRed, topic, bufferRed, sizeRed,
         msgRed.GetTypeName().c_str());
 
     printf("Publishing hello on topic %s.\n", topic);
