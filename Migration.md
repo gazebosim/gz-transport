@@ -14,6 +14,22 @@ release will remove the deprecated code.
     * `waitForShutdown()` moved from `Node.hh` / `Node.cc` to `WaitHelpers.hh` / `WaitHelpers.cc`. `Node.hh` re-exports via `#include "gz/transport/WaitHelpers.hh"`, so no code changes are required for existing users of `waitForShutdown()`.
     * `waitUntil()`, `waitForService()`, `waitForTopic()` moved from `Helpers.hh` / `Helpers.cc` to `WaitHelpers.hh` / `WaitHelpers.cc`. Code using these functions must now `#include "gz/transport/WaitHelpers.hh"` directly.
 
+### Deprecations
+
+1. The `gzTransportPublish` function in `CIface.h` has been deprecated because
+   it is not binary-safe (truncates data at null bytes). Use `gzTransportPublishRaw`
+   instead, which takes an explicit size parameter:
+   ```c
+   // Deprecated (not binary-safe):
+   int gzTransportPublish(GzTransportNode *_node, const char *_topic,
+                         const void *_data, const char *_msgType);
+
+   // Use this instead:
+   int gzTransportPublishRaw(GzTransportNode *_node, const char *_topic,
+                            const void *_data, size_t _size, const char *_msgType);
+   ```
+   * [GitHub issue 773](https://github.com/gazebosim/gz-transport/issues/773)
+
 ### Removed
 
 1. Removed zeromq from public header and CMake target. Specifically,
