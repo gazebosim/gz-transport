@@ -2185,21 +2185,17 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
   // Remove the ZMQ filter for this topic if I am the last subscriber.
   if (this->GzImplementation() == "zeromq")
   {
-<<<<<<< HEAD
-#ifdef GZ_CPPZMQ_POST_4_7_0
-    this->dataPtr->subscriber->set(
-      zmq::sockopt::unsubscribe, fullyQualifiedTopic);
-#else
-    this->dataPtr->subscriber->setsockopt(
-      ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(), fullyQualifiedTopic.size());
-#endif
-=======
     if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
     {
+#ifdef GZ_CPPZMQ_POST_4_7_0
       this->dataPtr->subscriber->set(
         zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+#else
+      this->dataPtr->subscriber->setsockopt(
+        ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(),
+        fullyQualifiedTopic.size());
+#endif
     }
->>>>>>> 637fd3a (Separate ZeroMQ/Zenoh resources (#796))
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
