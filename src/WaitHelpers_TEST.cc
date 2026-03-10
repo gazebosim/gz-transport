@@ -32,7 +32,7 @@
 using namespace gz;
 
 //////////////////////////////////////////////////
-/// \brief waitUntil: predicate immediately true returns true near-instantly.
+/// \brief waitUntil: predicate immediately returns true near-instantly.
 TEST(WaitHelpersTest, WaitUntilImmediatelyTrue)
 {
   auto t1 = std::chrono::steady_clock::now();
@@ -44,7 +44,7 @@ TEST(WaitHelpersTest, WaitUntilImmediatelyTrue)
 }
 
 //////////////////////////////////////////////////
-/// \brief waitUntil: predicate never true returns false after timeout.
+/// \brief waitUntil: predicate never returns false after timeout.
 TEST(WaitHelpersTest, WaitUntilNeverTrue)
 {
   auto t1 = std::chrono::steady_clock::now();
@@ -136,7 +136,7 @@ TEST(WaitHelpersTest, WaitForTopicAlreadyAdvertised)
 }
 
 //////////////////////////////////////////////////
-/// \brief Create a separate thread, block it calling waitForShutdown() and
+/// \brief Create a separate thread, block it by calling waitForShutdown() and
 /// emit a SIGINT signal. Check that the transport library captures the signal
 /// and is able to terminate.
 TEST(WaitHelpersTest, waitForShutdownSIGINT)
@@ -148,7 +148,7 @@ TEST(WaitHelpersTest, waitForShutdownSIGINT)
 }
 
 //////////////////////////////////////////////////
-/// \brief Create a separate thread, block it calling waitForShutdown() and
+/// \brief Create a separate thread, block it by calling waitForShutdown() and
 /// emit a SIGTERM signal. Check that the transport library captures the signal
 /// and is able to terminate.
 TEST(WaitHelpersTest, waitForShutdownSIGTERM)
