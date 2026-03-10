@@ -17,6 +17,7 @@
 #include <gz/msgs/statistic.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 
+#include <atomic>
 #include <chrono>
 #include <string>
 
@@ -31,7 +32,7 @@
 
 using namespace gz;
 
-static int statisticsCount = 0;
+static std::atomic<int> statisticsCount{0};
 
 void cb(const msgs::StringMsg & /*_msg*/)
 {

@@ -46,7 +46,8 @@ TEST(twoProcSrvCallWithoutInput, ThousandCalls)
   unsigned int timeout = 1000;
   transport::Node node;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  ASSERT_TRUE(transport::waitForService(node, g_topic))
+      << "Service not discovered within timeout";
 
   for (int i = 0; i < 15000; i++)
   {
@@ -55,6 +56,9 @@ TEST(twoProcSrvCallWithoutInput, ThousandCalls)
     // Check the service response.
     ASSERT_TRUE(result);
   }
+
+  pi.Terminate();
+  pi.Join();
 }
 
 //////////////////////////////////////////////////
