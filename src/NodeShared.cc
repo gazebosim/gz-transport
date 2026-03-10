@@ -234,30 +234,6 @@ NodeShared::NodeShared()
   this->dataPtr->srvDiscovery.reset(
       new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
 
-  // Initialize the 0MQ objects.
-  if (!this->InitializeSockets())
-    return;
-
-  if (this->dataPtr->verbose)
-  {
-    std::cout << "Host address: " << this->dataPtr->hostAddr << std::endl;
-    std::cout << "Process UUID: " << this->pUuid << std::endl;
-    std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
-              << this->msgDiscPort << "] for msg discovery\n";
-    std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
-              << this->srvDiscPort << "] for srv discovery\n";
-    std::cout << "Bind at: [" << this->dataPtr->myAddress << "] for pub/sub\n";
-    std::cout << "Bind at: [" << this->dataPtr->myReplierAddress << "]"
-              << " for srv. calls\n";
-    std::cout << "Identity for receiving srv. requests: ["
-              << this->replierId.ToString() << "]" << std::endl;
-    std::cout << "Identity for receiving srv. responses: ["
-              << this->responseReceiverId.ToString() << "]" << std::endl;
-  }
-
-  // Start the service thread.
-  this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
-
   // Set the callback to notify discovery updates (new topics).
   this->dataPtr->msgDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewConnection, this, std::placeholders::_1));
@@ -279,8 +255,35 @@ NodeShared::NodeShared()
   this->dataPtr->srvDiscovery->ConnectionsCb(
     std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
 
-  if (this->GzImplementation() == "zeromq")
+  // Implementation-specific initialization.
+  std::string impl = this->GzImplementation();
+  if (impl == "zeromq")
   {
+    // Initialize the 0MQ objects.
+    if (!this->InitializeSockets())
+      return;
+
+    if (this->dataPtr->verbose)
+    {
+      std::cout << "Host address: " << this->dataPtr->hostAddr << std::endl;
+      std::cout << "Process UUID: " << this->pUuid << std::endl;
+      std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
+                << this->msgDiscPort << "] for msg discovery\n";
+      std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
+                << this->srvDiscPort << "] for srv discovery\n";
+      std::cout << "Bind at: [" << this->dataPtr->myAddress
+                << "] for pub/sub\n";
+      std::cout << "Bind at: [" << this->dataPtr->myReplierAddress << "]"
+                << " for srv. calls\n";
+      std::cout << "Identity for receiving srv. requests: ["
+                << this->replierId.ToString() << "]" << std::endl;
+      std::cout << "Identity for receiving srv. responses: ["
+                << this->responseReceiverId.ToString() << "]" << std::endl;
+    }
+
+    // Start the ZMQ reception thread.
+    this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
+
     // Set the callback to notify svc discovery updates (invalid services).
     this->dataPtr->srvDiscovery->DisconnectionsCb(
       std::bind(&NodeShared::OnNewSrvDisconnection,
@@ -291,7 +294,7 @@ NodeShared::NodeShared()
     this->dataPtr->srvDiscovery->Start();
   }
 #ifdef HAVE_ZENOH
-  else if (this->GzImplementation() == "zenoh")
+  else if (impl == "zenoh")
   {
     this->dataPtr->msgDiscovery->Start(this->Session(),
       std::bind(&MsgDiscovery::LivelinessMsgDataHandler,
@@ -1310,6 +1313,9 @@ bool NodeShared::AdvertisePublisher(const ServicePublisher &_publisher)
 /////////////////////////////////////////////////
 int NodeShared::RcvHwm()
 {
+  if (!this->dataPtr->subscriber)
+    return -1;
+
   int rcvHwm;
   try
   {
@@ -1326,6 +1332,9 @@ int NodeShared::RcvHwm()
 /////////////////////////////////////////////////
 int NodeShared::SndHwm()
 {
+  if (!this->dataPtr->publisher)
+    return -1;
+
   int sndHwm;
   try
   {
@@ -1483,6 +1492,10 @@ void NodeSharedPrivate::SecurityOnNewConnection()
 //////////////////////////////////////////////////
 void NodeSharedPrivate::SecurityInit()
 {
+  // Security is only applicable to zeromq backend.
+  if (this->gzImplementation != "zeromq")
+    return;
+
   // Check if a username and password has been set. If so, then
   // setup a PLAIN authentication server.
   std::string user, pass;
@@ -1934,10 +1947,12 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
     this->RemoveSubscribedTopic(fullyQualifiedTopic, _nUuid);
 
     // Remove the filter for this topic if I am the last subscriber.
-    if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
-    {
-      this->dataPtr->subscriber->set(
-        zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+    if (this->GzImplementation() == "zeromq")
+      if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
+      {
+        this->dataPtr->subscriber->set(
+          zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+      }
     }
 
     // Prepare to notify publishers outside the lock
