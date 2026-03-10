@@ -1948,6 +1948,7 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
 
     // Remove the filter for this topic if I am the last subscriber.
     if (this->GzImplementation() == "zeromq")
+    {
       if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
       {
         this->dataPtr->subscriber->set(
