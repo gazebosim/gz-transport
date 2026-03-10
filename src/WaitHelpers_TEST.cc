@@ -44,7 +44,7 @@ TEST(WaitHelpersTest, WaitUntilImmediatelyTrue)
 }
 
 //////////////////////////////////////////////////
-/// \brief waitUntil: predicate never true returns false after timeout.
+/// \brief waitUntil: predicate never returns false after timeout.
 TEST(WaitHelpersTest, WaitUntilNeverTrue)
 {
   auto t1 = std::chrono::steady_clock::now();
