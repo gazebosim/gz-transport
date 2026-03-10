@@ -136,7 +136,7 @@ TEST(WaitHelpersTest, WaitForTopicAlreadyAdvertised)
 }
 
 //////////////////////////////////////////////////
-/// \brief Create a separate thread, block it calling waitForShutdown() and
+/// \brief Create a separate thread, block it by calling waitForShutdown() and
 /// emit a SIGINT signal. Check that the transport library captures the signal
 /// and is able to terminate.
 TEST(WaitHelpersTest, waitForShutdownSIGINT)
