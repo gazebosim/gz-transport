@@ -32,7 +32,7 @@
 using namespace gz;
 
 //////////////////////////////////////////////////
-/// \brief waitUntil: predicate immediately true returns true near-instantly.
+/// \brief waitUntil: predicate immediately returns true near-instantly.
 TEST(WaitHelpersTest, WaitUntilImmediatelyTrue)
 {
   auto t1 = std::chrono::steady_clock::now();
