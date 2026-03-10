@@ -16,6 +16,7 @@
 */
 #include <gz/msgs/vector3d.pb.h>
 
+#include <atomic>
 #include <chrono>
 #include <cstdlib>
 #include <memory>
@@ -35,42 +36,18 @@
 
 using namespace gz;
 
-static bool g_responseExecuted;
-static bool g_wrongResponseExecuted;
+static std::atomic<bool> g_responseExecuted;
+static std::atomic<bool> g_wrongResponseExecuted;
 
 static std::string g_partition; // NOLINT(*)
 static std::string g_topic = "/foo"; // NOLINT(*)
-static int g_counter = 0;
+static std::atomic<int> g_counter = 0;
 
 //////////////////////////////////////////////////
-class twoProcSrvCallWithoutOutput: public testing::Test {
- protected:
-  void SetUp() override {
-    gz::utils::env("GZ_PARTITION", this->prevPartition);
-
-    // Get a random partition name.
-    this->partition = testing::getRandomNumber();
-
-    // Set the partition name for this process.
-    gz::utils::setenv("GZ_PARTITION", this->partition);
-
-    this->pi = std::make_unique<gz::utils::Subprocess>(
-      std::vector<std::string>({
-        test_executables::kTwoProcsSrvCallWithoutOutputReplier,
-        this->partition}));
+class twoProcSrvCallWithoutOutput: public testing::TwoProcSrvCallFixture {
+  std::string ReplierExecutable() const override {
+    return test_executables::kTwoProcsSrvCallWithoutOutputReplier;
   }
-
-  void TearDown() override {
-    gz::utils::setenv("GZ_PARTITION", this->prevPartition);
-
-    this->pi->Terminate();
-    this->pi->Join();
-  }
-
- private:
-  std::string prevPartition;
-  std::string partition;
-  std::unique_ptr<gz::utils::Subprocess> pi;
 };
 
 //////////////////////////////////////////////////
@@ -116,34 +93,24 @@ TEST_F(twoProcSrvCallWithoutOutput, ServiceList)
 
   transport::Node node;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForService(node, g_topic));
 
   std::vector<std::string> services;
-  auto start1 = std::chrono::steady_clock::now();
   node.ServiceList(services);
-  auto end1 = std::chrono::steady_clock::now();
   ASSERT_EQ(services.size(), 1u);
   EXPECT_EQ(services.at(0), g_topic);
   services.clear();
 
-  // Time elapsed to get the first service list
-  auto elapsed1 = end1 - start1;
-
+  // The second call should never block since discovery already completed.
   auto start2 = std::chrono::steady_clock::now();
   node.ServiceList(services);
   auto end2 = std::chrono::steady_clock::now();
   EXPECT_EQ(services.size(), 1u);
   EXPECT_EQ(services.at(0), g_topic);
 
-  // The first ServiceList() call might block if the discovery is still
-  // initializing (it may happen if we run this test alone).
-  // However, the second call should never block.
-  auto elapsed2 = end2 - start2;
-  EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
-      (elapsed2).count(), 2);
-
-  EXPECT_LE(elapsed2, elapsed1);
+  auto elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>
+      (end2 - start2).count();
+  EXPECT_LT(elapsed2, 2);
 
   reset();
 }
@@ -159,8 +126,7 @@ TEST_F(twoProcSrvCallWithoutOutput, ServiceInfo)
   transport::Node node;
   std::vector<transport::ServicePublisher> publishers;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForService(node, g_topic));
 
   EXPECT_FALSE(node.ServiceInfo("@", publishers));
   EXPECT_EQ(publishers.size(), 0u);
