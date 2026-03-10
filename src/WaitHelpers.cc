@@ -16,6 +16,7 @@
 */
 
 #include <algorithm>
+<<<<<<< HEAD
 #include <cerrno>
 #include <csignal>
 #include <string>
@@ -28,6 +29,13 @@
   #include <unistd.h>
 #endif
 
+=======
+#include <condition_variable>
+#include <csignal>
+#include <mutex>
+#include <vector>
+
+>>>>>>> e70d47e (Refactor tests and support running tests in parallel (#807))
 #include "gz/transport/WaitHelpers.hh"
 #include "gz/transport/Node.hh"
 
@@ -35,6 +43,7 @@ namespace gz::transport
 {
 inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
+<<<<<<< HEAD
 namespace
 {
 // Platform shims for pipe / read / write. On Windows the C runtime
@@ -66,11 +75,26 @@ int g_shutdownPipe[2] = {-1, -1};
 /// Only async-signal-safe operations are used here: per signal-safety(7),
 /// write() is on the POSIX async-signal-safe list, while mutex and condition
 /// variable operations are not.
+=======
+/// \brief Flag to detect SIGINT or SIGTERM while the code is executing
+/// waitForShutdown().
+static bool g_shutdown = false;
+
+/// \brief Mutex to protect the boolean shutdown variable.
+static std::mutex g_shutdown_mutex;
+
+/// \brief Condition variable to wakeup waitForShutdown() and exit.
+static std::condition_variable g_shutdown_cv;
+
+//////////////////////////////////////////////////
+/// \brief Function executed when a SIGINT or SIGTERM signals are captured.
+>>>>>>> e70d47e (Refactor tests and support running tests in parallel (#807))
 /// \param[in] _signal Signal received.
 static void signal_handler(const int _signal)
 {
   if (_signal == SIGINT || _signal == SIGTERM)
   {
+<<<<<<< HEAD
     if (g_shutdownPipe[1] < 0)
       return;
     const char c = 'x';
@@ -79,12 +103,19 @@ static void signal_handler(const int _signal)
     // a single byte is sufficient to wake the reader.
     auto n = gzWrite(g_shutdownPipe[1], &c, 1);
     (void)n;
+=======
+    g_shutdown_mutex.lock();
+    g_shutdown = true;
+    g_shutdown_mutex.unlock();
+    g_shutdown_cv.notify_all();
+>>>>>>> e70d47e (Refactor tests and support running tests in parallel (#807))
   }
 }
 
 //////////////////////////////////////////////////
 void waitForShutdown()
 {
+<<<<<<< HEAD
   // Lazily create the self-pipe on first call. We never close the fds:
   // waitForShutdown() is invoked at most once per process in practice,
   // and the OS reclaims them at exit.
@@ -108,6 +139,14 @@ void waitForShutdown()
       continue;
     break;  // EOF or unrecoverable error
   }
+=======
+  // Install a signal handler for SIGINT and SIGTERM.
+  std::signal(SIGINT,  signal_handler);
+  std::signal(SIGTERM, signal_handler);
+
+  std::unique_lock<std::mutex> lk(g_shutdown_mutex);
+  g_shutdown_cv.wait(lk, []{return g_shutdown;});
+>>>>>>> e70d47e (Refactor tests and support running tests in parallel (#807))
 }
 
 //////////////////////////////////////////////////

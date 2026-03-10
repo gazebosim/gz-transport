@@ -25,7 +25,10 @@ cc_library(
     deps = [
         "//:gz-transport",
         "@googletest//:gtest",
+<<<<<<< HEAD
         "@gz-utils",
+=======
+>>>>>>> e70d47e (Refactor tests and support running tests in parallel (#807))
         "@gz-utils//:Environment",
         "@gz-utils//:Subprocess",
     ],

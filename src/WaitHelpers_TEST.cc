@@ -158,6 +158,7 @@ TEST(WaitHelpersTest, waitForShutdownSIGTERM)
   raise(SIGTERM);
   aThread.join();
 }
+<<<<<<< HEAD
 
 //////////////////////////////////////////////////
 /// \brief Stress-test re-entry into waitForShutdown(). The implementation
@@ -174,3 +175,5 @@ TEST(WaitHelpersTest, waitForShutdownReEntryStress)
     aThread.join();
   }
 }
+=======
+>>>>>>> e70d47e (Refactor tests and support running tests in parallel (#807))
