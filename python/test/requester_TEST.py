@@ -18,15 +18,19 @@ from gz.msgs11.stringmsg_pb2 import StringMsg
 from gz.transport14 import Node
 
 import os
+import random
 import subprocess
 import unittest
+
+# Set a unique partition for this test process to avoid conflicts
+# when running tests in parallel. This mirrors what C++ tests do.
+gz_partition = str(random.randint(0, 2147483647))
+os.environ['GZ_PARTITION'] = gz_partition
 
 
 class RequesterTEST(unittest.TestCase):
     def setUp(self):
-        # Environment Setup
-        gz_partition = "python_requester_test"
-        os.environ["GZ_PARTITION"] = gz_partition
+        # Environment Setup - use the module-level partition
 
         # Subprocess Setup
         cmd = f"{os.getenv('CMAKE_BINARY_DIR')}/twoProcsSrvCallReplier_aux {gz_partition}"

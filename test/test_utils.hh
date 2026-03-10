@@ -19,8 +19,18 @@
 #define GZ_TRANSPORT_TEST_UTILS_HH_
 
 #include <climits>
+#include <memory>
 #include <random>
 #include <string>
+#include <unordered_set>
+#include <vector>
+
+#include "gtest/gtest.h"
+
+#include <gz/utils/Environment.hh>
+#include <gz/utils/Subprocess.hh>
+
+#include "gz/transport/Helpers.hh"
 
 namespace testing
 {
@@ -37,6 +47,66 @@ namespace testing
 
     return std::to_string(d(randGenerator));
   }
+
+  /// \class SubprocessJoinWrapper
+  /// \brief An RAII wrapper for the gz::utils::Subprocess class that joins on
+  /// the process at destruction
+  class SubprocessJoinWrapper
+  {
+    /// \brief Constructor
+    /// \param[in] _commandLine Vector of command line arguments
+    public:
+    explicit SubprocessJoinWrapper(const std::vector<std::string> &_commandLine)
+        : proc(gz::utils::Subprocess(_commandLine))
+    {
+    }
+    // We don't want this to be coppied
+    public: SubprocessJoinWrapper(const SubprocessJoinWrapper &) = delete;
+
+    /// \brief Join on the process at destruction. Note that if the child
+    /// process doesn't exit normally, this will block indefinitely, so this
+    /// should only be used for fixed duration sub processes.
+    public: ~SubprocessJoinWrapper()
+    {
+      proc.Join();
+    }
+
+    /// \brief Underlying SubProcess object
+    public: gz::utils::Subprocess proc;
+  };
+  /// \class TwoProcSrvCallFixture
+  /// \brief Base test fixture for two-process service call tests.
+  /// Subclasses override ReplierExecutable() to specify the replier binary.
+  class TwoProcSrvCallFixture : public testing::Test {
+   protected:
+    virtual std::string ReplierExecutable() const = 0;
+
+    void SetUp() override {
+      gz::utils::env("GZ_PARTITION", this->prevPartition);
+      this->partition = testing::getRandomNumber();
+      gz::utils::setenv("GZ_PARTITION", this->partition);
+      this->pi = std::make_unique<gz::utils::Subprocess>(
+        std::vector<std::string>({ReplierExecutable(), this->partition}));
+    }
+
+    void TearDown() override {
+      gz::utils::setenv("GZ_PARTITION", this->prevPartition);
+      this->pi->Terminate();
+      this->pi->Join();
+    }
+
+   private:
+    std::string prevPartition;
+    std::string partition;
+    std::unique_ptr<gz::utils::Subprocess> pi;
+  };
 }  // namespace testing
+
+#define CHECK_UNSUPPORTED_IMPLEMENTATION(...) \
+if (std::unordered_set<std::string>({__VA_ARGS__}).count(\
+    gz::transport::getTransportImplementation()) != 0) \
+  GTEST_SKIP() << "gz-transport implementation '" \
+      << gz::transport::getTransportImplementation() << "' unsupported";
+
 
 #endif  // GZ_TRANSPORT_TEST_UTILS_HH_
