@@ -1176,15 +1176,14 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     std::cout << _pub;
   }
 
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  // Collect publishers to register while holding the lock,
+  // then call Discovery methods outside the lock to avoid deadlocks.
+  std::vector<MessagePublisher> publishersToRegister;
 
-  // Check if we are interested in this topic.
-  if (this->localSubscribers.HasSubscriber(topic) &&
-      this->pUuid.compare(procUuid) != 0)
   {
-    // Handle security
-    this->dataPtr->SecurityOnNewConnection();
+    std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
+<<<<<<< HEAD
     // I am not connected to the process.
     if (!this->connections.HasPublisher(addr) && this->dataPtr->subscriber)
       this->dataPtr->subscriber->connect(addr.c_str());
@@ -1212,13 +1211,49 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     std::vector<std::string> handlerNodeUuids =
         this->localSubscribers.NodeUuids(topic, _pub.MsgTypeName());
     for (const std::string &nodeUuid : handlerNodeUuids)
+=======
+    // Check if we are interested in this topic.
+    if (this->localSubscribers.HasSubscriber(topic) &&
+        this->pUuid.compare(procUuid) != 0)
+>>>>>>> 2f7efb1 (Deadlock protection (#808))
     {
-      pub.SetNUuid(nodeUuid);
+      // Handle security
+      this->dataPtr->SecurityOnNewConnection();
 
-      // Send a message to the publisher notify it
-      // about all my remoteSubscribers.
-      this->dataPtr->msgDiscovery->Register(pub);
+      // I am not connected to the process.
+      if (!this->connections.HasPublisher(addr) && this->dataPtr->subscriber)
+        this->dataPtr->subscriber->connect(addr.c_str());
+
+      // Add a new filter for the topic.
+      this->dataPtr->subscriber->set(zmq::sockopt::subscribe, topic);
+
+      // Register the new connection with the publisher.
+      this->connections.AddPublisher(_pub);
+
+      if (this->dataPtr->verbose)
+        std::cout << "\t* Connected to [" << addr << "] for data\n";
+
+      MessagePublisher pub(_pub);
+      pub.SetPUuid(this->pUuid);
+
+      // Hack: We use this field to store the PUuid of the topic publisher.
+      pub.SetCtrl(_pub.PUuid());
+
+      std::vector<std::string> handlerNodeUuids =
+          this->localSubscribers.NodeUuids(topic, _pub.MsgTypeName());
+      for (const std::string &nodeUuid : handlerNodeUuids)
+      {
+        pub.SetNUuid(nodeUuid);
+        publishersToRegister.push_back(pub);
+      }
     }
+  }
+
+  // Send messages to the publisher outside the lock to avoid deadlocks
+  // with Discovery::mutex.
+  for (const auto &pub : publishersToRegister)
+  {
+    this->dataPtr->msgDiscovery->Register(pub);
   }
 }
 
@@ -1380,12 +1415,16 @@ void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
 //////////////////////////////////////////////////
 void NodeShared::OnSubscribers()
 {
-  // Get the list of local subscribers.
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
-  auto pubs = this->localSubscribers.Convert(
-    this->dataPtr->myAddress, this->pUuid);
+  // Get the list of local subscribers while holding the lock.
+  std::vector<MessagePublisher> pubs;
+  {
+    std::lock_guard<std::recursive_mutex> lock(this->mutex);
+    pubs = this->localSubscribers.Convert(
+      this->dataPtr->myAddress, this->pUuid);
+  }
 
   // Reply to the SUBSCRIBERS_REQ with multiple SUBSCRIBERS_REP.
+  // Called outside the lock to avoid deadlocks with Discovery::mutex.
   for (auto const &publisher : pubs)
     this->dataPtr->msgDiscovery->SendSubscribersRep(publisher);
 }
@@ -2158,35 +2197,18 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
               <<  std::endl;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->mutex);
+  // Flag to track if we need to notify publishers
+  bool shouldNotifyPublishers = false;
+  std::string localAddress;
+  std::string localPUuid;
 
-  // Remove the subscribers for the given topic that belong to this node.
-  if (_hUuid.empty())
   {
-    this->localSubscribers.RemoveHandlersForNode(
-          fullyQualifiedTopic, _nUuid);
-  }
-  else
-  {
-    this->localSubscribers.RemoveHandler(
-          fullyQualifiedTopic, _nUuid, _hUuid);
-  }
+    std::lock_guard<std::recursive_mutex> lk(this->mutex);
 
-  // Check if there are still local subscribers in this node. If so then we
-  // are done here. Otherwise, let others know that this node is no longer
-  // interested in the topic
-  if (this->localSubscribers.HasSubscriberForNode(fullyQualifiedTopic, _nUuid))
-    return true;
-
-  // No more susbcribers so remove the topic from the list of subscribed topics
-  // in this node.
-  this->RemoveSubscribedTopic(fullyQualifiedTopic, _nUuid);
-
-  // Remove the ZMQ filter for this topic if I am the last subscriber.
-  if (this->GzImplementation() == "zeromq")
-  {
-    if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
+    // Remove the subscribers for the given topic that belong to this node.
+    if (_hUuid.empty())
     {
+<<<<<<< HEAD
 #ifdef GZ_CPPZMQ_POST_4_7_0
       this->dataPtr->subscriber->set(
         zmq::sockopt::unsubscribe, fullyQualifiedTopic);
@@ -2195,29 +2217,70 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
         ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(),
         fullyQualifiedTopic.size());
 #endif
+=======
+      this->localSubscribers.RemoveHandlersForNode(
+            fullyQualifiedTopic, _nUuid);
+>>>>>>> 2f7efb1 (Deadlock protection (#808))
     }
+    else
+    {
+      this->localSubscribers.RemoveHandler(
+            fullyQualifiedTopic, _nUuid, _hUuid);
+    }
+
+    // Check if there are still local subscribers in this node. If so then we
+    // are done here. Otherwise, let others know that this node is no longer
+    // interested in the topic
+    if (this->localSubscribers.HasSubscriberForNode(
+              fullyQualifiedTopic, _nUuid))
+    {
+      return true;
+    }
+
+    // No more susbcribers so remove the topic from the list of subscribed
+    // topics in this node.
+    this->RemoveSubscribedTopic(fullyQualifiedTopic, _nUuid);
+
+    // Remove the filter for this topic if I am the last subscriber.
+    if (this->GzImplementation() == "zeromq")
+    {
+      if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
+      {
+        this->dataPtr->subscriber->set(
+          zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+      }
+    }
+
+    // Prepare to notify publishers outside the lock
+    shouldNotifyPublishers = true;
+    localAddress = this->dataPtr->myAddress;
+    localPUuid = this->pUuid;
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
-  MsgAddresses_M addresses;
-  this->dataPtr->msgDiscovery->Publishers(
-    fullyQualifiedTopic, addresses);
-
-  for (auto &proc : addresses)
+  // Called outside the lock to avoid deadlocks with Discovery::mutex.
+  if (shouldNotifyPublishers)
   {
-    std::string dstPUuid = proc.first;
-    MessagePublisher pub(fullyQualifiedTopic, this->dataPtr->myAddress,
-      dstPUuid, this->pUuid, _nUuid,
+    MsgAddresses_M addresses;
+    this->dataPtr->msgDiscovery->Publishers(
+      fullyQualifiedTopic, addresses);
+
+    for (auto &proc : addresses)
+    {
+      std::string dstPUuid = proc.first;
+      MessagePublisher pub(fullyQualifiedTopic, localAddress,
+        dstPUuid, localPUuid, _nUuid,
+        kGenericMessageType, AdvertiseMessageOptions());
+
+      this->dataPtr->msgDiscovery->Unregister(pub);
+    }
+
+    MessagePublisher pub(fullyQualifiedTopic, localAddress,
+      "", localPUuid, _nUuid,
       kGenericMessageType, AdvertiseMessageOptions());
 
     this->dataPtr->msgDiscovery->Unregister(pub);
   }
-
-  MessagePublisher pub(fullyQualifiedTopic, this->dataPtr->myAddress,
-    "", this->pUuid, _nUuid,
-    kGenericMessageType, AdvertiseMessageOptions());
-
-  this->dataPtr->msgDiscovery->Unregister(pub);
 
   return true;
 }
