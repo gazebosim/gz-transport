@@ -559,7 +559,7 @@ namespace gz::transport
     public: template<typename ReplyT>
     bool Advertise(
         const std::string &_topic,
-        std::function<bool(ReplyT &_reply)> &_callback,
+        std::function<bool(ReplyT &_reply)> _callback,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
     /// \brief Advertise a new service without any output parameter.
@@ -581,7 +581,7 @@ namespace gz::transport
     public: template<typename RequestT>
     bool Advertise(
         const std::string &_topic,
-        std::function<void(const RequestT &_request)> &_callback,
+        std::function<void(const RequestT &_request)> _callback,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
     /// \brief Advertise a new service.
@@ -711,7 +711,7 @@ namespace gz::transport
         const std::string &_topic,
         const RequestT &_request,
         std::function<void(const ReplyT &_reply,
-                           const bool _result)> &_callback);
+                           const bool _result)> _callback);
 
     /// \brief Request a new service without input parameter using a
     /// non-blocking call.
@@ -727,7 +727,7 @@ namespace gz::transport
     bool Request(
         const std::string &_topic,
         std::function<void(const ReplyT &_reply,
-                           const bool _result)> &_callback);
+                           const bool _result)> _callback);
 
     /// \brief Request a new service using a non-blocking call.
     /// In this version the callback is a member function.

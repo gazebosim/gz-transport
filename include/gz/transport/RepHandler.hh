@@ -35,6 +35,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -122,9 +123,9 @@ namespace gz::transport
     /// * Returns true when the service response is considered
     /// successful or false otherwise.
     public: void SetCallback(
-      const std::function<bool(const Req &, Rep &)> &_cb)
+      std::function<bool(const Req &, Rep &)> _cb)
     {
-      this->cb = _cb;
+      this->cb = std::move(_cb);
     }
 
     // Documentation inherited.
