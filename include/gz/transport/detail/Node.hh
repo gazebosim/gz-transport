@@ -297,11 +297,11 @@ namespace gz::transport
     // Insert the callback into the handler.
     std::string impl = this->Shared()->GzImplementation();
     if (impl == "zeromq")
-      repHandlerPtr->SetCallback(_cb);
+      repHandlerPtr->SetCallback(std::move(_cb));
 #ifdef HAVE_ZENOH
     else if (impl == "zenoh")
     {
-      repHandlerPtr->SetCallback(_cb,
+      repHandlerPtr->SetCallback(std::move(_cb),
         this->Shared()->Session(), fullyQualifiedTopic);
     }
 #endif
@@ -345,33 +345,34 @@ namespace gz::transport
   template<typename ReplyT>
   bool Node::Advertise(
     const std::string &_topic,
-    std::function<bool(ReplyT &_reply)> &_cb,
+    std::function<bool(ReplyT &_reply)> _cb,
     const AdvertiseServiceOptions &_options)
   {
     std::function<bool(const msgs::Empty &, ReplyT &)> f =
-      [_cb](const msgs::Empty &/*_internalReq*/, ReplyT &_internalRep)
+      [cb = std::move(_cb)](const msgs::Empty &/*_internalReq*/,
+                            ReplyT &_internalRep)
     {
-      return (_cb)(_internalRep);
+      return (cb)(_internalRep);
     };
-    return this->Advertise(_topic, f, _options);
+    return this->Advertise(_topic, std::move(f), _options);
   }
 
   //////////////////////////////////////////////////
   template<typename RequestT>
   bool Node::Advertise(
     const std::string &_topic,
-    std::function<void(const RequestT &_request)> &_cb,
+    std::function<void(const RequestT &_request)> _cb,
     const AdvertiseServiceOptions &_options)
   {
     std::function<bool(const RequestT &, gz::msgs::Empty &)> f =
-      [_cb](const RequestT &_internalReq,
-            gz::msgs::Empty &/*_internalRep*/)
+      [cb = std::move(_cb)](const RequestT &_internalReq,
+                            gz::msgs::Empty &/*_internalRep*/)
     {
-      (_cb)(_internalReq);
+      (cb)(_internalReq);
       return true;
     };
 
-    return this->Advertise(_topic, f, _options);
+    return this->Advertise(_topic, std::move(f), _options);
   }
 
   //////////////////////////////////////////////////
@@ -460,7 +461,7 @@ namespace gz::transport
   bool Node::Request(
     const std::string &_topic,
     const RequestT &_request,
-    std::function<void(const ReplyT &_reply, const bool _result)> &_cb)
+    std::function<void(const ReplyT &_reply, const bool _result)> _cb)
   {
     // Topic remapping.
     std::string topic = _topic;
@@ -505,7 +506,7 @@ namespace gz::transport
 
     // Insert the callback into the handler.
     std::string impl = this->Shared()->GzImplementation();
-    reqHandlerPtr->SetCallback(_cb);
+    reqHandlerPtr->SetCallback(std::move(_cb));
 
     {
       std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
@@ -543,10 +544,10 @@ namespace gz::transport
   template<typename ReplyT>
   bool Node::Request(
     const std::string &_topic,
-    std::function<void(const ReplyT &_reply, const bool _result)> &_cb)
+    std::function<void(const ReplyT &_reply, const bool _result)> _cb)
   {
     msgs::Empty req;
-    return this->Request(_topic, req, _cb);
+    return this->Request(_topic, req, std::move(_cb));
   }
 
   //////////////////////////////////////////////////
