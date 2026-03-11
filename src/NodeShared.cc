@@ -1183,39 +1183,9 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   {
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-<<<<<<< HEAD
-    // I am not connected to the process.
-    if (!this->connections.HasPublisher(addr) && this->dataPtr->subscriber)
-      this->dataPtr->subscriber->connect(addr.c_str());
-
-    // Add a new filter for the topic.
-#ifdef GZ_CPPZMQ_POST_4_7_0
-    this->dataPtr->subscriber->set(zmq::sockopt::subscribe, topic);
-#else
-    this->dataPtr->subscriber->setsockopt(ZMQ_SUBSCRIBE,
-        topic.data(), topic.size());
-#endif
-
-    // Register the new connection with the publisher.
-    this->connections.AddPublisher(_pub);
-
-    if (this->dataPtr->verbose)
-      std::cout << "\t* Connected to [" << addr << "] for data\n";
-
-    MessagePublisher pub(_pub);
-    pub.SetPUuid(this->pUuid);
-
-    // Hack: We use this field to store the PUuid of the topic publisher.
-    pub.SetCtrl(_pub.PUuid());
-
-    std::vector<std::string> handlerNodeUuids =
-        this->localSubscribers.NodeUuids(topic, _pub.MsgTypeName());
-    for (const std::string &nodeUuid : handlerNodeUuids)
-=======
     // Check if we are interested in this topic.
     if (this->localSubscribers.HasSubscriber(topic) &&
         this->pUuid.compare(procUuid) != 0)
->>>>>>> 2f7efb1 (Deadlock protection (#808))
     {
       // Handle security
       this->dataPtr->SecurityOnNewConnection();
@@ -1225,7 +1195,12 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
         this->dataPtr->subscriber->connect(addr.c_str());
 
       // Add a new filter for the topic.
+#ifdef GZ_CPPZMQ_POST_4_7_0
       this->dataPtr->subscriber->set(zmq::sockopt::subscribe, topic);
+#else
+      this->dataPtr->subscriber->setsockopt(ZMQ_SUBSCRIBE,
+          topic.data(), topic.size());
+#endif
 
       // Register the new connection with the publisher.
       this->connections.AddPublisher(_pub);
@@ -2208,19 +2183,8 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
     // Remove the subscribers for the given topic that belong to this node.
     if (_hUuid.empty())
     {
-<<<<<<< HEAD
-#ifdef GZ_CPPZMQ_POST_4_7_0
-      this->dataPtr->subscriber->set(
-        zmq::sockopt::unsubscribe, fullyQualifiedTopic);
-#else
-      this->dataPtr->subscriber->setsockopt(
-        ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(),
-        fullyQualifiedTopic.size());
-#endif
-=======
       this->localSubscribers.RemoveHandlersForNode(
             fullyQualifiedTopic, _nUuid);
->>>>>>> 2f7efb1 (Deadlock protection (#808))
     }
     else
     {
@@ -2246,8 +2210,14 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
     {
       if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
       {
+#ifdef GZ_CPPZMQ_POST_4_7_0
         this->dataPtr->subscriber->set(
           zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+#else
+        this->dataPtr->subscriber->setsockopt(
+          ZMQ_UNSUBSCRIBE, fullyQualifiedTopic.data(),
+          fullyQualifiedTopic.size());
+#endif
       }
     }
 
