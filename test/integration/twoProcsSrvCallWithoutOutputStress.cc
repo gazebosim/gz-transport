@@ -44,13 +44,17 @@ TEST(twoProcSrvCallWithoutOuput, ThousandCalls)
   msgs::Int32 req;
   transport::Node node;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  ASSERT_TRUE(transport::waitForService(node, g_topic))
+      << "Service not discovered within timeout";
 
   for (int i = 0; i < 15000; i++)
   {
     req.set_data(i);
     ASSERT_TRUE(node.Request(g_topic, req));
   }
+
+  pi.Terminate();
+  pi.Join();
 }
 
 //////////////////////////////////////////////////

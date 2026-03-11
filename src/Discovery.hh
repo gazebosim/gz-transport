@@ -311,6 +311,11 @@ namespace gz
           "@" + partition + "@" + topic, "", this->pUuid, pUUID, nUUID, msgType,
           AdvertiseMessageOptions());
 
+        // Copy callbacks while holding the lock, then call them outside
+        // to avoid potential deadlocks with NodeShared::mutex.
+        DiscoveryCallback<Pub> regCb;
+        DiscoveryCallback<Pub> unregCb;
+
         {
           std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -326,10 +331,7 @@ namespace gz
             else if (entityType == "MS" && this->pUuid != pUUID)
             {
               this->remoteSubscribers.AddPublisher(pub);
-              // TODO(azeey) Should not call this callbacks while we have the
-              // mutex locked.
-              if (this->registrationCb)
-                this->registrationCb(pub);
+              regCb = this->registrationCb;
             }
 
             if (this->verbose)
@@ -350,8 +352,7 @@ namespace gz
             {
               this->remoteSubscribers.DelPublisherByNode(
                 pub.Topic(), pub.PUuid(), pub.NUuid());
-              if (this->unregistrationCb)
-                this->unregistrationCb(pub);
+              unregCb = this->unregistrationCb;
             }
             if (this->verbose)
             {
@@ -362,8 +363,13 @@ namespace gz
           }
         }
 
+        // Call callbacks outside the lock to avoid deadlocks
         if (cb)
           cb(pub);
+        if (regCb)
+          regCb(pub);
+        if (unregCb)
+          unregCb(pub);
       }
 
       //////////////////////////////////////////////////

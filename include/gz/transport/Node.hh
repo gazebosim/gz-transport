@@ -32,6 +32,7 @@
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TransportTypes.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 namespace zenoh
 {
@@ -71,11 +72,6 @@ namespace gz::transport
   /// you run out of memory (and probably crash).
   /// If your buffer reaches the maximum capacity data will be dropped.
   int GZ_TRANSPORT_VISIBLE sndHwm();
-
-  /// \brief Block the current thread until a SIGINT or SIGTERM is received.
-  /// Note that this function registers a signal handler. Do not use this
-  /// function if you want to manage yourself SIGINT/SIGTERM.
-  void GZ_TRANSPORT_VISIBLE waitForShutdown();
 
   /// \class Node Node.hh gz/transport/Node.hh
   /// \brief A class that allows a client to communicate with other peers.
