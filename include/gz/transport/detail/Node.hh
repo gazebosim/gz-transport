@@ -24,6 +24,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include "gz/transport/Node.hh"
 #include "gz/transport/RepHandler.hh"
@@ -342,6 +343,17 @@ namespace gz::transport
   }
 
   //////////////////////////////////////////////////
+  template<typename RequestT, typename ReplyT, typename F>
+  bool Node::Advertise(
+    const std::string &_topic,
+    F _cb,
+    const AdvertiseServiceOptions &_options)
+  {
+    std::function<bool(const RequestT &, ReplyT &)> f(std::move(_cb));
+    return this->Advertise<RequestT, ReplyT>(_topic, std::move(f), _options);
+  }
+
+  //////////////////////////////////////////////////
   template<typename ReplyT>
   bool Node::Advertise(
     const std::string &_topic,
@@ -373,6 +385,30 @@ namespace gz::transport
     };
 
     return this->Advertise(_topic, std::move(f), _options);
+  }
+
+  //////////////////////////////////////////////////
+  template<typename ReplyT, typename F,
+           std::enable_if_t<std::is_invocable_r_v<bool, F, ReplyT &>, int>>
+  bool Node::Advertise(
+    const std::string &_topic,
+    F _cb,
+    const AdvertiseServiceOptions &_options)
+  {
+    std::function<bool(ReplyT &)> f(std::move(_cb));
+    return this->Advertise<ReplyT>(_topic, std::move(f), _options);
+  }
+
+  //////////////////////////////////////////////////
+  template<typename RequestT, typename F,
+           std::enable_if_t<!std::is_invocable_r_v<bool, F, RequestT &>, int>>
+  bool Node::Advertise(
+    const std::string &_topic,
+    F _cb,
+    const AdvertiseServiceOptions &_options)
+  {
+    std::function<void(const RequestT &)> f(std::move(_cb));
+    return this->Advertise<RequestT>(_topic, std::move(f), _options);
   }
 
   //////////////////////////////////////////////////
@@ -541,6 +577,17 @@ namespace gz::transport
   }
 
   //////////////////////////////////////////////////
+  template<typename RequestT, typename ReplyT, typename F>
+  bool Node::Request(
+    const std::string &_topic,
+    const RequestT &_request,
+    F _cb)
+  {
+    std::function<void(const ReplyT &, const bool)> f(std::move(_cb));
+    return this->Request<RequestT, ReplyT>(_topic, _request, std::move(f));
+  }
+
+  //////////////////////////////////////////////////
   template<typename ReplyT>
   bool Node::Request(
     const std::string &_topic,
@@ -548,6 +595,16 @@ namespace gz::transport
   {
     msgs::Empty req;
     return this->Request(_topic, req, std::move(_cb));
+  }
+
+  //////////////////////////////////////////////////
+  template<typename ReplyT, typename F>
+  bool Node::Request(
+    const std::string &_topic,
+    F _cb)
+  {
+    std::function<void(const ReplyT &, const bool)> f(std::move(_cb));
+    return this->Request<ReplyT>(_topic, std::move(f));
   }
 
   //////////////////////////////////////////////////

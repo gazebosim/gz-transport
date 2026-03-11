@@ -2674,6 +2674,89 @@ TEST(NodeTest, relay) {
 }
 
 //////////////////////////////////////////////////
+/// \brief Test that non-capturing lambdas can be passed directly to
+/// Request and Advertise with explicit template arguments.
+TEST(NodeTest, ServiceCallAsyncNonCapturingLambda)
+{
+  reset();
+
+  msgs::Int32 req;
+  req.set_data(data);
+
+  transport::Node node;
+
+  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
+
+  // Non-capturing lambda passed directly to Request.
+  EXPECT_TRUE((node.Request<msgs::Int32, msgs::Int32>(
+    g_topic, req,
+    [](const msgs::Int32 &_reply, const bool _result)
+    {
+      EXPECT_TRUE(_result);
+      EXPECT_EQ(_reply.data(), data);
+      srvExecuted = true;
+    })));
+
+  transport::waitUntil([&]{ return srvExecuted.load(); });
+
+  EXPECT_TRUE(srvExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief Test that non-capturing lambdas can be passed directly to
+/// Request (without input) with explicit template arguments.
+TEST(NodeTest, ServiceCallWithoutInputAsyncNonCapturingLambda)
+{
+  reset();
+
+  transport::Node node;
+
+  EXPECT_TRUE(node.Advertise(g_topic, srvWithoutInput));
+
+  // Non-capturing lambda passed directly to Request (no input).
+  EXPECT_TRUE((node.Request<msgs::Int32>(
+    g_topic,
+    [](const msgs::Int32 &_reply, const bool _result)
+    {
+      EXPECT_TRUE(_result);
+      EXPECT_EQ(_reply.data(), data);
+      srvExecuted = true;
+    })));
+
+  transport::waitUntil([&]{ return srvExecuted.load(); });
+
+  EXPECT_TRUE(srvExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief Test that non-capturing lambdas can be passed directly to
+/// Advertise (without output) with explicit template arguments.
+TEST(NodeTest, ServiceCallWithoutOutputAsyncNonCapturingLambda)
+{
+  reset();
+
+  transport::Node node;
+
+  // Non-capturing lambda passed directly to Advertise (no output).
+  EXPECT_TRUE((node.Advertise<msgs::Int32>(g_topic,
+    [](const msgs::Int32 &_req)
+    {
+      EXPECT_EQ(_req.data(), data);
+    })));
+
+  msgs::Int32 req;
+  req.set_data(data);
+
+  EXPECT_TRUE(node.Request(g_topic, req));
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
   // Get a random partition name.

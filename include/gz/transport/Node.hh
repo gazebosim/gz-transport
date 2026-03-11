@@ -17,9 +17,11 @@
 #ifndef GZ_TRANSPORT_NODE_HH_
 #define GZ_TRANSPORT_NODE_HH_
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <unordered_set>
 #include <vector>
 #include "gz/transport/AdvertiseOptions.hh"
@@ -470,6 +472,19 @@ namespace gz::transport
                            ReplyT &_reply)> _callback,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
+    /// \brief Advertise a new service.
+    /// In this version the callback is a generic callable (e.g. a lambda).
+    /// \param[in] _topic Topic name associated to the service.
+    /// \param[in] _callback Callable to handle the service request.
+    /// \param[in] _options Advertise options.
+    /// \return true when the topic has been successfully advertised or
+    /// false otherwise.
+    public: template<typename RequestT, typename ReplyT, typename F>
+    bool Advertise(
+        const std::string &_topic,
+        F _callback,
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+
     /// \brief Advertise a new service without input parameter.
     /// In this version the callback is a lambda function.
     ///
@@ -513,6 +528,36 @@ namespace gz::transport
     bool Advertise(
         const std::string &_topic,
         std::function<void(const RequestT &_request)> _callback,
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+
+    /// \brief Advertise a new service without input parameter.
+    /// In this version the callback is a generic callable (e.g. a lambda)
+    /// with signature bool(ReplyT &).
+    /// \param[in] _topic Topic name associated to the service.
+    /// \param[in] _callback Callable to handle the service request.
+    /// \param[in] _options Advertise options.
+    /// \return true when the topic has been successfully advertised or
+    /// false otherwise.
+    public: template<typename ReplyT, typename F,
+        std::enable_if_t<std::is_invocable_r_v<bool, F, ReplyT &>, int> = 0>
+    bool Advertise(
+        const std::string &_topic,
+        F _callback,
+        const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
+
+    /// \brief Advertise a new service without any output parameter.
+    /// In this version the callback is a generic callable (e.g. a lambda)
+    /// with signature void(const RequestT &).
+    /// \param[in] _topic Topic name associated to the service.
+    /// \param[in] _callback Callable to handle the service request.
+    /// \param[in] _options Advertise options.
+    /// \return true when the topic has been successfully advertised or
+    /// false otherwise.
+    public: template<typename RequestT, typename F,
+        std::enable_if_t<!std::is_invocable_r_v<bool, F, RequestT &>, int> = 0>
+    bool Advertise(
+        const std::string &_topic,
+        F _callback,
         const AdvertiseServiceOptions &_options = AdvertiseServiceOptions());
 
     /// \brief Advertise a new service.
@@ -644,6 +689,19 @@ namespace gz::transport
         std::function<void(const ReplyT &_reply,
                            const bool _result)> _callback);
 
+    /// \brief Request a new service using a non-blocking call.
+    /// In this version the callback is a generic callable (e.g. a lambda).
+    /// \param[in] _topic Service name requested.
+    /// \param[in] _request Protobuf message containing the request's
+    /// parameters.
+    /// \param[in] _callback Callable executed when the response arrives.
+    /// \return true when the service call was successfully requested.
+    public: template<typename RequestT, typename ReplyT, typename F>
+    bool Request(
+        const std::string &_topic,
+        const RequestT &_request,
+        F _callback);
+
     /// \brief Request a new service without input parameter using a
     /// non-blocking call.
     /// In this version the callback is a lambda function.
@@ -659,6 +717,17 @@ namespace gz::transport
         const std::string &_topic,
         std::function<void(const ReplyT &_reply,
                            const bool _result)> _callback);
+
+    /// \brief Request a new service without input parameter using a
+    /// non-blocking call.
+    /// In this version the callback is a generic callable (e.g. a lambda).
+    /// \param[in] _topic Service name requested.
+    /// \param[in] _callback Callable executed when the response arrives.
+    /// \return true when the service call was successfully requested.
+    public: template<typename ReplyT, typename F>
+    bool Request(
+        const std::string &_topic,
+        F _callback);
 
     /// \brief Request a new service using a non-blocking call.
     /// In this version the callback is a member function.
