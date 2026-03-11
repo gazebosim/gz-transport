@@ -1,7 +1,13 @@
 from gz.msgs.stringmsg_pb2 import StringMsg
 from gz.transport import Node, AdvertiseMessageOptions, SubscribeOptions, NodeOptions
 
+import os
+import random
 import unittest
+
+# Set a unique partition for this test process to avoid conflicts
+# when running tests in parallel. This mirrors what C++ tests do.
+os.environ['GZ_PARTITION'] = str(random.randint(0, 2147483647))
 
 
 class OptionsTEST(unittest.TestCase):
