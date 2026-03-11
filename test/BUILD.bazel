@@ -23,7 +23,11 @@ cc_library(
     includes = ["."],
     visibility = ["//:__subpackages__"],
     deps = [
+        "//:gz-transport",
+        "@googletest//:gtest",
         "@gz-utils",
+        "@gz-utils//:Environment",
+        "@gz-utils//:Subprocess",
     ],
 )
 

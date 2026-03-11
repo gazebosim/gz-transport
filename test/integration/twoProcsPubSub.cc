@@ -17,6 +17,7 @@
 #include <gz/msgs/int32.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
+#include <atomic>
 #include <chrono>
 #include <string>
 #include <vector>
@@ -37,12 +38,12 @@ static std::string partition;  // NOLINT(*)
 static std::string g_FQNPartition;  // NOLINT(*)
 static const std::string g_topic = "/foo";  // NOLINT(*)
 static std::string data = "bar";  // NOLINT(*)
-static bool cbExecuted = false;
-static bool cbInfoExecuted = false;
-static bool genericCbExecuted = false;
-static bool cbVectorExecuted = false;
-static bool cbRawExecuted = false;
-static int counter = 0;
+static std::atomic<bool> cbExecuted{false};
+static std::atomic<bool> cbInfoExecuted{false};
+static std::atomic<bool> genericCbExecuted{false};
+static std::atomic<bool> cbVectorExecuted{false};
+static std::atomic<bool> cbRawExecuted{false};
+static std::atomic<int> counter{0};
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -343,33 +344,22 @@ TEST(twoProcPubSub, TopicList)
   transport::Node node;
   std::vector<std::string> topics;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForTopic(node, g_topic));
 
-  auto start1 = std::chrono::steady_clock::now();
   node.TopicList(topics);
-  auto end1 = std::chrono::steady_clock::now();
   ASSERT_EQ(topics.size(), 1u);
   EXPECT_EQ(topics.at(0), g_topic);
   topics.clear();
 
-  // Time elapsed to get the first topic list
-  auto elapsed1 = std::chrono::duration_cast<std::chrono::milliseconds>
-    (end1 - start1).count();
-
+  // The second call should never block since discovery already completed.
   auto start2 = std::chrono::steady_clock::now();
   node.TopicList(topics);
   auto end2 = std::chrono::steady_clock::now();
   EXPECT_EQ(topics.size(), 1u);
   EXPECT_EQ(topics.at(0), g_topic);
 
-  // The first TopicList() call might block if the discovery is still
-  // initializing (it may happen if we run this test alone).
-  // However, the second call should never block.
   auto elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>
     (end2 - start2).count();
-  EXPECT_LE(elapsed2, elapsed1);
-
   EXPECT_LT(elapsed2, 2);
 
   reset();
@@ -390,8 +380,7 @@ TEST(twoProcPubSub, TopicInfo)
   std::vector<transport::MessagePublisher> publishers;
   std::vector<transport::MessagePublisher> subscribers;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForTopic(node, g_topic));
 
   EXPECT_FALSE(node.TopicInfo("@", publishers, subscribers));
   EXPECT_EQ(publishers.size(), 0u);
@@ -425,19 +414,15 @@ TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
     auto pi = testing::SubprocessJoinWrapper(
        {test_executables::kTwoProcsPubSubSingleSubscriber, partition});
 
-    // Sleep for subscriber process to fully come up
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
     // Reduce the publisher scope so that it is destroyed before the subscriber
     // process ends.
     {
       auto pub = node.Advertise<msgs::Vector3d>(g_topic);
       EXPECT_TRUE(pub);
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }))
+          << "No subscriber connections within timeout";
 
-      // Now, we should have subscribers.
-      EXPECT_TRUE(pub.HasConnections());
 
       msgs::Vector3d msg;
       msg.set_x(1.0);
@@ -473,10 +458,8 @@ TEST(twoProcPubSub, PubSubTwoProcsMixedSubscribers)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-  // Now, we should have subscribers.
-  EXPECT_TRUE(pub.HasConnections());
+  ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }))
+      << "No subscriber connections within timeout";
 
   // Publish messages for a few seconds
   for (auto i = 0; i < 10; ++i)
