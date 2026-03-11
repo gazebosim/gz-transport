@@ -30,6 +30,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
@@ -215,10 +216,10 @@ namespace ignition::transport
     /// * _rep Protobuf message containing the service response.
     /// * _result True when the service request was successful or
     /// false otherwise.
-    public: void SetCallback(const std::function <void(
-      const Rep &_rep, const bool _result)> &_cb)
+    public: void SetCallback(std::function <void(
+      const Rep &_rep, const bool _result)> _cb)
     {
-      this->cb = _cb;
+      this->cb = std::move(_cb);
     }
 
     /// \brief Set the REQ protobuf message for this handler.
