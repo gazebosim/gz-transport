@@ -52,7 +52,7 @@ struct ServiceOptions
   std::string repType;
 
   /// \brief Timeout to use when requesting (in milliseconds)
-  int timeout{1000};
+  int timeout{5000};
 };
 
 //////////////////////////////////////////////////
