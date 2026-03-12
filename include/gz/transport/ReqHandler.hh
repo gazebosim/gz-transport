@@ -207,10 +207,10 @@ namespace gz::transport
     /// * _rep Protobuf message containing the service response.
     /// * _result True when the service request was successful or
     /// false otherwise.
-    public: void SetCallback(std::function <void(
-      const Rep &_rep, const bool _result)> _cb)
+    public: void SetCallback(const std::function <void(
+      const Rep &_rep, const bool _result)> &_cb)
     {
-      this->cb = std::move(_cb);
+      this->cb = _cb;
     }
 
     /// \brief Set the REQ protobuf message for this handler.
