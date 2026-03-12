@@ -138,9 +138,9 @@ namespace gz::transport
     /// * Returns true when the service response is considered
     ///   successful or false otherwise.
     public: void SetCallback(
-      std::function<bool(const Req &, Rep &)> _cb)
+      const std::function<bool(const Req &, Rep &)> &_cb)
     {
-      this->cb = std::move(_cb);
+      this->cb = _cb;
     }
 
 #ifdef HAVE_ZENOH
@@ -153,7 +153,7 @@ namespace gz::transport
     /// \param[in] _session The Zenoh session.
     /// \param[in] _service The service name.
     public: void SetCallback(
-      std::function<bool(const Req &, Rep &)> _cb,
+      const std::function<bool(const Req &, Rep &)> &_cb,
       std::shared_ptr<zenoh::Session> _session,
       const std::string &_service)
     {
