@@ -429,6 +429,35 @@ TEST(gzTest, ServiceRequestNoInput)
   EXPECT_EQ("data: \"good_value\"\n\n", output.cout);
 }
 
+TEST(gzTest, ServiceRequestAutoTypes)
+{
+  transport::Node node;
+
+  // Advertise a service.
+  std::string service = "/echo";
+  std::string value = "10";
+  EXPECT_TRUE(node.Advertise(service, srvEcho));
+
+  msgs::Int32 msg;
+  msg.set_data(10);
+
+
+  auto output = exec_with_retry(
+    {"service",
+     "-s", service,
+     "--timeout", "1000",
+     "--req", "data: " + value},
+    [value](const auto &_out)
+    {
+      return _out.cout == "data: " + value + "\n\n";
+    });
+
+  ASSERT_TRUE(output);
+  EXPECT_EQ(output->cout, "data: " + value + "\n\n");
+  EXPECT_EQ(output->cerr, "");
+}
+
+
 //////////////////////////////////////////////////
 /// \brief Check 'gz topic -e' running the publisher on a separate process.
 TEST(gzTest, TopicEcho)

@@ -18,6 +18,7 @@
 #include <google/protobuf/text_format.h>
 #include "gtest/gtest.h"
 #include <gz/msgs/int32.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <future>
 #include <string>
@@ -74,6 +75,19 @@ bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return false;
+}
+
+/// \brief Provide a service.
+bool srvEchoOk(const msgs::Int32 &_req, msgs::Int32 &_rep)
+{
+  _rep.set_data(_req.data());
+  return true;
+}
+
+bool srvEchoStringOk(const msgs::StringMsg &_req, msgs::StringMsg &_rep)
+{
+  _rep.set_data(_req.data());
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -177,18 +191,6 @@ TEST(gzTest, cmdServiceReq)
   EXPECT_EQ(stdErrBuffer.str(), "Service name is null\n");
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  // A null service request type should generate an error message.
-  cmdServiceReq(g_service.c_str(), nullptr, g_intType.c_str(),
-    kTimeout, g_reqData.c_str());
-  EXPECT_EQ(stdErrBuffer.str(), "Request type is null\n");
-  clearIOStreams(stdOutBuffer, stdErrBuffer);
-
-  // A null service response type should generate an error message.
-  cmdServiceReq(g_service.c_str(), g_intType.c_str(), nullptr,
-    kTimeout, g_reqData.c_str());
-  EXPECT_EQ(stdErrBuffer.str(), "Response type is null\n");
-  clearIOStreams(stdOutBuffer, stdErrBuffer);
-
   // Null data should generate an error message.
   cmdServiceReq(g_service.c_str(), g_intType.c_str(),
     g_intType.c_str(), kTimeout, nullptr);
@@ -223,6 +225,71 @@ TEST(gzTest, cmdServiceReq)
     g_intType.c_str(), kTimeout, g_reqData.c_str());
   EXPECT_EQ(stdErrBuffer.str(), "Service call timed out\n");
   clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  restoreIO();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check cmdServiceReq with type resolution
+TEST(gzTest, cmdServiceReqInferTypes)
+{
+  std::stringstream  stdOutBuffer;
+  std::stringstream  stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const std::string kUnknownType = "_unknown_type_";
+  const int         kTimeout     = 10;
+  const int         value        = 10;
+  const std::string value_s      = std::to_string(value);
+
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(g_service, srvEchoOk));
+
+  msgs::Int32 msg;
+  msg.set_data(value);
+
+  // A null service request type should generate an error message.
+  cmdServiceReq(g_service.c_str(), nullptr, g_intType.c_str(),
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "data: " + value_s + "\n\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  // A null service response type should generate an error message.
+  cmdServiceReq(g_service.c_str(), g_intType.c_str(), nullptr,
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "data: " + value_s + "\n\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  cmdServiceReq(g_service.c_str(), nullptr, nullptr,
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "data: " + value_s + "\n\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  restoreIO();
+}
+
+TEST(gzTest, cmdServiceReqAmbiguousTypes)
+{
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const int kTimeout = 10;
+  const std::string service = "/ambiguous_echo";
+
+  transport::Node node1;
+  transport::Node node2;
+
+  EXPECT_TRUE(node1.Advertise(service, srvEchoOk));
+  EXPECT_TRUE(node2.Advertise(service, srvEchoStringOk));
+
+  cmdServiceReq(service.c_str(), nullptr, nullptr,
+      kTimeout, g_reqData.c_str());
+
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(),
+      "Ambiguous service types for service [/ambiguous_echo]. "
+      "Providers advertise conflicting request/response types.\n");
 
   restoreIO();
 }
