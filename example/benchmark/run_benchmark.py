@@ -28,13 +28,13 @@ Prerequisites:
         cmake --build .
 
 Usage (run from anywhere):
-    python3 <path-to>/run_shm_benchmark.py -b <path-to>/bench [OPTIONS]
+    python3 <path-to>/run_benchmark.py -b <path-to>/bench [OPTIONS]
 
 Example from the example/benchmark/build directory:
-    python3 ../run_shm_benchmark.py -b ./bench -s -i 100 --plot
+    python3 ../run_benchmark.py -b ./bench -s -i 100 --plot
 
 Example from the source root:
-    python3 example/benchmark/run_shm_benchmark.py -b example/benchmark/build/bench -s --plot
+    python3 example/benchmark/run_benchmark.py -b example/benchmark/build/bench -s --plot
 
 Options:
     -b BENCH_PATH   Path to the bench binary (required unless auto-detected)
@@ -345,15 +345,15 @@ def find_bench(bench_arg):
         sys.exit(1)
 
     # Auto-detect: look in common build locations relative to this script
-    # (example/run_shm_benchmark.py) and the current working directory.
+    # (example/run_benchmark.py) and the current working directory.
     script_dir = os.path.dirname(os.path.abspath(__file__))
     cwd = os.getcwd()
     candidates = [
-        # From example/build/: ../run_shm_benchmark.py → ./bench
+        # From example/build/: ../run_benchmark.py → ./bench
         os.path.join(cwd, 'bench'),
-        # From example/: ./run_shm_benchmark.py → build/bench
+        # From example/: ./run_benchmark.py → build/bench
         os.path.join(script_dir, 'build', 'bench'),
-        # From source root: example/run_shm_benchmark.py → example/build/bench
+        # From source root: example/run_benchmark.py → example/build/bench
         os.path.join(script_dir, '..', 'example', 'build', 'bench'),
     ]
     if sys.platform == 'win32':
@@ -369,10 +369,10 @@ def find_bench(bench_arg):
     print("  cd example && mkdir build && cd build && cmake .. && cmake --build .")
     print()
     print("Then either run from example/build/:")
-    print("  python3 ../run_shm_benchmark.py")
+    print("  python3 ../run_benchmark.py")
     print()
     print("Or specify the path explicitly:")
-    print("  python3 run_shm_benchmark.py -b example/build/bench")
+    print("  python3 run_benchmark.py -b example/build/bench")
     sys.exit(1)
 
 
@@ -650,7 +650,7 @@ def main():
     # ── Auto-plot ─────────────────────────────────────────────────────────────
     if args.plot:
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        plot_script = os.path.join(script_dir, 'plot_shm_benchmark.py')
+        plot_script = os.path.join(script_dir, 'plot_benchmark.py')
         print()
         print('Generating plots...')
         subprocess.run([sys.executable, plot_script, output_dir], check=True)

@@ -35,7 +35,7 @@
 /// service calls, and one (or none for in-process testing) of [-p, -r].
 /// Note: --oneway does not support -l (no reply to measure latency).
 ///
-/// See `plot_shm_benchmark.py` to plot output.
+/// See `plot_benchmark.py` to plot output.
 //////////////////////////////////////////////////
 
 #ifdef __linux__

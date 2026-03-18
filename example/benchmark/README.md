@@ -26,7 +26,7 @@ The output binary is `example/benchmark/build/bench`.
 Run a fast comparison (50 iterations, all test types, generates plots):
 
 ```bash
-python3 run_shm_benchmark.py -b build/bench --quick
+python3 run_benchmark.py -b build/bench --quick
 ```
 
 Results are written to `./benchmark_results/`.
@@ -36,7 +36,7 @@ Results are written to `./benchmark_results/`.
 Run the complete suite (1000 iterations, extended sizes, service benchmarks, plots):
 
 ```bash
-python3 run_shm_benchmark.py -b build/bench --full
+python3 run_benchmark.py -b build/bench --full
 ```
 
 This takes roughly 30–60 minutes depending on hardware.
@@ -97,7 +97,7 @@ size_bytes  metric_value  [loss_pct]
 If you already have `.dat` files, regenerate the plots without re-running benchmarks:
 
 ```bash
-python3 plot_shm_benchmark.py benchmark_results/
+python3 plot_benchmark.py benchmark_results/
 ```
 
 ## Running bench Directly

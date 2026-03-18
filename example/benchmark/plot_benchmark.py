@@ -16,13 +16,13 @@
 
 """Plot benchmark charts as PNG files.
 
-Reads .dat files produced by run_shm_benchmark.py and writes one PNG per
+Reads .dat files produced by run_benchmark.py and writes one PNG per
 chart into the output directory.  Uses the 'Agg' non-interactive backend so
 it runs headless in CI environments (Jenkins, GitHub Actions) without a
 display server.
 
 Usage:
-    python3 plot_shm_benchmark.py RESULTS_DIR [--output OUTPUT_DIR]
+    python3 plot_benchmark.py RESULTS_DIR [--output OUTPUT_DIR]
 
 Output files (only written when the corresponding .dat files exist):
     throughput_pubsub.png
@@ -400,7 +400,7 @@ def main() -> None:
         description='Generate PNG benchmark charts from bench .dat files.')
     parser.add_argument('results_dir',
                         help='Directory containing .dat files from '
-                             'run_shm_benchmark.py')
+                             'run_benchmark.py')
     parser.add_argument('--output', '-o', default=None,
                         help='Output directory for PNGs '
                              '(default: same as results_dir)')
