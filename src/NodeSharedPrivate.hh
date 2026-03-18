@@ -102,6 +102,17 @@ namespace gz::transport
           else
             std::cout << "Zenoh default config loaded" << std::endl;
         }
+        // Enable Zenoh SHM transport unless explicitly disabled.
+        // Without this the session won't deliver ZShmMut puts, causing
+        // silent 100% message loss on the SHM publish path.
+        {
+          const char *shmEnv = std::getenv("GZ_TRANSPORT_ZENOH_SHM");
+          bool shmEnabled = !(shmEnv &&
+            (std::string(shmEnv) == "0" ||
+             std::string(shmEnv) == "false"));
+          if (shmEnabled)
+            config.insert_json5("transport/shared_memory/enabled", "true");
+        }
 
         // Apply key=value overrides from GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
         const char *overrideEnv =
@@ -253,6 +264,13 @@ namespace gz::transport
 
     /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
+
+    /// \brief Centralized Zenoh subscribers. One subscriber per topic.
+    /// The callback dispatches to all registered handlers via
+    /// TriggerCallbacks, ensuring O(1) copy + O(1) deserialization
+    /// regardless of how many handlers are registered.
+    public: std::map<std::string, std::unique_ptr<zenoh::Subscriber<void>>>
+              zenohSubscribers;
 #endif
 
     //////////////////////////////////////////////////

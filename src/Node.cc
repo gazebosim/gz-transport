@@ -18,6 +18,7 @@
 #include <gz/msgs/statistic.pb.h>
 
 #include <cassert>
+#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -40,6 +41,31 @@
 
 using namespace gz;
 using namespace transport;
+
+namespace
+{
+  /// \brief Default minimum message size to use SHM (bytes).
+  /// Messages smaller than this use regular heap allocation.
+  /// Configurable via GZ_TRANSPORT_ZENOH_SHM_THRESHOLD env var.
+  /// Set to 0 to use SHM for all message sizes.
+  std::size_t ShmThreshold()
+  {
+    static const std::size_t threshold = []() -> std::size_t {
+      const char *val = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
+      if (val)
+      {
+        try { return std::stoul(val); }
+        catch (...) {}
+      }
+      return 128 * 1024;  // 128KB default
+    }();
+    return threshold;
+  }
+
+  /// \brief Default SHM pool size (10MB).
+  /// Configurable via GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE env var.
+  constexpr std::size_t kDefaultShmPoolSize = 10 * 1024 * 1024;
+}
 
 namespace gz::transport
 {
@@ -89,6 +115,52 @@ class Node::PublisherPrivate
       zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub))),
       zToken(std::make_unique<zenoh::LivelinessToken>(std::move(_zToken)))
   {
+    // SHM is enabled by default, can be disabled via GZ_TRANSPORT_ZENOH_SHM=0
+    bool shmEnabled = true;
+    std::string shmEnvValue;
+    if (env("GZ_TRANSPORT_ZENOH_SHM", shmEnvValue) &&
+        (shmEnvValue == "0" || shmEnvValue == "false"))
+    {
+      shmEnabled = false;
+    }
+
+    if (shmEnabled)
+    {
+      std::size_t poolSize = kDefaultShmPoolSize;
+      std::string poolSizeStr;
+      if (env("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE", poolSizeStr))
+      {
+        try { poolSize = std::stoul(poolSizeStr); }
+        catch (...) { /* use default */ }
+      }
+
+      try
+      {
+        this->provider = std::make_unique<zenoh::PosixShmProvider>(
+          zenoh::MemoryLayout(poolSize, zenoh::AllocAlignment({0})));
+      }
+      catch (const std::exception &_e)
+      {
+        std::cerr << "gz-transport: SHM provider creation failed ("
+                  << _e.what() << "), falling back to heap.\n";
+      }
+    }
+  }
+
+  /// \brief Allocate a SHM buffer for a message of the given size.
+  /// Returns the ZShmMut buffer if SHM is enabled, the message meets the
+  /// threshold, and allocation succeeds; otherwise returns std::nullopt.
+  /// \param[in] _size Serialized size of the message in bytes.
+  /// \return SHM buffer or std::nullopt on failure.
+  public: std::optional<zenoh::ZShmMut> AllocShmBuf(std::size_t _size)
+  {
+    if (!this->provider || _size < ShmThreshold())
+      return std::nullopt;
+    auto result = this->provider->alloc_gc_defrag_blocking(
+      _size, zenoh::AllocAlignment({0}));
+    if (!std::holds_alternative<zenoh::ZShmMut>(result))
+      return std::nullopt;
+    return std::get<zenoh::ZShmMut>(std::move(result));
   }
 #endif
 
@@ -176,6 +248,9 @@ class Node::PublisherPrivate
 
   /// \brief The liveliness token.
   public: std::unique_ptr<zenoh::LivelinessToken> zToken;
+
+  /// \brief SHM provider for zero-copy publishing.
+  public: std::unique_ptr<zenoh::PosixShmProvider> provider;
 #endif
 
   /// \brief Timestamp of the last callback executed.
@@ -420,6 +495,34 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 #else
   const std::size_t msgSize = static_cast<std::size_t>(_msg.ByteSize());
 #endif
+
+  // Get the transport implementation once for use throughout.
+  std::string impl = this->dataPtr->shared->GzImplementation();
+
+#ifdef HAVE_ZENOH
+  // Zero-copy optimization: serialize directly into the SHM buffer,
+  // skipping heap allocation entirely. Only when we have ONLY remote
+  // Zenoh subscribers (local/raw subscribers still need the heap path).
+  if (impl == "zenoh" &&
+      subscribers.haveRemote &&
+      !subscribers.haveLocal &&
+      !subscribers.haveRaw)
+  {
+    if (auto shmBuf = this->dataPtr->AllocShmBuf(msgSize))
+    {
+      if (_msg.SerializeToArray(shmBuf->data(), msgSize))
+      {
+        zenoh::Publisher::PutOptions options;
+        options.attachment = this->dataPtr->publisher.MsgTypeName();
+        this->dataPtr->zPub->put(std::move(*shmBuf), std::move(options));
+        return true;
+      }
+      // SerializeToArray failed — fall through to normal path
+    }
+    // AllocShmBuf returned nullopt — fall through to normal path
+  }
+#endif
+
   char *msgBuffer = nullptr;
 
   // Only serialize the message if we have a raw subscriber or a remote
@@ -529,7 +632,6 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   }
 
   // Handle remote subscribers.
-  std::string impl = this->dataPtr->shared->GzImplementation();
   if (impl == "zeromq")
   {
     if (subscribers.haveRemote)
@@ -558,14 +660,32 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     if (subscribers.haveRemote)
     {
       zenoh::Publisher::PutOptions options;
-      // Add message type as an attachment.
       options.attachment = this->dataPtr->publisher.MsgTypeName();
 
-      // Zenoh will call this lambda once Bytes objects are destroyed
-      auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-      auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
-      this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
-                               std::move(options));
+      // Try SHM first. The bool usedShm pattern ensures options is only
+      // std::move'd in one branch, so the fallback always has a valid
+      // attachment.
+      bool usedShm = false;
+      if (auto shmBuf = this->dataPtr->AllocShmBuf(msgSize))
+      {
+        memcpy(shmBuf->data(), msgBuffer, msgSize);
+        this->dataPtr->zPub->put(std::move(*shmBuf), std::move(options));
+        usedShm = true;
+        delete[] msgBuffer;
+      }
+      if (!usedShm)
+      {
+        // options.attachment is still valid — AllocShmBuf returned nullopt
+        // so std::move(options) above was never reached.
+        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+        auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
+        this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
+                                 std::move(options));
+      }
+    }
+    else
+    {
+      delete[] msgBuffer;
     }
   }
 #endif
@@ -638,14 +758,23 @@ bool Node::Publisher::PublishRaw(
     else if (impl == "zenoh")
     {
       zenoh::Publisher::PutOptions options;
-      // Add message type as an attachment.
       options.attachment = this->dataPtr->publisher.MsgTypeName();
 
-      // Zenoh will call this lambda once Bytes objects are destroyed
-      auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-      auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
-      this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
-                               std::move(options));
+      bool usedShm = false;
+      if (auto shmBuf = this->dataPtr->AllocShmBuf(msgSize))
+      {
+        memcpy(shmBuf->data(), msgBuffer, msgSize);
+        this->dataPtr->zPub->put(std::move(*shmBuf), std::move(options));
+        usedShm = true;
+        delete[] msgBuffer;
+      }
+      if (!usedShm)
+      {
+        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+        auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
+        this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
+                                 std::move(options));
+      }
     }
 #endif
     else
@@ -903,8 +1032,12 @@ bool Node::SubscribeRaw(
 #ifdef HAVE_ZENOH
   else if (impl == "zenoh")
   {
-    handlerPtr->SetCallback(std::move(_callback),
+    // Just store the callback - no per-handler Zenoh subscriber.
+    // The centralized subscriber in NodeShared handles data dispatch.
+    handlerPtr->SetCallback(_callback);
+    handlerPtr->CreateLivelinessToken(
       this->Shared()->Session(), fullyQualifiedTopic);
+    this->Shared()->EnsureZenohSubscription(*fullyQualifiedTopic.FullTopic());
   }
 #endif
   else
@@ -1163,8 +1296,18 @@ Node::Publisher Node::Advertise(const std::string &_topic,
 #ifdef HAVE_ZENOH
   else if (impl == "zenoh")
   {
+    zenoh::Session::PublisherOptions pubOpts;
+
+    // Congestion control: "block" waits for buffer space (no message loss),
+    // "drop" (default) drops messages when the buffer is full.
+    // Configurable via GZ_TRANSPORT_ZENOH_CONGESTION_CONTROL env var.
+    const char *ccEnv =
+        std::getenv("GZ_TRANSPORT_ZENOH_CONGESTION_CONTROL");
+    if (ccEnv && std::string(ccEnv) == "block")
+      pubOpts.congestion_control = Z_CONGESTION_CONTROL_BLOCK;
+
     auto zPub = this->Shared()->dataPtr->session->declare_publisher(
-     zenoh::KeyExpr(fullyQualifiedTopic));
+     zenoh::KeyExpr(fullyQualifiedTopic), std::move(pubOpts));
 
     std::string token = TopicUtils::CreateLivelinessToken(
       fullyQualifiedTopic, this->Shared()->pUuid, this->NodeUuid(), "MP",

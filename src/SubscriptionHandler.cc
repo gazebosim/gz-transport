@@ -151,43 +151,22 @@ namespace gz::transport
     // Do nothing
   }
 
+  /////////////////////////////////////////////////
+  const std::shared_ptr<ProtoMsg> ISubscriptionHandler::CreateMsgFromBuffer(
+    const char *_data,
+    std::size_t _size,
+    const std::string &_type) const
+  {
+    // Default: copy buffer into a string, then delegate to CreateMsg.
+    return this->CreateMsg(std::string(_data, _size), _type);
+  }
+
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
-  void ISubscriptionHandler::CreateGenericZenohSubscriber(
+  void ISubscriptionHandler::CreateLivelinessToken(
     std::shared_ptr<zenoh::Session> _session,
     const std::string &_topic)
   {
-    MessageInfo msgInfo;
-    msgInfo.SetTopic(_topic);
-    msgInfo.SetType(this->TypeName());
-    auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
-    {
-      auto attachment = _sample.get_attachment();
-      if (attachment.has_value())
-      {
-        // Same topic but different type, not interested.
-        auto msgType = attachment->get().as_string();
-        if (this->TypeName() != kGenericMessageType &&
-            this->TypeName() != msgType)
-        {
-          return;
-        }
-
-        auto output = this->CreateMsg(
-          _sample.get_payload().as_string(), msgType);
-        this->RunLocalCallback(*output, msgInfo);
-      }
-      else
-      {
-        std::cerr << "SubscriptionHandler::SetCallback(): Unable to find "
-                  << "attachment. Ignoring message..." << std::endl;
-      }
-    };
-
-    this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
-      _session->declare_subscriber(
-        _topic, dataHandler, zenoh::closures::none));
-
     std::string token = TopicUtils::CreateLivelinessToken(
       _topic, this->ProcUuid(), this->NodeUuid(), "MS", this->TypeName());
 
@@ -244,44 +223,24 @@ namespace gz::transport
     std::shared_ptr<zenoh::Session> _session,
     const FullyQualifiedTopic &_fullyQualifiedTopic)
   {
+    // Store the callback and create the liveliness token for discovery.
+    // The actual Zenoh subscriber is managed centrally by NodeShared
+    // (EnsureZenohSubscription), which dispatches to all handlers via
+    // TriggerCallbacks for O(1) copy + O(1) deserialization.
+    this->SetCallback(_cb);
+    this->CreateLivelinessToken(_session, _fullyQualifiedTopic);
+  }
+
+  /////////////////////////////////////////////////
+  void RawSubscriptionHandler::CreateLivelinessToken(
+    std::shared_ptr<zenoh::Session> _session,
+    const FullyQualifiedTopic &_fullyQualifiedTopic)
+  {
     if (!_fullyQualifiedTopic.FullTopic())
     {
       std::cerr << "Fully qualified topic is not valid\n";
       return;
     }
-    zenoh::KeyExpr keyexpr(*_fullyQualifiedTopic.FullTopic());
-
-    auto dataHandler =
-        [this, _fullyQualifiedTopic](const zenoh::Sample &_sample)
-    {
-      MessageInfo msgInfo;
-      msgInfo.SetTopic(_fullyQualifiedTopic.Topic());
-      auto attachment = _sample.get_attachment();
-      if (attachment.has_value())
-      {
-        // Same topic but different type, not interested.
-        auto msgType = attachment->get().as_string();
-        if (this->TypeName() != kGenericMessageType &&
-            this->TypeName() != msgType)
-        {
-          return;
-        }
-
-        msgInfo.SetType(msgType);
-        auto payload = _sample.get_payload().as_string();
-
-        this->RunRawCallback(payload.c_str(), payload.size(), msgInfo);
-      }
-      else
-      {
-        std::cerr << "RawSubscriptionHandler::SetCallback(): Unable to find "
-                  << "attachment. Ignoring message..." << std::endl;
-      }
-    };
-
-    this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
-      _session->declare_subscriber(
-        keyexpr, dataHandler, zenoh::closures::none));
 
     std::string token = TopicUtils::CreateLivelinessToken(
         *_fullyQualifiedTopic.FullTopic(), this->ProcUuid(), this->NodeUuid(),
@@ -292,8 +251,6 @@ namespace gz::transport
 
     this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
         _session->liveliness_declare_token(token));
-
-    this->SetCallback(std::move(_cb));
   }
 #endif
 
