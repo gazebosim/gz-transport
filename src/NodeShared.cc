@@ -30,6 +30,8 @@
 #include <unordered_map>
 
 #ifdef HAVE_ZENOH
+// Unlock get_contiguous_view() for zero-copy SHM receive path.
+#define Z_FEATURE_UNSTABLE_API
 #include <zenoh.hxx>
 #endif
 #include <zmq.hpp>
@@ -591,6 +593,68 @@ void NodeShared::TriggerCallbacks(
               }
             }
 
+            localHandler->RunLocalCallback(*msg, _info);
+          }
+        }
+        else
+          std::cerr << "Local subscription handler is NULL" << std::endl;
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void NodeShared::TriggerCallbacks(
+    const MessageInfo &_info,
+    const char *_msgData,
+    std::size_t _msgSize,
+    const HandlerInfo &_handlerInfo)
+{
+  if (!_handlerInfo.haveLocal && !_handlerInfo.haveRaw)
+    return;
+
+  if (_handlerInfo.haveRaw)
+  {
+    for (const auto &node : _handlerInfo.rawHandlers)
+    {
+      for (const auto &handler : node.second)
+      {
+        const RawSubscriptionHandlerPtr &rawHandler = handler.second;
+        if (rawHandler)
+        {
+          if (rawHandler->TypeName() == _info.Type() ||
+              rawHandler->TypeName() == kGenericMessageType)
+          {
+            rawHandler->RunRawCallback(_msgData, _msgSize, _info);
+          }
+        }
+        else
+          std::cerr << "Raw subscription handler is NULL" << std::endl;
+      }
+    }
+  }
+
+  if (_handlerInfo.haveLocal)
+  {
+    std::shared_ptr<ProtoMsg> msg;
+
+    for (const auto &node : _handlerInfo.localHandlers)
+    {
+      for (const auto &handler : node.second)
+      {
+        const ISubscriptionHandlerPtr &localHandler = handler.second;
+        if (localHandler)
+        {
+          if (localHandler->TypeName() == _info.Type() ||
+              localHandler->TypeName() == kGenericMessageType)
+          {
+            if (!msg)
+            {
+              msg = localHandler->CreateMsgFromBuffer(
+                _msgData, _msgSize, _info.Type());
+              if (!msg)
+                return;
+            }
             localHandler->RunLocalCallback(*msg, _info);
           }
         }
@@ -1882,6 +1946,61 @@ std::shared_ptr<zenoh::Session> NodeShared::Session()
 {
   return this->dataPtr->session;
 }
+
+/////////////////////////////////////////////////
+void NodeShared::EnsureZenohSubscription(const std::string &_topic)
+{
+  // Already have a centralized subscriber for this topic?
+  if (this->dataPtr->zenohSubscribers.count(_topic))
+    return;
+
+  auto dataHandler = [this, _topic](const zenoh::Sample &_sample)
+  {
+    auto attachment = _sample.get_attachment();
+    if (!attachment.has_value())
+    {
+      std::cerr << "NodeShared::EnsureZenohSubscription(): "
+                << "Unable to find attachment. Ignoring message..."
+                << std::endl;
+      return;
+    }
+    auto msgType = attachment->get().as_string();
+
+    MessageInfo info;
+    info.SetTopicAndPartition(_topic);
+    info.SetType(msgType);
+
+    HandlerInfo handlerInfo = this->CheckHandlerInfo(_topic);
+
+    // Zero-copy SHM path: get a direct pointer into the SHM buffer when
+    // available, avoiding a heap copy entirely.
+    auto view = _sample.get_payload().get_contiguous_view();
+    if (view.has_value())
+    {
+      this->TriggerCallbacks(info,
+        reinterpret_cast<const char *>(view->data), view->len, handlerInfo);
+    }
+    else
+    {
+      // Fallback: copy payload to a string (non-SHM or fragmented buffer).
+      auto payload = _sample.get_payload().as_string();
+      this->TriggerCallbacks(info, payload, handlerInfo);
+    }
+  };
+
+  this->dataPtr->zenohSubscribers[_topic] =
+    std::make_unique<zenoh::Subscriber<void>>(
+      this->dataPtr->session->declare_subscriber(_topic, dataHandler,
+        zenoh::closures::none));
+}
+
+/////////////////////////////////////////////////
+void NodeShared::MaybeRemoveZenohSubscription(const std::string &_topic)
+{
+  // If no handlers remain for this topic, remove the centralized subscriber.
+  if (!this->localSubscribers.HasSubscriber(_topic))
+    this->dataPtr->zenohSubscribers.erase(_topic);
+}
 #endif
 
 //////////////////////////////////////////////////
@@ -1955,6 +2074,12 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
           zmq::sockopt::unsubscribe, fullyQualifiedTopic);
       }
     }
+#ifdef HAVE_ZENOH
+    else if (this->GzImplementation() == "zenoh")
+    {
+      this->MaybeRemoveZenohSubscription(fullyQualifiedTopic);
+    }
+#endif
 
     // Prepare to notify publishers outside the lock
     shouldNotifyPublishers = true;

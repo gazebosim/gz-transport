@@ -162,11 +162,25 @@ namespace gz::transport
       const std::string &_data,
       const std::string &_type) const = 0;
 
+    /// \brief Create a protobuf message from a raw buffer.
+    /// Avoids a string copy compared to CreateMsg when the data already
+    /// lives in a contiguous buffer (e.g. Zenoh SHM).
+    /// Default implementation falls back to a string copy + CreateMsg.
+    /// \param[in] _data Pointer to the serialized data.
+    /// \param[in] _size Number of bytes in _data.
+    /// \param[in] _type The data type.
+    /// \return Pointer to the specific protobuf message.
+    public: virtual const std::shared_ptr<ProtoMsg> CreateMsgFromBuffer(
+      const char *_data,
+      std::size_t _size,
+      const std::string &_type) const;
+
 #ifdef HAVE_ZENOH
-    /// \brief Create a Zenoh subscriber
+    /// \brief Create a Zenoh liveliness token for discovery.
+    /// The actual Zenoh subscriber is managed centrally by NodeShared.
     /// \param[in] _session Zenoh session.
     /// \param[in] _topic The topic.
-    public: void CreateGenericZenohSubscriber(
+    public: void CreateLivelinessToken(
       std::shared_ptr<zenoh::Session> _session,
       const std::string &_topic);
 #endif
@@ -206,6 +220,21 @@ namespace gz::transport
     }
 
     // Documentation inherited.
+    public: const std::shared_ptr<ProtoMsg> CreateMsgFromBuffer(
+      const char *_data,
+      std::size_t _size,
+      const std::string &/*_type*/) const override
+    {
+      auto msgPtr = std::make_shared<T>();
+      if (!msgPtr->ParseFromArray(_data, static_cast<int>(_size)))
+      {
+        std::cerr << "SubscriptionHandler::CreateMsgFromBuffer() error: "
+                  << "ParseFromArray failed" << std::endl;
+      }
+      return msgPtr;
+    }
+
+    // Documentation inherited.
     public: std::string TypeName()
     {
       return std::string(T().GetTypeName());
@@ -228,7 +257,7 @@ namespace gz::transport
                              const std::string &_topic)
     {
       this->SetCallback(std::move(_cb));
-      this->CreateGenericZenohSubscriber(_session, _topic);
+      this->CreateLivelinessToken(_session, _topic);
     }
 #endif
 
@@ -337,6 +366,42 @@ namespace gz::transport
     }
 
     // Documentation inherited.
+    public: const std::shared_ptr<ProtoMsg> CreateMsgFromBuffer(
+      const char *_data,
+      std::size_t _size,
+      const std::string &_type) const override
+    {
+      std::shared_ptr<google::protobuf::Message> msgPtr;
+
+      const google::protobuf::Descriptor *desc =
+        google::protobuf::DescriptorPool::generated_pool()
+          ->FindMessageTypeByName(_type);
+
+      if (desc)
+      {
+        msgPtr.reset(google::protobuf::MessageFactory::generated_factory()
+          ->GetPrototype(desc)->New());
+      }
+      else
+      {
+        msgPtr = gz::msgs::Factory::New(_type);
+      }
+
+      if (!msgPtr)
+        return nullptr;
+
+      if (!msgPtr->ParseFromArray(_data, static_cast<int>(_size)))
+      {
+        std::cerr << "CreateMsgFromBuffer() error: ParseFromArray failed"
+                  << std::endl;
+        return nullptr;
+      }
+
+      return msgPtr;
+    }
+
+
+    // Documentation inherited.
     public: std::string TypeName()
     {
       return kGenericMessageType;
@@ -359,7 +424,7 @@ namespace gz::transport
                              const std::string &_topic)
     {
       this->SetCallback(std::move(_cb));
-      this->CreateGenericZenohSubscriber(_session, _topic);
+      this->CreateLivelinessToken(_session, _topic);
     }
 #endif
 
@@ -421,6 +486,14 @@ namespace gz::transport
     public: void SetCallback(const RawCallback &_cb,
                              std::shared_ptr<zenoh::Session> _session,
                              const FullyQualifiedTopic &_fullyQualifiedTopic);
+
+    /// \brief Create a Zenoh liveliness token for discovery.
+    /// The actual Zenoh subscriber is managed centrally by NodeShared.
+    /// \param[in] _session Zenoh session.
+    /// \param[in] _fullyQualifiedTopic The fully qualified topic.
+    public: void CreateLivelinessToken(
+      std::shared_ptr<zenoh::Session> _session,
+      const FullyQualifiedTopic &_fullyQualifiedTopic);
 #endif
 
     /// \brief Executes the raw callback registered for this handler.

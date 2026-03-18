@@ -72,6 +72,30 @@ Below are descriptions of the available environment variables:
     overrides take priority. Example:
     `GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE="transport/link/tx/queue/size/data=8;transport/shared_memory/enabled=true"`
     * *Available in backend:*: zenoh
+* **GZ_TRANSPORT_ZENOH_SHM**
+    * *Value allowed*: [0, false, 1]
+    * *Default value*: enabled (any value other than 0 or false)
+    * *Description*: Enable or disable POSIX shared memory (SHM) for Zenoh
+    publishers. When enabled, messages above the SHM threshold are published
+    through a shared memory pool, avoiding serialization copies for
+    inter-process communication. Each publisher creates its own SHM pool.
+    Set to `0` or `false` to disable.
+    * *Available in backend:*: zenoh
+* **GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE**
+    * *Value allowed*: Any positive integer (bytes)
+    * *Default value*: 10485760 (10MB)
+    * *Description*: Size in bytes of the per-publisher POSIX shared memory
+    pool. Increase this if you publish very large messages or publish at a
+    very high rate.
+    * *Available in backend:*: zenoh
+* **GZ_TRANSPORT_ZENOH_SHM_THRESHOLD**
+    * *Value allowed*: Any non-negative integer (bytes)
+    * *Default value*: 131072 (128KB)
+    * *Description*: Minimum serialized message size (bytes) to use SHM.
+    Messages smaller than this threshold are published via regular heap
+    allocation. Set to `0` to route all messages through SHM regardless of
+    size.
+    * *Available in backend:*: zenoh
 * **GZ_TRANSPORT_LOG_SQL_PATH**
     * *Value allowed*: Any path
     * *Description*: Path to the SQL files used by logging. This does not

@@ -185,6 +185,19 @@ namespace gz::transport
       const std::string &_msgData,
       const HandlerInfo &_handlerInfo);
 
+    /// \brief Call the SubscriptionHandler callbacks from a raw buffer.
+    /// Avoids constructing a std::string from the data, enabling zero-copy
+    /// when the buffer comes directly from Zenoh SHM via get_contiguous_view.
+    /// \param[in] _info Message information.
+    /// \param[in] _msgData Pointer to the serialized data.
+    /// \param[in] _msgSize Number of bytes in _msgData.
+    /// \param[in] _handlerInfo Information for the handlers of this node.
+    public: void TriggerCallbacks(
+      const MessageInfo &_info,
+      const char *_msgData,
+      std::size_t _msgSize,
+      const HandlerInfo &_handlerInfo);
+
     /// \brief Method in charge of receiving the service call requests.
     public: void RecvSrvRequest();
 
@@ -316,6 +329,18 @@ namespace gz::transport
     /// \brief Get the current Zenoh session.
     /// \return The Zenoh session.
     public: std::shared_ptr<zenoh::Session> Session();
+
+    /// \brief Ensure a centralized Zenoh subscriber exists for this topic.
+    /// If one already exists, this is a no-op. The centralized subscriber
+    /// extracts the payload once and dispatches to all handlers via
+    /// TriggerCallbacks (matching the ZMQ efficiency model).
+    /// \param[in] _topic Fully qualified topic name.
+    public: void EnsureZenohSubscription(const std::string &_topic);
+
+    /// \brief Remove the centralized Zenoh subscriber for a topic if no
+    /// handlers remain.
+    /// \param[in] _topic Fully qualified topic name.
+    public: void MaybeRemoveZenohSubscription(const std::string &_topic);
 #endif
 
     /// \brief Unsubscribe a node from a topic.
