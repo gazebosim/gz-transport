@@ -222,12 +222,10 @@ extern "C" void cmdServiceReq(const char *_service,
 
   std::string reqType = _reqType ? _reqType : "";
   std::string repType = _repType ? _repType : "";
+  Node node;
 
   if (reqType.empty() || repType.empty())
   {
-  // Get the publishers on the requested topic
-    Node node;
-
     std::vector<ServicePublisher> publishers;
     node.ServiceInfo(_service, publishers);
 
@@ -237,23 +235,26 @@ extern "C" void cmdServiceReq(const char *_service,
       return;
     }
 
-      const std::string discoveredReqType = publishers[0].ReqTypeName();
-      const std::string discoveredRepType = publishers[0].RepTypeName();
+    const std::string discoveredReqType = publishers[0].ReqTypeName();
+    const std::string discoveredRepType = publishers[0].RepTypeName();
 
-      for (size_t i = 1; i < publishers.size(); ++i)
+    for (size_t i = 1; i < publishers.size(); ++i)
+    {
+      if (publishers[i].ReqTypeName() != discoveredReqType ||
+          publishers[i].RepTypeName() != discoveredRepType)
       {
-        if (publishers[i].ReqTypeName() != discoveredReqType ||
-            publishers[i].RepTypeName() != discoveredRepType)
-        {
-          std::cerr << "Ambiguous service types for service [" << _service
-                    << "]. Providers advertise conflicting request/response "
-                    << "types.\n";
-          return;
-        }
+        std::cerr << "Ambiguous service types for service [" << _service
+          << "].\n" << "  Provider 1: request=" << discoveredReqType
+          << ", response=" << discoveredRepType << "\n"
+          << "  Provider 2: request=" << publishers[i].ReqTypeName()
+          << ", response=" << publishers[i].RepTypeName() << "\n"
+          << "Use --reqtype and --reptype to specify explicitly.\n";
+        return;
       }
+    }
 
-    reqType = reqType.empty() ? publishers[0].ReqTypeName() : reqType;
-    repType = repType.empty() ? publishers[0].RepTypeName() : repType;
+    reqType = reqType.empty() ? discoveredReqType : reqType;
+    repType = repType.empty() ? discoveredRepType : repType;
   }
 
   if (!_reqData)
@@ -279,8 +280,6 @@ extern "C" void cmdServiceReq(const char *_service,
     return;
   }
 
-  // Create the node.
-  Node node;
   bool result;
 
   if (repType == "gz.msgs.Empty")

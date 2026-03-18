@@ -71,7 +71,7 @@ void restoreIO()
 }
 
 /// \brief Provide a service.
-bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
+bool srvEchoFail(const msgs::Int32 &_req, msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return false;
@@ -180,7 +180,7 @@ TEST(gzTest, cmdServiceReq)
   const int         kTimeout     = 10;
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(g_service, srvEcho));
+  EXPECT_TRUE(node.Advertise(g_service, srvEchoFail));
 
   msgs::Int32 msg;
   msg.set_data(10);
@@ -248,13 +248,13 @@ TEST(gzTest, cmdServiceReqInferTypes)
   msgs::Int32 msg;
   msg.set_data(value);
 
-  // A null service request type should generate an error message.
+  // A null service request type should be automatically inferred
   cmdServiceReq(g_service.c_str(), nullptr, g_intType.c_str(),
     kTimeout, g_reqData.c_str());
   EXPECT_EQ(stdOutBuffer.str(), "data: " + value_s + "\n\n");
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  // A null service response type should generate an error message.
+  // A null service response type should be automatically inferred
   cmdServiceReq(g_service.c_str(), g_intType.c_str(), nullptr,
     kTimeout, g_reqData.c_str());
   EXPECT_EQ(stdOutBuffer.str(), "data: " + value_s + "\n\n");
@@ -268,6 +268,8 @@ TEST(gzTest, cmdServiceReqInferTypes)
   restoreIO();
 }
 
+//////////////////////////////////////////////////
+/// \brief Check cmdServiceReq with ambiguous types
 TEST(gzTest, cmdServiceReqAmbiguousTypes)
 {
   std::stringstream stdOutBuffer;
@@ -288,9 +290,10 @@ TEST(gzTest, cmdServiceReqAmbiguousTypes)
 
   EXPECT_EQ(stdOutBuffer.str(), "");
   EXPECT_EQ(stdErrBuffer.str(),
-      "Ambiguous service types for service [/ambiguous_echo]. "
-      "Providers advertise conflicting request/response types.\n");
-
+      "Ambiguous service types for service [/ambiguous_echo].\n"
+      "  Provider 1: request=gz.msgs.Int32, response=gz.msgs.Int32\n"
+      "  Provider 2: request=gz.msgs.StringMsg, response=gz.msgs.StringMsg\n"
+      "Use --reqtype and --reptype to specify explicitly.\n");
   restoreIO();
 }
 
