@@ -1,8 +1,8 @@
-libgz-cmake5-dev
-libgz-math9-dev
-libgz-msgs12-dev
-libgz-tools2-dev
-libgz-utils4-cli-dev
+libgz-rotary-cmake-dev
+libgz-rotary-math-dev
+libgz-rotary-msgs-dev
+libgz-rotary-tools-dev
+libgz-rotary-utils-cli-dev
 libprotobuf-dev
 libprotoc-dev
 libsqlite3-dev
@@ -13,5 +13,5 @@ python3-dev
 python3-psutil
 python3-pybind11
 python3-pytest
-python3-gz-msgs12
+python3-gz-rotary-msgs
 uuid-dev
