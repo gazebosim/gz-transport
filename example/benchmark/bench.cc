@@ -537,7 +537,11 @@ class PubTester
   {
     std::time_t t = std::time(nullptr);
     std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &t);
+#else
     localtime_r(&t, &tm);
+#endif
 
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Gazebo Transport Version "
@@ -1058,7 +1062,11 @@ class SrvTester
   {
     std::time_t t = std::time(nullptr);
     std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &t);
+#else
     localtime_r(&t, &tm);
+#endif
 
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Gazebo Transport Version "
@@ -1379,7 +1387,11 @@ class OneWaySrvTester
   {
     std::time_t t = std::time(nullptr);
     std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &t);
+#else
     localtime_r(&t, &tm);
+#endif
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Gazebo Transport Version "
                << GZ_TRANSPORT_VERSION_FULL << std::endl;
@@ -1625,7 +1637,11 @@ class NoInputSrvTester
   {
     std::time_t t = std::time(nullptr);
     std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &t);
+#else
     localtime_r(&t, &tm);
+#endif
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Gazebo Transport Version "
                << GZ_TRANSPORT_VERSION_FULL << std::endl;
