@@ -38,7 +38,7 @@
 /// See `plot_benchmark.py` to plot output.
 //////////////////////////////////////////////////
 
-#ifdef __linux__
+#ifndef _WIN32
 #include <sys/utsname.h>
 #include <unistd.h>
 #endif
@@ -547,7 +547,7 @@ class PubTester
     (*_stream) << "# Gazebo Transport Version "
                << GZ_TRANSPORT_VERSION_FULL << std::endl;
 
-#ifdef __linux__
+#ifndef _WIN32
     struct utsname unameData;
     uname(&unameData);
     (*_stream) << "# " << unameData.sysname << " " << unameData.release
@@ -1072,7 +1072,7 @@ class SrvTester
     (*_stream) << "# Gazebo Transport Version "
                << GZ_TRANSPORT_VERSION_FULL << std::endl;
 
-#ifdef __linux__
+#ifndef _WIN32
     struct utsname unameData;
     uname(&unameData);
     (*_stream) << "# " << unameData.sysname << " " << unameData.release
@@ -1395,7 +1395,7 @@ class OneWaySrvTester
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Gazebo Transport Version "
                << GZ_TRANSPORT_VERSION_FULL << std::endl;
-#ifdef __linux__
+#ifndef _WIN32
     struct utsname unameData;
     uname(&unameData);
     (*_stream) << "# " << unameData.sysname << " " << unameData.release
@@ -1645,7 +1645,7 @@ class NoInputSrvTester
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Gazebo Transport Version "
                << GZ_TRANSPORT_VERSION_FULL << std::endl;
-#ifdef __linux__
+#ifndef _WIN32
     struct utsname unameData;
     uname(&unameData);
     (*_stream) << "# " << unameData.sysname << " " << unameData.release
@@ -1884,7 +1884,7 @@ void signalHandler(int _signal)
   {
     // Move past the \r-based progress line before anything else prints.
     // write() is async-signal-safe; std::cerr is not.
-#ifdef __linux__
+#ifndef _WIN32
     write(STDERR_FILENO, "\n", 1);
 #endif
     gStop = true;
