@@ -219,7 +219,8 @@ def _nearest_value(sizes: list, values: list, target: int):
 
 # ── Figure builders ────────────────────────────────────────────────────────────
 
-def make_throughput_figure(all_data: dict) -> plt.Figure:
+def make_throughput_figure(all_data: dict,
+                          title: str = 'Pub/Sub Throughput') -> plt.Figure:
     """Two-panel figure: throughput (MB/s) on top, loss % on bottom.
 
     The top panel shows raw throughput for every config on a log-scale X axis.
@@ -278,10 +279,12 @@ def make_throughput_figure(all_data: dict) -> plt.Figure:
 
     fig.align_ylabels([ax1, ax2])
     _right_legend(ax1)
+    fig.suptitle(title, fontsize=13, fontweight='bold', y=0.98)
     return fig
 
 
-def _latency_figure(all_data: dict, figsize: tuple) -> plt.Figure:
+def _latency_figure(all_data: dict, figsize: tuple,
+                    title: str = '') -> plt.Figure:
     """Shared implementation for latency charts (average line per config)."""
     fig, ax = plt.subplots(figsize=figsize)
 
@@ -298,12 +301,15 @@ def _latency_figure(all_data: dict, figsize: tuple) -> plt.Figure:
     _configure_log_xaxis(ax)
     ax.set_ylabel('Latency (µs) ↓', labelpad=6)
     _right_legend(ax)
+    if title:
+        fig.suptitle(title, fontsize=13, fontweight='bold', y=0.98)
     return fig
 
 
 def make_latency_figure(all_data: dict) -> plt.Figure:
-    """Pub/sub latency chart with per-config min–max shaded bands."""
-    return _latency_figure(all_data, figsize=(12, 5))
+    """Pub/sub latency chart."""
+    return _latency_figure(all_data, figsize=(12, 5),
+                           title='Pub/Sub Latency')
 
 
 def make_summary_figure(tput_data: dict, lat_data: dict):
@@ -358,12 +364,14 @@ def make_summary_figure(tput_data: dict, lat_data: dict):
     return fig
 
 
-def make_svc_latency_figure(all_data: dict) -> plt.Figure:
-    """Service-call RTT latency chart with min–max shaded bands."""
-    return _latency_figure(all_data, figsize=(12, 4.5))
+def make_svc_latency_figure(all_data: dict,
+                            title: str = '') -> plt.Figure:
+    """Service-call RTT latency chart."""
+    return _latency_figure(all_data, figsize=(12, 4.5), title=title)
 
 
-def make_svc_throughput_figure(all_data: dict) -> plt.Figure:
+def make_svc_throughput_figure(all_data: dict,
+                              title: str = '') -> plt.Figure:
     """Service-call throughput chart (Kcall/s vs message size)."""
     fig, ax = plt.subplots(figsize=(12, 4))
 
@@ -377,6 +385,8 @@ def make_svc_throughput_figure(all_data: dict) -> plt.Figure:
     _configure_log_xaxis(ax)
     ax.set_ylabel('Throughput (Kcall/s) ↑', labelpad=6)
     _right_legend(ax)
+    if title:
+        fig.suptitle(title, fontsize=13, fontweight='bold', y=0.98)
     return fig
 
 
@@ -441,25 +451,27 @@ def main() -> None:
 
     # ── Service-call benchmarks ───────────────────────────────────────────
     SVC_TESTS = [
-        # (file_prefix, has_throughput, has_latency)
-        ('svc_twoway_',  True, True),
-        ('svc_oneway_',  True, False),
-        ('svc_noinput_', True, True),
+        # (file_prefix, has_throughput, has_latency, label)
+        ('svc_twoway_',  True, True,  'Two-Way Service'),
+        ('svc_oneway_',  True, False, 'One-Way Service'),
+        ('svc_noinput_', True, True,  'No-Input Service'),
     ]
-    for prefix, has_tput, has_lat in SVC_TESTS:
+    for prefix, has_tput, has_lat, label in SVC_TESTS:
         tag = prefix.rstrip('_')
         if has_tput:
             svc_tput = _load_svc_throughput(args.results_dir, prefix)
             if svc_tput:
                 print(f'  Building {tag} throughput chart...')
-                _save(make_svc_throughput_figure(svc_tput),
+                _save(make_svc_throughput_figure(
+                          svc_tput, title=f'{label} Throughput'),
                       os.path.join(output_dir, f'{tag}_throughput.png'))
                 generated += 1
         if has_lat:
             svc_lat = _load_svc_latency(args.results_dir, prefix)
             if svc_lat:
                 print(f'  Building {tag} latency chart...')
-                _save(make_svc_latency_figure(svc_lat),
+                _save(make_svc_latency_figure(
+                          svc_lat, title=f'{label} Latency'),
                       os.path.join(output_dir, f'{tag}_latency.png'))
                 generated += 1
 
