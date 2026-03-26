@@ -131,4 +131,133 @@ TEST(ZenohConfigTest, InvalidConfigContent)
   ASSERT_TRUE(gz::utils::unsetenv("ZENOH_CONFIG"));
 }
 
+//////////////////////////////////////////////////
+/// \brief Test applying a single config override.
+TEST(ZenohConfigTest, ConfigOverrideSingle)
+{
+  auto config = zenoh::Config::create_default();
+
+  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+    config, "scouting/multicast/enabled=false");
+
+  EXPECT_EQ("false", config.get("scouting/multicast/enabled"));
+}
+
+//////////////////////////////////////////////////
+/// \brief Test applying multiple config overrides separated by semicolons.
+TEST(ZenohConfigTest, ConfigOverrideMultiple)
+{
+  auto config = zenoh::Config::create_default();
+
+  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+    config,
+    "scouting/multicast/enabled=false;"
+    "listen/endpoints=[\"tcp/127.0.0.1:0\"]");
+
+  EXPECT_EQ("false", config.get("scouting/multicast/enabled"));
+  EXPECT_EQ("[\"tcp/127.0.0.1:0\"]", config.get("listen/endpoints"));
+}
+
+//////////////////////////////////////////////////
+/// \brief Test that whitespace around keys and values is trimmed.
+TEST(ZenohConfigTest, ConfigOverrideWhitespace)
+{
+  auto config = zenoh::Config::create_default();
+
+  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+    config, "  scouting/multicast/enabled  =  false  ");
+
+  EXPECT_EQ("false", config.get("scouting/multicast/enabled"));
+}
+
+//////////////////////////////////////////////////
+/// \brief Test that trailing semicolons are handled gracefully.
+TEST(ZenohConfigTest, ConfigOverrideTrailingSemicolon)
+{
+  auto config = zenoh::Config::create_default();
+
+  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+    config, "scouting/multicast/enabled=false;");
+
+  EXPECT_EQ("false", config.get("scouting/multicast/enabled"));
+}
+
+//////////////////////////////////////////////////
+/// \brief Test that empty override string is a no-op.
+TEST(ZenohConfigTest, ConfigOverrideEmpty)
+{
+  auto config = zenoh::Config::create_default();
+  auto valBefore = config.get("scouting/multicast/enabled");
+
+  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(config, "");
+
+  EXPECT_EQ(valBefore, config.get("scouting/multicast/enabled"));
+}
+
+//////////////////////////////////////////////////
+/// \brief Test that invalid keys produce an error on stderr but don't crash.
+TEST(ZenohConfigTest, ConfigOverrideInvalidKey)
+{
+  auto config = zenoh::Config::create_default();
+
+  testing::internal::CaptureStderr();
+  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+    config, "nonexistent/key/path=42");
+  std::string stderrOutput = testing::internal::GetCapturedStderr();
+
+  EXPECT_FALSE(stderrOutput.empty())
+    << "Expected an error message for invalid config key";
+  EXPECT_NE(std::string::npos, stderrOutput.find("failed to apply"))
+    << "Error should contain 'failed to apply'. Got: " << stderrOutput;
+}
+
+//////////////////////////////////////////////////
+/// \brief Test that bare values without '=' are silently skipped.
+TEST(ZenohConfigTest, ConfigOverrideMalformedPair)
+{
+  auto config = zenoh::Config::create_default();
+
+  // "noequals" has no '=', should be skipped; second pair should apply
+  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+    config, "noequals;scouting/multicast/enabled=false");
+
+  EXPECT_EQ("false", config.get("scouting/multicast/enabled"));
+}
+
+//////////////////////////////////////////////////
+/// \brief Test that values containing '=' are handled correctly.
+/// The value ["tcp/host:7447=extra"] contains an '=' inside the JSON array.
+TEST(ZenohConfigTest, ConfigOverrideEqualsInValue)
+{
+  auto config = zenoh::Config::create_default();
+
+  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+    config, "connect/endpoints=[\"tcp/127.0.0.1:7447\"]");
+
+  EXPECT_EQ("[\"tcp/127.0.0.1:7447\"]", config.get("connect/endpoints"));
+}
+
+//////////////////////////////////////////////////
+/// \brief Test that the env var integration path works end-to-end.
+TEST(ZenohConfigTest, ConfigOverrideViaEnvVar)
+{
+  ASSERT_TRUE(gz::utils::setenv(
+    "GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE",
+    "scouting/multicast/enabled=false"));
+
+  gz::transport::NodeSharedPrivate nodePrivate;
+  ZenohConfigSource source;
+  auto config = nodePrivate.ZenohConfig(source);
+
+  const char *overrideEnv =
+      std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
+  ASSERT_NE(nullptr, overrideEnv);
+  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+    config, overrideEnv);
+
+  EXPECT_EQ("false", config.get("scouting/multicast/enabled"));
+
+  ASSERT_TRUE(gz::utils::unsetenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE"));
+}
+
 #endif  // HAVE_ZENOH
