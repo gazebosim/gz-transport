@@ -104,58 +104,10 @@ namespace gz::transport
         }
 
         // Apply key=value overrides from GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
-        // Format: "key1=value1;key2=value2;..."
-        // Values are passed directly to insert_json5(), so they can be any
-        // valid JSON5 (strings, numbers, objects, arrays).
-        // Example:
-        //   export GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE=\
-        //     "transport/link/tx/queue/size/data=8;\
-        //      transport/shared_memory/enabled=true"
         const char *overrideEnv =
             std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
         if (overrideEnv)
-        {
-          std::string overrides(overrideEnv);
-          std::string::size_type pos = 0;
-          while (pos < overrides.size())
-          {
-            auto semi = overrides.find(';', pos);
-            if (semi == std::string::npos)
-              semi = overrides.size();
-            auto eq = overrides.find('=', pos);
-            if (eq != std::string::npos && eq < semi)
-            {
-              std::string key = overrides.substr(pos, eq - pos);
-              std::string val = overrides.substr(eq + 1, semi - eq - 1);
-              // Trim leading/trailing whitespace.
-              auto trim = [](std::string &s)
-              {
-                auto start = s.find_first_not_of(" \t");
-                auto end = s.find_last_not_of(" \t");
-                s = (start == std::string::npos) ? "" :
-                    s.substr(start, end - start + 1);
-              };
-              trim(key);
-              trim(val);
-              if (!key.empty())
-              {
-                zenoh::ZResult result;
-                config.insert_json5(key, val, &result);
-                if (result != Z_OK)
-                {
-                  std::cerr << "gz-transport: failed to apply Zenoh config "
-                            << "override: " << key << "=" << val << std::endl;
-                }
-                else if (this->verbose)
-                {
-                  std::cout << "Zenoh config override: " << key
-                            << "=" << val << std::endl;
-                }
-              }
-            }
-            pos = semi + 1;
-          }
-        }
+          ApplyZenohConfigOverrides(config, overrideEnv, this->verbose);
 
         try
         {
@@ -243,6 +195,60 @@ namespace gz::transport
               // Fallback to default configuration.
               _configSource = ZenohConfigSource::kDefault;
               return zenoh::Config::create_default();
+            }
+
+    /// \brief Apply key=value config overrides to a Zenoh config.
+    /// Format: "key1=value1;key2=value2;..."
+    /// Values are passed directly to insert_json5(), so they can be any
+    /// valid JSON5 (strings, numbers, objects, arrays).
+    /// \param[in,out] _config The Zenoh config to modify.
+    /// \param[in] _overrides The override string to parse.
+    /// \param[in] _verbose Print applied overrides to stdout.
+    public: static inline void ApplyZenohConfigOverrides(
+              zenoh::Config &_config,
+              const std::string &_overrides,
+              bool _verbose = false)
+            {
+              std::string::size_type pos = 0;
+              while (pos < _overrides.size())
+              {
+                auto semi = _overrides.find(';', pos);
+                if (semi == std::string::npos)
+                  semi = _overrides.size();
+                auto eq = _overrides.find('=', pos);
+                if (eq != std::string::npos && eq < semi)
+                {
+                  std::string key = _overrides.substr(pos, eq - pos);
+                  std::string val = _overrides.substr(eq + 1, semi - eq - 1);
+                  // Trim leading/trailing whitespace.
+                  auto trim = [](std::string &s)
+                  {
+                    auto start = s.find_first_not_of(" \t");
+                    auto end = s.find_last_not_of(" \t");
+                    s = (start == std::string::npos) ? "" :
+                        s.substr(start, end - start + 1);
+                  };
+                  trim(key);
+                  trim(val);
+                  if (!key.empty())
+                  {
+                    zenoh::ZResult result;
+                    _config.insert_json5(key, val, &result);
+                    if (result != Z_OK)
+                    {
+                      std::cerr << "gz-transport: failed to apply Zenoh "
+                                << "config override: " << key << "="
+                                << val << std::endl;
+                    }
+                    else if (_verbose)
+                    {
+                      std::cout << "Zenoh config override: " << key
+                                << "=" << val << std::endl;
+                    }
+                  }
+                }
+                pos = semi + 1;
+              }
             }
 
     /// \brief Pointer to the Zenoh session.
