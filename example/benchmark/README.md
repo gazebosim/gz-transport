@@ -75,7 +75,7 @@ All output is written to the results directory (`./benchmark_results/` by defaul
 
 Tab-separated data, one row per message size:
 
-```bash
+```
 size_bytes  metric_value  [loss_pct]
 ```
 
