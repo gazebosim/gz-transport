@@ -163,7 +163,7 @@ def _relay_bench_stderr(proc, progress) -> None:
                 n, total = line[9:].split('/')
                 progress.update(int(n), int(total))
             except (ValueError, IndexError):
-                pass
+                pass  # Malformed PROGRESS line; skip silently.
 
 
 class _RunProgress:

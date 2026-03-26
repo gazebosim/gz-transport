@@ -90,12 +90,13 @@ class FloodSub
   /// \param[in] _count The number of subscribers to create.
   public: explicit FloodSub(uint64_t _count)
   {
-    // Create flood publishers
+    // Create flood subscribers
     for (uint64_t i = 0; i < _count; ++i)
     {
       std::ostringstream stream;
       stream << "/benchmark/flood/"  << i;
-      this->node.Subscribe(stream.str(), &FloodSub::OnMsg, this);
+      if (!this->node.Subscribe(stream.str(), &FloodSub::OnMsg, this))
+        std::cerr << "Failed to subscribe to " << stream.str() << std::endl;
     }
   }
 
@@ -125,8 +126,11 @@ class FloodPub
     {
       std::ostringstream stream;
       stream << "/benchmark/flood/"  << i;
-      this->floodPubs.push_back(
-          this->node.Advertise<gz::msgs::Bytes>(stream.str()));
+      auto pub = this->node.Advertise<gz::msgs::Bytes>(stream.str());
+      if (!pub)
+        std::cerr << "Failed to advertise " << stream.str() << std::endl;
+      else
+        this->floodPubs.push_back(std::move(pub));
     }
     if (!this->floodPubs.empty())
       this->runThread = std::thread(&FloodPub::RunLoop, this);
@@ -531,8 +535,9 @@ class PubTester
   /// \param[in] _stream Stream pointer
   private: void OutputHeader(std::ostream *_stream)
   {
-    std::time_t t = std::time(NULL);
-    std::tm tm = *std::localtime(&t);
+    std::time_t t = std::time(nullptr);
+    std::tm tm{};
+    localtime_r(&t, &tm);
 
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Gazebo Transport Version "
@@ -1051,8 +1056,9 @@ class SrvTester
 
   private: void OutputHeader(std::ostream *_stream)
   {
-    std::time_t t = std::time(NULL);
-    std::tm tm = *std::localtime(&t);
+    std::time_t t = std::time(nullptr);
+    std::tm tm{};
+    localtime_r(&t, &tm);
 
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Gazebo Transport Version "
@@ -1371,8 +1377,9 @@ class OneWaySrvTester
 
   private: void OutputHeader(std::ostream *_stream)
   {
-    std::time_t t = std::time(NULL);
-    std::tm tm = *std::localtime(&t);
+    std::time_t t = std::time(nullptr);
+    std::tm tm{};
+    localtime_r(&t, &tm);
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Gazebo Transport Version "
                << GZ_TRANSPORT_VERSION_FULL << std::endl;
@@ -1616,8 +1623,9 @@ class NoInputSrvTester
 
   private: void OutputHeader(std::ostream *_stream)
   {
-    std::time_t t = std::time(NULL);
-    std::tm tm = *std::localtime(&t);
+    std::time_t t = std::time(nullptr);
+    std::tm tm{};
+    localtime_r(&t, &tm);
     (*_stream) << "# " << std::put_time(&tm, "%FT%T%Z") << std::endl;
     (*_stream) << "# Gazebo Transport Version "
                << GZ_TRANSPORT_VERSION_FULL << std::endl;

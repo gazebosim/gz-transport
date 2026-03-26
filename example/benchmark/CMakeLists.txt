@@ -15,6 +15,5 @@ else()
   add_executable(bench bench.cc)
   target_link_libraries(bench
     gz-transport::core
-    ${gflags_LIBRARIES}
-    pthread)
+    ${gflags_LIBRARIES})
 endif()
