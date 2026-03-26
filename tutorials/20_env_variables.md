@@ -64,6 +64,14 @@ Below are descriptions of the available environment variables:
     * *Default value*: zeromq
     * *Description*: Sets the middleware backend.
     * *Available in backend:*: zeromq, zenoh
+* **GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE**
+    * *Value allowed*: Semicolon-separated `key=value` pairs
+    * *Description*: Override specific Zenoh configuration parameters after
+    loading the config file (or defaults). Keys are Zenoh config paths and
+    values are JSON5 literals. Applied after `ZENOH_CONFIG` is loaded, so
+    overrides take priority. Example:
+    `GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE="transport/link/tx/queue/size/data=8;transport/shared_memory/enabled=true"`
+    * *Available in backend:*: zenoh
 * **GZ_TRANSPORT_LOG_SQL_PATH**
     * *Value allowed*: Any path
     * *Description*: Path to the SQL files used by logging. This does not
