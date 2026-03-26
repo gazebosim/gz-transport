@@ -80,13 +80,7 @@ CONFIGS = [
         'env': {
             'GZ_TRANSPORT_IMPLEMENTATION': 'zenoh',
         },
-        'clear': [
-            'GZ_TRANSPORT_ZENOH_SHM',
-            'GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE',
-            'GZ_TRANSPORT_ZENOH_SHM_THRESHOLD',
-            'GZ_TRANSPORT_ZENOH_CONGESTION_CONTROL',
-            'GZ_TRANSPORT_ZENOH_TX_QUEUE_SIZE',
-        ],
+        'clear': [],
     },
     {
         'name': 'zeromq',
@@ -94,13 +88,7 @@ CONFIGS = [
         'env': {
             'GZ_TRANSPORT_IMPLEMENTATION': 'zeromq',
         },
-        'clear': [
-            'GZ_TRANSPORT_ZENOH_SHM',
-            'GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE',
-            'GZ_TRANSPORT_ZENOH_SHM_THRESHOLD',
-            'GZ_TRANSPORT_ZENOH_CONGESTION_CONTROL',
-            'GZ_TRANSPORT_ZENOH_TX_QUEUE_SIZE',
-        ],
+        'clear': [],
     },
 ]
 
