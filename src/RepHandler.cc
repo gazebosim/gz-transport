@@ -15,40 +15,18 @@
  *
 */
 
-#include <cstdlib>
 #include <memory>
-#include <optional>
 #include <string>
-#include <variant>
 #include "gz/transport/config.hh"
-#include "gz/transport/Helpers.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/Uuid.hh"
 
 #ifdef HAVE_ZENOH
-// Unlock get_contiguous_view() for zero-copy SHM receive path.
+// Unlock get_contiguous_view() for SHM receive path.
 #define Z_FEATURE_UNSTABLE_API
 #include <zenoh.hxx>
-
-namespace
-{
-  constexpr std::size_t kDefaultShmPoolSize = 10 * 1024 * 1024;
-
-  std::size_t ShmThreshold()
-  {
-    static const std::size_t threshold = []() -> std::size_t {
-      const char *val = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
-      if (val)
-      {
-        try { return std::stoul(val); }
-        catch (...) {}
-      }
-      return 128 * 1024;
-    }();
-    return threshold;
-  }
-}
+#include "ShmHelpers.hh"
 #endif
 
 namespace gz::transport
@@ -67,35 +45,6 @@ namespace gz::transport
       nUuid(_nUuid),
       hUuid(Uuid().ToString())
     {
-#ifdef HAVE_ZENOH
-      bool shmEnabled = true;
-      std::string shmEnvValue;
-      if (env("GZ_TRANSPORT_ZENOH_SHM_ENABLED", shmEnvValue) &&
-          (shmEnvValue == "0" || shmEnvValue == "false"))
-      {
-        shmEnabled = false;
-      }
-      if (shmEnabled)
-      {
-        std::size_t poolSize = kDefaultShmPoolSize;
-        std::string poolSizeStr;
-        if (env("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE", poolSizeStr))
-        {
-          try { poolSize = std::stoul(poolSizeStr); }
-          catch (...) { /* use default */ }
-        }
-        try
-        {
-          this->provider = std::make_unique<zenoh::PosixShmProvider>(
-            zenoh::MemoryLayout(poolSize, zenoh::AllocAlignment({0})));
-        }
-        catch (const std::exception &_e)
-        {
-          std::cerr << "gz-transport: SHM provider creation failed ("
-                    << _e.what() << "), falling back to heap.\n";
-        }
-      }
-#endif
     }
 
     /// \brief Destructor.
@@ -116,22 +65,6 @@ namespace gz::transport
 
     /// \brief The liveliness token.
     public: std::unique_ptr<zenoh::LivelinessToken> zToken;
-
-    /// \brief SHM provider for zero-copy reply payloads.
-    public: std::unique_ptr<zenoh::PosixShmProvider> provider;
-
-    /// \brief Allocate a SHM buffer of \p _size bytes, or return nullopt if
-    /// SHM is disabled, the message is below threshold, or alloc fails.
-    public: std::optional<zenoh::ZShmMut> AllocShmBuf(std::size_t _size)
-    {
-      if (!this->provider || _size < ShmThreshold())
-        return std::nullopt;
-      auto result = this->provider->alloc_gc_defrag_blocking(
-        _size, zenoh::AllocAlignment({0}));
-      if (!std::holds_alternative<zenoh::ZShmMut>(result))
-        return std::nullopt;
-      return std::get<zenoh::ZShmMut>(std::move(result));
-    }
 #endif
   };
 
@@ -166,8 +99,8 @@ namespace gz::transport
 
       if (_query.get_payload())
       {
-        // Zero-copy SHM path: get a direct pointer into the SHM buffer when
-        // available, avoiding a heap copy during deserialization.
+        // SHM-optimized receive: get a direct pointer into the SHM buffer
+        // when available, avoiding a fragmented copy within Zenoh.
         auto view = _query.get_payload()->get().get_contiguous_view();
         if (view.has_value())
           input.assign(
@@ -178,16 +111,18 @@ namespace gz::transport
 
       if (this->RunCallback(input, output))
       {
-        // Use SHM for large replies to avoid a serialization copy.
-        bool usedShm = false;
-        if (auto shmBuf = this->dataPtr->AllocShmBuf(output.size()))
+        // SHM-optimized reply (one copy: heap -> SHM). Uses the
+        // process-level service SHM pool shared with ReqHandler.
+        auto *provider = GetServiceShmProvider();
+        if (auto shmBuf = AllocShmBuf(provider, output.size()))
         {
           memcpy(shmBuf->data(), output.data(), output.size());
           _query.reply(_service, zenoh::Bytes(std::move(*shmBuf)));
-          usedShm = true;
         }
-        if (!usedShm)
+        else
+        {
           _query.reply(_service, output);
+        }
       }
     };
 
