@@ -103,12 +103,6 @@ namespace gz::transport
           else
             std::cout << "Zenoh default config loaded" << std::endl;
         }
-        // Enable Zenoh SHM transport unless explicitly disabled.
-        // Without this the session won't deliver ZShmMut puts, causing
-        // silent 100% message loss on the SHM publish path.
-        if (shmEnvConfig().enabled)
-          config.insert_json5("transport/shared_memory/enabled", "true");
-
         // Increase the congestion control drop timeouts from Zenoh's
         // defaults (1 ms / 50 ms) to reduce message loss for large
         // messages in inter-process pub/sub.  Benchmarking showed that
@@ -130,6 +124,17 @@ namespace gz::transport
             std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
         if (overrideEnv)
           ApplyZenohConfigOverrides(config, overrideEnv, this->verbose);
+
+        // Read the resolved SHM enabled flag from the Zenoh config
+        // (after ZENOH_CONFIG file + overrides). This is the single
+        // source of truth — users control SHM via Zenoh's native
+        // transport/shared_memory/enabled setting.
+        {
+          auto shmVal = config.get(
+            "transport/shared_memory/enabled");
+          shmEnvConfig().enabled =
+            (shmVal != "false" && shmVal != "0");
+        }
 
         try
         {

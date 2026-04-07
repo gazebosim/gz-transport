@@ -55,14 +55,17 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// are reclaimed when the publisher's pool is destroyed.
   constexpr std::size_t kDefaultShmThreshold = 128 * 1024;
 
-  /// \brief Cached SHM configuration read from environment variables.
-  /// All values are read once on first access (thread-safe via static
-  /// initialization). This ensures consistent behavior even if env vars
-  /// are modified after the first read.
+  /// \brief Cached SHM configuration.
+  /// Pool size and threshold are read from environment variables once on
+  /// first access (thread-safe via static initialization). The enabled
+  /// flag is set by NodeSharedPrivate after resolving the Zenoh config
+  /// (which may come from ZENOH_CONFIG file, defaults, or
+  /// GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE).
   struct ShmEnvConfig
   {
     /// \brief Whether SHM is enabled.
-    /// Read from GZ_TRANSPORT_ZENOH_SHM_ENABLED (default: true).
+    /// Set from the resolved Zenoh config's
+    /// transport/shared_memory/enabled value (default: true).
     bool enabled = true;
 
     /// \brief SHM pool size in bytes.
@@ -75,17 +78,14 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   };
 
   /// \brief Get the cached SHM configuration.
-  /// All environment variables are read once on first call.
+  /// Environment variables are read once on first call.
   /// \return Reference to the process-wide SHM configuration.
-  inline const ShmEnvConfig &shmEnvConfig()
+  inline ShmEnvConfig &shmEnvConfig()
   {
-    static const ShmEnvConfig config = []()
+    static ShmEnvConfig config = []()
     {
       ShmEnvConfig c;
       std::string val;
-
-      if (env("GZ_TRANSPORT_ZENOH_SHM_ENABLED", val))
-        c.enabled = (val != "0" && val != "false");
 
       if (env("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE", val))
       {

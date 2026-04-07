@@ -81,9 +81,9 @@ CONFIGS = [
             'GZ_TRANSPORT_IMPLEMENTATION': 'zeromq',
         },
         'clear': [
-            'GZ_TRANSPORT_ZENOH_SHM_ENABLED',
             'GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE',
             'GZ_TRANSPORT_ZENOH_SHM_THRESHOLD',
+            'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE',
         ],
     },
     {
@@ -91,7 +91,8 @@ CONFIGS = [
         'description': 'Zenoh without SHM (heap only)',
         'env': {
             'GZ_TRANSPORT_IMPLEMENTATION': 'zenoh',
-            'GZ_TRANSPORT_ZENOH_SHM_ENABLED': '0',
+            'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE':
+                'transport/shared_memory/enabled=false',
         },
         'clear': [
             'GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE',
@@ -105,7 +106,9 @@ CONFIGS = [
             'GZ_TRANSPORT_IMPLEMENTATION': 'zenoh',
             'GZ_TRANSPORT_ZENOH_SHM_THRESHOLD': '0',
         },
-        'clear': [],
+        'clear': [
+            'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE',
+        ],
     },
 ]
 
