@@ -54,52 +54,71 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// are reclaimed when the publisher's pool is destroyed.
   constexpr std::size_t kDefaultShmThreshold = 128 * 1024;
 
-  /// \brief Get the SHM threshold (minimum message size to use SHM).
-  /// Reads GZ_TRANSPORT_ZENOH_SHM_THRESHOLD on first call, caches result.
-  /// Default: 128 KB.
-  /// \return Threshold in bytes.
-  inline std::size_t shmThreshold()
+  /// \brief Cached SHM configuration read from environment variables.
+  /// All values are read once on first access (thread-safe via static
+  /// initialization). This ensures consistent behavior even if env vars
+  /// are modified after the first read.
+  struct ShmEnvConfig
   {
-    static const std::size_t threshold = []() -> std::size_t {
+    /// \brief Whether SHM is enabled.
+    /// Read from GZ_TRANSPORT_ZENOH_SHM_ENABLED (default: true).
+    bool enabled;
+
+    /// \brief SHM pool size in bytes.
+    /// Read from GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE (default: 48 MB).
+    std::size_t poolSize;
+
+    /// \brief Minimum message size to use SHM, in bytes.
+    /// Read from GZ_TRANSPORT_ZENOH_SHM_THRESHOLD (default: 128 KB).
+    std::size_t threshold;
+  };
+
+  /// \brief Get the cached SHM configuration.
+  /// All environment variables are read once on first call.
+  /// \return Reference to the process-wide SHM configuration.
+  inline const ShmEnvConfig &shmEnvConfig()
+  {
+    static const ShmEnvConfig config = []()
+    {
+      ShmEnvConfig c;
       std::string val;
-      if (env("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD", val))
+
+      c.enabled = !(env("GZ_TRANSPORT_ZENOH_SHM_ENABLED", val) &&
+                     (val == "0" || val == "false"));
+
+      c.poolSize = kDefaultShmPoolSize;
+      if (env("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE", val))
       {
-        try { return std::stoul(val); }
+        try { c.poolSize = std::stoul(val); }
         catch (...) {}
       }
-      return kDefaultShmThreshold;
+
+      c.threshold = kDefaultShmThreshold;
+      if (env("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD", val))
+      {
+        try { c.threshold = std::stoul(val); }
+        catch (...) {}
+      }
+
+      return c;
     }();
-    return threshold;
+    return config;
   }
 
-  /// \brief Create a PosixShmProvider if SHM is enabled.
-  /// Reads GZ_TRANSPORT_ZENOH_SHM_ENABLED and GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE.
+  /// \brief Create a PosixShmProvider using the cached SHM configuration.
   /// \return A new provider, or nullptr if SHM is disabled or creation fails.
   inline std::unique_ptr<zenoh::PosixShmProvider> createShmProvider()
   {
-    std::string shmEnvValue;
-    if (env("GZ_TRANSPORT_ZENOH_SHM_ENABLED", shmEnvValue) &&
-        (shmEnvValue == "0" || shmEnvValue == "false"))
-    {
+    const auto &config = shmEnvConfig();
+    if (!config.enabled)
       return nullptr;
-    }
-
-    static const std::size_t poolSize = []() -> std::size_t {
-      std::string val;
-      if (env("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE", val))
-      {
-        try { return std::stoul(val); }
-        catch (...) {}
-      }
-      return kDefaultShmPoolSize;
-    }();
 
     try
     {
       // AllocAlignment({0}) = 2^0 = 1-byte alignment.
       // Serialized protobuf data has no alignment requirements.
       return std::make_unique<zenoh::PosixShmProvider>(
-        zenoh::MemoryLayout(poolSize, zenoh::AllocAlignment({0})));
+        zenoh::MemoryLayout(config.poolSize, zenoh::AllocAlignment({0})));
     }
     catch (const std::exception &e)
     {
@@ -118,7 +137,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   inline std::optional<zenoh::ZShmMut> allocShmBuf(
       zenoh::PosixShmProvider *_provider, std::size_t _size)
   {
-    if (!_provider || _size < shmThreshold())
+    if (!_provider || _size < shmEnvConfig().threshold)
       return std::nullopt;
 
     // Non-blocking alloc with garbage collection and defragmentation.
