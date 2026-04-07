@@ -115,10 +115,10 @@ class Node::PublisherPrivate
       zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub))),
       zToken(std::make_unique<zenoh::LivelinessToken>(std::move(_zToken)))
   {
-    // SHM is enabled by default, can be disabled via GZ_TRANSPORT_ZENOH_SHM=0
+    // SHM is enabled by default, can be disabled via GZ_TRANSPORT_ZENOH_SHM_ENABLED=0
     bool shmEnabled = true;
     std::string shmEnvValue;
-    if (env("GZ_TRANSPORT_ZENOH_SHM", shmEnvValue) &&
+    if (env("GZ_TRANSPORT_ZENOH_SHM_ENABLED", shmEnvValue) &&
         (shmEnvValue == "0" || shmEnvValue == "false"))
     {
       shmEnabled = false;
@@ -1296,18 +1296,8 @@ Node::Publisher Node::Advertise(const std::string &_topic,
 #ifdef HAVE_ZENOH
   else if (impl == "zenoh")
   {
-    zenoh::Session::PublisherOptions pubOpts;
-
-    // Congestion control: "block" waits for buffer space (no message loss),
-    // "drop" (default) drops messages when the buffer is full.
-    // Configurable via GZ_TRANSPORT_ZENOH_CONGESTION_CONTROL env var.
-    const char *ccEnv =
-        std::getenv("GZ_TRANSPORT_ZENOH_CONGESTION_CONTROL");
-    if (ccEnv && std::string(ccEnv) == "block")
-      pubOpts.congestion_control = Z_CONGESTION_CONTROL_BLOCK;
-
     auto zPub = this->Shared()->dataPtr->session->declare_publisher(
-     zenoh::KeyExpr(fullyQualifiedTopic), std::move(pubOpts));
+     zenoh::KeyExpr(fullyQualifiedTopic));
 
     std::string token = TopicUtils::CreateLivelinessToken(
       fullyQualifiedTopic, this->Shared()->pUuid, this->NodeUuid(), "MP",

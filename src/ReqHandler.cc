@@ -58,7 +58,7 @@ namespace
     static std::once_flag initFlag;
     std::call_once(initFlag, []()
     {
-      const char *shmEnv = std::getenv("GZ_TRANSPORT_ZENOH_SHM");
+      const char *shmEnv = std::getenv("GZ_TRANSPORT_ZENOH_SHM_ENABLED");
       if (shmEnv &&
           (std::string(shmEnv) == "0" || std::string(shmEnv) == "false"))
         return;

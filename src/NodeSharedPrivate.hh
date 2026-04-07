@@ -106,7 +106,7 @@ namespace gz::transport
         // Without this the session won't deliver ZShmMut puts, causing
         // silent 100% message loss on the SHM publish path.
         {
-          const char *shmEnv = std::getenv("GZ_TRANSPORT_ZENOH_SHM");
+          const char *shmEnv = std::getenv("GZ_TRANSPORT_ZENOH_SHM_ENABLED");
           bool shmEnabled = !(shmEnv &&
             (std::string(shmEnv) == "0" ||
              std::string(shmEnv) == "false"));

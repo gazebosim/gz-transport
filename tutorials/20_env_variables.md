@@ -72,7 +72,7 @@ Below are descriptions of the available environment variables:
     overrides take priority. Example:
     `GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE="transport/link/tx/queue/size/data=8;transport/shared_memory/enabled=true"`
     * *Available in backend:*: zenoh
-* **GZ_TRANSPORT_ZENOH_SHM**
+* **GZ_TRANSPORT_ZENOH_SHM_ENABLED**
     * *Value allowed*: [0, false, 1]
     * *Default value*: enabled (any value other than 0 or false)
     * *Description*: Enable or disable POSIX shared memory (SHM) for Zenoh
