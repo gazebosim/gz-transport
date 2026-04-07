@@ -176,6 +176,14 @@ namespace gz::transport
     this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
       _session->liveliness_declare_token(token));
   }
+
+  /////////////////////////////////////////////////
+  void ISubscriptionHandler::CreateGenericZenohSubscriber(
+    std::shared_ptr<zenoh::Session> _session,
+    const std::string &_topic)
+  {
+    this->CreateLivelinessToken(std::move(_session), _topic);
+  }
 #endif
 
   /////////////////////////////////////////////////

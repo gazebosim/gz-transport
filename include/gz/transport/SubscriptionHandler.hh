@@ -183,6 +183,11 @@ namespace gz::transport
     public: void CreateLivelinessToken(
       std::shared_ptr<zenoh::Session> _session,
       const std::string &_topic);
+
+    /// \brief Deprecated. Use CreateLivelinessToken instead.
+    public: GZ_DEPRECATED(16) void CreateGenericZenohSubscriber(
+      std::shared_ptr<zenoh::Session> _session,
+      const std::string &_topic);
 #endif
   };
 
