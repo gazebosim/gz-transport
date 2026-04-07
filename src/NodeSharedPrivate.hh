@@ -103,6 +103,7 @@ namespace gz::transport
           else
             std::cout << "Zenoh default config loaded" << std::endl;
         }
+
         // Increase the congestion control drop timeouts from Zenoh's
         // defaults (1 ms / 50 ms) to reduce message loss for large
         // messages in inter-process pub/sub.  Benchmarking showed that
