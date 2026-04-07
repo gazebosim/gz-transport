@@ -721,9 +721,7 @@ bool Node::Publisher::PublishRaw(
     }
 #endif
     else
-    {
       return false;
-    }
   }
 
   return true;
