@@ -28,6 +28,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <utility>
 #include <variant>
 
 #include "gz/transport/Helpers.hh"

@@ -104,9 +104,10 @@ namespace gz::transport
     std::shared_ptr<zenoh::Session> _session,
     const std::string &_service)
   {
-    // Heap-allocate the sync state so both onReply and onDone can safely
-    // reference it even after CreateZenohGet() returns (onDone fires at query
-    // timeout, which may be after the caller has already unblocked via onReply).
+    // Heap-allocate the sync state so both onReply and onDone can
+    // safely reference it even after CreateZenohGet() returns (onDone
+    // fires after query timeout, which may be after the caller has
+    // already unblocked via onReply).
     auto syncMutex = std::make_shared<std::mutex>();
     auto syncDone = std::make_shared<bool>(false);
     auto syncCv = std::make_shared<std::condition_variable>();
