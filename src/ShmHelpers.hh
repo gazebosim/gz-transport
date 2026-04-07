@@ -154,7 +154,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// Thread-safe (uses std::call_once). Both ReqHandler and RepHandler share
   /// this pool, which avoids memory explosion with many service advertisers.
   /// \return The shared provider, or nullptr if SHM is disabled or unavailable.
-  inline zenoh::PosixShmProvider* getServiceShmProvider()
+  inline zenoh::PosixShmProvider* serviceShmProvider()
   {
     static std::unique_ptr<zenoh::PosixShmProvider> provider;
     static std::once_flag initFlag;
@@ -185,7 +185,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 
   /// \brief No-op: SHM not available on this platform.
   /// \return Always returns nullptr.
-  inline std::nullptr_t getServiceShmProvider()
+  inline std::nullptr_t serviceShmProvider()
   {
     return nullptr;
   }

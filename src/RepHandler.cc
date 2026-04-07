@@ -113,7 +113,7 @@ namespace gz::transport
       {
         // SHM-optimized reply (one copy: heap -> SHM). Uses the
         // process-level service SHM pool shared with ReqHandler.
-        auto *provider = getServiceShmProvider();
+        auto *provider = serviceShmProvider();
         if (auto shmBuf = allocShmBuf(provider, output.size()))
         {
           memcpy(shmBuf->data(), output.data(), output.size());
