@@ -39,9 +39,16 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// \brief Default SHM pool size (48 MB, matches rmw_zenoh default).
   constexpr std::size_t kDefaultShmPoolSize = 48 * 1024 * 1024;
 
+  /// \brief Default SHM threshold (128 KB).
+  /// Messages below this size use heap-based transfer, which is safer for
+  /// short-lived publishers: zenoh copies heap data internally, so the
+  /// subscriber still receives it after the publisher exits. SHM buffers
+  /// are reclaimed when the publisher's pool is destroyed.
+  constexpr std::size_t kDefaultShmThreshold = 128 * 1024;
+
   /// \brief Get the SHM threshold (minimum message size to use SHM).
   /// Reads GZ_TRANSPORT_ZENOH_SHM_THRESHOLD on first call, caches result.
-  /// Default: 0 (use SHM for all message sizes).
+  /// Default: 128 KB.
   inline std::size_t ShmThreshold()
   {
     static const std::size_t threshold = []() -> std::size_t {
@@ -51,7 +58,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
         try { return std::stoul(val); }
         catch (...) {}
       }
-      return 0;
+      return kDefaultShmThreshold;
     }();
     return threshold;
   }
