@@ -15,6 +15,8 @@
  *
 */
 
+#include <gtest/gtest.h>
+
 #include "gz/transport/config.hh"
 
 #ifdef HAVE_ZENOH
@@ -23,7 +25,6 @@
 
 #if defined(Z_FEATURE_SHARED_MEMORY)
 
-#include <gtest/gtest.h>
 #include <gz/msgs/int32.pb.h>
 #include <gz/utils/Environment.hh>
 
@@ -286,7 +287,6 @@ TEST(ShmHelpersTest, CreateMsgFromBufferGenericUnknownType)
 // test binary still compiles and reports success.
 #if !defined(HAVE_ZENOH) || \
     !defined(Z_FEATURE_SHARED_MEMORY)
-#include <gtest/gtest.h>
 
 TEST(ShmHelpersTest, NotAvailable)
 {
