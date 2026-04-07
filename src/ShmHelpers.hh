@@ -62,15 +62,15 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
     /// \brief Whether SHM is enabled.
     /// Read from GZ_TRANSPORT_ZENOH_SHM_ENABLED (default: true).
-    bool enabled;
+    bool enabled = true;
 
     /// \brief SHM pool size in bytes.
     /// Read from GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE (default: 48 MB).
-    std::size_t poolSize;
+    std::size_t poolSize = kDefaultShmPoolSize;
 
     /// \brief Minimum message size to use SHM, in bytes.
     /// Read from GZ_TRANSPORT_ZENOH_SHM_THRESHOLD (default: 128 KB).
-    std::size_t threshold;
+    std::size_t threshold = kDefaultShmThreshold;
   };
 
   /// \brief Get the cached SHM configuration.
@@ -83,17 +83,15 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
       ShmEnvConfig c;
       std::string val;
 
-      c.enabled = !(env("GZ_TRANSPORT_ZENOH_SHM_ENABLED", val) &&
-                     (val == "0" || val == "false"));
+      if (env("GZ_TRANSPORT_ZENOH_SHM_ENABLED", val))
+        c.enabled = (val != "0" && val != "false");
 
-      c.poolSize = kDefaultShmPoolSize;
       if (env("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE", val))
       {
         try { c.poolSize = std::stoul(val); }
         catch (...) {}
       }
 
-      c.threshold = kDefaultShmThreshold;
       if (env("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD", val))
       {
         try { c.threshold = std::stoul(val); }
