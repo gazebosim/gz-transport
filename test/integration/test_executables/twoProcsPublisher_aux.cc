@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/bytes.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
 #include <chrono>
@@ -24,10 +25,12 @@
 #include <gz/utils/Environment.hh>
 
 #include "test_config.hh"
+#include "ShmHelpers.hh"
 
 using namespace gz;
 
 static std::string g_topic = "/foo"; // NOLINT(*)
+static std::string g_largeTopic = "/large_msg"; // NOLINT(*)
 
 //////////////////////////////////////////////////
 /// \brief A publisher node.
@@ -38,13 +41,25 @@ void advertiseAndPublish()
   msg.set_y(2.0);
   msg.set_z(3.0);
 
+  // Payload above the SHM threshold so it exercises the SHM publish
+  // path when running with Zenoh.
+  // Above the SHM threshold so it exercises the SHM path.
+  const std::size_t largePayloadSize =
+    transport::kDefaultShmThreshold * 2;
+  msgs::Bytes largeMsg;
+  largeMsg.set_data(std::string(largePayloadSize, 'S'));
+
   transport::Node node;
 
   auto pub = node.Advertise<msgs::Vector3d>(g_topic);
+  auto largePub = node.Advertise<msgs::Bytes>(g_largeTopic);
+
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   pub.Publish(msg);
+  largePub.Publish(largeMsg);
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
   pub.Publish(msg);
+  largePub.Publish(largeMsg);
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
