@@ -91,10 +91,11 @@ Below are descriptions of the available environment variables:
     * *Available in backend:*: zenoh
 * **GZ_TRANSPORT_ZENOH_SHM_THRESHOLD**
     * *Value allowed*: Any non-negative integer (bytes)
-    * *Default value*: 0 (use SHM for all message sizes)
+    * *Default value*: 131072 (128 KB)
     * *Description*: Minimum serialized message size in bytes to use SHM.
-    Messages smaller than this threshold are sent via the heap path. Set to 0
-    to use SHM for all messages regardless of size.
+    Messages smaller than this threshold are sent via the heap path, which
+    is safer for short-lived publishers. Set to `0` to route all messages
+    through SHM regardless of size.
     * *Available in backend:*: zenoh
 * **GZ_TRANSPORT_LOG_SQL_PATH**
     * *Value allowed*: Any path
