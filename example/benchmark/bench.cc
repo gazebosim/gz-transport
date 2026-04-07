@@ -561,7 +561,7 @@ class PubTester
     const char *shmPool = std::getenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
     const char *shmThresh = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
     const char *configOverride =
-        std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
+      std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
 
     (*_stream) << "# Backend: " << (impl ? impl : "zeromq (default)")
                << std::endl;
@@ -1087,7 +1087,7 @@ class SrvTester
     const char *shmPool = std::getenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
     const char *shmThresh = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
     const char *configOverride =
-        std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
+      std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
 
     (*_stream) << "# Backend: " << (impl ? impl : "zeromq (default)")
                << std::endl;
@@ -1412,7 +1412,7 @@ class OneWaySrvTester
     const char *shmPool = std::getenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
     const char *shmThresh = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
     const char *configOverride =
-        std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
+      std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
     (*_stream) << "# Backend: " << (impl ? impl : "zeromq (default)")
                << std::endl;
     (*_stream) << "# SHM pool: "
@@ -1665,7 +1665,7 @@ class NoInputSrvTester
     const char *shmPool = std::getenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
     const char *shmThresh = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
     const char *configOverride =
-        std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
+      std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
     (*_stream) << "# Backend: " << (impl ? impl : "zeromq (default)")
                << std::endl;
     (*_stream) << "# SHM pool: "
