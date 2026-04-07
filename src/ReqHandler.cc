@@ -16,74 +16,18 @@
 */
 
 #include <condition_variable>
-#include <cstdlib>
 #include <memory>
 #include <mutex>
-#include <optional>
 #include <string>
-#include <variant>
 #include "gz/transport/config.hh"
-#include "gz/transport/Helpers.hh"
 #include "gz/transport/ReqHandler.hh"
 #include "gz/transport/Uuid.hh"
 
 #ifdef HAVE_ZENOH
-// Unlock get_contiguous_view() for zero-copy SHM receive path.
+// Unlock get_contiguous_view() for SHM receive path.
 #define Z_FEATURE_UNSTABLE_API
 #include <zenoh.hxx>
-
-namespace
-{
-  constexpr std::size_t kDefaultShmPoolSize = 10 * 1024 * 1024;
-
-  std::size_t ShmThreshold()
-  {
-    static const std::size_t threshold = []() -> std::size_t {
-      const char *val = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
-      if (val)
-      {
-        try { return std::stoul(val); }
-        catch (...) {}
-      }
-      return 128 * 1024;
-    }();
-    return threshold;
-  }
-
-  // Process-level SHM provider shared across all request handlers.
-  // Initialized once on first use; nullptr if SHM is disabled or unavailable.
-  zenoh::PosixShmProvider* GetReqShmProvider()
-  {
-    static std::unique_ptr<zenoh::PosixShmProvider> provider;
-    static std::once_flag initFlag;
-    std::call_once(initFlag, []()
-    {
-      const char *shmEnv = std::getenv("GZ_TRANSPORT_ZENOH_SHM_ENABLED");
-      if (shmEnv &&
-          (std::string(shmEnv) == "0" || std::string(shmEnv) == "false"))
-        return;
-
-      std::size_t poolSize = kDefaultShmPoolSize;
-      const char *poolEnv = std::getenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
-      if (poolEnv)
-      {
-        try { poolSize = std::stoul(poolEnv); }
-        catch (...) {}
-      }
-      try
-      {
-        provider = std::make_unique<zenoh::PosixShmProvider>(
-          zenoh::MemoryLayout(poolSize, zenoh::AllocAlignment({0})));
-      }
-      catch (const std::exception &_e)
-      {
-        std::cerr << "gz-transport: SHM provider creation failed ("
-                  << _e.what() << "), falling back to heap.\n";
-      }
-    });
-    return provider.get();
-  }
-}
+#include "ShmHelpers.hh"
 #endif
 
 namespace gz::transport
@@ -100,10 +44,6 @@ namespace gz::transport
       nUuid(_nUuid),
       requested(false)
     {
-#ifdef HAVE_ZENOH
-      // Trigger singleton initialization on first request in this process.
-      GetReqShmProvider();
-#endif
     }
 
     /// \brief Destructor.
@@ -118,22 +58,6 @@ namespace gz::transport
     /// \brief When true, the REQ was already sent and the REP should be on
     /// its way. Used to not resend the same REQ more than one time.
     public: bool requested;
-
-#ifdef HAVE_ZENOH
-    /// \brief Allocate a SHM buffer of \p _size bytes, or return nullopt if
-    /// SHM is disabled, the message is below threshold, or alloc fails.
-    public: std::optional<zenoh::ZShmMut> AllocShmBuf(std::size_t _size)
-    {
-      auto *provider = GetReqShmProvider();
-      if (!provider || _size < ShmThreshold())
-        return std::nullopt;
-      auto result = provider->alloc_gc_defrag_blocking(
-        _size, zenoh::AllocAlignment({0}));
-      if (!std::holds_alternative<zenoh::ZShmMut>(result))
-        return std::nullopt;
-      return std::get<zenoh::ZShmMut>(std::move(result));
-    }
-#endif
   };
 
   /////////////////////////////////////////////////
@@ -193,8 +117,8 @@ namespace gz::transport
       if (_reply.is_ok())
       {
         const auto &sample = _reply.get_ok();
-        // Zero-copy SHM path: get a direct pointer into the SHM buffer when
-        // available, avoiding a heap copy during deserialization.
+        // SHM-optimized receive: get a direct pointer into the SHM buffer
+        // when available, avoiding a fragmented copy within Zenoh.
         auto view = sample.get_payload().get_contiguous_view();
         if (view.has_value())
         {
@@ -238,15 +162,17 @@ namespace gz::transport
     if (!payload.empty())
     {
       // Use SHM for large request payloads to avoid a serialization copy.
-      bool usedShm = false;
-      if (auto shmBuf = this->dataPtr->AllocShmBuf(payload.size()))
+      // Uses the process-level service SHM pool shared with RepHandler.
+      auto *provider = GetServiceShmProvider();
+      if (auto shmBuf = AllocShmBuf(provider, payload.size()))
       {
         memcpy(shmBuf->data(), payload.data(), payload.size());
         options.payload = zenoh::Bytes(std::move(*shmBuf));
-        usedShm = true;
       }
-      if (!usedShm)
+      else
+      {
         options.payload = payload;
+      }
     }
 
     _session->get(_service, "", onReply, onDone, std::move(options));

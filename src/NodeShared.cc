@@ -1950,6 +1950,7 @@ std::shared_ptr<zenoh::Session> NodeShared::Session()
 /////////////////////////////////////////////////
 void NodeShared::EnsureZenohSubscription(const std::string &_topic)
 {
+  // Precondition: caller holds this->mutex.
   // Already have a centralized subscriber for this topic?
   if (this->dataPtr->zenohSubscribers.count(_topic))
     return;
@@ -1972,8 +1973,8 @@ void NodeShared::EnsureZenohSubscription(const std::string &_topic)
 
     HandlerInfo handlerInfo = this->CheckHandlerInfo(_topic);
 
-    // Zero-copy SHM path: get a direct pointer into the SHM buffer when
-    // available, avoiding a heap copy entirely.
+    // SHM-optimized receive: get a contiguous view into the SHM buffer
+    // when available, avoiding a fragmented copy within Zenoh.
     auto view = _sample.get_payload().get_contiguous_view();
     if (view.has_value())
     {

@@ -18,7 +18,6 @@
 #include <gz/msgs/statistic.pb.h>
 
 #include <cassert>
-#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -38,34 +37,10 @@
 
 #include "NodePrivate.hh"
 #include "NodeSharedPrivate.hh"
+#include "ShmHelpers.hh"
 
 using namespace gz;
 using namespace transport;
-
-namespace
-{
-  /// \brief Default minimum message size to use SHM (bytes).
-  /// Messages smaller than this use regular heap allocation.
-  /// Configurable via GZ_TRANSPORT_ZENOH_SHM_THRESHOLD env var.
-  /// Set to 0 to use SHM for all message sizes.
-  std::size_t ShmThreshold()
-  {
-    static const std::size_t threshold = []() -> std::size_t {
-      const char *val = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
-      if (val)
-      {
-        try { return std::stoul(val); }
-        catch (...) {}
-      }
-      return 128 * 1024;  // 128KB default
-    }();
-    return threshold;
-  }
-
-  /// \brief Default SHM pool size (10MB).
-  /// Configurable via GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE env var.
-  constexpr std::size_t kDefaultShmPoolSize = 10 * 1024 * 1024;
-}
 
 namespace gz::transport
 {
@@ -115,52 +90,42 @@ class Node::PublisherPrivate
       zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub))),
       zToken(std::make_unique<zenoh::LivelinessToken>(std::move(_zToken)))
   {
-    // SHM is enabled by default, can be disabled via GZ_TRANSPORT_ZENOH_SHM_ENABLED=0
-    bool shmEnabled = true;
-    std::string shmEnvValue;
-    if (env("GZ_TRANSPORT_ZENOH_SHM_ENABLED", shmEnvValue) &&
-        (shmEnvValue == "0" || shmEnvValue == "false"))
-    {
-      shmEnabled = false;
-    }
-
-    if (shmEnabled)
-    {
-      std::size_t poolSize = kDefaultShmPoolSize;
-      std::string poolSizeStr;
-      if (env("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE", poolSizeStr))
-      {
-        try { poolSize = std::stoul(poolSizeStr); }
-        catch (...) { /* use default */ }
-      }
-
-      try
-      {
-        this->provider = std::make_unique<zenoh::PosixShmProvider>(
-          zenoh::MemoryLayout(poolSize, zenoh::AllocAlignment({0})));
-      }
-      catch (const std::exception &_e)
-      {
-        std::cerr << "gz-transport: SHM provider creation failed ("
-                  << _e.what() << "), falling back to heap.\n";
-      }
-    }
+    this->provider = CreateShmProvider();
   }
 
-  /// \brief Allocate a SHM buffer for a message of the given size.
-  /// Returns the ZShmMut buffer if SHM is enabled, the message meets the
-  /// threshold, and allocation succeeds; otherwise returns std::nullopt.
-  /// \param[in] _size Serialized size of the message in bytes.
-  /// \return SHM buffer or std::nullopt on failure.
-  public: std::optional<zenoh::ZShmMut> AllocShmBuf(std::size_t _size)
+  /// \brief Publish data via SHM if available, falling back to heap.
+  /// Takes ownership of _msgBuffer (will be freed after publish).
+  public: void PublishViaShmOrHeap(char *_msgBuffer, std::size_t _msgSize,
+                                    zenoh::Publisher::PutOptions _options)
   {
-    if (!this->provider || _size < ShmThreshold())
-      return std::nullopt;
-    auto result = this->provider->alloc_gc_defrag_blocking(
-      _size, zenoh::AllocAlignment({0}));
-    if (!std::holds_alternative<zenoh::ZShmMut>(result))
-      return std::nullopt;
-    return std::get<zenoh::ZShmMut>(std::move(result));
+    if (auto shmBuf = AllocShmBuf(this->provider.get(), _msgSize))
+    {
+      memcpy(shmBuf->data(), _msgBuffer, _msgSize);
+      delete[] _msgBuffer;
+      this->zPub->put(std::move(*shmBuf), std::move(_options));
+      return;
+    }
+
+    // Heap fallback: SHM disabled, below threshold, or allocation failed.
+    auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+    this->zPub->put(
+      zenoh::Bytes(reinterpret_cast<uint8_t *>(_msgBuffer), _msgSize, deleter),
+      std::move(_options));
+  }
+
+  /// \brief Publish string data via SHM if available, falling back to heap.
+  /// Does not take ownership — avoids an intermediate heap allocation when
+  /// the caller already has the data in a std::string (e.g. PublishRaw).
+  public: void PublishViaShmOrHeap(const std::string &_data,
+                                    zenoh::Publisher::PutOptions _options)
+  {
+    if (auto shmBuf = AllocShmBuf(this->provider.get(), _data.size()))
+    {
+      memcpy(shmBuf->data(), _data.data(), _data.size());
+      this->zPub->put(std::move(*shmBuf), std::move(_options));
+      return;
+    }
+    this->zPub->put(_data, std::move(_options));
   }
 #endif
 
@@ -499,41 +464,36 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Get the transport implementation once for use throughout.
   std::string impl = this->dataPtr->shared->GzImplementation();
 
+  // Serialized data source — points into either the SHM buffer (zero-copy)
+  // or a heap buffer (fallback). Both paths below set this so that local/raw
+  // subscriber handling can use a single code path.
+  char *msgBuffer = nullptr;
+  const char *serializedData = nullptr;
+
 #ifdef HAVE_ZENOH
-  // Zero-copy optimization: serialize directly into the SHM buffer,
-  // skipping heap allocation entirely. Only when we have ONLY remote
-  // Zenoh subscribers (local/raw subscribers still need the heap path).
-  if (impl == "zenoh" &&
-      subscribers.haveRemote &&
-      !subscribers.haveLocal &&
-      !subscribers.haveRaw)
+  // Direct-to-SHM serialization: allocate a SHM buffer and serialize into
+  // it, skipping the intermediate heap buffer entirely. This works for ALL
+  // subscriber combinations (remote-only, remote+local, remote+raw, etc.)
+  // and eliminates one malloc + one memcpy compared to the heap path.
+  std::optional<zenoh::ZShmMut> shmBuf;
+  if (impl == "zenoh" && (subscribers.haveRaw || subscribers.haveRemote))
   {
-    if (auto shmBuf = this->dataPtr->AllocShmBuf(msgSize))
+    shmBuf = AllocShmBuf(this->dataPtr->provider.get(), msgSize);
+    if (shmBuf && _msg.SerializeToArray(shmBuf->data(), msgSize))
     {
-      if (_msg.SerializeToArray(shmBuf->data(), msgSize))
-      {
-        zenoh::Publisher::PutOptions options;
-        options.attachment = this->dataPtr->publisher.MsgTypeName();
-        this->dataPtr->zPub->put(std::move(*shmBuf), std::move(options));
-        return true;
-      }
-      // SerializeToArray failed — fall through to normal path
+      serializedData = reinterpret_cast<const char *>(shmBuf->data());
     }
-    // AllocShmBuf returned nullopt — fall through to normal path
+    else
+    {
+      shmBuf.reset();
+    }
   }
 #endif
 
-  char *msgBuffer = nullptr;
-
-  // Only serialize the message if we have a raw subscriber or a remote
-  // subscriber.
-  if (subscribers.haveRaw || subscribers.haveRemote)
+  // Heap fallback: SHM not available, disabled, or not using zenoh.
+  if (!serializedData && (subscribers.haveRaw || subscribers.haveRemote))
   {
-    // Allocate the buffer to store the serialized data.
     msgBuffer = static_cast<char *>(new char[msgSize]);
-
-    // Fail out early if we are unable to serialize the message. We do not
-    // want to send a corrupt/bad message to some subscribers and not others.
     if (!_msg.SerializeToArray(msgBuffer, msgSize))
     {
       delete[] msgBuffer;
@@ -541,6 +501,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
                 << std::endl;
       return false;
     }
+    serializedData = msgBuffer;
   }
 
   // Local and raw subscribers.
@@ -610,9 +571,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
           if (!pubMsgDetails->sharedBuffer)
           {
             pubMsgDetails->msgSize = msgSize;
-            // If the sharedBuffer has not been created, do so now.
             pubMsgDetails->sharedBuffer.reset(new char[msgSize]);
-            memcpy(pubMsgDetails->sharedBuffer.get(), msgBuffer, msgSize);
+            memcpy(pubMsgDetails->sharedBuffer.get(), serializedData, msgSize);
           }
           pubMsgDetails->rawHandlers.push_back(rawHandler);
         }
@@ -661,26 +621,16 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     {
       zenoh::Publisher::PutOptions options;
       options.attachment = this->dataPtr->publisher.MsgTypeName();
-
-      // Try SHM first. The bool usedShm pattern ensures options is only
-      // std::move'd in one branch, so the fallback always has a valid
-      // attachment.
-      bool usedShm = false;
-      if (auto shmBuf = this->dataPtr->AllocShmBuf(msgSize))
+      if (shmBuf)
       {
-        memcpy(shmBuf->data(), msgBuffer, msgSize);
+        // Data was serialized directly into SHM — publish with no extra copy.
         this->dataPtr->zPub->put(std::move(*shmBuf), std::move(options));
-        usedShm = true;
-        delete[] msgBuffer;
       }
-      if (!usedShm)
+      else
       {
-        // options.attachment is still valid — AllocShmBuf returned nullopt
-        // so std::move(options) above was never reached.
-        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-        auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
-        this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
-                                 std::move(options));
+        // Heap fallback: PublishViaShmOrHeap takes ownership of msgBuffer.
+        this->dataPtr->PublishViaShmOrHeap(msgBuffer, msgSize,
+                                            std::move(options));
       }
     }
     else
@@ -690,7 +640,10 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   }
 #endif
   else
+  {
+    delete[] msgBuffer;
     return false;
+  }
 
   return true;
 }
@@ -734,19 +687,18 @@ bool Node::Publisher::PublishRaw(
   // serialized, so we just pass it along for publication.
   if (subscribers.haveRemote)
   {
-    const std::size_t msgSize = _msgData.size();
-    char *msgBuffer = static_cast<char *>(new char[msgSize]);
-    memcpy(msgBuffer, _msgData.c_str(), msgSize);
-
     std::string impl = this->dataPtr->shared->GzImplementation();
     if (impl == "zeromq")
     {
+      const std::size_t msgSize = _msgData.size();
+      char *msgBuffer = static_cast<char *>(new char[msgSize]);
+      memcpy(msgBuffer, _msgData.c_str(), msgSize);
+
       auto myDeallocator = [](void *_buffer, void * /*_hint*/)
       {
         delete[] reinterpret_cast<char*>(_buffer);
       };
 
-      // Note: This will copy _msgData (i.e. not zero copy)
       if (!this->dataPtr->shared->Publish(
             this->dataPtr->publisher.Topic(),
             msgBuffer, msgSize, myDeallocator, _msgType))
@@ -759,22 +711,7 @@ bool Node::Publisher::PublishRaw(
     {
       zenoh::Publisher::PutOptions options;
       options.attachment = this->dataPtr->publisher.MsgTypeName();
-
-      bool usedShm = false;
-      if (auto shmBuf = this->dataPtr->AllocShmBuf(msgSize))
-      {
-        memcpy(shmBuf->data(), msgBuffer, msgSize);
-        this->dataPtr->zPub->put(std::move(*shmBuf), std::move(options));
-        usedShm = true;
-        delete[] msgBuffer;
-      }
-      if (!usedShm)
-      {
-        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-        auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
-        this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
-                                 std::move(options));
-      }
+      this->dataPtr->PublishViaShmOrHeap(_msgData, std::move(options));
     }
 #endif
     else
@@ -1037,7 +974,6 @@ bool Node::SubscribeRaw(
     handlerPtr->SetCallback(_callback);
     handlerPtr->CreateLivelinessToken(
       this->Shared()->Session(), fullyQualifiedTopic);
-    this->Shared()->EnsureZenohSubscription(*fullyQualifiedTopic.FullTopic());
   }
 #endif
   else
@@ -1047,6 +983,14 @@ bool Node::SubscribeRaw(
 
   this->dataPtr->shared->localSubscribers.raw.AddHandler(
         *fullyQualifiedTopic.FullTopic(), this->dataPtr->nUuid, handlerPtr);
+
+#ifdef HAVE_ZENOH
+  // Precondition: caller holds this->mutex (acquired above).
+  // Must be called under lock to prevent TOCTOU race where concurrent
+  // Subscribe() calls for the same topic could create duplicate subscribers.
+  if (impl == "zenoh")
+    this->Shared()->EnsureZenohSubscription(*fullyQualifiedTopic.FullTopic());
+#endif
 
   return this->SubscribeHelper(*fullyQualifiedTopic.FullTopic());
 }

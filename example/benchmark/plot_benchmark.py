@@ -69,10 +69,12 @@ _SIZE_LABELS = [
 # Per-configuration display style.  Order here determines legend order.
 # Wong colorblind-safe palette — distinguishable by hue, even in greyscale.
 STYLES: 'OrderedDict[str, dict]' = OrderedDict([
-    ('zenoh',
-     {'label': 'Zenoh',   'color': '#009E73'}),
     ('zeromq',
-     {'label': 'ZeroMQ',  'color': '#0072B2'}),
+     {'label': 'ZeroMQ',          'color': '#0072B2'}),
+    ('zenoh_no_shm',
+     {'label': 'Zenoh (no SHM)',  'color': '#D55E00'}),
+    ('zenoh_shm',
+     {'label': 'Zenoh + SHM',    'color': '#009E73'}),
 ])
 
 
