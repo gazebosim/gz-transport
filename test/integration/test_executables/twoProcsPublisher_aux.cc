@@ -25,7 +25,6 @@
 #include <gz/utils/Environment.hh>
 
 #include "test_config.hh"
-#include "ShmHelpers.hh"
 
 using namespace gz;
 
@@ -41,11 +40,9 @@ void advertiseAndPublish()
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  // Payload above the SHM threshold so it exercises the SHM publish
-  // path when running with Zenoh.
-  // Above the SHM threshold so it exercises the SHM path.
-  const std::size_t largePayloadSize =
-    transport::kDefaultShmThreshold * 2;
+  // 256 KB — above the default 128 KB SHM threshold so it exercises
+  // the SHM publish path when running with Zenoh.
+  const std::size_t largePayloadSize = 256 * 1024;
   msgs::Bytes largeMsg;
   largeMsg.set_data(std::string(largePayloadSize, 'S'));
 

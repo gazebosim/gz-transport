@@ -33,7 +33,6 @@
 #include "gtest/gtest.h"
 #include "test_config.hh"
 #include "test_utils.hh"
-#include "ShmHelpers.hh"
 
 using namespace gz;
 
@@ -485,9 +484,9 @@ void cbLarge(const msgs::Bytes &_msg)
 
 //////////////////////////////////////////////////
 /// \brief Two-process pub/sub with a message above the SHM threshold.
-/// The publisher (twoProcsPublisher_aux) sends a Bytes message of size
-/// 2 * kDefaultShmThreshold on /large_msg. This exercises the SHM
-/// publish path end-to-end across process boundaries.
+/// The publisher (twoProcsPublisher_aux) sends a 256 KB Bytes message
+/// on /large_msg (above the default 128 KB SHM threshold). This exercises
+/// the SHM publish path end-to-end across process boundaries.
 TEST(twoProcPubSub, PubSubLargeMessageAboveShmThreshold)
 {
   auto pi = testing::SubprocessJoinWrapper(
@@ -504,9 +503,8 @@ TEST(twoProcPubSub, PubSubLargeMessageAboveShmThreshold)
   EXPECT_TRUE(cbLargeExecuted)
     << "Large message was not received";
 
-  // Must match the payload size in twoProcsPublisher_aux.cc.
-  const std::size_t expectedSize =
-    transport::kDefaultShmThreshold * 2;
+  // Must match the payload size in twoProcsPublisher_aux.cc (256 KB).
+  const std::size_t expectedSize = 256u * 1024u;
   EXPECT_EQ(expectedSize, g_largeReceivedData.size());
 
   // Verify the payload content matches what the publisher sent.

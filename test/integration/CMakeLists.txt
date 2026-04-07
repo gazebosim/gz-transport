@@ -29,11 +29,6 @@ gz_build_tests(TYPE INTEGRATION SOURCES ${tests}
   TEST_LIST test_list
   LIB_DEPS ${EXTRA_TEST_LIB_DEPS} test_config)
 
-# Allow integration tests to include internal headers (e.g. ShmHelpers.hh).
-foreach(test ${test_list})
-  target_include_directories(${test} PRIVATE ${PROJECT_SOURCE_DIR}/src)
-endforeach()
-
 foreach(test ${test_list})
   set(_env_vars)
   list(APPEND _env_vars "GZ_IP=127.0.0.1")
@@ -73,9 +68,6 @@ foreach(AUX_EXECUTABLE ${auxiliary_files})
       ${EXTRA_TEST_LIB_DEPS}
       test_config
   )
-
-  target_include_directories(${AUX_EXECUTABLE}
-    PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
   if (HAVE_ZENOH)
     target_link_libraries(${AUX_EXECUTABLE}
