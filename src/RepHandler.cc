@@ -70,7 +70,7 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
       bool shmEnabled = true;
       std::string shmEnvValue;
-      if (env("GZ_TRANSPORT_ZENOH_SHM", shmEnvValue) &&
+      if (env("GZ_TRANSPORT_ZENOH_SHM_ENABLED", shmEnvValue) &&
           (shmEnvValue == "0" || shmEnvValue == "false"))
       {
         shmEnabled = false;
