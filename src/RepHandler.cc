@@ -103,10 +103,14 @@ namespace gz::transport
         // when available, avoiding a fragmented copy within Zenoh.
         auto view = _query.get_payload()->get().get_contiguous_view();
         if (view.has_value())
+        {
           input.assign(
             reinterpret_cast<const char *>(view->data), view->len);
+        }
         else
+        {
           input = _query.get_payload()->get().as_string();
+        }
       }
 
       if (this->RunCallback(input, output))
