@@ -558,17 +558,22 @@ class PubTester
     // Log transport configuration for reproducibility.
     // Always print all fields (with defaults) so .dat files are self-describing.
     const char *impl = std::getenv("GZ_TRANSPORT_IMPLEMENTATION");
-    const char *shm = std::getenv("GZ_TRANSPORT_ZENOH_SHM_ENABLED");
     const char *shmPool = std::getenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
     const char *shmThresh = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
+    const char *configOverride =
+        std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
 
     (*_stream) << "# Backend: " << (impl ? impl : "zeromq (default)")
                << std::endl;
-    (*_stream) << "# SHM: " << (shm ? shm : "enabled (default)") << std::endl;
     (*_stream) << "# SHM pool: "
-               << (shmPool ? shmPool : "10485760 (default)") << std::endl;
+               << (shmPool ? shmPool : "50331648 (default)")
+               << std::endl;
     (*_stream) << "# SHM threshold: "
-               << (shmThresh ? shmThresh : "131072 (default)") << std::endl;
+               << (shmThresh ? shmThresh : "131072 (default)")
+               << std::endl;
+    if (configOverride)
+      (*_stream) << "# Config override: " << configOverride
+                 << std::endl;
     (*_stream) << "# Iterations: " << this->sentMsgs
                << "  Warmup: " << this->warmupIters << std::endl;
   }
@@ -1077,17 +1082,22 @@ class SrvTester
 #endif
 
     const char *impl = std::getenv("GZ_TRANSPORT_IMPLEMENTATION");
-    const char *shm = std::getenv("GZ_TRANSPORT_ZENOH_SHM_ENABLED");
     const char *shmPool = std::getenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
     const char *shmThresh = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
+    const char *configOverride =
+        std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
 
     (*_stream) << "# Backend: " << (impl ? impl : "zeromq (default)")
                << std::endl;
-    (*_stream) << "# SHM: " << (shm ? shm : "enabled (default)") << std::endl;
     (*_stream) << "# SHM pool: "
-               << (shmPool ? shmPool : "10485760 (default)") << std::endl;
+               << (shmPool ? shmPool : "50331648 (default)")
+               << std::endl;
     (*_stream) << "# SHM threshold: "
-               << (shmThresh ? shmThresh : "131072 (default)") << std::endl;
+               << (shmThresh ? shmThresh : "131072 (default)")
+               << std::endl;
+    if (configOverride)
+      (*_stream) << "# Config override: " << configOverride
+                 << std::endl;
     (*_stream) << "# Iterations: " << this->sentMsgs
                << "  Warmup: " << this->warmupIters << std::endl;
   }
@@ -1395,16 +1405,21 @@ class OneWaySrvTester
                << std::endl;
 #endif
     const char *impl = std::getenv("GZ_TRANSPORT_IMPLEMENTATION");
-    const char *shm = std::getenv("GZ_TRANSPORT_ZENOH_SHM_ENABLED");
     const char *shmPool = std::getenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
     const char *shmThresh = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
+    const char *configOverride =
+        std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
     (*_stream) << "# Backend: " << (impl ? impl : "zeromq (default)")
                << std::endl;
-    (*_stream) << "# SHM: " << (shm ? shm : "enabled (default)") << std::endl;
     (*_stream) << "# SHM pool: "
-               << (shmPool ? shmPool : "10485760 (default)") << std::endl;
+               << (shmPool ? shmPool : "50331648 (default)")
+               << std::endl;
     (*_stream) << "# SHM threshold: "
-               << (shmThresh ? shmThresh : "131072 (default)") << std::endl;
+               << (shmThresh ? shmThresh : "131072 (default)")
+               << std::endl;
+    if (configOverride)
+      (*_stream) << "# Config override: " << configOverride
+                 << std::endl;
     (*_stream) << "# Iterations: " << this->sentMsgs
                << "  Warmup: " << this->warmupIters << std::endl;
   }
@@ -1641,16 +1656,21 @@ class NoInputSrvTester
                << std::endl;
 #endif
     const char *impl = std::getenv("GZ_TRANSPORT_IMPLEMENTATION");
-    const char *shm = std::getenv("GZ_TRANSPORT_ZENOH_SHM_ENABLED");
     const char *shmPool = std::getenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
     const char *shmThresh = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
+    const char *configOverride =
+        std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
     (*_stream) << "# Backend: " << (impl ? impl : "zeromq (default)")
                << std::endl;
-    (*_stream) << "# SHM: " << (shm ? shm : "enabled (default)") << std::endl;
     (*_stream) << "# SHM pool: "
-               << (shmPool ? shmPool : "10485760 (default)") << std::endl;
+               << (shmPool ? shmPool : "50331648 (default)")
+               << std::endl;
     (*_stream) << "# SHM threshold: "
-               << (shmThresh ? shmThresh : "131072 (default)") << std::endl;
+               << (shmThresh ? shmThresh : "131072 (default)")
+               << std::endl;
+    if (configOverride)
+      (*_stream) << "# Config override: " << configOverride
+                 << std::endl;
     (*_stream) << "# Iterations: " << this->sentMsgs
                << "  Warmup: " << this->warmupIters << std::endl;
   }
