@@ -388,9 +388,7 @@ namespace gz::transport
           ->GetPrototype(desc)->New());
       }
       else
-      {
         msgPtr = gz::msgs::Factory::New(_type);
-      }
 
       if (!msgPtr)
         return nullptr;

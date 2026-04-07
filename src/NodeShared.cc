@@ -2077,9 +2077,7 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
     }
 #ifdef HAVE_ZENOH
     else if (this->GzImplementation() == "zenoh")
-    {
       this->MaybeRemoveZenohSubscription(fullyQualifiedTopic);
-    }
 #endif
 
     // Prepare to notify publishers outside the lock

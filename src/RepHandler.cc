@@ -108,9 +108,7 @@ namespace gz::transport
             reinterpret_cast<const char *>(view->data), view->len);
         }
         else
-        {
           input = _query.get_payload()->get().as_string();
-        }
       }
 
       if (this->RunCallback(input, output))
@@ -124,9 +122,7 @@ namespace gz::transport
           _query.reply(_service, zenoh::Bytes(std::move(*shmBuf)));
         }
         else
-        {
           _query.reply(_service, output);
-        }
       }
     };
 

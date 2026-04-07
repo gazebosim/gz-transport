@@ -90,13 +90,25 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
       if (env("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE", val))
       {
         try { c.poolSize = std::stoul(val); }
-        catch (...) {}
+        catch (...)
+        {
+          std::cerr << "gz-transport: invalid value for "
+                    << "GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE [" << val
+                    << "], using default " << kDefaultShmPoolSize
+                    << std::endl;
+        }
       }
 
       if (env("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD", val))
       {
         try { c.threshold = std::stoul(val); }
-        catch (...) {}
+        catch (...)
+        {
+          std::cerr << "gz-transport: invalid value for "
+                    << "GZ_TRANSPORT_ZENOH_SHM_THRESHOLD [" << val
+                    << "], using default " << kDefaultShmThreshold
+                    << std::endl;
+        }
       }
 
       return c;
