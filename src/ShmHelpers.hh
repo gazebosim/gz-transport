@@ -18,6 +18,10 @@
 #ifndef GZ_TRANSPORT_SHMHELPERS_HH_
 #define GZ_TRANSPORT_SHMHELPERS_HH_
 
+#include "gz/transport/config.hh"
+
+#ifdef HAVE_ZENOH
+
 #include <cstddef>
 #include <iostream>
 #include <memory>
@@ -26,16 +30,20 @@
 #include <string>
 #include <variant>
 
-#include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
 
-#ifdef HAVE_ZENOH
 #include <zenoh.hxx>
 
 namespace gz::transport
 {
 inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
+// SHM requires POSIX shared memory. Zenoh defines Z_FEATURE_SHARED_MEMORY
+// when the feature is compiled in (Linux, macOS). On platforms without SHM
+// support (e.g. Windows) all helpers return nullptr / nullopt so the code
+// falls back to heap-based transfer transparently.
+#if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
+
   /// \brief Default SHM pool size (48 MB, matches rmw_zenoh default).
   constexpr std::size_t kDefaultShmPoolSize = 48 * 1024 * 1024;
 
@@ -44,11 +52,12 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// short-lived publishers: zenoh copies heap data internally, so the
   /// subscriber still receives it after the publisher exits. SHM buffers
   /// are reclaimed when the publisher's pool is destroyed.
-  constexpr std::size_t kDefaultshmThreshold = 128 * 1024;
+  constexpr std::size_t kDefaultShmThreshold = 128 * 1024;
 
   /// \brief Get the SHM threshold (minimum message size to use SHM).
   /// Reads GZ_TRANSPORT_ZENOH_SHM_THRESHOLD on first call, caches result.
   /// Default: 128 KB.
+  /// \return Threshold in bytes.
   inline std::size_t shmThreshold()
   {
     static const std::size_t threshold = []() -> std::size_t {
@@ -58,14 +67,14 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
         try { return std::stoul(val); }
         catch (...) {}
       }
-      return kDefaultshmThreshold;
+      return kDefaultShmThreshold;
     }();
     return threshold;
   }
 
   /// \brief Create a PosixShmProvider if SHM is enabled.
   /// Reads GZ_TRANSPORT_ZENOH_SHM_ENABLED and GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE.
-  /// Returns nullptr if SHM is disabled or creation fails.
+  /// \return A new provider, or nullptr if SHM is disabled or creation fails.
   inline std::unique_ptr<zenoh::PosixShmProvider> createShmProvider()
   {
     std::string shmEnvValue;
@@ -101,8 +110,11 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   }
 
   /// \brief Attempt to allocate a SHM buffer for a message.
-  /// Returns std::nullopt if SHM is disabled, below threshold, or alloc fails.
   /// Uses non-blocking allocation with GC and defragmentation.
+  /// \param[in] _provider The SHM provider to allocate from.
+  /// \param[in] _size Number of bytes to allocate.
+  /// \return The SHM buffer, or std::nullopt if SHM is disabled, the message
+  /// is below threshold, or allocation fails.
   inline std::optional<zenoh::ZShmMut> allocShmBuf(
       zenoh::PosixShmProvider *_provider, std::size_t _size)
   {
@@ -121,9 +133,9 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   }
 
   /// \brief Get the process-level SHM provider shared by all service handlers.
-  /// Returns nullptr if SHM is disabled or unavailable. Thread-safe (uses
-  /// std::call_once). Both ReqHandler and RepHandler share this pool, which
-  /// avoids memory explosion with many service advertisers.
+  /// Thread-safe (uses std::call_once). Both ReqHandler and RepHandler share
+  /// this pool, which avoids memory explosion with many service advertisers.
+  /// \return The shared provider, or nullptr if SHM is disabled or unavailable.
   inline zenoh::PosixShmProvider* getServiceShmProvider()
   {
     static std::unique_ptr<zenoh::PosixShmProvider> provider;
@@ -134,6 +146,33 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     });
     return provider.get();
   }
+
+#else  // No SHM support — provide no-op fallbacks so call sites compile
+       // without extra #ifdefs. All functions return nullptr/nullopt,
+       // causing transparent fallback to heap-based transfer.
+
+  /// \brief No-op: SHM not available on this platform.
+  /// \return Always returns nullptr.
+  inline std::unique_ptr<std::nullptr_t> createShmProvider()
+  {
+    return nullptr;
+  }
+
+  /// \brief No-op: SHM not available on this platform.
+  /// \return Always returns std::nullopt.
+  inline std::nullopt_t allocShmBuf(std::nullptr_t, std::size_t)
+  {
+    return std::nullopt;
+  }
+
+  /// \brief No-op: SHM not available on this platform.
+  /// \return Always returns nullptr.
+  inline std::nullptr_t getServiceShmProvider()
+  {
+    return nullptr;
+  }
+
+#endif  // Z_FEATURE_SHARED_MEMORY && Z_FEATURE_UNSTABLE_API
 
 }  // namespace GZ_TRANSPORT_VERSION_NAMESPACE
 }  // namespace gz::transport
