@@ -572,8 +572,10 @@ class PubTester
                << (shmThresh ? shmThresh : "131072 (default)")
                << std::endl;
     if (configOverride)
+    {
       (*_stream) << "# Config override: " << configOverride
                  << std::endl;
+    }
     (*_stream) << "# Iterations: " << this->sentMsgs
                << "  Warmup: " << this->warmupIters << std::endl;
   }
@@ -1096,8 +1098,10 @@ class SrvTester
                << (shmThresh ? shmThresh : "131072 (default)")
                << std::endl;
     if (configOverride)
+    {
       (*_stream) << "# Config override: " << configOverride
                  << std::endl;
+    }
     (*_stream) << "# Iterations: " << this->sentMsgs
                << "  Warmup: " << this->warmupIters << std::endl;
   }
@@ -1418,8 +1422,10 @@ class OneWaySrvTester
                << (shmThresh ? shmThresh : "131072 (default)")
                << std::endl;
     if (configOverride)
+    {
       (*_stream) << "# Config override: " << configOverride
                  << std::endl;
+    }
     (*_stream) << "# Iterations: " << this->sentMsgs
                << "  Warmup: " << this->warmupIters << std::endl;
   }
@@ -1669,8 +1675,10 @@ class NoInputSrvTester
                << (shmThresh ? shmThresh : "131072 (default)")
                << std::endl;
     if (configOverride)
+    {
       (*_stream) << "# Config override: " << configOverride
                  << std::endl;
+    }
     (*_stream) << "# Iterations: " << this->sentMsgs
                << "  Warmup: " << this->warmupIters << std::endl;
   }
