@@ -164,7 +164,7 @@ namespace gz::transport
     {
       // Use SHM for large request payloads to avoid a serialization copy.
       // Uses the process-level service SHM pool shared with RepHandler.
-      auto *provider = getServiceShmProvider();
+      auto *provider = serviceShmProvider();
       if (auto shmBuf = allocShmBuf(provider, payload.size()))
       {
         memcpy(shmBuf->data(), payload.data(), payload.size());
