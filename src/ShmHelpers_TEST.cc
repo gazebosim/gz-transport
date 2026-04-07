@@ -25,6 +25,8 @@
 
 #if defined(Z_FEATURE_SHARED_MEMORY)
 
+#include <string>
+
 #include <gz/msgs/int32.pb.h>
 #include <gz/utils/Environment.hh>
 
