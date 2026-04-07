@@ -486,13 +486,9 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   {
     shmBuf = allocShmBuf(this->dataPtr->provider.get(), msgSize);
     if (shmBuf && _msg.SerializeToArray(shmBuf->data(), msgSize))
-    {
       serializedData = reinterpret_cast<const char *>(shmBuf->data());
-    }
     else
-    {
       shmBuf.reset();
-    }
   }
 #endif
 
@@ -635,14 +631,12 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       else
       {
         // Heap fallback: PublishViaShmOrHeap takes ownership of msgBuffer.
-        this->dataPtr->PublishViaShmOrHeap(msgBuffer, msgSize,
-                                            std::move(options));
+        this->dataPtr->PublishViaShmOrHeap(
+          msgBuffer, msgSize, std::move(options));
       }
     }
     else
-    {
       delete[] msgBuffer;
-    }
   }
 #endif
   else

@@ -128,9 +128,7 @@ namespace gz::transport
             true);
         }
         else
-        {
           this->NotifyResult(sample.get_payload().as_string(), true);
-        }
       }
       else
       {
@@ -171,9 +169,7 @@ namespace gz::transport
         options.payload = zenoh::Bytes(std::move(*shmBuf));
       }
       else
-      {
         options.payload = payload;
-      }
     }
 
     _session->get(_service, "", onReply, onDone, std::move(options));
