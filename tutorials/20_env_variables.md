@@ -83,11 +83,14 @@ Below are descriptions of the available environment variables:
 * **GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE**
     * *Value allowed*: Any positive integer (bytes)
     * *Default value*: 50331648 (48 MB)
-    * *Description*: Size of the per-publisher SHM pool in bytes. Each Zenoh
-    publisher allocates its own pool; service handlers share a single
-    process-level pool. Increase this value if you publish very large messages
-    or at high frequency and encounter SHM allocation failures (the library
-    falls back to heap automatically).
+    * *Description*: Size of each SHM pool in bytes. Each Zenoh publisher
+    allocates its own pool (N publishers = N × pool size). All service
+    handlers (both request and reply) share a single process-level pool.
+    For publishers, increase this value if you publish very large messages
+    or at high frequency. For services, the shared pool must be large enough
+    to hold concurrent in-flight request and reply payloads across all
+    service handlers in the process. When a pool is exhausted, the library
+    falls back to heap-based transfer automatically.
     * *Available in backend:*: zenoh
 * **GZ_TRANSPORT_ZENOH_SHM_THRESHOLD**
     * *Value allowed*: Any non-negative integer (bytes)

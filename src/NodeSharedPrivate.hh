@@ -40,6 +40,7 @@
 #include "gz/transport/Exception.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
+#include "ShmHelpers.hh"
 
 namespace gz::transport
 {
@@ -105,14 +106,8 @@ namespace gz::transport
         // Enable Zenoh SHM transport unless explicitly disabled.
         // Without this the session won't deliver ZShmMut puts, causing
         // silent 100% message loss on the SHM publish path.
-        {
-          const char *shmEnv = std::getenv("GZ_TRANSPORT_ZENOH_SHM_ENABLED");
-          bool shmEnabled = !(shmEnv &&
-            (std::string(shmEnv) == "0" ||
-             std::string(shmEnv) == "false"));
-          if (shmEnabled)
-            config.insert_json5("transport/shared_memory/enabled", "true");
-        }
+        if (shmEnvConfig().enabled)
+          config.insert_json5("transport/shared_memory/enabled", "true");
 
         // Increase the congestion control drop timeouts from Zenoh's
         // defaults (1 ms / 50 ms) to reduce message loss for large
