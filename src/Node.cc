@@ -90,15 +90,16 @@ class Node::PublisherPrivate
       zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub))),
       zToken(std::make_unique<zenoh::LivelinessToken>(std::move(_zToken)))
   {
-    this->provider = CreateShmProvider();
+    this->provider = createShmProvider();
   }
 
   /// \brief Publish data via SHM if available, falling back to heap.
   /// Takes ownership of _msgBuffer (will be freed after publish).
-  public: void PublishViaShmOrHeap(char *_msgBuffer, std::size_t _msgSize,
-                                    zenoh::Publisher::PutOptions _options)
+  public: void PublishViaShmOrHeap(char *_msgBuffer,
+                                   std::size_t _msgSize,
+                                   zenoh::Publisher::PutOptions _options)
   {
-    if (auto shmBuf = AllocShmBuf(this->provider.get(), _msgSize))
+    if (auto shmBuf = allocShmBuf(this->provider.get(), _msgSize))
     {
       memcpy(shmBuf->data(), _msgBuffer, _msgSize);
       delete[] _msgBuffer;
@@ -117,9 +118,9 @@ class Node::PublisherPrivate
   /// Does not take ownership — avoids an intermediate heap allocation when
   /// the caller already has the data in a std::string (e.g. PublishRaw).
   public: void PublishViaShmOrHeap(const std::string &_data,
-                                    zenoh::Publisher::PutOptions _options)
+                                   zenoh::Publisher::PutOptions _options)
   {
-    if (auto shmBuf = AllocShmBuf(this->provider.get(), _data.size()))
+    if (auto shmBuf = allocShmBuf(this->provider.get(), _data.size()))
     {
       memcpy(shmBuf->data(), _data.data(), _data.size());
       this->zPub->put(std::move(*shmBuf), std::move(_options));
@@ -478,7 +479,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   std::optional<zenoh::ZShmMut> shmBuf;
   if (impl == "zenoh" && (subscribers.haveRaw || subscribers.haveRemote))
   {
-    shmBuf = AllocShmBuf(this->dataPtr->provider.get(), msgSize);
+    shmBuf = allocShmBuf(this->dataPtr->provider.get(), msgSize);
     if (shmBuf && _msg.SerializeToArray(shmBuf->data(), msgSize))
     {
       serializedData = reinterpret_cast<const char *>(shmBuf->data());

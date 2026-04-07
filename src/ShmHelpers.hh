@@ -44,12 +44,12 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// short-lived publishers: zenoh copies heap data internally, so the
   /// subscriber still receives it after the publisher exits. SHM buffers
   /// are reclaimed when the publisher's pool is destroyed.
-  constexpr std::size_t kDefaultShmThreshold = 128 * 1024;
+  constexpr std::size_t kDefaultshmThreshold = 128 * 1024;
 
   /// \brief Get the SHM threshold (minimum message size to use SHM).
   /// Reads GZ_TRANSPORT_ZENOH_SHM_THRESHOLD on first call, caches result.
   /// Default: 128 KB.
-  inline std::size_t ShmThreshold()
+  inline std::size_t shmThreshold()
   {
     static const std::size_t threshold = []() -> std::size_t {
       std::string val;
@@ -58,7 +58,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
         try { return std::stoul(val); }
         catch (...) {}
       }
-      return kDefaultShmThreshold;
+      return kDefaultshmThreshold;
     }();
     return threshold;
   }
@@ -66,7 +66,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// \brief Create a PosixShmProvider if SHM is enabled.
   /// Reads GZ_TRANSPORT_ZENOH_SHM_ENABLED and GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE.
   /// Returns nullptr if SHM is disabled or creation fails.
-  inline std::unique_ptr<zenoh::PosixShmProvider> CreateShmProvider()
+  inline std::unique_ptr<zenoh::PosixShmProvider> createShmProvider()
   {
     std::string shmEnvValue;
     if (env("GZ_TRANSPORT_ZENOH_SHM_ENABLED", shmEnvValue) &&
@@ -103,10 +103,10 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// \brief Attempt to allocate a SHM buffer for a message.
   /// Returns std::nullopt if SHM is disabled, below threshold, or alloc fails.
   /// Uses non-blocking allocation with GC and defragmentation.
-  inline std::optional<zenoh::ZShmMut> AllocShmBuf(
+  inline std::optional<zenoh::ZShmMut> allocShmBuf(
       zenoh::PosixShmProvider *_provider, std::size_t _size)
   {
-    if (!_provider || _size < ShmThreshold())
+    if (!_provider || _size < shmThreshold())
       return std::nullopt;
 
     // Non-blocking alloc with garbage collection and defragmentation.
@@ -124,13 +124,13 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// Returns nullptr if SHM is disabled or unavailable. Thread-safe (uses
   /// std::call_once). Both ReqHandler and RepHandler share this pool, which
   /// avoids memory explosion with many service advertisers.
-  inline zenoh::PosixShmProvider* GetServiceShmProvider()
+  inline zenoh::PosixShmProvider* getServiceShmProvider()
   {
     static std::unique_ptr<zenoh::PosixShmProvider> provider;
     static std::once_flag initFlag;
     std::call_once(initFlag, []()
     {
-      provider = CreateShmProvider();
+      provider = createShmProvider();
     });
     return provider.get();
   }
