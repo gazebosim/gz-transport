@@ -72,14 +72,6 @@ Below are descriptions of the available environment variables:
     overrides take priority. Example:
     `GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE="transport/link/tx/queue/size/data=8;transport/shared_memory/enabled=true"`
     * *Available in backend:*: zenoh
-* **GZ_TRANSPORT_ZENOH_SHM_ENABLED**
-    * *Value allowed*: 1/0/true/false
-    * *Default value*: 1 (enabled)
-    * *Description*: Enable or disable POSIX shared memory (SHM) for
-    Zenoh publish and service payloads. When enabled, messages are placed in a
-    SHM pool and transferred via shared memory, reducing copies. Set to 0 or
-    false to disable and fall back to heap-based transfers.
-    * *Available in backend:*: zenoh
 * **GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE**
     * *Value allowed*: Any positive integer (bytes)
     * *Default value*: 50331648 (48 MB)

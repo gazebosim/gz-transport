@@ -103,17 +103,23 @@ namespace gz::transport
           else
             std::cout << "Zenoh default config loaded" << std::endl;
         }
-        // Enable Zenoh SHM transport unless explicitly disabled.
-        // Without this the session won't deliver ZShmMut puts, causing
-        // silent 100% message loss on the SHM publish path.
-        if (shmEnvConfig().enabled)
-          config.insert_json5("transport/shared_memory/enabled", "true");
 
         // Apply key=value overrides from GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
         const char *overrideEnv =
             std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
         if (overrideEnv)
           ApplyZenohConfigOverrides(config, overrideEnv, this->verbose);
+
+        // Read the resolved SHM enabled flag from the Zenoh config
+        // (after ZENOH_CONFIG file + overrides). This is the single
+        // source of truth — users control SHM via Zenoh's native
+        // transport/shared_memory/enabled setting.
+        {
+          auto shmVal = config.get(
+            "transport/shared_memory/enabled");
+          shmEnvConfig().enabled =
+            (shmVal != "false" && shmVal != "0");
+        }
 
         try
         {
