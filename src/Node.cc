@@ -215,8 +215,13 @@ class Node::PublisherPrivate
   /// \brief The liveliness token.
   public: std::unique_ptr<zenoh::LivelinessToken> zToken;
 
+#if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
   /// \brief SHM provider for zero-copy publishing.
   public: std::unique_ptr<zenoh::PosixShmProvider> provider;
+#else
+  /// \brief SHM not available on this platform.
+  public: std::unique_ptr<std::nullptr_t> provider;
+#endif
 #endif
 
   /// \brief Timestamp of the last callback executed.
