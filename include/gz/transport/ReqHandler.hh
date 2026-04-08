@@ -326,7 +326,7 @@ namespace ignition::transport
         return;
       }
 
-      this->reqMsg = _reqMsg->New();
+      this->reqMsg.reset(_reqMsg->New());
       this->reqMsg->CopyFrom(*_reqMsg);
     }
 
@@ -342,7 +342,7 @@ namespace ignition::transport
         return;
       }
 
-      this->repMsg = _repMsg->New();
+      this->repMsg.reset(_repMsg->New());
       this->repMsg->CopyFrom(*_repMsg);
     }
 
@@ -402,10 +402,10 @@ namespace ignition::transport
     }
 
     /// \brief Protobuf message containing the request's parameters.
-    private: google::protobuf::Message *reqMsg = nullptr;
+    private: std::unique_ptr<google::protobuf::Message> reqMsg;
 
     /// \brief Protobuf message containing the response.
-    private: google::protobuf::Message *repMsg = nullptr;
+    private: std::unique_ptr<google::protobuf::Message> repMsg;
   };
   }
 }
