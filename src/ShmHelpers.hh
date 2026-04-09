@@ -27,6 +27,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <variant>
@@ -55,6 +56,11 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// are reclaimed when the publisher's pool is destroyed.
   constexpr std::size_t kDefaultShmThreshold = 128 * 1024;
 
+  /// \brief Pool size above which a warning is emitted (1 GB).
+  /// Each publisher allocates its own pool, so large values multiply quickly.
+  constexpr std::size_t kShmPoolSizeWarningThreshold =
+      1UL * 1024 * 1024 * 1024;
+
   /// \brief Cached SHM configuration.
   /// Pool size and threshold are read from environment variables once on
   /// first access (thread-safe via static initialization). The enabled
@@ -77,6 +83,87 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     std::size_t threshold = kDefaultShmThreshold;
   };
 
+  /// \brief Parse and validate a size_t environment variable value.
+  /// Uses signed parsing (std::stol) so that negative values are detected
+  /// rather than silently wrapping to huge unsigned values.
+  /// \param[in] _val The string value to parse.
+  /// \param[in] _envVarName Name of the env var (for error messages).
+  /// \param[in] _defaultValue Value returned when parsing fails.
+  /// \param[in] _minValue Minimum accepted value (inclusive).
+  /// \return The parsed value, or _defaultValue on any error.
+  inline std::size_t parseShmSizeEnvVar(
+      const std::string &_val,
+      const std::string &_envVarName,
+      std::size_t _defaultValue,
+      std::size_t _minValue)
+  {
+    long numVal;
+    try
+    {
+      numVal = std::stol(_val);
+    }
+    catch (std::invalid_argument &)
+    {
+      std::cerr << "Unable to convert " << _envVarName << " value ["
+                << _val << "] to an integer number. Using ["
+                << _defaultValue << "] instead." << std::endl;
+      return _defaultValue;
+    }
+    catch (std::out_of_range &)
+    {
+      std::cerr << "Unable to convert " << _envVarName << " value ["
+                << _val << "] to an integer number. This number is "
+                << "out of range. Using [" << _defaultValue
+                << "] instead." << std::endl;
+      return _defaultValue;
+    }
+
+    if (numVal < 0)
+    {
+      std::cerr << "Unable to convert " << _envVarName << " value ["
+                << _val << "] to a non-negative number. This number is "
+                << "negative. Using [" << _defaultValue
+                << "] instead." << std::endl;
+      return _defaultValue;
+    }
+
+    auto result = static_cast<std::size_t>(numVal);
+    if (result < _minValue)
+    {
+      std::cerr << _envVarName << " value [" << _val
+                << "] is below the minimum (" << _minValue
+                << "). Using [" << _defaultValue
+                << "] instead." << std::endl;
+      return _defaultValue;
+    }
+
+    return result;
+  }
+
+  /// \brief Emit warnings for suspicious SHM configuration combinations.
+  /// \param[in] _config The configuration to check.
+  inline void warnShmConfig(const ShmEnvConfig &_config)
+  {
+    if (_config.poolSize > kShmPoolSizeWarningThreshold)
+    {
+      std::cerr << "gz-transport: GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE is "
+                << _config.poolSize << " bytes (>"
+                << kShmPoolSizeWarningThreshold
+                << "). Each publisher allocates its own pool."
+                << std::endl;
+    }
+
+    if (_config.poolSize < _config.threshold)
+    {
+      std::cerr << "gz-transport: GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE ("
+                << _config.poolSize
+                << ") is smaller than GZ_TRANSPORT_ZENOH_SHM_THRESHOLD ("
+                << _config.threshold
+                << "). SHM will effectively never be used."
+                << std::endl;
+    }
+  }
+
   /// \brief Get the cached SHM configuration.
   /// Environment variables are read once on first call.
   /// \return Reference to the process-wide SHM configuration.
@@ -89,28 +176,19 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 
       if (env("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE", val))
       {
-        try { c.poolSize = std::stoul(val); }
-        catch (...)
-        {
-          std::cerr << "gz-transport: invalid value for "
-                    << "GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE [" << val
-                    << "], using default " << kDefaultShmPoolSize
-                    << std::endl;
-        }
+        c.poolSize = parseShmSizeEnvVar(
+            val, "GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE",
+            kDefaultShmPoolSize, 1);
       }
 
       if (env("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD", val))
       {
-        try { c.threshold = std::stoul(val); }
-        catch (...)
-        {
-          std::cerr << "gz-transport: invalid value for "
-                    << "GZ_TRANSPORT_ZENOH_SHM_THRESHOLD [" << val
-                    << "], using default " << kDefaultShmThreshold
-                    << std::endl;
-        }
+        c.threshold = parseShmSizeEnvVar(
+            val, "GZ_TRANSPORT_ZENOH_SHM_THRESHOLD",
+            kDefaultShmThreshold, 0);
       }
 
+      warnShmConfig(c);
       return c;
     }();
     return config;

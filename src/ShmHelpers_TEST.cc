@@ -58,6 +58,133 @@ TEST(ShmHelpersTest, ShmEnvConfigDefaults)
 }
 
 //////////////////////////////////////////////////
+// parseShmSizeEnvVar: valid positive value
+TEST(ShmHelpersTest, ParseShmSizeEnvVarValid)
+{
+  auto result = parseShmSizeEnvVar("1048576", "TEST_VAR", 999, 0);
+  EXPECT_EQ(1048576u, result);
+}
+
+//////////////////////////////////////////////////
+// parseShmSizeEnvVar: zero is accepted when minValue is 0
+TEST(ShmHelpersTest, ParseShmSizeEnvVarZeroAllowed)
+{
+  auto result = parseShmSizeEnvVar("0", "TEST_VAR", 999, 0);
+  EXPECT_EQ(0u, result);
+}
+
+//////////////////////////////////////////////////
+// parseShmSizeEnvVar: zero is rejected when minValue is 1
+TEST(ShmHelpersTest, ParseShmSizeEnvVarZeroRejected)
+{
+  testing::internal::CaptureStderr();
+  auto result = parseShmSizeEnvVar("0", "TEST_VAR", 999, 1);
+  std::string err = testing::internal::GetCapturedStderr();
+  EXPECT_EQ(999u, result);
+  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
+  EXPECT_NE(std::string::npos, err.find("below the minimum"));
+}
+
+//////////////////////////////////////////////////
+// parseShmSizeEnvVar: negative value is rejected
+TEST(ShmHelpersTest, ParseShmSizeEnvVarNegative)
+{
+  testing::internal::CaptureStderr();
+  auto result = parseShmSizeEnvVar("-1", "TEST_VAR", 999, 0);
+  std::string err = testing::internal::GetCapturedStderr();
+  EXPECT_EQ(999u, result);
+  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
+  EXPECT_NE(std::string::npos, err.find("negative"));
+}
+
+//////////////////////////////////////////////////
+// parseShmSizeEnvVar: non-numeric string is rejected
+TEST(ShmHelpersTest, ParseShmSizeEnvVarNonNumeric)
+{
+  testing::internal::CaptureStderr();
+  auto result = parseShmSizeEnvVar("abc", "TEST_VAR", 999, 0);
+  std::string err = testing::internal::GetCapturedStderr();
+  EXPECT_EQ(999u, result);
+  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
+}
+
+//////////////////////////////////////////////////
+// parseShmSizeEnvVar: empty string is rejected
+TEST(ShmHelpersTest, ParseShmSizeEnvVarEmpty)
+{
+  testing::internal::CaptureStderr();
+  auto result = parseShmSizeEnvVar("", "TEST_VAR", 999, 0);
+  std::string err = testing::internal::GetCapturedStderr();
+  EXPECT_EQ(999u, result);
+  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
+}
+
+//////////////////////////////////////////////////
+// parseShmSizeEnvVar: overflow is rejected
+TEST(ShmHelpersTest, ParseShmSizeEnvVarOverflow)
+{
+  testing::internal::CaptureStderr();
+  auto result = parseShmSizeEnvVar(
+      "99999999999999999999", "TEST_VAR", 999, 0);
+  std::string err = testing::internal::GetCapturedStderr();
+  EXPECT_EQ(999u, result);
+  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
+  EXPECT_NE(std::string::npos, err.find("out of range"));
+}
+
+//////////////////////////////////////////////////
+// parseShmSizeEnvVar: value below custom minimum is rejected
+TEST(ShmHelpersTest, ParseShmSizeEnvVarBelowMinimum)
+{
+  testing::internal::CaptureStderr();
+  auto result = parseShmSizeEnvVar("5", "TEST_VAR", 999, 10);
+  std::string err = testing::internal::GetCapturedStderr();
+  EXPECT_EQ(999u, result);
+  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
+  EXPECT_NE(std::string::npos, err.find("below the minimum"));
+}
+
+//////////////////////////////////////////////////
+// warnShmConfig: warns when pool size exceeds 1 GB
+TEST(ShmHelpersTest, WarnShmConfigLargePool)
+{
+  ShmEnvConfig config;
+  config.poolSize = 2UL * 1024 * 1024 * 1024;  // 2 GB
+  config.threshold = kDefaultShmThreshold;
+
+  testing::internal::CaptureStderr();
+  warnShmConfig(config);
+  std::string err = testing::internal::GetCapturedStderr();
+  EXPECT_NE(std::string::npos, err.find("SHM_POOL_SIZE"));
+}
+
+//////////////////////////////////////////////////
+// warnShmConfig: warns when pool is smaller than threshold
+TEST(ShmHelpersTest, WarnShmConfigPoolLessThanThreshold)
+{
+  ShmEnvConfig config;
+  config.poolSize = 100;
+  config.threshold = 1000;
+
+  testing::internal::CaptureStderr();
+  warnShmConfig(config);
+  std::string err = testing::internal::GetCapturedStderr();
+  EXPECT_NE(std::string::npos, err.find("never be used"));
+}
+
+//////////////////////////////////////////////////
+// warnShmConfig: no warning for normal defaults
+TEST(ShmHelpersTest, WarnShmConfigNormal)
+{
+  ShmEnvConfig config;  // uses defaults
+
+  testing::internal::CaptureStderr();
+  warnShmConfig(config);
+  std::string err = testing::internal::GetCapturedStderr();
+  EXPECT_TRUE(err.empty());
+}
+
+//////////////////////////////////////////////////
 // createShmProvider: returns a valid provider when enabled
 TEST(ShmHelpersTest, CreateShmProvider)
 {
