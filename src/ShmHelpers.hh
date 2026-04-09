@@ -23,6 +23,7 @@
 #ifdef HAVE_ZENOH
 
 #include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -97,10 +98,10 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
       std::size_t _defaultValue,
       std::size_t _minValue)
   {
-    long numVal;
+    int64_t numVal;
     try
     {
-      numVal = std::stol(_val);
+      numVal = static_cast<int64_t>(std::stol(_val));
     }
     catch (std::invalid_argument &)
     {
