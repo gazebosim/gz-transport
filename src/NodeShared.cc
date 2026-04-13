@@ -459,9 +459,6 @@ void NodeShared::RecvMsgUpdate()
         if (!this->dataPtr->subscriber->recv(msg))
           return;
 
-        if (msg.size() < sizeof(PublicationMetadata))
-          return;
-
         PublicationMetadata *meta =
           reinterpret_cast<PublicationMetadata *>(msg.data());
 
