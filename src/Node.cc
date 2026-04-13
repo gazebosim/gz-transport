@@ -692,13 +692,6 @@ Node::~Node()
   for (auto const &topic : subsTopics)
     this->Unsubscribe(topic);
 
-  // The list of subscribed topics should be empty.
-  if (!this->SubscribedTopics().empty())
-  {
-    std::cerr << "Node::~Node(): not all topics were unsubscribed"
-              << std::endl;
-  }
-
   // Unadvertise all my services.
   auto advServices = this->AdvertisedServices();
   for (auto const &service : advServices)
@@ -708,13 +701,6 @@ Node::~Node()
       std::cerr << "Node::~Node(): Error unadvertising service ["
                 << service << "]" << std::endl;
     }
-  }
-
-  // The list of advertised services should be empty.
-  if (!this->AdvertisedServices().empty())
-  {
-    std::cerr << "Node::~Node(): not all services were unadvertised"
-              << std::endl;
   }
 }
 

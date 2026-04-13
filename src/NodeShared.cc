@@ -355,16 +355,12 @@ void NodeShared::RunReceptionTask()
       zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
           std::chrono::milliseconds(NodeSharedPrivate::Timeout));
     }
-    catch(const zmq::error_t &_error)
+    catch(const zmq::error_t &)
     {
-      std::cerr << "NodeShared::RunReceptionTask() error: "
-                << _error.what() << std::endl;
       continue;
     }
     catch(...)
     {
-      std::cerr << "NodeShared::RunReceptionTask(): "
-                << "unknown exception" << std::endl;
       continue;
     }
 
@@ -468,12 +464,7 @@ void NodeShared::RecvMsgUpdate()
           return;
 
         if (msg.size() < sizeof(PublicationMetadata))
-        {
-          std::cerr << "NodeShared::RecvMsgUpdate(): metadata message too "
-                    << "small (" << msg.size() << " < "
-                    << sizeof(PublicationMetadata) << ")" << std::endl;
           return;
-        }
 
         PublicationMetadata *meta =
           reinterpret_cast<PublicationMetadata *>(msg.data());
