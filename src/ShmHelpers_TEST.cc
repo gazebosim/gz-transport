@@ -197,12 +197,12 @@ TEST(ShmHelpersTest, CreateShmProvider)
 TEST(ShmHelpersTest, CreateShmProviderDisabled)
 {
   // Temporarily disable SHM via the cached config.
-  shmEnvConfig().enabled = false;
+  setShmEnabled(false);
   auto provider = createShmProvider();
   EXPECT_EQ(nullptr, provider);
 
   // Restore.
-  shmEnvConfig().enabled = true;
+  setShmEnabled(true);
 }
 
 //////////////////////////////////////////////////
@@ -246,7 +246,7 @@ TEST(ShmHelpersTest, AllocShmBufDisabled)
   ASSERT_NE(provider, nullptr);
 
   // Temporarily disable SHM via the cached config.
-  shmEnvConfig().enabled = false;
+  setShmEnabled(false);
   auto disabledProvider = createShmProvider();
   EXPECT_EQ(nullptr, disabledProvider);
 
@@ -256,7 +256,7 @@ TEST(ShmHelpersTest, AllocShmBufDisabled)
   EXPECT_FALSE(result.has_value());
 
   // Restore.
-  shmEnvConfig().enabled = true;
+  setShmEnabled(true);
 }
 
 //////////////////////////////////////////////////

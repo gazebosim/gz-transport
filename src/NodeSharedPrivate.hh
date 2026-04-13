@@ -133,8 +133,7 @@ namespace gz::transport
         {
           auto shmVal = config.get(
             "transport/shared_memory/enabled");
-          shmEnvConfig().enabled =
-            (shmVal != "false" && shmVal != "0");
+          setShmEnabled(shmVal != "false" && shmVal != "0");
         }
 
         try

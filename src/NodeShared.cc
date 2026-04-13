@@ -319,6 +319,13 @@ NodeShared::NodeShared()
 //////////////////////////////////////////////////
 NodeShared::~NodeShared()
 {
+#ifdef HAVE_ZENOH
+  // Destroy all centralized Zenoh subscribers before any other cleanup.
+  // Their callbacks capture 'this' and access localSubscribers / mutex,
+  // so they must be torn down while those members are still alive.
+  this->dataPtr->zenohSubscribers.clear();
+#endif
+
   // Tell the service thread to terminate.
   this->dataPtr->exit = true;
 
@@ -533,74 +540,8 @@ void NodeShared::TriggerCallbacks(
     const std::string &_msgData,
     const HandlerInfo &_handlerInfo)
 {
-  if (!_handlerInfo.haveLocal && !_handlerInfo.haveRaw)
-    return;
-
-  if (_handlerInfo.haveRaw)
-  {
-    for (const auto &node : _handlerInfo.rawHandlers)
-    {
-      for (const auto &handler : node.second)
-      {
-        const RawSubscriptionHandlerPtr &rawHandler = handler.second;
-        if (rawHandler)
-        {
-          if (rawHandler->TypeName() == _info.Type() ||
-              rawHandler->TypeName() == kGenericMessageType)
-          {
-            rawHandler->RunRawCallback(_msgData.c_str(), _msgData.size(),
-                _info);
-          }
-        }
-        else
-          std::cerr << "Raw subscription handler is NULL" << std::endl;
-      }
-    }
-  }
-
-  if (_handlerInfo.haveLocal)
-  {
-    // This will be instantiated by the first suitable handler that we
-    // encounter. If there is no suitable handler, then we can avoid
-    // deserializing the message altogether.
-    std::shared_ptr<ProtoMsg> msg;
-
-    for (const auto &node : _handlerInfo.localHandlers)
-    {
-      for (const auto &handler : node.second)
-      {
-        const ISubscriptionHandlerPtr &localHandler = handler.second;
-        if (localHandler)
-        {
-          if (localHandler->TypeName() == _info.Type() ||
-              localHandler->TypeName() == kGenericMessageType)
-          {
-            if (!msg)
-            {
-              // If the message has not been deserialized yet, do it now since
-              // we have allegedly found a subscriber which should be able to
-              // do it.
-              msg = localHandler->CreateMsg(_msgData, _info.Type());
-
-              if (!msg)
-              {
-                // If the message could not be created, then none of the
-                // handlers in this process will be able to create it, because
-                // protobuf has access to all message types that the current
-                // process is linked to. If CreateMsg(~,~) fails, then we may
-                // as well quit.
-                return;
-              }
-            }
-
-            localHandler->RunLocalCallback(*msg, _info);
-          }
-        }
-        else
-          std::cerr << "Local subscription handler is NULL" << std::endl;
-      }
-    }
-  }
+  this->TriggerCallbacks(_info, _msgData.data(), _msgData.size(),
+    _handlerInfo);
 }
 
 //////////////////////////////////////////////////
@@ -636,6 +577,9 @@ void NodeShared::TriggerCallbacks(
 
   if (_handlerInfo.haveLocal)
   {
+    // This will be instantiated by the first suitable handler that we
+    // encounter. If there is no suitable handler, then we can avoid
+    // deserializing the message altogether.
     std::shared_ptr<ProtoMsg> msg;
 
     for (const auto &node : _handlerInfo.localHandlers)
@@ -650,10 +594,21 @@ void NodeShared::TriggerCallbacks(
           {
             if (!msg)
             {
+              // If the message has not been deserialized yet, do it now since
+              // we have allegedly found a subscriber which should be able to
+              // do it.
               msg = localHandler->CreateMsgFromBuffer(
                 _msgData, _msgSize, _info.Type());
+
               if (!msg)
+              {
+                // If the message could not be created, then none of the
+                // handlers in this process will be able to create it, because
+                // protobuf has access to all message types that the current
+                // process is linked to. If CreateMsgFromBuffer fails, then we
+                // may as well quit.
                 return;
+              }
             }
             localHandler->RunLocalCallback(*msg, _info);
           }
@@ -1998,6 +1953,7 @@ void NodeShared::EnsureZenohSubscription(const std::string &_topic)
 /////////////////////////////////////////////////
 void NodeShared::MaybeRemoveZenohSubscription(const std::string &_topic)
 {
+  // Precondition: caller holds this->mutex.
   // If no handlers remain for this topic, remove the centralized subscriber.
   if (!this->localSubscribers.HasSubscriber(_topic))
     this->dataPtr->zenohSubscribers.erase(_topic);
