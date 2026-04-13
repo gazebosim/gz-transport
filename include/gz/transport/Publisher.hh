@@ -67,7 +67,7 @@ namespace gz::transport
     public: std::string Addr() const;
 
     /// \brief Get the process UUID of the publisher.
-    /// return Process UUID.
+    /// \return Process UUID.
     /// \sa SetPUuid.
     public: std::string PUuid() const;
 
@@ -233,7 +233,8 @@ namespace gz::transport
 
     /// \brief Set data from a discovery message.
     /// \param[in] _msg Discovery message.
-    public: virtual void SetFromDiscovery(const msgs::Discovery &_msg);
+    public: virtual void SetFromDiscovery(
+      const msgs::Discovery &_msg) override;
 
     /// \brief Stream insertion operator.
     /// \param[out] _out The output stream.
@@ -358,10 +359,10 @@ namespace gz::transport
     /// \param[in] _msg Message to fill.
     public: virtual void FillDiscovery(msgs::Discovery &_msg) const final;
 
-    /// \brief Populate a discovery message.
     /// \brief Set data from a discovery message.
     /// \param[in] _msg Discovery message.
-    public: virtual void SetFromDiscovery(const msgs::Discovery &_msg);
+    public: virtual void SetFromDiscovery(
+      const msgs::Discovery &_msg) override;
 
     /// \brief Stream insertion operator.
     /// \param[out] _out The output stream.

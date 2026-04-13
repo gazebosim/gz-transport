@@ -167,7 +167,7 @@ namespace gz::transport
     /// \brief When there is a blocking service call request, the call can
     /// be unlocked when a service call REP is available. This variable
     /// captures if we have found a node that can satisfy our request.
-    public: bool repAvailable;
+    protected: bool repAvailable;
   };
 
   /// \class ReqHandler ReqHandler.hh

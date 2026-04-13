@@ -152,12 +152,12 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
 #ifdef HAVE_IFADDRS
     std::vector<std::string> result;
-    struct ifaddrs *ifa = nullptr, *ifp = NULL;
+    struct ifaddrs *ifa = nullptr, *ifp = nullptr;
     int rc;
     if ((rc = getifaddrs(&ifp)) < 0)
     {
       std::cerr << "error in getifaddrs: " << strerror(rc) << std::endl;
-      exit(-1);
+      return result;
     }
 
 #if defined(SIOCGIFINDEX)
@@ -254,20 +254,21 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     std::string ret_addr("127.0.0.1");
     // Look up our address.
     ULONG outBufLen = 0;
-    PIP_ADAPTER_ADDRESSES addrs = NULL;
+    PIP_ADAPTER_ADDRESSES addrs = nullptr;
     // Not sure whether these are the right flags, but they work for
     // me on Windows 7
     ULONG flags = (GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST |
                    GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_FRIENDLY_NAME);
     // The first time, it'll fail; we're asking how much space is needed to
     // store the result.
-    GetAdaptersAddresses(AF_INET, flags, NULL, addrs, &outBufLen);
+    GetAdaptersAddresses(AF_INET, flags, nullptr, addrs, &outBufLen);
     // Allocate the required space.
-    addrs = new IP_ADAPTER_ADDRESSES[outBufLen];
+    auto addrsOwner = std::make_unique<IP_ADAPTER_ADDRESSES[]>(outBufLen);
+    addrs = addrsOwner.get();
     ULONG ret;
     // Now the call should succeed.
-    if ((ret = GetAdaptersAddresses(AF_INET, flags, NULL, addrs, &outBufLen)) ==
-      NO_ERROR)
+    if ((ret = GetAdaptersAddresses(AF_INET, flags, nullptr, addrs,
+        &outBufLen)) == NO_ERROR)
     {
       // Iterate over all returned adapters, arbitrarily sticking with the
       // last non-loopback one that we find.
@@ -313,7 +314,6 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     }
     else
       std::cerr << "GetAdaptersAddresses() failed: " << ret << std::endl;
-    delete [] addrs;
     if (result.empty() || (result.size() == 1 && result.at(0) == "127.0.0.1"))
     {
       std::cerr <<

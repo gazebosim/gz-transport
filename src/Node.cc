@@ -17,7 +17,6 @@
 #include <gz/msgs/discovery.pb.h>
 #include <gz/msgs/statistic.pb.h>
 
-#include <cassert>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -694,7 +693,11 @@ Node::~Node()
     this->Unsubscribe(topic);
 
   // The list of subscribed topics should be empty.
-  assert(this->SubscribedTopics().empty());
+  if (!this->SubscribedTopics().empty())
+  {
+    std::cerr << "Node::~Node(): not all topics were unsubscribed"
+              << std::endl;
+  }
 
   // Unadvertise all my services.
   auto advServices = this->AdvertisedServices();
@@ -708,7 +711,11 @@ Node::~Node()
   }
 
   // The list of advertised services should be empty.
-  assert(this->AdvertisedServices().empty());
+  if (!this->AdvertisedServices().empty())
+  {
+    std::cerr << "Node::~Node(): not all services were unadvertised"
+              << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
