@@ -167,8 +167,8 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 
   /// \brief Get the cached SHM configuration.
   /// Environment variables are read once on first call.
-  /// \return Reference to the process-wide SHM configuration.
-  inline ShmEnvConfig &shmEnvConfig()
+  /// \return Const reference to the process-wide SHM configuration.
+  inline const ShmEnvConfig &shmEnvConfig()
   {
     static ShmEnvConfig config = []()
     {
@@ -193,6 +193,18 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
       return c;
     }();
     return config;
+  }
+
+  /// \brief Set the SHM enabled flag in the cached configuration.
+  /// Called once during NodeSharedPrivate initialization after resolving
+  /// the Zenoh config. Not thread-safe — must be called before any
+  /// publisher or subscriber is created.
+  /// \param[in] _enabled Whether SHM should be enabled.
+  inline void setShmEnabled(bool _enabled)
+  {
+    // const_cast is safe here: the static is non-const internally,
+    // and this function is called exactly once during init.
+    const_cast<ShmEnvConfig &>(shmEnvConfig()).enabled = _enabled;
   }
 
   /// \brief Create a PosixShmProvider using the cached SHM configuration.

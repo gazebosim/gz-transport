@@ -209,19 +209,9 @@ namespace gz::transport
     // Documentation inherited.
     public: const std::shared_ptr<ProtoMsg> CreateMsg(
       const std::string &_data,
-      const std::string &/*_type*/) const
+      const std::string &_type) const
     {
-      // Instantiate a specific protobuf message
-      auto msgPtr = std::make_shared<T>();
-
-      // Create the message using some serialized data
-      if (!msgPtr->ParseFromString(_data))
-      {
-        std::cerr << "SubscriptionHandler::CreateMsg() error: ParseFromString"
-                  << " failed" << std::endl;
-      }
-
-      return msgPtr;
+      return this->CreateMsgFromBuffer(_data.data(), _data.size(), _type);
     }
 
     // Documentation inherited.
@@ -338,6 +328,15 @@ namespace gz::transport
       const std::string &_data,
       const std::string &_type) const
     {
+      return this->CreateMsgFromBuffer(_data.data(), _data.size(), _type);
+    }
+
+    // Documentation inherited.
+    public: const std::shared_ptr<ProtoMsg> CreateMsgFromBuffer(
+      const char *_data,
+      std::size_t _size,
+      const std::string &_type) const override
+    {
       std::shared_ptr<google::protobuf::Message> msgPtr;
 
       const google::protobuf::Descriptor *desc =
@@ -360,39 +359,6 @@ namespace gz::transport
       if (!msgPtr)
         return nullptr;
 
-      // Create the message using some serialized data
-      if (!msgPtr->ParseFromString(_data))
-      {
-        std::cerr << "CreateMsg() error: ParseFromString failed" << std::endl;
-        return nullptr;
-      }
-
-      return msgPtr;
-    }
-
-    // Documentation inherited.
-    public: const std::shared_ptr<ProtoMsg> CreateMsgFromBuffer(
-      const char *_data,
-      std::size_t _size,
-      const std::string &_type) const override
-    {
-      std::shared_ptr<google::protobuf::Message> msgPtr;
-
-      const google::protobuf::Descriptor *desc =
-        google::protobuf::DescriptorPool::generated_pool()
-          ->FindMessageTypeByName(_type);
-
-      if (desc)
-      {
-        msgPtr.reset(google::protobuf::MessageFactory::generated_factory()
-          ->GetPrototype(desc)->New());
-      }
-      else
-        msgPtr = gz::msgs::Factory::New(_type);
-
-      if (!msgPtr)
-        return nullptr;
-
       if (!msgPtr->ParseFromArray(_data, static_cast<int>(_size)))
       {
         std::cerr << "CreateMsgFromBuffer() error: ParseFromArray failed"
@@ -402,7 +368,6 @@ namespace gz::transport
 
       return msgPtr;
     }
-
 
     // Documentation inherited.
     public: std::string TypeName()
