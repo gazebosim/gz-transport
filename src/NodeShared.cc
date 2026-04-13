@@ -30,8 +30,6 @@
 #include <unordered_map>
 
 #ifdef HAVE_ZENOH
-// Unlock get_contiguous_view() for zero-copy SHM receive path.
-#define Z_FEATURE_UNSTABLE_API
 #include <zenoh.hxx>
 #endif
 #include <zmq.hpp>

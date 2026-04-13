@@ -20,7 +20,6 @@
 #include "gz/transport/config.hh"
 
 #ifdef HAVE_ZENOH
-#define Z_FEATURE_UNSTABLE_API
 #include <zenoh.hxx>
 
 #if defined(Z_FEATURE_SHARED_MEMORY)

@@ -24,8 +24,6 @@
 #include "gz/transport/Uuid.hh"
 
 #ifdef HAVE_ZENOH
-// Unlock get_contiguous_view() for SHM receive path.
-#define Z_FEATURE_UNSTABLE_API
 #include <zenoh.hxx>
 #include "ShmHelpers.hh"
 #endif
