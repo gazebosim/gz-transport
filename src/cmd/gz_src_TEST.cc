@@ -84,6 +84,7 @@ bool srvEchoOk(const msgs::Int32 &_req, msgs::Int32 &_rep)
   return true;
 }
 
+/// \brief Provide a StringMsg echo service
 bool srvEchoStringOk(const msgs::StringMsg &_req, msgs::StringMsg &_rep)
 {
   _rep.set_data(_req.data());

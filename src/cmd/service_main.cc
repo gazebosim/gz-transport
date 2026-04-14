@@ -68,7 +68,7 @@ void runServiceCommand(const ServiceOptions &_opt)
       cmdServiceInfo(_opt.service.c_str());
       break;
     case ServiceCommand::kServiceReq:
-      {
+    {
       const char *repType =
         _opt.repType.empty() ? nullptr : _opt.repType.c_str();
       const char *reqType =
@@ -77,7 +77,7 @@ void runServiceCommand(const ServiceOptions &_opt)
       cmdServiceReq(_opt.service.c_str(), reqType, repType,
           _opt.timeout, _opt.reqData.c_str());
       break;
-      }
+    }
     case ServiceCommand::kNone:
     default:
       // In the event that there is no command, display help
@@ -117,8 +117,9 @@ void addServiceFlags(CLI::App &_app)
       },
 R"(Request a service.
 TEXT is the input data.
-The format expected is
-the same used by google::protobuf::TextFormat::PrintToString(). E.g.:
+Types are auto-discovered if --reqtype/--reptype are omitted.
+E.g.:
+  gz service -s /echo --req 'data: "Hello"'
   gz service -s /echo \
     --reqtype gz.msgs.StringMsg \
     --reptype gz.msgs.StringMsg \
