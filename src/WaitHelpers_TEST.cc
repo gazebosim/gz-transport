@@ -158,3 +158,19 @@ TEST(WaitHelpersTest, waitForShutdownSIGTERM)
   raise(SIGTERM);
   aThread.join();
 }
+
+//////////////////////////////////////////////////
+/// \brief Stress-test re-entry into waitForShutdown(). The implementation
+/// keeps a process-wide self-pipe alive across calls; this test loops the
+/// wait-and-signal cycle to flush out edge cases in the persistent state
+/// (e.g. left-over bytes in the pipe, handler installation order).
+TEST(WaitHelpersTest, waitForShutdownReEntryStress)
+{
+  for (int i = 0; i < 10; ++i)
+  {
+    std::thread aThread([]{transport::waitForShutdown();});
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    raise(SIGINT);
+    aThread.join();
+  }
+}
