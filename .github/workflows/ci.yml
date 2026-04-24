@@ -4,8 +4,8 @@ on:
   pull_request:
   push:
     branches:
-      - 'ign-transport[0-9]?'
-      - 'gz-transport[0-9]?'
+      - 'ign-transport[1-9]?[0-9]'
+      - 'gz-transport[1-9]?[0-9]'
       - 'main'
 
 jobs:
