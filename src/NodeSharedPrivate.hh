@@ -103,7 +103,23 @@ namespace gz::transport
             std::cout << "Zenoh default config loaded" << std::endl;
         }
 
+        // Increase the congestion control drop timeouts from Zenoh's
+        // defaults (1 ms / 50 ms) to reduce message loss for large
+        // messages in inter-process pub/sub.  Benchmarking showed that
+        // the default 1 ms wait_before_drop causes 50-90% loss for
+        // messages in the 125 KB–4 MB range, while 50 ms eliminates
+        // loss entirely without measurable throughput impact.
+        // These can be overridden via ZENOH_CONFIG or
+        // GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
+        config.insert_json5(
+          "transport/link/tx/queue/congestion_control/drop/"
+          "wait_before_drop", "50000");
+        config.insert_json5(
+          "transport/link/tx/queue/congestion_control/drop/"
+          "max_wait_before_drop_fragments", "250000");
+
         // Apply key=value overrides from GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
+        // Applied after our defaults so user overrides take priority.
         const char *overrideEnv =
             std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
         if (overrideEnv)
