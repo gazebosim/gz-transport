@@ -68,28 +68,16 @@ void runServiceCommand(const ServiceOptions &_opt)
       cmdServiceInfo(_opt.service.c_str());
       break;
     case ServiceCommand::kServiceReq:
-      if (_opt.repType.empty())
-      {
-        // One-way service request.
-        cmdServiceReq(_opt.service.c_str(),
-            _opt.reqType.c_str(), "gz.msgs.Empty",
-            0, _opt.reqData.c_str());
-      }
-      else if (_opt.reqType.empty())
-      {
-        // No input service request.
-        cmdServiceReq(_opt.service.c_str(),
-            "gz.msgs.Empty", _opt.repType.c_str(),
-            _opt.timeout, "unused:true");
-      }
-      else
-      {
-        // Two-way service request.
-        cmdServiceReq(_opt.service.c_str(),
-            _opt.reqType.c_str(), _opt.repType.c_str(),
-            _opt.timeout, _opt.reqData.c_str());
-      }
+    {
+      const char *repType =
+        _opt.repType.empty() ? nullptr : _opt.repType.c_str();
+      const char *reqType =
+        _opt.reqType.empty() ? nullptr : _opt.reqType.c_str();
+
+      cmdServiceReq(_opt.service.c_str(), reqType, repType,
+          _opt.timeout, _opt.reqData.c_str());
       break;
+    }
     case ServiceCommand::kNone:
     default:
       // In the event that there is no command, display help
@@ -129,8 +117,9 @@ void addServiceFlags(CLI::App &_app)
       },
 R"(Request a service.
 TEXT is the input data.
-The format expected is
-the same used by google::protobuf::TextFormat::PrintToString(). E.g.:
+Types are auto-discovered if --reqtype/--reptype are omitted.
+E.g.:
+  gz service -s /echo --req 'data: "Hello"'
   gz service -s /echo \
     --reqtype gz.msgs.StringMsg \
     --reptype gz.msgs.StringMsg \
