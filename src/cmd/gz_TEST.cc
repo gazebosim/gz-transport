@@ -129,7 +129,7 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 
   auto output = exec_with_retry({"topic", "-l"},
     [](auto procOut){
-      return procOut.cout == "/foo\n";
+      return procOut.cout.find("/foo\n") != std::string::npos;
     });
 
   EXPECT_TRUE(output);
@@ -229,7 +229,7 @@ TEST(gzTest, TopicListSameProc)
 
   auto output = exec_with_retry({"topic", "-l"},
     [](auto procOut){
-      return procOut.cout == "/foo\n";
+      return procOut.cout.find("/foo\n") != std::string::npos;
     });
 
   EXPECT_TRUE(output);

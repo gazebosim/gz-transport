@@ -24,6 +24,7 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
+#include "ShmHelpers.hh"
 #endif
 
 namespace gz::transport
@@ -92,12 +93,35 @@ namespace gz::transport
     auto onQuery = [this, _service](const zenoh::Query &_query)
     {
       std::string output;
-      std::string input = "";
+      std::string input;
+
       if (_query.get_payload())
-        input = _query.get_payload()->get().as_string();
+      {
+        // SHM-optimized receive: get a direct pointer into the SHM buffer
+        // when available, avoiding a fragmented copy within Zenoh.
+        auto view = _query.get_payload()->get().get_contiguous_view();
+        if (view.has_value())
+        {
+          input.assign(
+            reinterpret_cast<const char *>(view->data), view->len);
+        }
+        else
+          input = _query.get_payload()->get().as_string();
+      }
 
       if (this->RunCallback(input, output))
-        _query.reply(_service, output);
+      {
+        // SHM-optimized reply (one copy: heap -> SHM). Uses the
+        // process-level service SHM pool shared with ReqHandler.
+        auto *provider = serviceShmProvider();
+        if (auto shmBuf = allocShmBuf(provider, output.size()))
+        {
+          memcpy(shmBuf->data(), output.data(), output.size());
+          _query.reply(_service, zenoh::Bytes(std::move(*shmBuf)));
+        }
+        else
+          _query.reply(_service, output);
+      }
     };
 
     auto onDropQueryable = []() {};
