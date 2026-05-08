@@ -1,3 +1,4 @@
+cppzmq-dev
 libgz-rotary-cmake-dev
 libgz-rotary-math-dev
 libgz-rotary-msgs-dev
@@ -6,6 +7,8 @@ libgz-rotary-utils-cli-dev
 libprotobuf-dev
 libprotoc-dev
 libsqlite3-dev
+libzenohc-dev
+libzenohcpp-dev
 libzmq3-dev
 pkg-config
 protobuf-compiler
