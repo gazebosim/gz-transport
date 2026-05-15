@@ -20,12 +20,15 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
+#include <functional>
 #include <list>
 #include <map>
 #include <memory>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -45,6 +48,105 @@ namespace gz::transport
 {
   // Inline bracket to help doxygen filtering.
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+#ifdef HAVE_ZENOH
+  /// \internal
+  /// \brief State the Zenoh subscriber lambda dispatches against.
+  /// Owned by SubscriptionHandlerBase via shared_ptr; the lambda
+  /// holds a weak_ptr and bails when the lock fails, so it never
+  /// touches a destroyed handler.
+  struct ZenohSubscriberHolder
+  {
+    /// \brief Topic the subscriber was registered on.
+    std::string topic;
+
+    /// \brief Declared message type. Empty or kGenericMessageType accepts any.
+    std::string expectedType;
+
+    /// \brief Dispatch closure. Captures the user callback by value.
+    std::function<void(const std::string &payload,
+                       const std::string &msgType)> dispatch;
+
+    /// \brief Throttling state replicated so the lambda does not
+    /// have to reach into the handler.
+    double periodNs{0.0};
+    std::atomic<int64_t> lastCbTimeNs{0};
+
+    /// \brief Throttle gate. Returns true if the dispatch should fire.
+    bool ShouldFire()
+    {
+      if (this->periodNs <= 0.0)
+        return true;
+      const auto nowNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+      auto last = this->lastCbTimeNs.load(std::memory_order_acquire);
+      if (static_cast<double>(nowNs - last) < this->periodNs)
+        return false;
+      this->lastCbTimeNs.store(nowNs, std::memory_order_release);
+      return true;
+    }
+  };
+
+  /// \internal
+  /// \brief State the Zenoh queryable lambda dispatches against.
+  /// Same lifetime model as ZenohSubscriberHolder.
+  struct ZenohQueryableHolder
+  {
+    /// \brief Service keyexpr passed to Query::reply().
+    std::string service;
+
+    /// \brief Request handler. Fills the response and returns true
+    /// on success.
+    std::function<bool(const std::string &request,
+                       std::string &response)> dispatch;
+  };
+
+  /// \internal
+  /// \brief Teardown a per-handler Zenoh entity. Safe to call
+  /// multiple times.
+  ///
+  /// Implements the shared shutdown pattern used by subscribers
+  /// and queryables:
+  ///   1. Thread-safe one-shot guard so the body runs exactly once,
+  ///      even if multiple threads call it at the same time.
+  ///   2. Drop the holder. The Zenoh callback lambda captures a
+  ///      weak_ptr to it; once the strong ref drops, any future
+  ///      callback locks null and returns without touching the
+  ///      dying handler.
+  ///   3. Move the entity and token into a detached thread that
+  ///      calls undeclare() on each. Detached because undeclare()
+  ///      blocks until in-flight callbacks return, which would
+  ///      deadlock if run inline: the caller may be holding a
+  ///      mutex the callback is waiting on, or the callback may
+  ///      itself be what triggered the teardown.
+  template <typename HolderT, typename EntityT>
+  inline void ZenohTeardownEntity(
+      std::atomic<bool> &_isShutdown,
+      std::shared_ptr<HolderT> &_holder,
+      std::unique_ptr<EntityT> &_entity,
+      std::unique_ptr<zenoh::LivelinessToken> &_token)
+  {
+    bool expected = false;
+    if (!_isShutdown.compare_exchange_strong(expected, true,
+          std::memory_order_acq_rel, std::memory_order_relaxed))
+      return;
+
+    _holder.reset();
+
+    auto entityWrap = std::move(_entity);
+    auto tokenWrap = std::move(_token);
+    if (entityWrap || tokenWrap)
+    {
+      std::thread([e = std::move(entityWrap),
+                   t = std::move(tokenWrap)]() mutable
+      {
+        zenoh::ZResult result = Z_OK;
+        if (t) std::move(*t).undeclare(&result);
+        if (e) std::move(*e).undeclare(&result);
+      }).detach();
+    }
+  }
+#endif
+
   //
   /// \brief Metadata for a publication. This is sent as part of the ZMQ
   /// message for topic statistics.
