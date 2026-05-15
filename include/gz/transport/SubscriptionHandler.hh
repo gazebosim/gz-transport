@@ -32,6 +32,7 @@
 #endif
 
 #include <chrono>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -102,6 +103,20 @@ namespace gz::transport
     /// whether the callback should be executed or not.
     /// \return true if the callback should be executed or false otherwise.
     protected: bool UpdateThrottling();
+
+#ifdef HAVE_ZENOH
+    /// \brief Populate the holder that the Zenoh receive lambda
+    /// dispatches through. Must be called by the most derived
+    /// subscriber subclass before CreateGenericZenohSubscriber. The
+    /// dispatch closure should capture state by value so it stays
+    /// valid after the handler is destroyed. See
+    /// ZenohSubscriberHolder.
+    protected: void SetZenohSubscriberDispatch(
+      const std::string &_topic,
+      const std::string &_expectedType,
+      std::function<void(const std::string &payload,
+                         const std::string &msgType)> _dispatch);
+#endif
 
     /// \brief Subscribe options.
     protected: SubscribeOptions opts;
@@ -228,6 +243,20 @@ namespace gz::transport
                              const std::string &_topic)
     {
       this->SetCallback(std::move(_cb));
+      const std::string topic = _topic;
+      this->SetZenohSubscriberDispatch(
+        topic, this->TypeName(),
+        [_cb, topic](const std::string &payload,
+                     const std::string &msgType)
+        {
+          auto msg = std::make_shared<T>();
+          if (!msg->ParseFromString(payload))
+            return;
+          MessageInfo info;
+          info.SetTopic(topic);
+          info.SetType(msgType);
+          _cb(*msg, info);
+        });
       this->CreateGenericZenohSubscriber(_session, _topic);
     }
 #endif
@@ -359,6 +388,34 @@ namespace gz::transport
                              const std::string &_topic)
     {
       this->SetCallback(std::move(_cb));
+      const std::string topic = _topic;
+      this->SetZenohSubscriberDispatch(
+        topic, this->TypeName(),
+        [_cb, topic](const std::string &payload,
+                     const std::string &msgType)
+        {
+          // Generic ProtoMsg path. Duplicate the CreateMsg lookup
+          // logic since the closure has no `this`.
+          std::shared_ptr<google::protobuf::Message> msgPtr;
+          const google::protobuf::Descriptor *desc =
+            google::protobuf::DescriptorPool::generated_pool()
+              ->FindMessageTypeByName(msgType);
+          if (desc)
+          {
+            msgPtr.reset(google::protobuf::MessageFactory
+              ::generated_factory()->GetPrototype(desc)->New());
+          }
+          else
+          {
+            msgPtr = gz::msgs::Factory::New(msgType);
+          }
+          if (!msgPtr || !msgPtr->ParseFromString(payload))
+            return;
+          MessageInfo info;
+          info.SetTopic(topic);
+          info.SetType(msgType);
+          _cb(*msgPtr, info);
+        });
       this->CreateGenericZenohSubscriber(_session, _topic);
     }
 #endif
