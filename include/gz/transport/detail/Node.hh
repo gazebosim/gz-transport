@@ -607,6 +607,12 @@ namespace gz::transport
     // Insert the request's parameters.
     reqHandlerPtr->SetMessage(&_request);
     reqHandlerPtr->SetResponse(&_reply);
+    // Propagate the user timeout so the Zenoh query bound matches
+    // the WaitUntil bound.
+    reqHandlerPtr->SetTimeoutMs(_timeout);
+    // Give the handler access to NodeShared so the Zenoh path can
+    // reach the per-process Querier cache.
+    reqHandlerPtr->SetNodeShared(this->Shared());
 
     bool localResponserFound;
     IRepHandlerPtr repHandler;
