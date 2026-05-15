@@ -32,3 +32,8 @@ target_compile_definitions(test_config INTERFACE
   "TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_INC_EXE=\"$<TARGET_FILE:twoProcsSrvCallWithoutInputReplierInc_aux>\""
   "TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_EXE=\"$<TARGET_FILE:twoProcsSrvCallWithoutOutputReplier_aux>\""
   "TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE=\"$<TARGET_FILE:twoProcsSrvCallWithoutOutputReplierInc_aux>\"")
+
+if (HAVE_ZENOH)
+  target_compile_definitions(test_config INTERFACE
+    "ZENOH_SHUTDOWN_AUX_EXE=\"$<TARGET_FILE:zenohShutdown_aux>\"")
+endif()
