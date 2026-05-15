@@ -8,6 +8,7 @@ set(tests
   twoProcsPubSub.cc
   twoProcsPubSubStats.cc
   twoProcsSrvCall.cc
+  twoProcsSrvCallLateResponder.cc
   twoProcsSrvCallStress.cc
   twoProcsSrvCallSync1.cc
   twoProcsSrvCallWithoutInput.cc
