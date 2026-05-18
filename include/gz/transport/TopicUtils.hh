@@ -416,7 +416,11 @@ namespace gz::transport
     /// \return THe fully qualified topic if valid, otherwise std::nullopt
     std::optional<std::string> FullTopic() const
     {
-      return this->fullTopic;
+      // Branch explicitly to avoid a GCC -Wmaybe-uninitialized false
+      // positive on the inlined optional<string> copy.
+      if (!this->fullTopic.has_value())
+        return std::nullopt;
+      return *this->fullTopic;
     }
 
     /// \brief The partition
