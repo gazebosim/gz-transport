@@ -414,7 +414,7 @@ namespace gz::transport
     }
     /// \brief Gets the fully qualified topic if it is valid
     /// \return THe fully qualified topic if valid, otherwise std::nullopt
-    std::optional<std::string> FullTopic() const
+    const std::optional<std::string> &FullTopic() const
     {
       return this->fullTopic;
     }
