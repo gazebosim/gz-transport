@@ -15,8 +15,12 @@
  *
 */
 
+#include <atomic>
+#include <functional>
+#include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 #include "gz/transport/config.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/TopicUtils.hh"
@@ -24,6 +28,7 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
+#include "NodeSharedPrivate.hh"
 #endif
 
 namespace gz::transport
@@ -45,7 +50,25 @@ namespace gz::transport
     }
 
     /// \brief Destructor.
-    public: virtual ~IRepHandlerPrivate() = default;
+    public: virtual ~IRepHandlerPrivate()
+    {
+      this->Shutdown();
+    }
+
+    /// \brief Zenoh teardown. Safe to call multiple times.
+    /// See ZenohTeardownEntity in NodeSharedPrivate.hh for the
+    /// shared pattern (atomic guard + detached undeclare). Running
+    /// undeclare() inline would self-deadlock if a service callback
+    /// itself triggers UnadvertiseSrv (which calls this teardown):
+    /// the callback would wait for teardown to finish, and teardown
+    /// would wait for the callback to return.
+    public: void Shutdown()
+    {
+#ifdef HAVE_ZENOH
+      ZenohTeardownEntity(this->isShutdown, this->zenohHolder,
+                          this->zQueryable, this->zToken);
+#endif
+    }
 
     /// \brief Process UUID.
     public: std::string pUuid;
@@ -57,11 +80,21 @@ namespace gz::transport
     public: std::string hUuid;
 
 #ifdef HAVE_ZENOH
-    /// \brief Zenoh queriable to receive requests.
-    std::unique_ptr<zenoh::Queryable<void>> zQueryable;
+    /// \brief Zenoh queryable to receive requests. Persistent for
+    /// the IRepHandler's lifetime so its interest declaration on
+    /// the service keyexpr remains in effect.
+    public: std::unique_ptr<zenoh::Queryable<void>> zQueryable;
 
     /// \brief The liveliness token.
     public: std::unique_ptr<zenoh::LivelinessToken> zToken;
+
+    /// \brief Atomic guard for Shutdown idempotence.
+    public: std::atomic<bool> isShutdown{false};
+
+    /// \brief Owning ref to the holder shared with the Zenoh
+    /// queryable lambda. See ZenohQueryableHolder in
+    /// NodeSharedPrivate.hh.
+    public: std::shared_ptr<ZenohQueryableHolder> zenohHolder;
 #endif
   };
 
@@ -85,19 +118,40 @@ namespace gz::transport
 
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
+  void IRepHandler::SetZenohQueryableDispatch(
+      const std::string &_service,
+      std::function<bool(const std::string &request,
+                         std::string &response)> _dispatch)
+  {
+    auto holder = std::make_shared<ZenohQueryableHolder>();
+    holder->service = _service;
+    holder->dispatch = std::move(_dispatch);
+    this->dataPtr->zenohHolder = std::move(holder);
+  }
+
+  /////////////////////////////////////////////////
   void IRepHandler::CreateZenohQueriable(
     std::shared_ptr<zenoh::Session> _session,
     const std::string &_service)
   {
-    auto onQuery = [this, _service](const zenoh::Query &_query)
+    if (!this->dataPtr->zenohHolder)
     {
-      std::string output;
+      std::cerr << "IRepHandler::CreateZenohQueriable: no holder set. "
+                << "Call SetZenohQueryableDispatch first.\n";
+      return;
+    }
+    std::weak_ptr<ZenohQueryableHolder> hwp = this->dataPtr->zenohHolder;
+    auto onQuery = [hwp](const zenoh::Query &_query)
+    {
+      auto holder = hwp.lock();
+      if (!holder)
+        return;
       std::string input = "";
       if (_query.get_payload())
         input = _query.get_payload()->get().as_string();
-
-      if (this->RunCallback(input, output))
-        _query.reply(_service, output);
+      std::string output;
+      if (holder->dispatch(input, output))
+        _query.reply(holder->service, output);
     };
 
     auto onDropQueryable = []() {};

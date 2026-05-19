@@ -17,6 +17,10 @@ set(tests
   twoProcsSrvCallWithoutOutputStress.cc
 )
 
+if (HAVE_ZENOH)
+  list(APPEND tests zenohShutdownStress.cc)
+endif()
+
 # Test symbols having the right name on linux only.
 if (UNIX AND NOT APPLE)
   configure_file(all_symbols_have_version.bash.in
@@ -55,6 +59,10 @@ set(auxiliary_files
   twoProcsSrvCallWithoutOutputReplier_aux
   twoProcsSrvCallWithoutOutputReplierInc_aux
 )
+
+if (HAVE_ZENOH)
+  list(APPEND auxiliary_files zenohShutdown_aux)
+endif()
 
 # Build the auxiliary files.
 foreach(AUX_EXECUTABLE ${auxiliary_files})

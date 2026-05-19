@@ -82,8 +82,18 @@ namespace gz::transport
     /// callback function.
     /// \param[out] _rep Out parameter with the data serialized.
     /// \return Service call result.
+    /// \note Returns false by default. Derived classes override.
+    /// A safe default is provided (instead of leaving the method
+    /// abstract) because a Zenoh worker thread may invoke this while
+    /// the handler is being destroyed. Without a default, that call
+    /// would abort the process.
     public: virtual bool RunCallback(const std::string &_req,
-                                     std::string &_rep) = 0;
+                                     std::string &_rep)
+    {
+      (void)_req;
+      (void)_rep;
+      return false;
+    }
 
     /// \brief Get the unique UUID of this handler.
     /// \return a string representation of the handler UUID.
@@ -98,6 +108,16 @@ namespace gz::transport
     public: virtual std::string RepTypeName() const = 0;
 
 #ifdef HAVE_ZENOH
+    /// \brief Populate the holder that the Zenoh queryable lambda
+    /// dispatches through. Must be called by the most derived
+    /// RepHandler subclass before CreateZenohQueriable. The dispatch
+    /// closure should capture state by value so it stays valid after
+    /// the handler is destroyed. See ZenohQueryableHolder.
+    protected: void SetZenohQueryableDispatch(
+      const std::string &_service,
+      std::function<bool(const std::string &request,
+                         std::string &response)> _dispatch);
+
     /// \brief Create a Zenoh queriable.
     /// \param[in] _session Zenoh session.
     /// \param[in] _service The service.
@@ -158,6 +178,19 @@ namespace gz::transport
       const std::string &_service)
     {
       this->SetCallback(std::move(_cb));
+      this->SetZenohQueryableDispatch(_service,
+        [_cb](const std::string &request, std::string &response) -> bool
+        {
+          Req req;
+          if (!req.ParseFromString(request))
+            return false;
+          Rep rep;
+          if (!_cb(req, rep))
+            return false;
+          if (!rep.SerializeToString(&response))
+            return false;
+          return true;
+        });
       this->CreateZenohQueriable(_session, _service);
     }
 #endif
