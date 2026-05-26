@@ -14,7 +14,7 @@
 
   <depend>gz-math</depend>
   <depend>gz-msgs</depend>
-  <depend>gz-tools2</depend>
+  <depend>gz-tools</depend>
   <depend>gz-utils</depend>
   <depend>libsqlite3-dev</depend>
   <depend>libzmq3-dev</depend>
