@@ -70,7 +70,12 @@ TEST_F(ParametersClientTest, Parameter)
       std::unique_ptr<google::protobuf::Message> msg;
       EXPECT_TRUE(client.Parameter("parameter2", msg));
       ASSERT_NE(nullptr, msg);
-      auto downcastedMsg = dynamic_cast<msgs::StringMsg *>(msg.get());
+#if GOOGLE_PROTOBUF_VERSION >= 5028000
+      auto downcastedMsg =
+          google::protobuf::DynamicCastMessage<msgs::StringMsg>(msg.get());
+#else
+      auto downcastedMsg = dynamic_cast<msgs::StringMsg*>(msg.get());
+#endif
       EXPECT_EQ(downcastedMsg->data(), "");
     }
     {
