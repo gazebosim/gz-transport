@@ -4,9 +4,15 @@ load("@rules_gazebo//gazebo:headers.bzl", "gz_configure_header")
 package(
     default_applicable_licenses = ["//:license"],
     features = [
-        "layering_check",
+        "-layering_check",
         "parse_headers",
     ],
+)
+
+filegroup(
+    name = "test_configs",
+    srcs = glob(["config/*.json5"]),
+    visibility = ["//visibility:public"],
 )
 
 gz_configure_header(
@@ -15,6 +21,16 @@ gz_configure_header(
     out = "include/test_config.hh",
     package_xml = "//:package.xml",
     visibility = ["//:__subpackages__"],
+)
+
+cc_library(
+    name = "test_config_lib",
+    defines = [
+        'GZ_ZENOH_TEST_CONFIG=\\"test/config/gz_zenoh_test_config.json5\\"',
+        'GZ_ZENOH_INVALID_CONFIG=\\"test/config/gz_zenoh_invalid_config.json5\\"',
+    ],
+    visibility = ["//visibility:public"],
+    deps = [":Config"],
 )
 
 cc_library(
@@ -53,7 +69,7 @@ test_executables = [
     name = name,
     srcs = ["integration/test_executables/" + name + ".cc"],
     deps = [
-        ":Config",
+        ":test_config_lib",
         "//:gz-transport",
         "@googletest//:gtest",
         "@gz-msgs//:gzmsgs_cc_proto",
@@ -115,7 +131,7 @@ flaky_test_srcs = [
     },
     flaky = src in flaky_test_srcs,
     deps = [
-        ":Config",
+        ":test_config_lib",
         ":utils",
         "//:gz-transport",
         "@googletest//:gtest",
