@@ -16,11 +16,6 @@ bazel_dep(name = "rules_cc", version = "0.1.2")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "zenoh-cpp", version = "1.7.2.bcr.1")
 
-
-# Minimum version (bzlmod may resolve higher). Keep in sync with
-# GZ_TRANSPORT_ZENOH_MIN_VERSION in CMakeLists.txt (see #868).
-bazel_dep(name = "zenoh-cpp", version = "1.7.2.bcr.1")
-
 # Gazebo Dependencies
 bazel_dep(name = "rules_gazebo", version = "0.0.6")
 bazel_dep(name = "gz-common", version = "7.0.0")
@@ -50,4 +45,11 @@ archive_override(
     module_name = "gz-msgs",
     strip_prefix = "gz-msgs-main",
     urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/main.tar.gz"],
+)
+
+single_version_override(
+    module_name = "zenoh-cpp",
+    patch_strip = 1,
+    patches = ["//patches:zenoh-cpp.patch"],
+    version = "1.7.2.bcr.1",
 )

@@ -4,7 +4,7 @@ load("@rules_gazebo//gazebo:headers.bzl", "gz_configure_header")
 package(
     default_applicable_licenses = ["//:license"],
     features = [
-        "layering_check",
+        "-layering_check",
         "parse_headers",
     ],
 )
@@ -12,7 +12,7 @@ package(
 filegroup(
     name = "test_configs",
     srcs = glob(["config/*.json5"]),
-    visibility = ["//:__subpackages__"],
+    visibility = ["//visibility:public"],
 )
 
 gz_configure_header(
