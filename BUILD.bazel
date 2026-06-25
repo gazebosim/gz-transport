@@ -2,6 +2,19 @@ load("@buildifier_prebuilt//:rules.bzl", "buildifier", "buildifier_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_gazebo//gazebo:headers.bzl", "gz_configure_header", "gz_export_header")
 load("@rules_license//rules:license.bzl", "license")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+
+bool_flag(
+    name = "enable_zenoh",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "zenoh_enabled",
+    flag_values = {
+        ":enable_zenoh": "True",
+    },
+)
 
 package(
     default_applicable_licenses = [":license"],
@@ -28,7 +41,10 @@ gz_configure_header(
     name = "Config",
     src = "include/gz/transport/config.hh.in",
     out = "include/gz/transport/config.hh",
-    defines = ["HAVE_IFADDRS=1"],
+    defines = ["HAVE_IFADDRS=1"] + select({
+        ":zenoh_enabled": ["HAVE_ZENOH=1"],
+        "//conditions:default": [],
+    }),
     package_xml = "package.xml",
 )
 
@@ -85,7 +101,10 @@ cc_library(
         "@gz-utils//:SuppressWarning",
         "@libuuid",
         "@libzmq",
-    ],
+    ] + select({
+        ":zenoh_enabled": ["@zenoh-cpp//:zenoh-cpp"],
+        "//conditions:default": [],
+    }),
 )
 
 cc_library(
