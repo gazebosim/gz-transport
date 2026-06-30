@@ -34,47 +34,7 @@ namespace gz::transport
 {
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
-#ifdef HAVE_ZENOH
-  /// \internal
-  /// \brief Build the receive lambda registered with Zenoh's
-  /// declare_subscriber(). The lambda captures a weak_ptr to the
-  /// holder so it returns harmlessly after the owning handler is
-  /// destroyed, filters by expected message type, and honours the
-  /// holder's throttle gate before dispatching.
-  /// \param[in] _hwp Weak ref to the per-handler holder.
-  /// \param[in] _source Tag used in the warning emitted when a
-  /// received sample has no type attachment.
-  inline auto MakeZenohReceiveHandler(
-      std::weak_ptr<ZenohSubscriberHolder> _hwp,
-      const char *_source)
-  {
-    return [hwp = std::move(_hwp), _source]
-      (const zenoh::Sample &_sample)
-    {
-      auto holder = hwp.lock();
-      if (!holder)
-        return;
 
-      auto attachment = _sample.get_attachment();
-      if (!attachment.has_value())
-      {
-        std::cerr << _source << ": Unable to find attachment. "
-                  << "Ignoring message..." << std::endl;
-        return;
-      }
-      auto msgType = attachment->get().as_string();
-      if (holder->expectedType != kGenericMessageType &&
-          holder->expectedType != msgType)
-      {
-        // Same topic but different type, not interested.
-        return;
-      }
-      if (!holder->ShouldFire())
-        return;
-      holder->dispatch(_sample.get_payload().as_string(), msgType);
-    };
-  }
-#endif
 
   /// \internal
   /// \brief Private data for SubscriptionHandlerBase class.
@@ -108,7 +68,7 @@ namespace gz::transport
     public: void ZenohShutdown()
     {
 #ifdef HAVE_ZENOH
-      ZenohTeardownEntity(this->zenohIsShutdown, this->zenohHolder,
+      ZenohTeardownEntity(this->zenohIsShutdown,
                           this->zSub, this->zToken);
 #endif
     }
@@ -145,9 +105,8 @@ namespace gz::transport
     /// \brief Atomic guard for ZenohShutdown idempotence.
     public: std::atomic<bool> zenohIsShutdown{false};
 
-    /// \brief Owning ref to the holder shared with the Zenoh receive
-    /// lambda. See ZenohSubscriberHolder in NodeSharedPrivate.hh.
-    public: std::shared_ptr<ZenohSubscriberHolder> zenohHolder;
+    /// \brief Temporarily store the dispatch closure passed from the header.
+    public: std::function<void(const std::string&, const std::string&)> zenohDispatch;
 #endif
   };
 
@@ -192,17 +151,12 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
   void SubscriptionHandlerBase::SetZenohSubscriberDispatch(
-      const std::string &_topic,
-      const std::string &_expectedType,
+      const std::string &/*_topic*/,
+      const std::string &/*_expectedType*/,
       std::function<void(const std::string &payload,
                          const std::string &msgType)> _dispatch)
   {
-    auto holder = std::make_shared<ZenohSubscriberHolder>();
-    holder->topic = _topic;
-    holder->expectedType = _expectedType;
-    holder->dispatch = std::move(_dispatch);
-    holder->periodNs = this->dataPtr->periodNs;
-    this->dataPtr->zenohHolder = std::move(holder);
+    this->dataPtr->zenohDispatch = std::move(_dispatch);
   }
 #endif
 
@@ -244,19 +198,26 @@ namespace gz::transport
     std::shared_ptr<zenoh::Session> _session,
     const std::string &_topic)
   {
-    if (!this->dataPtr->zenohHolder)
+    if (!this->dataPtr->zenohDispatch)
     {
       std::cerr << "ISubscriptionHandler::CreateGenericZenohSubscriber: "
-                << "no holder set. Call SetZenohSubscriberDispatch first.\n";
+                << "no dispatch set. Call SetZenohSubscriberDispatch first.\n";
       return;
     }
-    auto dataHandler = MakeZenohReceiveHandler(
-      this->dataPtr->zenohHolder,
-      "SubscriptionHandler::SetCallback()");
+    auto onSample =
+      [_dispatch = std::move(this->dataPtr->zenohDispatch)](
+        const zenoh::Sample &_sample)
+    {
+      auto attachment = _sample.get_attachment();
+      if (!attachment.has_value())
+        return;
+      auto msgType = attachment->get().as_string();
+      _dispatch(_sample.get_payload().as_string(), msgType);
+    };
 
     this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
       _session->declare_subscriber(
-        _topic, dataHandler, zenoh::closures::none));
+        _topic, std::move(onSample), zenoh::closures::none));
 
     std::string token = TopicUtils::CreateLivelinessToken(
       _topic, this->ProcUuid(), this->NodeUuid(), "MS", this->TypeName());
@@ -324,24 +285,38 @@ namespace gz::transport
     this->SetCallback(_cb);
 
     const std::string topicShort = _fullyQualifiedTopic.Topic();
-    this->SetZenohSubscriberDispatch(
-      topicShort, this->TypeName(),
-      [_cb, topicShort](const std::string &payload,
-                        const std::string &msgType)
-      {
-        MessageInfo msgInfo;
-        msgInfo.SetTopic(topicShort);
-        msgInfo.SetType(msgType);
-        _cb(payload.c_str(), payload.size(), msgInfo);
-      });
+    std::weak_ptr<RawSubscriptionHandler> weakSelf = this->weak_from_this();
 
-    auto dataHandler = MakeZenohReceiveHandler(
-      this->dataPtr->zenohHolder,
-      "RawSubscriptionHandler::SetCallback()");
+    auto onSample = [weakSelf, topicShort](const zenoh::Sample &_sample)
+    {
+      auto self = weakSelf.lock();
+      if (!self)
+        return;
+
+      auto attachment = _sample.get_attachment();
+      if (!attachment.has_value())
+        return;
+      auto msgType = attachment->get().as_string();
+
+      if (self->TypeName() != kGenericMessageType &&
+          self->TypeName() != msgType)
+      {
+        return;
+      }
+      if (!self->UpdateThrottling())
+        return;
+
+      MessageInfo msgInfo;
+      msgInfo.SetTopic(topicShort);
+      msgInfo.SetType(msgType);
+
+      auto payload = _sample.get_payload().as_string();
+      self->RunRawCallback(payload.data(), payload.size(), msgInfo);
+    };
 
     this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
       _session->declare_subscriber(
-        keyexpr, dataHandler, zenoh::closures::none));
+        keyexpr, std::move(onSample), zenoh::closures::none));
 
     std::string token = TopicUtils::CreateLivelinessToken(
         *_fullyQualifiedTopic.FullTopic(), this->ProcUuid(), this->NodeUuid(),
