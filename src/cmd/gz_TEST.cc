@@ -80,13 +80,17 @@ void topicCB(const msgs::StringMsg &_msg)
 /// \brief Check 'ign topic -l' running the advertiser on a different process.
 TEST(ignTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
-  // Launch a new publisher process that advertises a topic.
+  // Launch a new publisher process that advertises a topic. Keep it alive long
+  // enough for this (potentially slow) discovery query to find it, even when
+  // process startup plus discovery initialization is slow under load (#887).
   std::string publisher_path = testing::portablePathUnion(
     IGN_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsPublisher_aux");
 
+  setenv("IGN_TRANSPORT_TEST_KEEP_ALIVE_SEC", "60", 1);
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
+  unsetenv("IGN_TRANSPORT_TEST_KEEP_ALIVE_SEC");
 
   // Check the 'ign topic -l' command.
   std::string ign = std::string(IGN_PATH);
@@ -103,7 +107,8 @@ TEST(ignTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 
   EXPECT_TRUE(topicFound);
 
-  // Wait for the child process to return.
+  // Stop the (long-lived) publisher and reap it.
+  testing::killFork(pi);
   testing::waitAndCleanupFork(pi);
 }
 
@@ -111,7 +116,9 @@ TEST(ignTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 /// \brief Check 'ign topic -i' running the advertiser on a different process.
 TEST(ignTest, TopicInfo)
 {
-  // Launch a new publisher process that advertises a topic.
+  // Launch a new publisher process that advertises a topic. Keep it alive long
+  // enough for this (potentially slow) discovery query to find it, even when
+  // process startup plus discovery initialization is slow under load (#887).
   std::string publisher_path = testing::portablePathUnion(
     IGN_TRANSPORT_TEST_DIR,
     "INTEGRATION_twoProcsPublisher_aux");
@@ -123,18 +130,23 @@ TEST(ignTest, TopicInfo)
   bool infoFound = false;
   std::string output;
 
+  // Retry until the publisher is actually discovered. Checking for the message
+  // type is a stronger condition than the raw output size, which would also be
+  // satisfied by the "No publishers/subscribers" placeholder output.
   auto testLoop = std::async(std::launch::async, [&]{
     while (!infoFound && retries++ < 10u)
     {
       output = custom_exec_str(ign + " topic -t /foo -i " + g_ignVersion);
-      infoFound = output.size() > 50u;
+      infoFound = output.find("ignition.msgs.Vector3d") != std::string::npos;
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
   });
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
+  setenv("IGN_TRANSPORT_TEST_KEEP_ALIVE_SEC", "60", 1);
   testing::forkHandlerType pi = testing::forkAndRun(publisher_path.c_str(),
     g_partition.c_str());
+  unsetenv("IGN_TRANSPORT_TEST_KEEP_ALIVE_SEC");
 
   testLoop.wait();
   EXPECT_TRUE(infoFound) << "OUTPUT["
@@ -142,7 +154,8 @@ TEST(ignTest, TopicInfo)
     << "]. Expected Size=50" << std::endl;
   EXPECT_TRUE(output.find("ignition.msgs.Vector3d") != std::string::npos);
 
-  // Wait for the child process to return.
+  // Stop the (long-lived) publisher and reap it.
+  testing::killFork(pi);
   testing::waitAndCleanupFork(pi);
 }
 
