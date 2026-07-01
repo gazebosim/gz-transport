@@ -21,12 +21,14 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <cstdlib>
 #include <filesystem>
 #include <functional>
 #include <list>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -56,7 +58,8 @@ namespace gz::transport
   /// touches a destroyed handler.
   struct ZenohSubscriberHolder
   {
-    /// \brief Topic the subscriber was registered on.
+    /// \brief Topic the subscriber was registered on. Cached for
+    /// MessageInfo population.
     std::string topic;
 
     /// \brief Declared message type. Empty or kGenericMessageType accepts any.
@@ -145,8 +148,44 @@ namespace gz::transport
       }).detach();
     }
   }
-#endif
 
+  /// \internal
+  /// \brief Persistent Querier for one service keyexpr. Stored in
+  /// NodeShared's querier cache. The Querier carries an explicit
+  /// interest declaration so the responser's queryable announcement
+  /// is routed to this session and stays available across
+  /// subsequent calls, closing the post-1.6 Zenoh cold-start race
+  /// for cross-process service calls. The session shared_ptr is
+  /// held here so it cannot be dropped before the Querier.
+  struct ZenohQuerierEntry
+  {
+    /// \brief Session reference held to survive NodeShared teardown
+    /// ordering.
+    std::shared_ptr<zenoh::Session> session;
+
+    /// \brief The persistent Querier. Reset by Shutdown(); also
+    /// reset by the destructor as a backstop.
+    std::unique_ptr<zenoh::Querier> querier;
+
+    /// \brief One-shot shutdown flag.
+    std::atomic<bool> isShutdown{false};
+
+    /// \brief Idempotent shutdown. Releases the Querier wrapper
+    /// without calling undeclare(), matching the release-leak
+    /// rationale used elsewhere (see PublisherPrivate::ZenohShutdown
+    /// in Node.cc).
+    inline void Shutdown()
+    {
+      bool expected = false;
+      if (!isShutdown.compare_exchange_strong(expected, true,
+            std::memory_order_acq_rel, std::memory_order_relaxed))
+        return;
+      (void) querier.release();
+    }
+
+    inline ~ZenohQuerierEntry() { Shutdown(); }
+  };
+#endif
   //
   /// \brief Metadata for a publication. This is sent as part of the ZMQ
   /// message for topic statistics.
@@ -203,6 +242,20 @@ namespace gz::transport
             std::cout << "Zenoh config loaded from ZENOH_CONFIG" << std::endl;
           else
             std::cout << "Zenoh default config loaded" << std::endl;
+        }
+
+        // Programmatic Zenoh-side defaults tuned for gz-transport's
+        // typical 2-3 process peer-mode usage. Users can override
+        // any of these via GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE
+        // (applied last so it wins).
+        {
+          zenoh::ZResult r = Z_OK;
+          // Bound how long Zenoh waits for the interests-protocol
+          // exchange to complete on a fresh peer link. Without
+          // this, declarations can stay un-propagated and silent
+          // message or query loss follows.
+          config.insert_json5("transport/unicast/interests/timeout",
+                              "10000", &r);
         }
 
         // Apply key=value overrides from GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
@@ -355,6 +408,22 @@ namespace gz::transport
 
     /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
+
+    /// \internal
+    /// \brief Cache of declared Queriers keyed by service keyexpr.
+    /// Entries are added on first request and torn down in
+    /// NodeShared::Shutdown, before the session shared_ptr is
+    /// dropped.
+    public: std::unordered_map<std::string,
+        std::shared_ptr<ZenohQuerierEntry>> querierCache;
+
+    /// \internal
+    /// \brief Mutex guarding querierCache.
+    public: std::mutex querierCacheMutex;
+
+    /// \internal
+    /// \brief One-shot guard for NodeShared::Shutdown.
+    public: std::atomic<bool> isShutdown{false};
 #endif
 
     //////////////////////////////////////////////////

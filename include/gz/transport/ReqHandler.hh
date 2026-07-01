@@ -115,6 +115,22 @@ namespace gz::transport
     /// \param[in] _value true when you want to flag this REQ as requested.
     public: void Requested(const bool _value);
 
+    /// \brief Set the transport-layer timeout for this handler.
+    /// Set to the same value passed to Node::Request so the Zenoh
+    /// query bound matches the caller's wait.
+    /// \param[in] _timeoutMs Timeout in milliseconds.
+    public: void SetTimeoutMs(unsigned int _timeoutMs);
+
+    /// \brief Get the configured transport-layer timeout.
+    /// \return Timeout in milliseconds.
+    public: unsigned int TimeoutMs() const;
+
+    /// \internal
+    /// \brief Provide the owning NodeShared so CreateZenohGet can
+    /// reach the per-process Querier cache.
+    /// \param[in] _shared NodeShared owning the Zenoh session.
+    public: void SetNodeShared(class NodeShared *_shared);
+
     /// \brief Block the current thread until the response to the
     /// service request is available or until the timeout expires.
     /// This method uses a condition variable to notify when the response is

@@ -100,8 +100,11 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
 option(GZ_TRANSPORT_ENABLE_ZENOH "Enable gz-transport zenoh implementation" ON)
 
 if (GZ_TRANSPORT_ENABLE_ZENOH)
-  gz_find_package(zenohc PRIVATE QUIET)
-  gz_find_package(zenohcxx PRIVATE QUIET)
+  set(GZ_TRANSPORT_ZENOH_MIN_VERSION 1.8.0)
+  gz_find_package(zenohc VERSION ${GZ_TRANSPORT_ZENOH_MIN_VERSION}
+    PRIVATE QUIET)
+  gz_find_package(zenohcxx VERSION ${GZ_TRANSPORT_ZENOH_MIN_VERSION}
+    PRIVATE QUIET)
 
   # If both zenohc and zenohcpp packages are not found then
   # look for these pacakages installed by ROS 2 zenoh_cpp_vendor package
@@ -111,8 +114,10 @@ if (GZ_TRANSPORT_ENABLE_ZENOH)
     set(ros2_zenoh_cmake_path "/opt/ros/$ENV{ROS_DISTRO}/opt/zenoh_cpp_vendor/lib/cmake")
     if (EXISTS ${ros2_zenoh_cmake_path})
       list(PREPEND CMAKE_PREFIX_PATH ${ros2_zenoh_cmake_path})
-      gz_find_package(zenohc PRIVATE QUIET)
-      gz_find_package(zenohcxx PRIVATE QUIET)
+      gz_find_package(zenohc VERSION ${GZ_TRANSPORT_ZENOH_MIN_VERSION}
+        PRIVATE QUIET)
+      gz_find_package(zenohcxx VERSION ${GZ_TRANSPORT_ZENOH_MIN_VERSION}
+        PRIVATE QUIET)
     endif()
   endif ()
 
@@ -123,10 +128,21 @@ if (GZ_TRANSPORT_ENABLE_ZENOH)
     message (STATUS "Looking for zenohc - not found")
     set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
   else ()
-    message (STATUS "Looking for zenohcxx and zenohc - found")
-    set (HAVE_ZENOH ON CACHE BOOL "HAVE ZENOH" FORCE)
-    list(APPEND EXTRA_TEST_LIB_DEPS "zenohcxx::zenohc")
-    list(APPEND GZ_TRANSPORT_IMPLEMENTATION_LIST "zenoh")
+    set(GZ_TRANSPORT_MIN_ZENOH_VERSION "1.8.0")
+    if (zenohc_VERSION AND zenohc_VERSION VERSION_LESS GZ_TRANSPORT_MIN_ZENOH_VERSION)
+      message(WARNING
+        "Found zenohc ${zenohc_VERSION}, but gz-transport requires "
+        "zenohc >= ${GZ_TRANSPORT_MIN_ZENOH_VERSION}. Disabling Zenoh "
+        "transport.")
+      set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
+    else ()
+      message (STATUS
+        "Looking for zenohcxx and zenohc - found"
+        "${zenohc_VERSION_PRINT}")
+      set (HAVE_ZENOH ON CACHE BOOL "HAVE ZENOH" FORCE)
+      list(APPEND EXTRA_TEST_LIB_DEPS "zenohcxx::zenohc")
+      list(APPEND GZ_TRANSPORT_IMPLEMENTATION_LIST "zenoh")
+    endif ()
   endif ()
 endif()
 
