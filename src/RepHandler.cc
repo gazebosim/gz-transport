@@ -65,7 +65,7 @@ namespace gz::transport
     public: void Shutdown()
     {
 #ifdef HAVE_ZENOH
-      ZenohTeardownEntity(this->isShutdown, this->zenohHolder,
+      ZenohTeardownEntity(this->isShutdown,
                           this->zQueryable, this->zToken);
 #endif
     }
@@ -91,10 +91,8 @@ namespace gz::transport
     /// \brief Atomic guard for Shutdown idempotence.
     public: std::atomic<bool> isShutdown{false};
 
-    /// \brief Owning ref to the holder shared with the Zenoh
-    /// queryable lambda. See ZenohQueryableHolder in
-    /// NodeSharedPrivate.hh.
-    public: std::shared_ptr<ZenohQueryableHolder> zenohHolder;
+    /// \brief Temporarily store the dispatch closure passed from the header.
+    public: std::function<bool(const std::string&, std::string&)> zenohDispatch;
 #endif
   };
 
@@ -119,14 +117,11 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
   void IRepHandler::SetZenohQueryableDispatch(
-      const std::string &_service,
+      const std::string &/*_service*/,
       std::function<bool(const std::string &request,
                          std::string &response)> _dispatch)
   {
-    auto holder = std::make_shared<ZenohQueryableHolder>();
-    holder->service = _service;
-    holder->dispatch = std::move(_dispatch);
-    this->dataPtr->zenohHolder = std::move(holder);
+    this->dataPtr->zenohDispatch = std::move(_dispatch);
   }
 
   /////////////////////////////////////////////////
@@ -134,24 +129,22 @@ namespace gz::transport
     std::shared_ptr<zenoh::Session> _session,
     const std::string &_service)
   {
-    if (!this->dataPtr->zenohHolder)
+    if (!this->dataPtr->zenohDispatch)
     {
-      std::cerr << "IRepHandler::CreateZenohQueriable: no holder set. "
+      std::cerr << "IRepHandler::CreateZenohQueriable: no dispatch set. "
                 << "Call SetZenohQueryableDispatch first.\n";
       return;
     }
-    std::weak_ptr<ZenohQueryableHolder> hwp = this->dataPtr->zenohHolder;
-    auto onQuery = [hwp](const zenoh::Query &_query)
+    auto onQuery =
+      [_dispatch = std::move(this->dataPtr->zenohDispatch), _service](
+        const zenoh::Query &_query)
     {
-      auto holder = hwp.lock();
-      if (!holder)
-        return;
       std::string input = "";
       if (_query.get_payload())
         input = _query.get_payload()->get().as_string();
       std::string output;
-      if (holder->dispatch(input, output))
-        _query.reply(holder->service, output);
+      if (_dispatch(input, output))
+        _query.reply(_service, output);
     };
 
     auto onDropQueryable = []() {};
