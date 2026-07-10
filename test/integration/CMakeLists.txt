@@ -19,7 +19,9 @@ set(tests
 )
 
 if (HAVE_ZENOH)
-  list(APPEND tests zenohShutdownStress.cc)
+  list(APPEND tests
+    zenohPublisherLeak.cc
+    zenohShutdownStress.cc)
 endif()
 
 # Test symbols having the right name on linux only.
@@ -62,7 +64,9 @@ set(auxiliary_files
 )
 
 if (HAVE_ZENOH)
-  list(APPEND auxiliary_files zenohShutdown_aux)
+  list(APPEND auxiliary_files
+    zenohPublisherLeak_aux
+    zenohShutdown_aux)
 endif()
 
 # Build the auxiliary files.

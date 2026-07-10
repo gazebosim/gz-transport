@@ -156,19 +156,19 @@ class Node::PublisherPrivate
 
   /// \brief Zenoh teardown. Safe to call multiple times.
   ///
-  /// Drops the Zenoh wrappers without calling undeclare() on them.
-  /// undeclare() blocks until any in-flight callback for that
-  /// entity returns, and that blocking wait is harmful here for two
-  /// reasons:
-  ///   (a) At process exit, the Zenoh background runtime has
-  ///       already been torn down, so the wait crashes the process.
-  ///   (b) Mid-process, this destructor runs while NodeShared's
-  ///       mutex is held by the caller, and an in-flight callback
-  ///       may be waiting on the same mutex. Both threads then
-  ///       deadlock.
-  /// Publishers do not run a user callback, so leaking the wrapper
-  /// is harmless. The leftover Zenoh liveliness entry clears when
-  /// the process exits and the kernel closes the socket.
+  /// Destroys the Zenoh wrappers, which undeclares the publisher
+  /// and its liveliness token. Publishers run no user callbacks, so
+  /// undeclare has nothing to wait on: it is a quick protocol
+  /// message and cannot deadlock. Remote sessions receive the
+  /// liveliness DELETE and forget this publisher immediately,
+  /// instead of keeping a phantom entry (and this process leaking
+  /// the wrappers) until exit.
+  ///
+  /// This is also safe at process exit: NodeShared::Shutdown()
+  /// closes the session deterministically, and dropping an entity
+  /// of an already-closed session takes a fast error path instead
+  /// of touching the torn-down Zenoh runtime, which is why these
+  /// wrappers used to be leaked with release().
   public: void ZenohShutdown()
   {
 #ifdef HAVE_ZENOH
@@ -181,12 +181,8 @@ class Node::PublisherPrivate
           std::memory_order_acq_rel, std::memory_order_relaxed))
       return;
 
-    // Deliberately leak the Zenoh wrappers. release() hands the raw
-    // pointer over to nobody and skips the wrapper's destructor,
-    // which would otherwise call undeclare() and crash or deadlock
-    // (see the doc comment above).
-    (void) this->zToken.release();
-    (void) this->zPub.release();
+    this->zToken.reset();
+    this->zPub.reset();
 #endif
   }
 
