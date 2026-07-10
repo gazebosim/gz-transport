@@ -98,33 +98,19 @@ namespace gz::transport
   /// subsequent calls, closing the post-1.6 Zenoh cold-start race
   /// for cross-process service calls. The session shared_ptr is
   /// held here so it cannot be dropped before the Querier.
+  ///
+  /// No custom teardown: entries live in NodeShared's cache, which
+  /// NodeShared::Shutdown() clears while the session is still open,
+  /// so the Querier destructor undeclares through a live session
+  /// (no leak, no at-exit race).
   struct ZenohQuerierEntry
   {
     /// \brief Session reference held to survive NodeShared teardown
     /// ordering.
     std::shared_ptr<zenoh::Session> session;
 
-    /// \brief The persistent Querier. Reset by Shutdown(); also
-    /// reset by the destructor as a backstop.
+    /// \brief The persistent Querier.
     std::unique_ptr<zenoh::Querier> querier;
-
-    /// \brief One-shot shutdown flag.
-    std::atomic<bool> isShutdown{false};
-
-    /// \brief Idempotent shutdown. Releases the Querier wrapper
-    /// without calling undeclare(), matching the release-leak
-    /// rationale used elsewhere (see PublisherPrivate::ZenohShutdown
-    /// in Node.cc).
-    inline void Shutdown()
-    {
-      bool expected = false;
-      if (!isShutdown.compare_exchange_strong(expected, true,
-            std::memory_order_acq_rel, std::memory_order_relaxed))
-        return;
-      (void) querier.release();
-    }
-
-    inline ~ZenohQuerierEntry() { Shutdown(); }
   };
 #endif
   //

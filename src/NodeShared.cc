@@ -1965,15 +1965,14 @@ void NodeShared::Shutdown()
         std::memory_order_acq_rel, std::memory_order_relaxed))
     return;
 
-  // 1. Tear down per-NodeShared Zenoh entities (the cached Queriers).
-  //    Each entry's Shutdown() releases its wrapper.
+  // 1. Tear down per-NodeShared Zenoh entities (the cached
+  //    Queriers). The session is still open here, so each Querier
+  //    destructor undeclares cleanly instead of leaking. Any
+  //    concurrent CreateZenohGet holding a shared_ptr copy keeps
+  //    its entry alive until its stack frame ends; late replies
+  //    are dropped through the weak handler capture.
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->querierCacheMutex);
-    for (auto &kv : this->dataPtr->querierCache)
-    {
-      if (kv.second)
-        kv.second->Shutdown();
-    }
     this->dataPtr->querierCache.clear();
   }
 
