@@ -100,7 +100,11 @@ gz_find_package(CPPZMQ REQUIRED PRIVATE
 option(GZ_TRANSPORT_ENABLE_ZENOH "Enable gz-transport zenoh implementation" ON)
 
 if (GZ_TRANSPORT_ENABLE_ZENOH)
-  set(GZ_TRANSPORT_ZENOH_MIN_VERSION 1.8.0)
+  # Minimum supported Zenoh. Every zenoh-cpp API gz-transport uses is
+  # identical between 1.7.2 and 1.8.0 (verified against the upstream
+  # tags); the teardown/cold-start fixes are version-agnostic. CI
+  # validates 1.8.0.
+  set(GZ_TRANSPORT_ZENOH_MIN_VERSION 1.7.2)
   gz_find_package(zenohc VERSION ${GZ_TRANSPORT_ZENOH_MIN_VERSION}
     PRIVATE QUIET)
   gz_find_package(zenohcxx VERSION ${GZ_TRANSPORT_ZENOH_MIN_VERSION}
@@ -128,17 +132,16 @@ if (GZ_TRANSPORT_ENABLE_ZENOH)
     message (STATUS "Looking for zenohc - not found")
     set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
   else ()
-    set(GZ_TRANSPORT_MIN_ZENOH_VERSION "1.8.0")
-    if (zenohc_VERSION AND zenohc_VERSION VERSION_LESS GZ_TRANSPORT_MIN_ZENOH_VERSION)
+    if (zenohc_VERSION AND
+        zenohc_VERSION VERSION_LESS GZ_TRANSPORT_ZENOH_MIN_VERSION)
       message(WARNING
         "Found zenohc ${zenohc_VERSION}, but gz-transport requires "
-        "zenohc >= ${GZ_TRANSPORT_MIN_ZENOH_VERSION}. Disabling Zenoh "
+        "zenohc >= ${GZ_TRANSPORT_ZENOH_MIN_VERSION}. Disabling Zenoh "
         "transport.")
       set (HAVE_ZENOH OFF CACHE BOOL "HAVE ZENOH" FORCE)
     else ()
       message (STATUS
-        "Looking for zenohcxx and zenohc - found"
-        "${zenohc_VERSION_PRINT}")
+        "Looking for zenohcxx and zenohc - found (${zenohc_VERSION})")
       set (HAVE_ZENOH ON CACHE BOOL "HAVE ZENOH" FORCE)
       list(APPEND EXTRA_TEST_LIB_DEPS "zenohcxx::zenohc")
       list(APPEND GZ_TRANSPORT_IMPLEMENTATION_LIST "zenoh")
