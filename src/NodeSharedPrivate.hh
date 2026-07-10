@@ -185,20 +185,6 @@ namespace gz::transport
             std::cout << "Zenoh default config loaded" << std::endl;
         }
 
-        // Programmatic Zenoh-side defaults tuned for gz-transport's
-        // typical 2-3 process peer-mode usage. Users can override
-        // any of these via GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE
-        // (applied last so it wins).
-        {
-          zenoh::ZResult r = Z_OK;
-          // Bound how long Zenoh waits for the interests-protocol
-          // exchange to complete on a fresh peer link. Without
-          // this, declarations can stay un-propagated and silent
-          // message or query loss follows.
-          config.insert_json5("transport/unicast/interests/timeout",
-                              "10000", &r);
-        }
-
         // Apply key=value overrides from GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
         const char *overrideEnv =
             std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
