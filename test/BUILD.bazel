@@ -111,6 +111,7 @@ flaky_test_srcs = [
         "GZ_BAZEL": "1",
         "GZ_IP": "127.0.0.1",
     },
+    flaky = src in flaky_test_srcs,
     deps = [
         ":Config",
         ":utils",
@@ -121,4 +122,4 @@ flaky_test_srcs = [
         "@gz-utils//:Environment",
         "@gz-utils//:Subprocess",
     ],
-) for src in integration_test_sources if src not in flaky_test_srcs]
+) for src in integration_test_sources]
