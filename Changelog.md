@@ -37,9 +37,6 @@
 1. Add benchmark suite
     * [Pull request #833](https://github.com/gazebosim/gz-transport/pull/833)
 
-1. Pass std::function by value in Node::Advertise and Node::Request
-    * [Pull request #801](https://github.com/gazebosim/gz-transport/pull/801)
-
 1. Fix gzTransportPublish() binary safety bug
     * [Pull request #797](https://github.com/gazebosim/gz-transport/pull/797)
 
@@ -54,8 +51,6 @@
 
 1. Fix unused result warnings
     * [Pull request #812](https://github.com/gazebosim/gz-transport/pull/812)
-
-1. Fix unused-result warnings in tests
     * [Pull request #811](https://github.com/gazebosim/gz-transport/pull/811)
 
 1. Document duplicate service advertise behavior
