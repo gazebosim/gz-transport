@@ -486,7 +486,11 @@ void TestBufferSizeSettings(const std::optional<std::size_t> &_bufferSize,
     // Number of ints to get a message size larger than 1MB.
     std::size_t numInts = 1000000;
     MsgType msg;
+#if GOOGLE_PROTOBUF_VERSION >= 7035000
+    msg.mutable_data()->resize(numInts, 0);
+#else
     msg.mutable_data()->Resize(numInts, 0);
+#endif
     // Fill with sequence to avoid compression
     std::iota(msg.mutable_data()->begin(), msg.mutable_data()->end(), i);
     sentMsgSize += msg.SerializeAsString().size();

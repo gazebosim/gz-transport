@@ -220,16 +220,41 @@ extern "C" void cmdServiceReq(const char *_service,
     return;
   }
 
-  if (!_reqType)
-  {
-    std::cerr << "Request type is null\n";
-    return;
-  }
+  std::string reqType = _reqType ? _reqType : "";
+  std::string repType = _repType ? _repType : "";
+  Node node;
 
-  if (!_repType)
+  if (reqType.empty() || repType.empty())
   {
-    std::cerr << "Response type is null\n";
-    return;
+    std::vector<ServicePublisher> publishers;
+    node.ServiceInfo(_service, publishers);
+
+    if (publishers.empty())
+    {
+      std::cerr << "No service providers on service [" << _service << "]\n";
+      return;
+    }
+
+    const std::string discoveredReqType = publishers[0].ReqTypeName();
+    const std::string discoveredRepType = publishers[0].RepTypeName();
+
+    for (size_t i = 1; i < publishers.size(); ++i)
+    {
+      if (publishers[i].ReqTypeName() != discoveredReqType ||
+          publishers[i].RepTypeName() != discoveredRepType)
+      {
+        std::cerr << "Ambiguous service types for service [" << _service
+          << "].\n" << "  Provider 1: request=" << discoveredReqType
+          << ", response=" << discoveredRepType << "\n"
+          << "  Provider 2: request=" << publishers[i].ReqTypeName()
+          << ", response=" << publishers[i].RepTypeName() << "\n"
+          << "Use --reqtype and --reptype to specify explicitly.\n";
+        return;
+      }
+    }
+
+    reqType = reqType.empty() ? discoveredReqType : reqType;
+    repType = repType.empty() ? discoveredRepType : repType;
   }
 
   if (!_reqData)
@@ -239,27 +264,25 @@ extern "C" void cmdServiceReq(const char *_service,
   }
 
   // Create the request, and populate the field with _reqData
-  auto req = msgs::Factory::New(_reqType, _reqData);
+  auto req = msgs::Factory::New(reqType, _reqData);
   if (!req)
   {
-    std::cerr << "Unable to create request of type[" << _reqType << "] "
+    std::cerr << "Unable to create request of type[" << reqType << "] "
               << "with data[" << _reqData << "].\n";
     return;
   }
 
   // Create the response.
-  auto rep = msgs::Factory::New(_repType);
+  auto rep = msgs::Factory::New(repType);
   if (!rep)
   {
-    std::cerr << "Unable to create response of type[" << _repType << "].\n";
+    std::cerr << "Unable to create response of type[" << repType << "].\n";
     return;
   }
 
-  // Create the node.
-  Node node;
   bool result;
 
-  if (!strcmp(_repType, "gz.msgs.Empty"))
+  if (repType == "gz.msgs.Empty")
   {
     // One-way service.
     node.Request(_service, *req, 1000, *rep, result);
