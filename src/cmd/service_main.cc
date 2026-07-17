@@ -101,13 +101,17 @@ void addServiceFlags(CLI::App &_app)
 
   auto serviceOpt = _app.add_option("-s,--service",
                                     opt->service, "Name of a service.");
-  _app.add_option("--reqtype", opt->reqType, "Type of a request.");
-  auto repTypeOpt =
-    _app.add_option("--reptype", opt->repType, "Type of a response.");
-  _app.add_option("--timeout", opt->timeout, "Timeout in milliseconds.");
+  _app.add_option("--reqtype", opt->reqType,
+      "Type of a request. Inferred from the service provider if omitted.");
+  auto repTypeOpt = _app.add_option("--reptype", opt->repType,
+      "Type of a response. Inferred from the service provider if omitted.");
+  _app.add_option("--timeout", opt->timeout,
+      "Timeout in milliseconds (default 5000). Also bounds the wait for\n"
+      "a service provider when inferring types.");
 
   _app.add_flag("--oneway", opt->oneway,
-      "Send the request without waiting for a response.")
+      "Send the request without waiting for a response\n"
+      "(the response type is gz.msgs.Empty).")
     ->excludes(repTypeOpt);
 
   _app.add_flag("--verbose", opt->verbose,
@@ -159,7 +163,7 @@ int main(int argc, char** argv)
   app.add_flag_callback("-v,--version", [](){
       std::cout << GZ_TRANSPORT_VERSION_FULL << std::endl;
       throw CLI::Success();
-  });
+  }, "Print the version.");
 
   addServiceFlags(app);
   app.formatter(std::make_shared<GzFormatter>(&app));
