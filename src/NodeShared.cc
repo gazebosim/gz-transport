@@ -1926,20 +1926,13 @@ void NodeShared::EnsureZenohSubscription(const std::string &_topic)
 
     HandlerInfo handlerInfo = this->CheckHandlerInfo(_topic);
 
-    // SHM-optimized receive: get a contiguous view into the SHM buffer
-    // when available, avoiding a fragmented copy within Zenoh.
-    auto view = _sample.get_payload().get_contiguous_view();
-    if (view.has_value())
-    {
-      this->TriggerCallbacks(info,
-        reinterpret_cast<const char *>(view->data), view->len, handlerInfo);
-    }
-    else
-    {
-      // Fallback: copy payload to a string (non-SHM or fragmented buffer).
-      auto payload = _sample.get_payload().as_string();
-      this->TriggerCallbacks(info, payload, handlerInfo);
-    }
+    // SHM-optimized receive: dispatch from a contiguous view into the SHM
+    // buffer when available, falling back to a copied string otherwise.
+    withPayloadView(_sample.get_payload(),
+      [&](const char *_data, std::size_t _size)
+      {
+        this->TriggerCallbacks(info, _data, _size, handlerInfo);
+      });
   };
 
   this->dataPtr->zenohSubscribers[_topic] =

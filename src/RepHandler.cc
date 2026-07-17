@@ -97,28 +97,21 @@ namespace gz::transport
 
       if (_query.get_payload())
       {
-        // SHM-optimized receive: get a direct pointer into the SHM buffer
-        // when available, avoiding a fragmented copy within Zenoh.
-        auto view = _query.get_payload()->get().get_contiguous_view();
-        if (view.has_value())
-        {
-          input.assign(
-            reinterpret_cast<const char *>(view->data), view->len);
-        }
-        else
-          input = _query.get_payload()->get().as_string();
+        // SHM-optimized receive: read through a direct pointer into the
+        // SHM buffer when available, avoiding a fragmented copy in Zenoh.
+        input = withPayloadView(_query.get_payload()->get(),
+          [](const char *_data, std::size_t _size)
+          {
+            return std::string(_data, _size);
+          });
       }
 
       if (this->RunCallback(input, output))
       {
         // SHM-optimized reply (one copy: heap -> SHM). Uses the
         // process-level service SHM pool shared with ReqHandler.
-        auto *provider = serviceShmProvider();
-        if (auto shmBuf = allocShmBuf(provider, output.size()))
-        {
-          memcpy(shmBuf->data(), output.data(), output.size());
-          _query.reply(_service, zenoh::Bytes(std::move(*shmBuf)));
-        }
+        if (auto shmBytes = serviceShmBytes(output.data(), output.size()))
+          _query.reply(_service, std::move(*shmBytes));
         else
           _query.reply(_service, output);
       }

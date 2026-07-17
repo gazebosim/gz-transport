@@ -99,11 +99,11 @@ class Node::PublisherPrivate
                                    std::size_t _msgSize,
                                    zenoh::Publisher::PutOptions _options)
   {
-    if (auto shmBuf = allocShmBuf(this->provider.get(), _msgSize))
+    if (auto shmBytes = makeShmBytes(this->provider.get(),
+                                     _msgBuffer, _msgSize))
     {
-      memcpy(shmBuf->data(), _msgBuffer, _msgSize);
       delete[] _msgBuffer;
-      this->zPub->put(std::move(*shmBuf), std::move(_options));
+      this->zPub->put(std::move(*shmBytes), std::move(_options));
       return;
     }
 
@@ -120,10 +120,10 @@ class Node::PublisherPrivate
   public: void PublishViaShmOrHeap(const std::string &_data,
                                    zenoh::Publisher::PutOptions _options)
   {
-    if (auto shmBuf = allocShmBuf(this->provider.get(), _data.size()))
+    if (auto shmBytes = makeShmBytes(this->provider.get(),
+                                     _data.data(), _data.size()))
     {
-      memcpy(shmBuf->data(), _data.data(), _data.size());
-      this->zPub->put(std::move(*shmBuf), std::move(_options));
+      this->zPub->put(std::move(*shmBytes), std::move(_options));
       return;
     }
     this->zPub->put(_data, std::move(_options));
@@ -215,13 +215,9 @@ class Node::PublisherPrivate
   /// \brief The liveliness token.
   public: std::unique_ptr<zenoh::LivelinessToken> zToken;
 
-#if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
   /// \brief SHM provider for zero-copy publishing.
-  public: std::unique_ptr<zenoh::PosixShmProvider> provider;
-#else
-  /// \brief SHM not available on this platform.
-  public: std::unique_ptr<std::nullptr_t> provider;
-#endif
+  /// nullptr when SHM is disabled or unavailable in this build.
+  public: ShmProviderPtr provider;
 #endif
 
   /// \brief Timestamp of the last callback executed.
@@ -481,14 +477,14 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // it, skipping the intermediate heap buffer entirely. This works for ALL
   // subscriber combinations (remote-only, remote+local, remote+raw, etc.)
   // and eliminates one malloc + one memcpy compared to the heap path.
-  std::optional<zenoh::ZShmMut> shmBuf;
+  ShmChunk shmChunk;
   if (impl == "zenoh" && (subscribers.haveRaw || subscribers.haveRemote))
   {
-    shmBuf = allocShmBuf(this->dataPtr->provider.get(), msgSize);
-    if (shmBuf && _msg.SerializeToArray(shmBuf->data(), msgSize))
-      serializedData = reinterpret_cast<const char *>(shmBuf->data());
+    shmChunk = allocShmChunk(this->dataPtr->provider.get(), msgSize);
+    if (shmChunk && _msg.SerializeToArray(shmChunk.Data(), msgSize))
+      serializedData = reinterpret_cast<const char *>(shmChunk.Data());
     else
-      shmBuf.reset();
+      shmChunk = ShmChunk();
   }
 #endif
 
@@ -623,10 +619,10 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     {
       zenoh::Publisher::PutOptions options;
       options.attachment = this->dataPtr->publisher.MsgTypeName();
-      if (shmBuf)
+      if (shmChunk)
       {
         // Data was serialized directly into SHM — publish with no extra copy.
-        this->dataPtr->zPub->put(std::move(*shmBuf), std::move(options));
+        this->dataPtr->zPub->put(shmChunk.TakeBytes(), std::move(options));
       }
       else
       {

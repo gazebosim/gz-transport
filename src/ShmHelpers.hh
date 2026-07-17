@@ -24,6 +24,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -41,10 +42,37 @@ namespace gz::transport
 {
 inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
-// SHM requires POSIX shared memory. Zenoh defines Z_FEATURE_SHARED_MEMORY
-// when the feature is compiled in (Linux, macOS). On platforms without SHM
-// support (e.g. Windows) all helpers return nullptr / nullopt so the code
-// falls back to heap-based transfer transparently.
+  /// \brief Invoke _func with a view of the payload data.
+  /// When the payload is contiguous (e.g. a SHM buffer) _func receives a
+  /// zero-copy pointer into it; otherwise the payload is copied into a
+  /// temporary string first (non-SHM or fragmented buffer).
+  /// The view is only valid for the duration of the call.
+  /// \param[in] _payload The payload to read.
+  /// \param[in] _func Callable taking (const char *_data, std::size_t _size).
+  /// \return Whatever _func returns.
+  template <typename FuncT>
+  auto withPayloadView(const zenoh::Bytes &_payload, FuncT &&_func)
+  {
+#if defined(Z_FEATURE_UNSTABLE_API)
+    auto view = _payload.get_contiguous_view();
+    if (view.has_value())
+    {
+      return _func(
+        reinterpret_cast<const char *>(view->data), view->len);
+    }
+#endif
+    const std::string data = _payload.as_string();
+    return _func(data.data(), data.size());
+  }
+
+// SHM requires POSIX shared memory and Zenoh's unstable API. Zenoh defines
+// Z_FEATURE_SHARED_MEMORY when the feature is compiled in (Linux, macOS)
+// and Z_FEATURE_UNSTABLE_API when the unstable API is exposed. When either
+// is missing, the #else branch below provides no-op stand-ins with the same
+// interface so call sites compile unchanged and transparently fall back to
+// heap-based transfer. Zenoh SHM types never leak out of this block: the
+// public surface is ShmProviderPtr, ShmChunk, and zenoh::Bytes (which
+// exists in every Zenoh build).
 #if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
 
   /// \brief Default SHM pool size (48 MB, matches rmw_zenoh default).
@@ -268,29 +296,166 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     return provider.get();
   }
 
-#else  // No SHM support — provide no-op fallbacks so call sites compile
-       // without extra #ifdefs. All functions return nullptr/nullopt,
-       // causing transparent fallback to heap-based transfer.
+  /// \brief Owning pointer to a SHM provider (nullptr when SHM is disabled).
+  using ShmProviderPtr = std::unique_ptr<zenoh::PosixShmProvider>;
 
-  /// \brief No-op: SHM not available on this platform.
+  /// \brief A writable SHM buffer that can be serialized into directly and
+  /// then converted to zenoh::Bytes for zero-copy publication.
+  /// Evaluates to false when no buffer is held (allocation failed, message
+  /// below threshold, or SHM disabled/unavailable).
+  class ShmChunk
+  {
+    /// \brief Construct an empty chunk.
+    public: ShmChunk() = default;
+
+    /// \brief Construct a chunk owning a SHM buffer.
+    /// \param[in] _buf The SHM buffer to own.
+    public: explicit ShmChunk(zenoh::ZShmMut &&_buf)
+      : buf(std::move(_buf))
+    {
+    }
+
+    /// \brief Whether this chunk holds a SHM buffer.
+    public: explicit operator bool() const
+    {
+      return this->buf.has_value();
+    }
+
+    /// \brief Get a writable pointer to the buffer data.
+    /// \return The data pointer, or nullptr when empty.
+    public: uint8_t *Data()
+    {
+      return this->buf ? this->buf->data() : nullptr;
+    }
+
+    /// \brief Convert the buffer into zenoh::Bytes, leaving this empty.
+    /// \return The bytes wrapping the SHM buffer.
+    public: zenoh::Bytes TakeBytes()
+    {
+      zenoh::Bytes bytes(std::move(*this->buf));
+      this->buf.reset();
+      return bytes;
+    }
+
+    /// \brief The owned SHM buffer, if any.
+    private: std::optional<zenoh::ZShmMut> buf;
+  };
+
+  /// \brief Attempt to allocate a writable SHM chunk for a message.
+  /// \param[in] _provider The SHM provider to allocate from.
+  /// \param[in] _size Number of bytes to allocate.
+  /// \return The chunk, empty if SHM is disabled, the message is below
+  /// threshold, or allocation fails.
+  inline ShmChunk allocShmChunk(
+      zenoh::PosixShmProvider *_provider, std::size_t _size)
+  {
+    if (auto shmBuf = allocShmBuf(_provider, _size))
+      return ShmChunk(std::move(*shmBuf));
+    return ShmChunk();
+  }
+
+  /// \brief Attempt to copy data into a fresh SHM buffer wrapped in
+  /// zenoh::Bytes, ready for zero-copy publication.
+  /// \param[in] _provider The SHM provider to allocate from.
+  /// \param[in] _data Pointer to the data to copy.
+  /// \param[in] _size Number of bytes in _data.
+  /// \return The bytes, or std::nullopt if SHM is disabled, the message is
+  /// below threshold, or allocation fails.
+  inline std::optional<zenoh::Bytes> makeShmBytes(
+      zenoh::PosixShmProvider *_provider,
+      const void *_data, std::size_t _size)
+  {
+    auto shmBuf = allocShmBuf(_provider, _size);
+    if (!shmBuf)
+      return std::nullopt;
+
+    memcpy(shmBuf->data(), _data, _size);
+    return zenoh::Bytes(std::move(*shmBuf));
+  }
+
+  /// \brief makeShmBytes using the process-level service SHM pool shared
+  /// by all ReqHandler and RepHandler instances.
+  /// \param[in] _data Pointer to the data to copy.
+  /// \param[in] _size Number of bytes in _data.
+  /// \return The bytes, or std::nullopt if SHM is disabled, the message is
+  /// below threshold, or allocation fails.
+  inline std::optional<zenoh::Bytes> serviceShmBytes(
+      const void *_data, std::size_t _size)
+  {
+    return makeShmBytes(serviceShmProvider(), _data, _size);
+  }
+
+#else  // No SHM support — no-op stand-ins with the same interface so call
+       // sites compile without extra #ifdefs. Allocation always fails,
+       // causing transparent fallback to heap-based transfer. The branches
+       // that would consume a SHM buffer still type-check (ShmChunk::Data()
+       // returns nullptr and TakeBytes() returns empty zenoh::Bytes) but
+       // are never taken at runtime.
+
+  /// \brief Stand-in for the SHM provider on builds without SHM support.
+  struct NullShmProvider
+  {
+  };
+
+  /// \brief Owning pointer to a SHM provider (always nullptr here).
+  using ShmProviderPtr = std::unique_ptr<NullShmProvider>;
+
+  /// \brief No-op: SHM not available in this build.
   /// \return Always returns nullptr.
-  inline std::unique_ptr<std::nullptr_t> createShmProvider()
+  inline ShmProviderPtr createShmProvider()
   {
     return nullptr;
   }
 
-  /// \brief No-op: SHM not available on this platform.
+  /// \brief No-op: SHM not available in this build.
+  inline void setShmEnabled([[maybe_unused]] bool _enabled)
+  {
+  }
+
+  /// \brief Stand-in chunk: always empty.
+  class ShmChunk
+  {
+    /// \brief Whether this chunk holds a SHM buffer. Always false.
+    public: explicit operator bool() const
+    {
+      return false;
+    }
+
+    /// \brief Get a writable pointer to the buffer data. Always nullptr.
+    public: uint8_t *Data()
+    {
+      return nullptr;
+    }
+
+    /// \brief Convert the buffer into zenoh::Bytes. Never called at
+    /// runtime; returns empty bytes so dependent code type-checks.
+    public: zenoh::Bytes TakeBytes()
+    {
+      return zenoh::Bytes();
+    }
+  };
+
+  /// \brief No-op: SHM not available in this build.
+  /// \return Always returns an empty chunk.
+  inline ShmChunk allocShmChunk(const NullShmProvider *, std::size_t)
+  {
+    return ShmChunk();
+  }
+
+  /// \brief No-op: SHM not available in this build.
   /// \return Always returns std::nullopt.
-  inline std::nullopt_t allocShmBuf(std::nullptr_t, std::size_t)
+  inline std::optional<zenoh::Bytes> makeShmBytes(
+      const NullShmProvider *, const void *, std::size_t)
   {
     return std::nullopt;
   }
 
-  /// \brief No-op: SHM not available on this platform.
-  /// \return Always returns nullptr.
-  inline std::nullptr_t serviceShmProvider()
+  /// \brief No-op: SHM not available in this build.
+  /// \return Always returns std::nullopt.
+  inline std::optional<zenoh::Bytes> serviceShmBytes(
+      const void *, std::size_t)
   {
-    return nullptr;
+    return std::nullopt;
   }
 
 #endif  // Z_FEATURE_SHARED_MEMORY && Z_FEATURE_UNSTABLE_API

@@ -22,7 +22,9 @@
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
 
-#if defined(Z_FEATURE_SHARED_MEMORY)
+// Match the guard in ShmHelpers.hh: the real SHM helpers need both the
+// SHM feature and the unstable API.
+#if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
 
 #include <string>
 
@@ -328,6 +330,88 @@ TEST(ShmHelpersTest, AllocShmBufMultiple)
 }
 
 //////////////////////////////////////////////////
+// allocShmChunk: empty below threshold, usable above it
+TEST(ShmHelpersTest, AllocShmChunk)
+{
+  auto provider = createShmProvider();
+  ASSERT_NE(provider, nullptr);
+
+  auto emptyChunk = allocShmChunk(provider.get(), 1);
+  EXPECT_FALSE(static_cast<bool>(emptyChunk));
+  EXPECT_EQ(nullptr, emptyChunk.Data());
+
+  const std::size_t threshold = shmEnvConfig().threshold;
+  auto chunk = allocShmChunk(provider.get(), threshold);
+  ASSERT_TRUE(static_cast<bool>(chunk));
+  ASSERT_NE(nullptr, chunk.Data());
+
+  // Write through Data(), then convert to Bytes and read it back.
+  memset(chunk.Data(), 0x5A, threshold);
+  zenoh::Bytes bytes = chunk.TakeBytes();
+  EXPECT_FALSE(static_cast<bool>(chunk));
+  EXPECT_EQ(threshold, bytes.size());
+  EXPECT_EQ(std::string(threshold, 0x5A), bytes.as_string());
+}
+
+//////////////////////////////////////////////////
+// makeShmBytes: nullopt below threshold, round-trips data above it
+TEST(ShmHelpersTest, MakeShmBytes)
+{
+  auto provider = createShmProvider();
+  ASSERT_NE(provider, nullptr);
+
+  EXPECT_FALSE(makeShmBytes(provider.get(), "x", 1).has_value());
+
+  const std::string data(shmEnvConfig().threshold, 'B');
+  auto bytes = makeShmBytes(provider.get(), data.data(), data.size());
+  ASSERT_TRUE(bytes.has_value());
+  EXPECT_EQ(data, bytes->as_string());
+}
+
+//////////////////////////////////////////////////
+// serviceShmBytes: uses the shared service pool
+TEST(ShmHelpersTest, ServiceShmBytes)
+{
+  EXPECT_FALSE(serviceShmBytes("x", 1).has_value());
+
+  const std::string data(shmEnvConfig().threshold, 'C');
+  auto bytes = serviceShmBytes(data.data(), data.size());
+  ASSERT_TRUE(bytes.has_value());
+  EXPECT_EQ(data, bytes->as_string());
+}
+
+//////////////////////////////////////////////////
+// withPayloadView: sees the payload of heap-backed bytes
+TEST(ShmHelpersTest, WithPayloadViewHeap)
+{
+  const std::string data = "hello payload";
+  zenoh::Bytes bytes(data);
+
+  auto copied = withPayloadView(bytes,
+    [](const char *_data, std::size_t _size)
+    {
+      return std::string(_data, _size);
+    });
+  EXPECT_EQ(data, copied);
+}
+
+//////////////////////////////////////////////////
+// withPayloadView: sees the payload of SHM-backed bytes
+TEST(ShmHelpersTest, WithPayloadViewShm)
+{
+  const std::string data(shmEnvConfig().threshold, 'D');
+  auto bytes = serviceShmBytes(data.data(), data.size());
+  ASSERT_TRUE(bytes.has_value());
+
+  auto copied = withPayloadView(*bytes,
+    [](const char *_data, std::size_t _size)
+    {
+      return std::string(_data, _size);
+    });
+  EXPECT_EQ(data, copied);
+}
+
+//////////////////////////////////////////////////
 // CreateMsgFromBuffer: typed SubscriptionHandler
 TEST(ShmHelpersTest, CreateMsgFromBufferTyped)
 {
@@ -408,13 +492,14 @@ TEST(ShmHelpersTest, CreateMsgFromBufferGenericUnknownType)
   EXPECT_EQ(nullptr, msg);
 }
 
-#endif  // Z_FEATURE_SHARED_MEMORY
+#endif  // Z_FEATURE_SHARED_MEMORY && Z_FEATURE_UNSTABLE_API
 #endif  // HAVE_ZENOH
 
 // Provide a minimal test when SHM or Zenoh is unavailable so the
 // test binary still compiles and reports success.
 #if !defined(HAVE_ZENOH) || \
-    !defined(Z_FEATURE_SHARED_MEMORY)
+    !defined(Z_FEATURE_SHARED_MEMORY) || \
+    !defined(Z_FEATURE_UNSTABLE_API)
 
 TEST(ShmHelpersTest, NotAvailable)
 {
