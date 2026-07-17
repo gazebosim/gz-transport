@@ -175,7 +175,6 @@ namespace gz::transport
       subscrHandlerPtr->SetCallback(std::move(_cb));
       subscrHandlerPtr->CreateLivelinessToken(
         this->Shared()->Session(), fullyQualifiedTopic);
-      this->Shared()->EnsureZenohSubscription(fullyQualifiedTopic);
     }
 #endif
     else
@@ -189,6 +188,15 @@ namespace gz::transport
     // will invoke the callback.
     this->Shared()->localSubscribers.normal.AddHandler(
       fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
+
+#ifdef HAVE_ZENOH
+    // Must be called under lock (acquired above) to prevent a race where
+    // concurrent Subscribe() calls for the same topic could create
+    // duplicate centralized subscribers. Called after AddHandler so a
+    // message arriving right away already finds its handler registered.
+    if (impl == "zenoh")
+      this->Shared()->EnsureZenohSubscription(fullyQualifiedTopic);
+#endif
 
     if (!this->SubscribeHelper(fullyQualifiedTopic))
       return nullptr;
