@@ -110,6 +110,13 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     /// \brief Minimum message size to use SHM, in bytes.
     /// Read from GZ_TRANSPORT_ZENOH_SHM_THRESHOLD (default: 128 KB).
     std::size_t threshold = kDefaultShmThreshold;
+
+    /// \brief True when the user explicitly configured SHM through the
+    /// GZ_TRANSPORT_ZENOH_SHM_* environment variables. Controls whether
+    /// a failure to create a SHM provider is reported on stderr: with
+    /// SHM enabled by default, environments without SHM support (e.g.
+    /// containers with a small /dev/shm) fall back to heap silently.
+    bool explicitlyConfigured = false;
   };
 
   /// \brief Parse and validate a size_t environment variable value.
@@ -208,6 +215,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
         c.poolSize = parseShmSizeEnvVar(
             val, "GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE",
             kDefaultShmPoolSize, 1);
+        c.explicitlyConfigured = true;
       }
 
       if (env("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD", val))
@@ -215,6 +223,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
         c.threshold = parseShmSizeEnvVar(
             val, "GZ_TRANSPORT_ZENOH_SHM_THRESHOLD",
             kDefaultShmThreshold, 0);
+        c.explicitlyConfigured = true;
       }
 
       warnShmConfig(c);
@@ -236,6 +245,12 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   }
 
   /// \brief Create a PosixShmProvider using the cached SHM configuration.
+  /// When creation fails (e.g. containers whose /dev/shm cannot hold the
+  /// pool) the caller transparently falls back to heap-based transfer. A
+  /// warning is emitted only once per process, and only when the user
+  /// explicitly configured SHM via the GZ_TRANSPORT_ZENOH_SHM_* variables,
+  /// so default setups degrade silently without polluting stderr (which
+  /// tools like `gz topic` expect to stay clean).
   /// \return A new provider, or nullptr if SHM is disabled or creation fails.
   inline std::unique_ptr<zenoh::PosixShmProvider> createShmProvider()
   {
@@ -252,8 +267,15 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     }
     catch (const std::exception &e)
     {
-      std::cerr << "gz-transport: SHM provider creation failed ("
-                << e.what() << "), falling back to heap.\n";
+      if (config.explicitlyConfigured)
+      {
+        static std::once_flag warnFlag;
+        std::call_once(warnFlag, [&e]()
+        {
+          std::cerr << "gz-transport: SHM provider creation failed ("
+                    << e.what() << "), falling back to heap.\n";
+        });
+      }
       return nullptr;
     }
   }
