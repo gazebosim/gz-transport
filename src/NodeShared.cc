@@ -1945,7 +1945,11 @@ void NodeShared::EnsureZenohSubscription(const std::string &_topic)
 void NodeShared::MaybeRemoveZenohSubscription(const std::string &_topic)
 {
   // Precondition: caller holds this->mutex.
-  // If no handlers remain for this topic, remove the centralized subscriber.
+  // If no handlers remain for this topic, remove the centralized
+  // subscriber. Erasing it here (under the mutex) cannot deadlock: Zenoh's
+  // undeclare does not wait for an in-flight data callback to finish, so a
+  // callback blocked on this->mutex in CheckHandlerInfo simply completes
+  // afterwards and finds no handlers.
   if (!this->localSubscribers.HasSubscriber(_topic))
     this->dataPtr->zenohSubscribers.erase(_topic);
 }

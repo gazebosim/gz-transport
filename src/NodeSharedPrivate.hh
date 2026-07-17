@@ -114,10 +114,16 @@ namespace gz::transport
         // (after ZENOH_CONFIG file + overrides). This is the single
         // source of truth — users control SHM via Zenoh's native
         // transport/shared_memory/enabled setting.
+        try
         {
           auto shmVal = config.get(
             "transport/shared_memory/enabled");
           setShmEnabled(shmVal != "false" && shmVal != "0");
+        }
+        catch (const zenoh::ZException &)
+        {
+          // Key missing from a user-supplied ZENOH_CONFIG file:
+          // keep the default (enabled).
         }
 
         try
