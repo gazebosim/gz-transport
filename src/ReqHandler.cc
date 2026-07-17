@@ -156,9 +156,9 @@ namespace gz::transport
 
     if (!payload.empty())
     {
-      // Use SHM for large request payloads to avoid a serialization copy.
-      // Uses the process-level service SHM pool shared with RepHandler.
-      if (auto shmBytes = serviceShmBytes(payload.data(), payload.size()))
+      // Use SHM for large request payloads to avoid a serialization copy,
+      // using the shared process pool.
+      if (auto shmBytes = makeShmBytes(payload.data(), payload.size()))
         options.payload = std::move(*shmBytes);
       else
         options.payload = payload;

@@ -90,28 +90,6 @@ class Node::PublisherPrivate
       zPub(std::make_unique<zenoh::Publisher>(std::move(_zPub))),
       zToken(std::make_unique<zenoh::LivelinessToken>(std::move(_zToken)))
   {
-    this->provider = createShmProvider();
-  }
-
-  /// \brief Publish data via SHM if available, falling back to heap.
-  /// Takes ownership of _msgBuffer (will be freed after publish).
-  public: void PublishViaShmOrHeap(char *_msgBuffer,
-                                   std::size_t _msgSize,
-                                   zenoh::Publisher::PutOptions _options)
-  {
-    if (auto shmBytes = makeShmBytes(this->provider.get(),
-                                     _msgBuffer, _msgSize))
-    {
-      delete[] _msgBuffer;
-      this->zPub->put(std::move(*shmBytes), std::move(_options));
-      return;
-    }
-
-    // Heap fallback: SHM disabled, below threshold, or allocation failed.
-    auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-    this->zPub->put(
-      zenoh::Bytes(reinterpret_cast<uint8_t *>(_msgBuffer), _msgSize, deleter),
-      std::move(_options));
   }
 
   /// \brief Publish string data via SHM if available, falling back to heap.
@@ -120,8 +98,7 @@ class Node::PublisherPrivate
   public: void PublishViaShmOrHeap(const std::string &_data,
                                    zenoh::Publisher::PutOptions _options)
   {
-    if (auto shmBytes = makeShmBytes(this->provider.get(),
-                                     _data.data(), _data.size()))
+    if (auto shmBytes = makeShmBytes(_data.data(), _data.size()))
     {
       this->zPub->put(std::move(*shmBytes), std::move(_options));
       return;
@@ -214,10 +191,6 @@ class Node::PublisherPrivate
 
   /// \brief The liveliness token.
   public: std::unique_ptr<zenoh::LivelinessToken> zToken;
-
-  /// \brief SHM provider for zero-copy publishing.
-  /// nullptr when SHM is disabled or unavailable in this build.
-  public: ShmProviderPtr provider;
 #endif
 
   /// \brief Timestamp of the last callback executed.
@@ -469,18 +442,19 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Serialized data source — points into either the SHM buffer (zero-copy)
   // or a heap buffer (fallback). Both paths below set this so that local/raw
   // subscriber handling can use a single code path.
-  char *msgBuffer = nullptr;
+  std::unique_ptr<char[]> msgBuffer;
   const char *serializedData = nullptr;
 
 #ifdef HAVE_ZENOH
   // Direct-to-SHM serialization: allocate a SHM buffer and serialize into
-  // it, skipping the intermediate heap buffer entirely. This works for ALL
-  // subscriber combinations (remote-only, remote+local, remote+raw, etc.)
-  // and eliminates one malloc + one memcpy compared to the heap path.
+  // it, skipping the intermediate heap buffer entirely. This eliminates
+  // one malloc + one memcpy compared to the heap path. Only attempted when
+  // the message actually leaves through Zenoh (remote subscribers);
+  // local/raw-only publications serialize to heap.
   ShmChunk shmChunk;
-  if (impl == "zenoh" && (subscribers.haveRaw || subscribers.haveRemote))
+  if (impl == "zenoh" && subscribers.haveRemote)
   {
-    shmChunk = allocShmChunk(this->dataPtr->provider.get(), msgSize);
+    shmChunk = allocShmChunk(msgSize);
     if (shmChunk && _msg.SerializeToArray(shmChunk.Data(), msgSize))
       serializedData = reinterpret_cast<const char *>(shmChunk.Data());
     else
@@ -491,15 +465,16 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Heap fallback: SHM not available, disabled, or not using zenoh.
   if (!serializedData && (subscribers.haveRaw || subscribers.haveRemote))
   {
-    msgBuffer = static_cast<char *>(new char[msgSize]);
-    if (!_msg.SerializeToArray(msgBuffer, msgSize))
+    // Note: default-initialized on purpose; make_unique would zero the
+    // buffer before it is overwritten by the serializer.
+    msgBuffer.reset(new char[msgSize]);
+    if (!_msg.SerializeToArray(msgBuffer.get(), msgSize))
     {
-      delete[] msgBuffer;
       std::cerr << "Node::Publisher::Publish(): Error serializing data"
                 << std::endl;
       return false;
     }
-    serializedData = msgBuffer;
+    serializedData = msgBuffer.get();
   }
 
   // Local and raw subscribers.
@@ -601,15 +576,13 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
         delete[] reinterpret_cast<char*>(_buffer);
       };
 
+      // Ownership of the buffer passes to ZeroMQ via the deallocator.
       if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
-            msgBuffer, msgSize, myDeallocator, std::string(_msg.GetTypeName())))
+            msgBuffer.release(), msgSize, myDeallocator,
+            std::string(_msg.GetTypeName())))
       {
         return false;
       }
-    }
-    else
-    {
-      delete[] msgBuffer;
     }
   }
 #ifdef HAVE_ZENOH
@@ -626,20 +599,20 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
       }
       else
       {
-        // Heap fallback: PublishViaShmOrHeap takes ownership of msgBuffer.
-        this->dataPtr->PublishViaShmOrHeap(
-          msgBuffer, msgSize, std::move(options));
+        // Heap publish. The SHM attempt already happened during
+        // serialization above, so there is no point retrying it here.
+        // Ownership of the buffer passes to Zenoh via the deleter.
+        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+        this->dataPtr->zPub->put(
+          zenoh::Bytes(reinterpret_cast<uint8_t *>(msgBuffer.release()),
+                       msgSize, deleter),
+          std::move(options));
       }
     }
-    else
-      delete[] msgBuffer;
   }
 #endif
   else
-  {
-    delete[] msgBuffer;
     return false;
-  }
 
   return true;
 }

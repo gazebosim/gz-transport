@@ -108,9 +108,9 @@ namespace gz::transport
 
       if (this->RunCallback(input, output))
       {
-        // SHM-optimized reply (one copy: heap -> SHM). Uses the
-        // process-level service SHM pool shared with ReqHandler.
-        if (auto shmBytes = serviceShmBytes(output.data(), output.size()))
+        // SHM-optimized reply (one copy: heap -> SHM), using the shared
+        // process pool.
+        if (auto shmBytes = makeShmBytes(output.data(), output.size()))
           _query.reply(_service, std::move(*shmBytes));
         else
           _query.reply(_service, output);

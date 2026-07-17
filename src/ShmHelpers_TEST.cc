@@ -17,39 +17,138 @@
 
 #include <gtest/gtest.h>
 
-#include "gz/transport/config.hh"
-
-#ifdef HAVE_ZENOH
-#include <zenoh.hxx>
-
-// Match the guard in ShmHelpers.hh: the real SHM helpers need both the
-// SHM feature and the unstable API.
-#if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
-
 #include <string>
 
 #include <gz/msgs/int32.pb.h>
 #include <gz/utils/Environment.hh>
 
-#include "gz/transport/Helpers.hh"
-#include "gz/transport/Node.hh"
+#include "gz/transport/config.hh"
 #include "gz/transport/SubscriptionHandler.hh"
+
+// Self-guarding: brings in zenoh.hxx (and the Z_FEATURE_* macros) only
+// when Zenoh is available.
 #include "ShmHelpers.hh"
 
 using namespace gz;
 using namespace transport;
 
 //////////////////////////////////////////////////
+// CreateMsgFromBuffer: typed SubscriptionHandler parses from a raw buffer
+// through the message factory registered on construction. Requires
+// neither Zenoh nor SHM.
+TEST(ShmHelpersTest, CreateMsgFromBufferTyped)
+{
+  SubscribeOptions opts;
+  SubscriptionHandler<gz::msgs::Int32> handler(
+    "proc-uuid", "node-uuid", opts);
+
+  // Serialize a message.
+  gz::msgs::Int32 original;
+  original.set_data(42);
+  std::string serialized;
+  ASSERT_TRUE(original.SerializeToString(&serialized));
+
+  // Deserialize from raw buffer.
+  auto msg = handler.CreateMsgFromBuffer(
+    serialized.data(), serialized.size(), "gz.msgs.Int32");
+  ASSERT_NE(msg, nullptr);
+
+  auto *typed = dynamic_cast<const gz::msgs::Int32 *>(msg.get());
+  ASSERT_NE(typed, nullptr);
+  EXPECT_EQ(42, typed->data());
+}
+
+//////////////////////////////////////////////////
+// CreateMsgFromBuffer: invalid data returns non-null but
+// may have default values (ParseFromArray on garbage).
+TEST(ShmHelpersTest, CreateMsgFromBufferInvalidData)
+{
+  SubscribeOptions opts;
+  SubscriptionHandler<gz::msgs::Int32> handler(
+    "proc-uuid", "node-uuid", opts);
+
+  // Pass garbage data — ParseFromArray may succeed with default values
+  // or fail. Either way, it should not crash.
+  const char garbage[] = {0x00, 0x01, 0x02, 0x03};
+  auto msg = handler.CreateMsgFromBuffer(
+    garbage, sizeof(garbage), "gz.msgs.Int32");
+  // Just verify no crash — result may or may not be null.
+  (void)msg;
+}
+
+//////////////////////////////////////////////////
+// CreateMsgFromBuffer: generic SubscriptionHandler<ProtoMsg>
+TEST(ShmHelpersTest, CreateMsgFromBufferGeneric)
+{
+  SubscribeOptions opts;
+  SubscriptionHandler<ProtoMsg> handler(
+    "proc-uuid", "node-uuid", opts);
+
+  // Serialize a message.
+  gz::msgs::Int32 original;
+  original.set_data(99);
+  std::string serialized;
+  ASSERT_TRUE(original.SerializeToString(&serialized));
+
+  // Deserialize from raw buffer using the generic handler,
+  // which looks up the type by name at runtime.
+  auto msg = handler.CreateMsgFromBuffer(
+    serialized.data(), serialized.size(), "gz.msgs.Int32");
+  ASSERT_NE(msg, nullptr);
+
+  auto *typed = dynamic_cast<const gz::msgs::Int32 *>(msg.get());
+  ASSERT_NE(typed, nullptr);
+  EXPECT_EQ(99, typed->data());
+}
+
+//////////////////////////////////////////////////
+// CreateMsgFromBuffer: generic handler with unknown type
+TEST(ShmHelpersTest, CreateMsgFromBufferGenericUnknownType)
+{
+  SubscribeOptions opts;
+  SubscriptionHandler<ProtoMsg> handler(
+    "proc-uuid", "node-uuid", opts);
+
+  const char data[] = {0x08, 0x01};
+  auto msg = handler.CreateMsgFromBuffer(
+    data, sizeof(data), "gz.msgs.NonExistentType");
+  EXPECT_EQ(nullptr, msg);
+}
+
+#ifdef HAVE_ZENOH
+
+//////////////////////////////////////////////////
+// withPayloadView: sees the payload of heap-backed bytes.
+// Requires Zenoh but not SHM.
+TEST(ShmHelpersTest, WithPayloadViewHeap)
+{
+  const std::string data = "hello payload";
+  zenoh::Bytes bytes(data);
+
+  auto copied = withPayloadView(bytes,
+    [](const char *_data, std::size_t _size)
+    {
+      return std::string(_data, _size);
+    });
+  EXPECT_EQ(data, copied);
+}
+
+// The remaining tests exercise the real SHM helpers, which need both the
+// SHM feature and the unstable API (same guard as ShmHelpers.hh).
+#if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
+
+//////////////////////////////////////////////////
 // shmEnvConfig: defaults
 TEST(ShmHelpersTest, ShmEnvConfigDefaults)
 {
   // Note: shmEnvConfig() caches on first call, so these tests verify
-  // the compile-time defaults. Environment variable overrides are
-  // tested in a separate process by the Node_TEST suite.
+  // the compile-time defaults (main() clears the environment variables
+  // before any test runs). Environment variable overrides are tested in
+  // a separate process by the Node_TEST suite.
   const auto &config = shmEnvConfig();
 
   // Default: enabled (true unless Zenoh config disables it).
-  EXPECT_TRUE(config.enabled);
+  EXPECT_TRUE(shmEnabled().load());
 
   // Default pool size: 48 MB.
   EXPECT_EQ(48u * 1024u * 1024u, config.poolSize);
@@ -198,7 +297,7 @@ TEST(ShmHelpersTest, CreateShmProvider)
 // createShmProvider: returns nullptr when SHM is disabled
 TEST(ShmHelpersTest, CreateShmProviderDisabled)
 {
-  // Temporarily disable SHM via the cached config.
+  // Temporarily disable SHM.
   setShmEnabled(false);
   auto provider = createShmProvider();
   EXPECT_EQ(nullptr, provider);
@@ -250,7 +349,7 @@ TEST(ShmHelpersTest, AllocShmBufDisabled)
   if (!provider)
     GTEST_SKIP() << "POSIX SHM unavailable in this environment";
 
-  // Temporarily disable SHM via the cached config.
+  // Temporarily disable SHM.
   setShmEnabled(false);
   auto disabledProvider = createShmProvider();
   EXPECT_EQ(nullptr, disabledProvider);
@@ -298,30 +397,6 @@ TEST(ShmHelpersTest, AllocShmBufWriteRead)
 }
 
 //////////////////////////////////////////////////
-// serviceShmProvider: returns same pointer on repeated calls
-TEST(ShmHelpersTest, ServiceShmProviderSingleton)
-{
-  auto *p1 = serviceShmProvider();
-  if (!p1)
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  auto *p2 = serviceShmProvider();
-  EXPECT_EQ(p2, p1);
-}
-
-//////////////////////////////////////////////////
-// serviceShmProvider: is distinct from per-publisher providers
-TEST(ShmHelpersTest, ServiceProviderDistinctFromPublisher)
-{
-  auto pubProvider = createShmProvider();
-  auto *svcProvider = serviceShmProvider();
-  if (!pubProvider || !svcProvider)
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  EXPECT_NE(pubProvider.get(), svcProvider);
-}
-
-//////////////////////////////////////////////////
 // allocShmBuf: multiple allocations from the same provider
 TEST(ShmHelpersTest, AllocShmBufMultiple)
 {
@@ -340,19 +415,31 @@ TEST(ShmHelpersTest, AllocShmBufMultiple)
 }
 
 //////////////////////////////////////////////////
+// processShmProvider: returns same pointer on repeated calls.
+// This is the single pool shared by all publishers and service handlers.
+TEST(ShmHelpersTest, ProcessShmProviderSingleton)
+{
+  auto *p1 = processShmProvider();
+  if (!p1)
+    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
+
+  auto *p2 = processShmProvider();
+  EXPECT_EQ(p2, p1);
+}
+
+//////////////////////////////////////////////////
 // allocShmChunk: empty below threshold, usable above it
 TEST(ShmHelpersTest, AllocShmChunk)
 {
-  auto provider = createShmProvider();
-  if (!provider)
+  if (!processShmProvider())
     GTEST_SKIP() << "POSIX SHM unavailable in this environment";
 
-  auto emptyChunk = allocShmChunk(provider.get(), 1);
+  auto emptyChunk = allocShmChunk(1);
   EXPECT_FALSE(static_cast<bool>(emptyChunk));
   EXPECT_EQ(nullptr, emptyChunk.Data());
 
   const std::size_t threshold = shmEnvConfig().threshold;
-  auto chunk = allocShmChunk(provider.get(), threshold);
+  auto chunk = allocShmChunk(threshold);
   ASSERT_TRUE(static_cast<bool>(chunk));
   ASSERT_NE(nullptr, chunk.Data());
 
@@ -368,57 +455,26 @@ TEST(ShmHelpersTest, AllocShmChunk)
 // makeShmBytes: nullopt below threshold, round-trips data above it
 TEST(ShmHelpersTest, MakeShmBytes)
 {
-  auto provider = createShmProvider();
-  if (!provider)
+  if (!processShmProvider())
     GTEST_SKIP() << "POSIX SHM unavailable in this environment";
 
-  EXPECT_FALSE(makeShmBytes(provider.get(), "x", 1).has_value());
+  EXPECT_FALSE(makeShmBytes("x", 1).has_value());
 
   const std::string data(shmEnvConfig().threshold, 'B');
-  auto bytes = makeShmBytes(provider.get(), data.data(), data.size());
+  auto bytes = makeShmBytes(data.data(), data.size());
   ASSERT_TRUE(bytes.has_value());
   EXPECT_EQ(data, bytes->as_string());
-}
-
-//////////////////////////////////////////////////
-// serviceShmBytes: uses the shared service pool
-TEST(ShmHelpersTest, ServiceShmBytes)
-{
-  if (!serviceShmProvider())
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  EXPECT_FALSE(serviceShmBytes("x", 1).has_value());
-
-  const std::string data(shmEnvConfig().threshold, 'C');
-  auto bytes = serviceShmBytes(data.data(), data.size());
-  ASSERT_TRUE(bytes.has_value());
-  EXPECT_EQ(data, bytes->as_string());
-}
-
-//////////////////////////////////////////////////
-// withPayloadView: sees the payload of heap-backed bytes
-TEST(ShmHelpersTest, WithPayloadViewHeap)
-{
-  const std::string data = "hello payload";
-  zenoh::Bytes bytes(data);
-
-  auto copied = withPayloadView(bytes,
-    [](const char *_data, std::size_t _size)
-    {
-      return std::string(_data, _size);
-    });
-  EXPECT_EQ(data, copied);
 }
 
 //////////////////////////////////////////////////
 // withPayloadView: sees the payload of SHM-backed bytes
 TEST(ShmHelpersTest, WithPayloadViewShm)
 {
-  if (!serviceShmProvider())
+  if (!processShmProvider())
     GTEST_SKIP() << "POSIX SHM unavailable in this environment";
 
   const std::string data(shmEnvConfig().threshold, 'D');
-  auto bytes = serviceShmBytes(data.data(), data.size());
+  auto bytes = makeShmBytes(data.data(), data.size());
   ASSERT_TRUE(bytes.has_value());
 
   auto copied = withPayloadView(*bytes,
@@ -429,98 +485,19 @@ TEST(ShmHelpersTest, WithPayloadViewShm)
   EXPECT_EQ(data, copied);
 }
 
-//////////////////////////////////////////////////
-// CreateMsgFromBuffer: typed SubscriptionHandler
-TEST(ShmHelpersTest, CreateMsgFromBufferTyped)
-{
-  SubscribeOptions opts;
-  SubscriptionHandler<gz::msgs::Int32> handler(
-    "proc-uuid", "node-uuid", opts);
-
-  // Serialize a message.
-  gz::msgs::Int32 original;
-  original.set_data(42);
-  std::string serialized;
-  ASSERT_TRUE(original.SerializeToString(&serialized));
-
-  // Deserialize from raw buffer.
-  auto msg = handler.CreateMsgFromBuffer(
-    serialized.data(), serialized.size(), "gz.msgs.Int32");
-  ASSERT_NE(msg, nullptr);
-
-  auto *typed = dynamic_cast<const gz::msgs::Int32 *>(msg.get());
-  ASSERT_NE(typed, nullptr);
-  EXPECT_EQ(42, typed->data());
-}
-
-//////////////////////////////////////////////////
-// CreateMsgFromBuffer: invalid data returns non-null but
-// may have default values (ParseFromArray on garbage).
-TEST(ShmHelpersTest, CreateMsgFromBufferInvalidData)
-{
-  SubscribeOptions opts;
-  SubscriptionHandler<gz::msgs::Int32> handler(
-    "proc-uuid", "node-uuid", opts);
-
-  // Pass garbage data — ParseFromArray may succeed with default values
-  // or fail. Either way, it should not crash.
-  const char garbage[] = {0x00, 0x01, 0x02, 0x03};
-  auto msg = handler.CreateMsgFromBuffer(
-    garbage, sizeof(garbage), "gz.msgs.Int32");
-  // Just verify no crash — result may or may not be null.
-  (void)msg;
-}
-
-//////////////////////////////////////////////////
-// CreateMsgFromBuffer: generic SubscriptionHandler<ProtoMsg>
-TEST(ShmHelpersTest, CreateMsgFromBufferGeneric)
-{
-  SubscribeOptions opts;
-  SubscriptionHandler<ProtoMsg> handler(
-    "proc-uuid", "node-uuid", opts);
-
-  // Serialize a message.
-  gz::msgs::Int32 original;
-  original.set_data(99);
-  std::string serialized;
-  ASSERT_TRUE(original.SerializeToString(&serialized));
-
-  // Deserialize from raw buffer using the generic handler,
-  // which looks up the type by name at runtime.
-  auto msg = handler.CreateMsgFromBuffer(
-    serialized.data(), serialized.size(), "gz.msgs.Int32");
-  ASSERT_NE(msg, nullptr);
-
-  auto *typed = dynamic_cast<const gz::msgs::Int32 *>(msg.get());
-  ASSERT_NE(typed, nullptr);
-  EXPECT_EQ(99, typed->data());
-}
-
-//////////////////////////////////////////////////
-// CreateMsgFromBuffer: generic handler with unknown type
-TEST(ShmHelpersTest, CreateMsgFromBufferGenericUnknownType)
-{
-  SubscribeOptions opts;
-  SubscriptionHandler<ProtoMsg> handler(
-    "proc-uuid", "node-uuid", opts);
-
-  const char data[] = {0x08, 0x01};
-  auto msg = handler.CreateMsgFromBuffer(
-    data, sizeof(data), "gz.msgs.NonExistentType");
-  EXPECT_EQ(nullptr, msg);
-}
-
 #endif  // Z_FEATURE_SHARED_MEMORY && Z_FEATURE_UNSTABLE_API
 #endif  // HAVE_ZENOH
 
-// Provide a minimal test when SHM or Zenoh is unavailable so the
-// test binary still compiles and reports success.
-#if !defined(HAVE_ZENOH) || \
-    !defined(Z_FEATURE_SHARED_MEMORY) || \
-    !defined(Z_FEATURE_UNSTABLE_API)
-
-TEST(ShmHelpersTest, NotAvailable)
+//////////////////////////////////////////////////
+int main(int argc, char **argv)
 {
-  GTEST_SKIP() << "SHM helpers require Zenoh with SHM support";
+  ::testing::InitGoogleTest(&argc, argv);
+
+  // Make results independent of ambient SHM tuning: shmEnvConfig()
+  // caches the environment on first read, so clear these before any
+  // test can trigger that read.
+  gz::utils::unsetenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
+  gz::utils::unsetenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
+
+  return RUN_ALL_TESTS();
 }
-#endif
