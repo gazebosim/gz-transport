@@ -15,16 +15,19 @@
  *
 */
 
-#include <condition_variable>
+#include <iostream>
 #include <memory>
-#include <mutex>
 #include <string>
 #include "gz/transport/config.hh"
+#include "gz/transport/NodeShared.hh"
 #include "gz/transport/ReqHandler.hh"
 #include "gz/transport/Uuid.hh"
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
+// NodeSharedPrivate.hh defines ZenohQuerierEntry; the public header
+// only forward-declares it.
+#include "NodeSharedPrivate.hh"
 #include "ShmHelpers.hh"
 #endif
 
@@ -40,7 +43,8 @@ namespace gz::transport
     public: IReqHandlerPrivate(const std::string &_nUuid)
     : hUuid(Uuid().ToString()),
       nUuid(_nUuid),
-      requested(false)
+      requested(false),
+      nodeShared(nullptr)
     {
     }
 
@@ -56,6 +60,13 @@ namespace gz::transport
     /// \brief When true, the REQ was already sent and the REP should be on
     /// its way. Used to not resend the same REQ more than one time.
     public: bool requested;
+
+    /// \internal
+    /// \brief Owning NodeShared. Non-owning pointer; NodeShared
+    /// outlives all IReqHandlers because they're held in its
+    /// storage. Set by SetNodeShared before CreateZenohGet so the
+    /// latter can reach the per-process Querier cache.
+    public: class NodeShared *nodeShared;
   };
 
   /////////////////////////////////////////////////
@@ -96,29 +107,74 @@ namespace gz::transport
     this->dataPtr->requested = _value;
   }
 
+  /////////////////////////////////////////////////
+  void IReqHandler::SetNodeShared(class NodeShared *_shared)
+  {
+    this->dataPtr->nodeShared = _shared;
+  }
+
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
   void IReqHandler::CreateZenohGet(
     std::shared_ptr<zenoh::Session> _session,
     const std::string &_service)
   {
-    // Heap-allocate the sync state so both onReply and onDone can
-    // safely reference it even after CreateZenohGet() returns (onDone
-    // fires after query timeout, which may be after the caller has
-    // already unblocked via onReply).
-    auto syncMutex = std::make_shared<std::mutex>();
-    auto syncDone = std::make_shared<bool>(false);
-    auto syncCv = std::make_shared<std::condition_variable>();
-
-    auto onReply = [this, syncMutex, syncDone, syncCv](
-        const zenoh::Reply &_reply)
+    // Look up (or declare) a persistent Querier via NodeShared.
+    // NodeShared owns the cache and clears it during Shutdown(),
+    // which runs before the session is dropped at process exit.
+    auto *shared = this->dataPtr->nodeShared;
+    if (!shared)
     {
+      std::cerr << "gz-transport zenoh: NodeShared not provided to "
+                << "IReqHandler before CreateZenohGet (call "
+                << "SetNodeShared first); aborting request for ["
+                << _service << "].\n";
+      return;
+    }
+
+    // The reply closure holds a weak reference to this handler, so a
+    // reply arriving after the handler was removed from the requests
+    // storage (e.g. after Node::Request timed out) is dropped instead
+    // of dereferencing a dead object.
+    std::weak_ptr<IReqHandler> weakSelf = this->weak_from_this();
+    if (weakSelf.expired())
+    {
+      std::cerr << "gz-transport zenoh: IReqHandler for [" << _service
+                << "] is not owned by a shared_ptr; aborting request.\n";
+      return;
+    }
+
+    auto entry = shared->GetOrDeclareZenohQuerier(_service);
+    if (!entry || !entry->querier)
+    {
+      std::cerr << "gz-transport zenoh: no Querier for [" << _service
+                << "]; aborting request.\n";
+      return;
+    }
+    // _session unused: the Querier holds its own session reference.
+    (void)_session;
+
+    // The persistent Querier carries an always-on interest
+    // declaration on _service, so the responser's queryable
+    // announcement has a routing path back to this session even if
+    // the responser starts after us. The query below then stays in
+    // flight (bounded by the Zenoh query timeout) and reaches a
+    // queryable that appears late. This is what closes the
+    // cold-start race.
+
+    // Capture _service BY VALUE: the closure can fire on a Zenoh
+    // worker thread long after this stack frame has returned.
+    auto onReply = [weakSelf, _service](const zenoh::Reply &_reply)
+    {
+      auto self = weakSelf.lock();
+      if (!self)
+        return;
       if (_reply.is_ok())
       {
         const auto &sample = _reply.get_ok();
         // SHM-optimized receive: read through a direct pointer into the
         // SHM buffer when available, avoiding a fragmented copy in Zenoh.
-        this->NotifyResult(
+        self->NotifyResult(
           withPayloadView(sample.get_payload(),
             [](const char *_data, std::size_t _size)
             {
@@ -128,46 +184,41 @@ namespace gz::transport
       }
       else
       {
-        std::cerr << "Received an error :"
+        std::cerr << "gz-transport zenoh: error reply on [" << _service
+                  << "]: "
                   << _reply.get_err().get_payload().as_string() << "\n";
       }
-      // Wake up immediately after the first reply rather than waiting for the
-      // full query timeout. For one-way or unreachable services the fallback
-      // onDone handler below still fires after timeout_ms.
-      std::lock_guard lock(*syncMutex);
-      *syncDone = true;
-      syncCv->notify_all();
     };
 
-    auto onDone = [syncMutex, syncDone, syncCv]()
-    {
-      std::lock_guard lock(*syncMutex);
-      *syncDone = true;
-      syncCv->notify_all();
-    };
-
-    zenoh::Session::GetOptions options;
-    // Use a 5 s timeout so one-way requests and unreachable services do not
-    // stall the caller (which holds the NodeShared mutex) for Zenoh's default
-    // ~10 s query timeout.
-    options.timeout_ms = 5000;
+    zenoh::Querier::GetOptions getOpts =
+      zenoh::Querier::GetOptions::create_default();
     std::string payload;
     this->Serialize(payload);
-
     if (!payload.empty())
     {
       // Use SHM for large request payloads to avoid a serialization copy,
       // using the shared process pool.
       if (auto shmBytes = makeShmBytes(payload.data(), payload.size()))
-        options.payload = std::move(*shmBytes);
+        getOpts.payload = std::move(*shmBytes);
       else
-        options.payload = payload;
+        getOpts.payload = zenoh::Bytes(payload);
     }
 
-    _session->get(_service, "", onReply, onDone, std::move(options));
-
-    std::unique_lock lock(*syncMutex);
-    syncCv->wait(lock, [&syncDone] { return *syncDone; });
+    // Fire and forget: the caller (Node::Request) waits on the
+    // handler's condition variable via WaitUntil, mirroring the
+    // ZeroMQ flow. Blocking here instead would stall the calling
+    // thread while it holds NodeShared::mutex, serializing every
+    // other request, subscription, and teardown in the process
+    // (and would wait the user timeout twice).
+    try
+    {
+      entry->querier->get("", onReply, []() {}, std::move(getOpts));
+    }
+    catch (const zenoh::ZException &e)
+    {
+      std::cerr << "gz-transport zenoh: querier.get failed for ["
+                << _service << "]: " << e.what() << "\n";
+    }
   }
 #endif
   }

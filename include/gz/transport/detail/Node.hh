@@ -619,6 +619,9 @@ namespace gz::transport
     // Insert the request's parameters.
     reqHandlerPtr->SetMessage(&_request);
     reqHandlerPtr->SetResponse(&_reply);
+    // Give the handler access to NodeShared so the Zenoh path can
+    // reach the per-process Querier cache.
+    reqHandlerPtr->SetNodeShared(this->Shared());
 
     bool localResponserFound;
     IRepHandlerPtr repHandler;
@@ -665,6 +668,20 @@ namespace gz::transport
 
     // Wait until the REP is available.
     bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
+
+#ifdef HAVE_ZENOH
+    if (this->Shared()->GzImplementation() == "zenoh")
+    {
+      // The Zenoh reply path notifies this handler directly instead
+      // of going through RecvSrvResponse, so nothing else removes it
+      // from the requests storage. Remove it here (we still hold the
+      // mutex); a reply arriving later finds an expired weak_ptr in
+      // the Zenoh closure and is dropped.
+      this->Shared()->Requests().RemoveHandler(
+        fullyQualifiedTopic, this->NodeUuid(),
+        reqHandlerPtr->HandlerUuid());
+    }
+#endif
 
     // The request was not executed.
     if (!executed)

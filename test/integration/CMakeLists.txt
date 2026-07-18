@@ -8,6 +8,7 @@ set(tests
   twoProcsPubSub.cc
   twoProcsPubSubStats.cc
   twoProcsSrvCall.cc
+  twoProcsSrvCallLateResponder.cc
   twoProcsSrvCallStress.cc
   twoProcsSrvCallSync1.cc
   twoProcsSrvCallWithoutInput.cc
@@ -16,6 +17,12 @@ set(tests
   twoProcsSrvCallWithoutOutput.cc
   twoProcsSrvCallWithoutOutputStress.cc
 )
+
+if (HAVE_ZENOH)
+  list(APPEND tests
+    zenohPublisherLeak.cc
+    zenohShutdownStress.cc)
+endif()
 
 # Test symbols having the right name on linux only.
 if (UNIX AND NOT APPLE)
@@ -55,6 +62,12 @@ set(auxiliary_files
   twoProcsSrvCallWithoutOutputReplier_aux
   twoProcsSrvCallWithoutOutputReplierInc_aux
 )
+
+if (HAVE_ZENOH)
+  list(APPEND auxiliary_files
+    zenohPublisherLeak_aux
+    zenohShutdown_aux)
+endif()
 
 # Build the auxiliary files.
 foreach(AUX_EXECUTABLE ${auxiliary_files})

@@ -216,7 +216,8 @@ namespace gz::transport
   /// message. 'T' is the Protobuf message type that will be used for this
   /// particular handler.
   template <typename T> class SubscriptionHandler
-    : public ISubscriptionHandler
+    : public ISubscriptionHandler,
+      public std::enable_shared_from_this<SubscriptionHandler<T>>
   {
     // Documentation inherited.
     public: explicit SubscriptionHandler(const std::string &_pUuid,
@@ -332,7 +333,8 @@ namespace gz::transport
   /// \brief Specialized template when the user prefers a callbacks that
   /// accepts a generic google::protobuf::message instead of a specific type.
   template <> class SubscriptionHandler<ProtoMsg>
-    : public ISubscriptionHandler
+    : public ISubscriptionHandler,
+      public std::enable_shared_from_this<SubscriptionHandler<ProtoMsg>>
   {
     // Documentation inherited.
     public: explicit SubscriptionHandler(const std::string &_pUuid,
@@ -443,7 +445,9 @@ namespace gz::transport
   //////////////////////////////////////////////////
   /// RawSubscriptionHandler is used to manage the callback of a raw
   /// subscription.
-  class RawSubscriptionHandler : public SubscriptionHandlerBase
+  class RawSubscriptionHandler
+    : public SubscriptionHandlerBase,
+      public std::enable_shared_from_this<RawSubscriptionHandler>
   {
     /// \brief Constructor
     /// \param[in] _pUuid UUID of the process registering the handler

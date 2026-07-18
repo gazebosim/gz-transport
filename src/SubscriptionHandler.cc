@@ -15,18 +15,27 @@
  *
 */
 
+#include <atomic>
+#include <functional>
+#include <memory>
+#include <string>
+#include <utility>
+
 #include "gz/transport/config.hh"
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicUtils.hh"
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
+#include "NodeSharedPrivate.hh"
 #endif
 
 namespace gz::transport
 {
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
+
+
   /// \internal
   /// \brief Private data for SubscriptionHandlerBase class.
   class SubscriptionHandlerBasePrivate
@@ -48,7 +57,21 @@ namespace gz::transport
     }
 
     /// \brief Destructor.
-    public: virtual ~SubscriptionHandlerBasePrivate() = default;
+    public: virtual ~SubscriptionHandlerBasePrivate()
+    {
+      this->ZenohShutdown();
+    }
+
+    /// \brief Zenoh teardown. Safe to call multiple times.
+    /// See ZenohTeardownEntity in NodeSharedPrivate.hh for the
+    /// shared pattern (atomic guard + detached undeclare).
+    public: void ZenohShutdown()
+    {
+#ifdef HAVE_ZENOH
+      ZenohTeardownEntity(this->zenohIsShutdown,
+                          this->zSub, this->zToken);
+#endif
+    }
 
     /// \brief Subscribe options.
     public: SubscribeOptions opts;
@@ -84,6 +107,9 @@ namespace gz::transport
 
     /// \brief The liveliness token.
     public: std::unique_ptr<zenoh::LivelinessToken> zToken;
+
+    /// \brief Atomic guard for ZenohShutdown idempotence.
+    public: std::atomic<bool> zenohIsShutdown{false};
 #endif
   };
 

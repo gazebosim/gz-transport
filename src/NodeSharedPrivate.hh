@@ -20,12 +20,17 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstdlib>
 #include <filesystem>
+#include <functional>
 #include <list>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -46,6 +51,69 @@ namespace gz::transport
 {
   // Inline bracket to help doxygen filtering.
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+#ifdef HAVE_ZENOH
+  /// \internal
+  /// \brief Teardown a per-handler Zenoh entity. Safe to call
+  /// multiple times.
+  ///
+  /// Implements the shared shutdown pattern used by subscribers
+  /// and queryables:
+  ///   1. Thread-safe one-shot guard so the body runs exactly once,
+  ///      even if multiple threads call it at the same time.
+  ///   2. Move the entity and token into a detached thread that
+  ///      calls undeclare() on each. Detached because undeclare()
+  ///      blocks until in-flight callbacks return, which would
+  ///      deadlock if run inline: the caller may be holding a
+  ///      mutex the callback is waiting on, or the callback may
+  ///      itself be what triggered the teardown.
+  template <typename EntityT>
+  inline void ZenohTeardownEntity(
+      std::atomic<bool> &_isShutdown,
+      std::unique_ptr<EntityT> &_entity,
+      std::unique_ptr<zenoh::LivelinessToken> &_token)
+  {
+    bool expected = false;
+    if (!_isShutdown.compare_exchange_strong(expected, true,
+          std::memory_order_acq_rel, std::memory_order_relaxed))
+      return;
+
+    auto entityWrap = std::move(_entity);
+    auto tokenWrap = std::move(_token);
+    if (entityWrap || tokenWrap)
+    {
+      std::thread([e = std::move(entityWrap),
+                   t = std::move(tokenWrap)]() mutable
+      {
+        zenoh::ZResult result = Z_OK;
+        if (t) std::move(*t).undeclare(&result);
+        if (e) std::move(*e).undeclare(&result);
+      }).detach();
+    }
+  }
+
+  /// \internal
+  /// \brief Persistent Querier for one service keyexpr. Stored in
+  /// NodeShared's querier cache. The Querier carries an explicit
+  /// interest declaration so the responser's queryable announcement
+  /// is routed to this session and stays available across
+  /// subsequent calls, closing the post-1.6 Zenoh cold-start race
+  /// for cross-process service calls. The session shared_ptr is
+  /// held here so it cannot be dropped before the Querier.
+  ///
+  /// No custom teardown: entries live in NodeShared's cache, which
+  /// NodeShared::Shutdown() clears while the session is still open,
+  /// so the Querier destructor undeclares through a live session
+  /// (no leak, no at-exit race).
+  struct ZenohQuerierEntry
+  {
+    /// \brief Session reference held to survive NodeShared teardown
+    /// ordering.
+    std::shared_ptr<zenoh::Session> session;
+
+    /// \brief The persistent Querier.
+    std::unique_ptr<zenoh::Querier> querier;
+  };
+#endif
   //
   /// \brief Metadata for a publication. This is sent as part of the ZMQ
   /// message for topic statistics.
@@ -274,9 +342,26 @@ namespace gz::transport
     /// \brief Centralized Zenoh subscribers. One subscriber per topic.
     /// The callback dispatches to all registered handlers via
     /// TriggerCallbacks, ensuring O(1) copy + O(1) deserialization
-    /// regardless of how many handlers are registered.
+    /// regardless of how many handlers are registered. Guarded by
+    /// NodeShared::mutex; torn down in NodeShared::Shutdown.
     public: std::map<std::string, std::unique_ptr<zenoh::Subscriber<void>>>
               zenohSubscribers;
+
+    /// \internal
+    /// \brief Cache of declared Queriers keyed by service keyexpr.
+    /// Entries are added on first request and torn down in
+    /// NodeShared::Shutdown, before the session shared_ptr is
+    /// dropped.
+    public: std::unordered_map<std::string,
+        std::shared_ptr<ZenohQuerierEntry>> querierCache;
+
+    /// \internal
+    /// \brief Mutex guarding querierCache.
+    public: std::mutex querierCacheMutex;
+
+    /// \internal
+    /// \brief One-shot guard for NodeShared::Shutdown.
+    public: std::atomic<bool> isShutdown{false};
 #endif
 
     //////////////////////////////////////////////////
