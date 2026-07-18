@@ -32,6 +32,7 @@
 #endif
 
 #include <chrono>
+#include <cstddef>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -104,18 +105,6 @@ namespace gz::transport
     /// \return true if the callback should be executed or false otherwise.
     protected: bool UpdateThrottling();
 
-#ifdef HAVE_ZENOH
-    /// \brief Temporarily store the dispatch closure. Must be called by the
-    /// most derived subscriber subclass before CreateGenericZenohSubscriber.
-    /// The dispatch closure should capture a weak_ptr to the handler to safely
-    /// abort if invoked during handler destruction.
-    protected: void SetZenohSubscriberDispatch(
-      const std::string &_topic,
-      const std::string &_expectedType,
-      std::function<void(const std::string &payload,
-                         const std::string &msgType)> _dispatch);
-#endif
-
     /// \brief Subscribe options.
     protected: SubscribeOptions opts;
 
@@ -175,11 +164,48 @@ namespace gz::transport
       const std::string &_data,
       const std::string &_type) const = 0;
 
+    /// \brief Function type that deserializes a raw buffer into a message.
+    /// \sa SetMsgFactory
+    public: using MsgFactory = std::function<std::shared_ptr<ProtoMsg>(
+      const char *_data,
+      std::size_t _size,
+      const std::string &_type)>;
+
+    /// \brief Create a protobuf message from a raw buffer.
+    /// Avoids a string copy compared to CreateMsg when the data already
+    /// lives in a contiguous buffer (e.g. Zenoh SHM). Dispatches to the
+    /// deserializer registered with SetMsgFactory(); when none was
+    /// registered (e.g. a handler compiled against older headers), falls
+    /// back to a string copy + the virtual CreateMsg.
+    /// Deliberately non-virtual: a new virtual function would change the
+    /// vtable layout and break ABI within a major release.
+    /// \param[in] _data Pointer to the serialized data.
+    /// \param[in] _size Number of bytes in _data.
+    /// \param[in] _type The data type.
+    /// \return Pointer to the specific protobuf message.
+    public: const std::shared_ptr<ProtoMsg> CreateMsgFromBuffer(
+      const char *_data,
+      std::size_t _size,
+      const std::string &_type) const;
+
+    /// \brief Register the deserializer used by CreateMsgFromBuffer().
+    /// Concrete handlers call this on construction. A CreateMsg override
+    /// may only delegate to CreateMsgFromBuffer() when a factory has been
+    /// registered; otherwise the fallback path would recurse.
+    /// \param[in] _factory The deserializer.
+    protected: void SetMsgFactory(MsgFactory _factory);
+
 #ifdef HAVE_ZENOH
-    /// \brief Create a Zenoh subscriber
+    /// \brief Create a Zenoh liveliness token for discovery.
+    /// The actual Zenoh subscriber is managed centrally by NodeShared.
     /// \param[in] _session Zenoh session.
     /// \param[in] _topic The topic.
-    public: void CreateGenericZenohSubscriber(
+    public: void CreateLivelinessToken(
+      std::shared_ptr<zenoh::Session> _session,
+      const std::string &_topic);
+
+    /// \brief Deprecated. Use CreateLivelinessToken instead.
+    public: GZ_DEPRECATED(16) void CreateGenericZenohSubscriber(
       std::shared_ptr<zenoh::Session> _session,
       const std::string &_topic);
 #endif
@@ -199,24 +225,28 @@ namespace gz::transport
       const SubscribeOptions &_opts = SubscribeOptions())
       : ISubscriptionHandler(_pUuid, _nUuid, _opts)
     {
+      // Parse straight from the buffer (no intermediate string copy).
+      this->SetMsgFactory(
+        [](const char *_data, std::size_t _size,
+           const std::string &/*_type*/) -> std::shared_ptr<ProtoMsg>
+        {
+          auto msgPtr = std::make_shared<T>();
+          if (!msgPtr->ParseFromArray(_data, static_cast<int>(_size)))
+          {
+            std::cerr << "SubscriptionHandler::CreateMsgFromBuffer() error: "
+                      << "ParseFromArray failed" << std::endl;
+          }
+          return msgPtr;
+        });
     }
 
     // Documentation inherited.
     public: const std::shared_ptr<ProtoMsg> CreateMsg(
       const std::string &_data,
-      const std::string &/*_type*/) const
+      const std::string &_type) const
     {
-      // Instantiate a specific protobuf message
-      auto msgPtr = std::make_shared<T>();
-
-      // Create the message using some serialized data
-      if (!msgPtr->ParseFromString(_data))
-      {
-        std::cerr << "SubscriptionHandler::CreateMsg() error: ParseFromString"
-                  << " failed" << std::endl;
-      }
-
-      return msgPtr;
+      // Safe to delegate: the constructor registered a factory.
+      return this->CreateMsgFromBuffer(_data.data(), _data.size(), _type);
     }
 
     // Documentation inherited.
@@ -242,26 +272,7 @@ namespace gz::transport
                              const std::string &_topic)
     {
       this->SetCallback(std::move(_cb));
-      const std::string topic = _topic;
-      std::weak_ptr<SubscriptionHandler<T>> weakSelf = this->weak_from_this();
-      this->SetZenohSubscriberDispatch(
-        topic, this->TypeName(),
-        [weakSelf, topic](const std::string &payload,
-                           const std::string &msgType)
-        {
-          auto self = weakSelf.lock();
-          if (!self)
-            return;
-          auto msg = self->CreateMsg(payload, msgType);
-          if (!msg)
-            return;
-          MessageInfo info;
-          info.SetTopic(topic);
-          info.SetType(msgType);
-          info.SetIntraProcess(false);
-          self->RunLocalCallback(*msg, info);
-        });
-      this->CreateGenericZenohSubscriber(_session, _topic);
+      this->CreateLivelinessToken(_session, _topic);
     }
 #endif
 
@@ -331,6 +342,44 @@ namespace gz::transport
       const SubscribeOptions &_opts = SubscribeOptions())
       : ISubscriptionHandler(_pUuid, _nUuid, _opts)
     {
+      // Look the type up at runtime and parse straight from the buffer
+      // (no intermediate string copy).
+      this->SetMsgFactory(
+        [](const char *_data, std::size_t _size,
+           const std::string &_type) -> std::shared_ptr<ProtoMsg>
+        {
+          std::shared_ptr<google::protobuf::Message> msgPtr;
+
+          const google::protobuf::Descriptor *desc =
+            google::protobuf::DescriptorPool::generated_pool()
+              ->FindMessageTypeByName(_type);
+
+          // First, check if we have the descriptor from the generated
+          // proto classes.
+          if (desc)
+          {
+            msgPtr.reset(
+              google::protobuf::MessageFactory::generated_factory()
+                ->GetPrototype(desc)->New());
+          }
+          else
+          {
+            // Fallback on Gazebo Msgs if the message type is not found.
+            msgPtr = gz::msgs::Factory::New(_type);
+          }
+
+          if (!msgPtr)
+            return nullptr;
+
+          if (!msgPtr->ParseFromArray(_data, static_cast<int>(_size)))
+          {
+            std::cerr << "CreateMsgFromBuffer() error: ParseFromArray failed"
+                      << std::endl;
+            return nullptr;
+          }
+
+          return msgPtr;
+        });
     }
 
     // Documentation inherited.
@@ -338,36 +387,8 @@ namespace gz::transport
       const std::string &_data,
       const std::string &_type) const
     {
-      std::shared_ptr<google::protobuf::Message> msgPtr;
-
-      const google::protobuf::Descriptor *desc =
-        google::protobuf::DescriptorPool::generated_pool()
-          ->FindMessageTypeByName(_type);
-
-      // First, check if we have the descriptor from the generated proto
-      // classes.
-      if (desc)
-      {
-        msgPtr.reset(google::protobuf::MessageFactory::generated_factory()
-          ->GetPrototype(desc)->New());
-      }
-      else
-      {
-        // Fallback on Gazebo Msgs if the message type is not found.
-        msgPtr = gz::msgs::Factory::New(_type);
-      }
-
-      if (!msgPtr)
-        return nullptr;
-
-      // Create the message using some serialized data
-      if (!msgPtr->ParseFromString(_data))
-      {
-        std::cerr << "CreateMsg() error: ParseFromString failed" << std::endl;
-        return nullptr;
-      }
-
-      return msgPtr;
+      // Safe to delegate: the constructor registered a factory.
+      return this->CreateMsgFromBuffer(_data.data(), _data.size(), _type);
     }
 
     // Documentation inherited.
@@ -393,27 +414,7 @@ namespace gz::transport
                              const std::string &_topic)
     {
       this->SetCallback(std::move(_cb));
-      const std::string topic = _topic;
-      std::weak_ptr<SubscriptionHandler<ProtoMsg>> weakSelf =
-        this->weak_from_this();
-      this->SetZenohSubscriberDispatch(
-        topic, this->TypeName(),
-        [weakSelf, topic](const std::string &payload,
-                           const std::string &msgType)
-        {
-          auto self = weakSelf.lock();
-          if (!self)
-            return;
-          auto msg = self->CreateMsg(payload, msgType);
-          if (!msg)
-            return;
-          MessageInfo info;
-          info.SetTopic(topic);
-          info.SetType(msgType);
-          info.SetIntraProcess(false);
-          self->RunLocalCallback(*msg, info);
-        });
-      this->CreateGenericZenohSubscriber(_session, _topic);
+      this->CreateLivelinessToken(_session, _topic);
     }
 #endif
 
@@ -477,6 +478,14 @@ namespace gz::transport
     public: void SetCallback(const RawCallback &_cb,
                              std::shared_ptr<zenoh::Session> _session,
                              const FullyQualifiedTopic &_fullyQualifiedTopic);
+
+    /// \brief Create a Zenoh liveliness token for discovery.
+    /// The actual Zenoh subscriber is managed centrally by NodeShared.
+    /// \param[in] _session Zenoh session.
+    /// \param[in] _fullyQualifiedTopic The fully qualified topic.
+    public: void CreateLivelinessToken(
+      std::shared_ptr<zenoh::Session> _session,
+      const FullyQualifiedTopic &_fullyQualifiedTopic);
 #endif
 
     /// \brief Executes the raw callback registered for this handler.

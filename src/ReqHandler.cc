@@ -28,6 +28,7 @@
 // NodeSharedPrivate.hh defines ZenohQuerierEntry; the public header
 // only forward-declares it.
 #include "NodeSharedPrivate.hh"
+#include "ShmHelpers.hh"
 #endif
 
 namespace gz::transport
@@ -171,7 +172,15 @@ namespace gz::transport
       if (_reply.is_ok())
       {
         const auto &sample = _reply.get_ok();
-        self->NotifyResult(sample.get_payload().as_string(), true);
+        // SHM-optimized receive: read through a direct pointer into the
+        // SHM buffer when available, avoiding a fragmented copy in Zenoh.
+        self->NotifyResult(
+          withPayloadView(sample.get_payload(),
+            [](const char *_data, std::size_t _size)
+            {
+              return std::string(_data, _size);
+            }),
+          true);
       }
       else
       {
@@ -186,7 +195,14 @@ namespace gz::transport
     std::string payload;
     this->Serialize(payload);
     if (!payload.empty())
-      getOpts.payload = zenoh::Bytes(payload);
+    {
+      // Use SHM for large request payloads to avoid a serialization copy,
+      // using the shared process pool.
+      if (auto shmBytes = makeShmBytes(payload.data(), payload.size()))
+        getOpts.payload = std::move(*shmBytes);
+      else
+        getOpts.payload = zenoh::Bytes(payload);
+    }
 
     // Fire and forget: the caller (Node::Request) waits on the
     // handler's condition variable via WaitUntil, mirroring the

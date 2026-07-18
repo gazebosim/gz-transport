@@ -29,6 +29,7 @@
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
 #include "NodeSharedPrivate.hh"
+#include "ShmHelpers.hh"
 #endif
 
 namespace gz::transport
@@ -139,12 +140,29 @@ namespace gz::transport
       [_dispatch = std::move(this->dataPtr->zenohDispatch), _service](
         const zenoh::Query &_query)
     {
-      std::string input = "";
-      if (_query.get_payload())
-        input = _query.get_payload()->get().as_string();
       std::string output;
+      std::string input;
+
+      if (_query.get_payload())
+      {
+        // SHM-optimized receive: read through a direct pointer into the
+        // SHM buffer when available, avoiding a fragmented copy in Zenoh.
+        input = withPayloadView(_query.get_payload()->get(),
+          [](const char *_data, std::size_t _size)
+          {
+            return std::string(_data, _size);
+          });
+      }
+
       if (_dispatch(input, output))
-        _query.reply(_service, output);
+      {
+        // SHM-optimized reply (one copy: heap -> SHM), using the shared
+        // process pool.
+        if (auto shmBytes = makeShmBytes(output.data(), output.size()))
+          _query.reply(_service, std::move(*shmBytes));
+        else
+          _query.reply(_service, output);
+      }
     };
 
     auto onDropQueryable = []() {};

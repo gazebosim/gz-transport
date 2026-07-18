@@ -14,9 +14,11 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/bytes.pb.h>
 #include <gz/msgs/int32.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <string>
@@ -37,12 +39,15 @@ using namespace gz;
 static std::string partition;  // NOLINT(*)
 static std::string g_FQNPartition;  // NOLINT(*)
 static const std::string g_topic = "/foo";  // NOLINT(*)
+static const std::string g_largeTopic = "/large_msg";  // NOLINT(*)
 static std::string data = "bar";  // NOLINT(*)
 static std::atomic<bool> cbExecuted{false};
 static std::atomic<bool> cbInfoExecuted{false};
 static std::atomic<bool> genericCbExecuted{false};
 static std::atomic<bool> cbVectorExecuted{false};
 static std::atomic<bool> cbRawExecuted{false};
+static std::atomic<bool> cbLargeExecuted{false};
+static std::string g_largeReceivedData;  // NOLINT(*)
 static std::atomic<int> counter{0};
 
 //////////////////////////////////////////////////
@@ -54,6 +59,8 @@ void reset()
   genericCbExecuted = false;
   cbVectorExecuted = false;
   cbRawExecuted = false;
+  cbLargeExecuted = false;
+  g_largeReceivedData.clear();
   counter = 0;
 }
 
@@ -343,16 +350,18 @@ TEST(twoProcPubSub, TopicList)
   ASSERT_TRUE(transport::waitForTopic(node, g_topic));
 
   node.TopicList(topics);
-  ASSERT_EQ(topics.size(), 1u);
-  EXPECT_EQ(topics.at(0), g_topic);
+  EXPECT_FALSE(topics.empty());
+  EXPECT_NE(std::find(topics.begin(), topics.end(), g_topic),
+            topics.end());
   topics.clear();
 
   // The second call should never block since discovery already completed.
   auto start2 = std::chrono::steady_clock::now();
   node.TopicList(topics);
   auto end2 = std::chrono::steady_clock::now();
-  EXPECT_EQ(topics.size(), 1u);
-  EXPECT_EQ(topics.at(0), g_topic);
+  EXPECT_FALSE(topics.empty());
+  EXPECT_NE(std::find(topics.begin(), topics.end(), g_topic),
+            topics.end());
 
   auto elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>
     (end2 - start2).count();
@@ -463,6 +472,46 @@ TEST(twoProcPubSub, PubSubTwoProcsMixedSubscribers)
     EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
+}
+
+//////////////////////////////////////////////////
+/// \brief Callback for receiving large Bytes messages.
+void cbLarge(const msgs::Bytes &_msg)
+{
+  g_largeReceivedData = _msg.data();
+  cbLargeExecuted = true;
+}
+
+//////////////////////////////////////////////////
+/// \brief Two-process pub/sub with a message above the SHM threshold.
+/// The publisher (twoProcsPublisher_aux) sends a 256 KB Bytes message
+/// on /large_msg (above the default 128 KB SHM threshold). This exercises
+/// the SHM publish path end-to-end across process boundaries.
+TEST(twoProcPubSub, PubSubLargeMessageAboveShmThreshold)
+{
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kTwoProcsPublisher, partition});
+
+  reset();
+
+  transport::Node node;
+  EXPECT_TRUE(node.Subscribe(g_largeTopic, cbLarge));
+
+  // Wait for the publisher to send (it publishes at 500 ms and 2000 ms).
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+  EXPECT_TRUE(cbLargeExecuted)
+    << "Large message was not received";
+
+  // Must match the payload size in twoProcsPublisher_aux.cc (256 KB).
+  const std::size_t expectedSize = 256u * 1024u;
+  EXPECT_EQ(expectedSize, g_largeReceivedData.size());
+
+  // Verify the payload content matches what the publisher sent.
+  std::string expectedPayload(expectedSize, 'S');
+  EXPECT_EQ(expectedPayload, g_largeReceivedData);
+
+  reset();
 }
 
 //////////////////////////////////////////////////

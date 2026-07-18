@@ -45,6 +45,7 @@
 #include "gz/transport/Exception.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
+#include "ShmHelpers.hh"
 
 namespace gz::transport
 {
@@ -176,6 +177,22 @@ namespace gz::transport
             std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
         if (overrideEnv)
           ApplyZenohConfigOverrides(config, overrideEnv, this->verbose);
+
+        // Read the resolved SHM enabled flag from the Zenoh config
+        // (after ZENOH_CONFIG file + overrides). This is the single
+        // source of truth — users control SHM via Zenoh's native
+        // transport/shared_memory/enabled setting.
+        try
+        {
+          auto shmVal = config.get(
+            "transport/shared_memory/enabled");
+          setShmEnabled(shmVal != "false" && shmVal != "0");
+        }
+        catch (const zenoh::ZException &)
+        {
+          // Key missing from a user-supplied ZENOH_CONFIG file:
+          // keep the default (enabled).
+        }
 
         try
         {
@@ -321,6 +338,14 @@ namespace gz::transport
 
     /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
+
+    /// \brief Centralized Zenoh subscribers. One subscriber per topic.
+    /// The callback dispatches to all registered handlers via
+    /// TriggerCallbacks, ensuring O(1) copy + O(1) deserialization
+    /// regardless of how many handlers are registered. Guarded by
+    /// NodeShared::mutex; torn down in NodeShared::Shutdown.
+    public: std::map<std::string, std::unique_ptr<zenoh::Subscriber<void>>>
+              zenohSubscribers;
 
     /// \internal
     /// \brief Cache of declared Queriers keyed by service keyexpr.

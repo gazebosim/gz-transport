@@ -30,6 +30,10 @@ release will remove the deprecated code.
    ```
    * [GitHub issue 773](https://github.com/gazebosim/gz-transport/issues/773)
 
+1. `ISubscriptionHandler::CreateGenericZenohSubscriber()` has been renamed to
+   `CreateLivelinessToken()`. The old name is kept as a deprecated forwarding
+   function and will be removed in a future release.
+
 ### Removed
 
 1. Removed zeromq from public header and CMake target. Specifically,

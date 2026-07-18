@@ -75,20 +75,40 @@ import time
 #   clear: list of env var names to REMOVE
 CONFIGS = [
     {
-        'name': 'zenoh',
-        'description': 'Zenoh (default settings)',
-        'env': {
-            'GZ_TRANSPORT_IMPLEMENTATION': 'zenoh',
-        },
-        'clear': [],
-    },
-    {
         'name': 'zeromq',
         'description': 'ZeroMQ (default HWM=1000)',
         'env': {
             'GZ_TRANSPORT_IMPLEMENTATION': 'zeromq',
         },
-        'clear': [],
+        'clear': [
+            'GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE',
+            'GZ_TRANSPORT_ZENOH_SHM_THRESHOLD',
+            'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE',
+        ],
+    },
+    {
+        'name': 'zenoh_no_shm',
+        'description': 'Zenoh without SHM (heap only)',
+        'env': {
+            'GZ_TRANSPORT_IMPLEMENTATION': 'zenoh',
+            'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE':
+                'transport/shared_memory/enabled=false',
+        },
+        'clear': [
+            'GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE',
+            'GZ_TRANSPORT_ZENOH_SHM_THRESHOLD',
+        ],
+    },
+    {
+        'name': 'zenoh_shm',
+        'description': 'Zenoh + SHM (threshold=0, SHM for all sizes)',
+        'env': {
+            'GZ_TRANSPORT_IMPLEMENTATION': 'zenoh',
+            'GZ_TRANSPORT_ZENOH_SHM_THRESHOLD': '0',
+        },
+        'clear': [
+            'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE',
+        ],
     },
 ]
 
