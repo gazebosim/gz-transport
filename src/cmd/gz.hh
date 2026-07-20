@@ -51,8 +51,10 @@ extern "C" void cmdTopicPub(const char *_topic,
 
 /// \brief External hook to execute 'gz service -r' from the command line.
 /// \param[in] _service Service name.
-/// \param[in] _reqType Message type used in the request.
-/// \param[in] _repType Message type used in the response.
+/// \param[in] _reqType Message type used in the request. May be null, in which
+///                     case the type will be auto-discovered.
+/// \param[in] _repType Message type used in the response. May be null, in which
+///                     case the type will be auto-discovered.
 ///                     If "gz.msgs.Empty" is used, the request will be one-way
 ///                     and _repType and _timeout will be ignored.
 /// \param[in] _timeout The request will timeout after '_timeout' ms.
