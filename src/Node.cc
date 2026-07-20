@@ -17,6 +17,7 @@
 #include <gz/msgs/discovery.pb.h>
 #include <gz/msgs/statistic.pb.h>
 
+#include <atomic>
 #include <cassert>
 #include <iostream>
 #include <map>
@@ -24,6 +25,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "gz/transport/Helpers.hh"
@@ -139,6 +141,9 @@ class Node::PublisherPrivate
   /// \brief Destructor.
   public: virtual ~PublisherPrivate()
   {
+    // Zenoh teardown before NodeShared::mutex is acquired below.
+    this->ZenohShutdown();
+
     std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
     // Notify the discovery service to unregister and unadvertise my topic.
     if (!this->shared->dataPtr->msgDiscovery->Unadvertise(
@@ -147,6 +152,42 @@ class Node::PublisherPrivate
       std::cerr << "~PublisherPrivate() Error unadvertising topic ["
                 << this->publisher.Topic() << "]" << std::endl;
     }
+  }
+
+  /// \brief Zenoh teardown. Safe to call multiple times.
+  ///
+  /// Drops the Zenoh wrappers without calling undeclare() on them.
+  /// undeclare() blocks until any in-flight callback for that
+  /// entity returns, and that blocking wait is harmful here for two
+  /// reasons:
+  ///   (a) At process exit, the Zenoh background runtime has
+  ///       already been torn down, so the wait crashes the process.
+  ///   (b) Mid-process, this destructor runs while NodeShared's
+  ///       mutex is held by the caller, and an in-flight callback
+  ///       may be waiting on the same mutex. Both threads then
+  ///       deadlock.
+  /// Publishers do not run a user callback, so leaking the wrapper
+  /// is harmless. The leftover Zenoh liveliness entry clears when
+  /// the process exits and the kernel closes the socket.
+  public: void ZenohShutdown()
+  {
+#ifdef HAVE_ZENOH
+    // Atomically claim the right to run shutdown. The first caller
+    // flips the flag from false to true and proceeds. Any concurrent
+    // or later caller finds the flag already true and bails out, so
+    // the body below runs exactly once.
+    bool expected = false;
+    if (!this->zenohIsShutdown.compare_exchange_strong(expected, true,
+          std::memory_order_acq_rel, std::memory_order_relaxed))
+      return;
+
+    // Deliberately leak the Zenoh wrappers. release() hands the raw
+    // pointer over to nobody and skips the wrapper's destructor,
+    // which would otherwise call undeclare() and crash or deadlock
+    // (see the doc comment above).
+    (void) this->zToken.release();
+    (void) this->zPub.release();
+#endif
   }
 
   /// \brief Create a MessageInfo object for this Publisher
@@ -176,6 +217,9 @@ class Node::PublisherPrivate
 
   /// \brief The liveliness token.
   public: std::unique_ptr<zenoh::LivelinessToken> zToken;
+
+  /// \brief Atomic guard for ZenohShutdown idempotence.
+  public: std::atomic<bool> zenohIsShutdown{false};
 #endif
 
   /// \brief Timestamp of the last callback executed.

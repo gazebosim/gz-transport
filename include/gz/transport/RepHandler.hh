@@ -98,6 +98,15 @@ namespace gz::transport
     public: virtual std::string RepTypeName() const = 0;
 
 #ifdef HAVE_ZENOH
+    /// \brief Temporarily store the dispatch closure. Must be called by the
+    /// most derived RepHandler subclass before CreateZenohQueriable.
+    /// The dispatch closure should capture a weak_ptr to the handler to safely
+    /// abort if invoked during handler destruction.
+    protected: void SetZenohQueryableDispatch(
+      const std::string &_service,
+      std::function<bool(const std::string &request,
+                         std::string &response)> _dispatch);
+
     /// \brief Create a Zenoh queriable.
     /// \param[in] _session Zenoh session.
     /// \param[in] _service The service.
@@ -126,7 +135,8 @@ namespace gz::transport
   // the service call. 'Rep' is the protobuf message type that will be filled
   /// with the service response.
   template <typename Req, typename Rep> class RepHandler
-    : public IRepHandler
+    : public IRepHandler,
+      public std::enable_shared_from_this<RepHandler<Req, Rep>>
   {
     // Documentation inherited.
     using IRepHandler::IRepHandler;
@@ -158,6 +168,15 @@ namespace gz::transport
       const std::string &_service)
     {
       this->SetCallback(std::move(_cb));
+      std::weak_ptr<RepHandler<Req, Rep>> weakSelf = this->weak_from_this();
+      this->SetZenohQueryableDispatch(_service,
+        [weakSelf](const std::string &request, std::string &response) -> bool
+        {
+          auto self = weakSelf.lock();
+          if (!self)
+            return false;
+          return self->RunCallback(request, response);
+        });
       this->CreateZenohQueriable(_session, _service);
     }
 #endif

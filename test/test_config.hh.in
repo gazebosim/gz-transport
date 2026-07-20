@@ -98,6 +98,10 @@ constexpr const char * kTwoProcsSrvCallWithoutOutputReplier = TWO_PROCS_SRV_CALL
 #ifdef TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE
 constexpr const char * kTwoProcsSrvCallWithoutOutputReplierInc = TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE;
 #endif  // TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE
+
+#ifdef ZENOH_SHUTDOWN_AUX_EXE
+constexpr const char * kZenohShutdownAux = ZENOH_SHUTDOWN_AUX_EXE;
+#endif  // ZENOH_SHUTDOWN_AUX_EXE
 }  // namespace test_executables
 
 #endif  // GZ_TRANSPORT_TEST_CONFIG_HH_
