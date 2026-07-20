@@ -21,12 +21,14 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <cstdlib>
 #include <filesystem>
 #include <functional>
 #include <list>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -87,8 +89,30 @@ namespace gz::transport
       }).detach();
     }
   }
-#endif
 
+  /// \internal
+  /// \brief Persistent Querier for one service keyexpr. Stored in
+  /// NodeShared's querier cache. The Querier carries an explicit
+  /// interest declaration so the responser's queryable announcement
+  /// is routed to this session and stays available across
+  /// subsequent calls, closing the post-1.6 Zenoh cold-start race
+  /// for cross-process service calls. The session shared_ptr is
+  /// held here so it cannot be dropped before the Querier.
+  ///
+  /// No custom teardown: entries live in NodeShared's cache, which
+  /// NodeShared::Shutdown() clears while the session is still open,
+  /// so the Querier destructor undeclares through a live session
+  /// (no leak, no at-exit race).
+  struct ZenohQuerierEntry
+  {
+    /// \brief Session reference held to survive NodeShared teardown
+    /// ordering.
+    std::shared_ptr<zenoh::Session> session;
+
+    /// \brief The persistent Querier.
+    std::unique_ptr<zenoh::Querier> querier;
+  };
+#endif
   //
   /// \brief Metadata for a publication. This is sent as part of the ZMQ
   /// message for topic statistics.
@@ -297,6 +321,22 @@ namespace gz::transport
 
     /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
+
+    /// \internal
+    /// \brief Cache of declared Queriers keyed by service keyexpr.
+    /// Entries are added on first request and torn down in
+    /// NodeShared::Shutdown, before the session shared_ptr is
+    /// dropped.
+    public: std::unordered_map<std::string,
+        std::shared_ptr<ZenohQuerierEntry>> querierCache;
+
+    /// \internal
+    /// \brief Mutex guarding querierCache.
+    public: std::mutex querierCacheMutex;
+
+    /// \internal
+    /// \brief One-shot guard for NodeShared::Shutdown.
+    public: std::atomic<bool> isShutdown{false};
 #endif
 
     //////////////////////////////////////////////////

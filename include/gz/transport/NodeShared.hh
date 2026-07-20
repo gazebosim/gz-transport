@@ -27,6 +27,7 @@
 #pragma warning(pop)
 #endif
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -62,6 +63,9 @@ namespace gz::transport
   class IRepHandler;
   class IReqHandler;
   class Node;
+#ifdef HAVE_ZENOH
+  struct ZenohQuerierEntry;
+#endif
   class NodePrivate;
 
   /// \brief Private data pointer
@@ -316,6 +320,28 @@ namespace gz::transport
     /// \brief Get the current Zenoh session.
     /// \return The Zenoh session.
     public: std::shared_ptr<zenoh::Session> Session();
+
+    /// \internal
+    /// \brief Get or declare a persistent Zenoh Querier for the
+    /// given service keyexpr. The Querier carries an explicit
+    /// interest declaration that gives the responser's queryable
+    /// announcement a routing path back, closing the cold-start race
+    /// for cross-process service calls. Cached so subsequent calls
+    /// reuse the already-converged interest.
+    /// \param[in] _service Fully-qualified service keyexpr.
+    /// \return Shared pointer to the cached entry, or nullptr if the
+    /// Querier could not be declared.
+    public: std::shared_ptr<ZenohQuerierEntry>
+        GetOrDeclareZenohQuerier(const std::string &_service);
+
+    /// \brief Session shutdown. Safe to call multiple times.
+    /// Tears down per-NodeShared Zenoh entities (Querier cache,
+    /// liveliness subscribers) and then closes the session
+    /// explicitly. Closing in this order avoids the at-exit race
+    /// where the session destructor would otherwise wait for
+    /// callbacks on entities that are still being undeclared.
+    /// The destructor calls this as a backstop.
+    public: void Shutdown();
 #endif
 
     /// \brief Unsubscribe a node from a topic.

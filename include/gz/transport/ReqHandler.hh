@@ -54,7 +54,12 @@ namespace gz::transport
 
   /// \class IReqHandler ReqHandler.hh gz/transport/ReqHandler.hh
   /// \brief Interface class used to manage a request handler.
+  /// Inherits std::enable_shared_from_this so the Zenoh reply
+  /// closures can hold a weak reference and drop late replies
+  /// harmlessly after the handler is removed from the requests
+  /// storage (handlers are always owned by shared_ptr there).
   class GZ_TRANSPORT_VISIBLE IReqHandler
+    : public std::enable_shared_from_this<IReqHandler>
   {
     /// \brief Constructor.
     /// \param[in] _nUuid UUID of the node registering the request handler.
@@ -114,6 +119,12 @@ namespace gz::transport
     /// \brief Mark the service call as requested (or not).
     /// \param[in] _value true when you want to flag this REQ as requested.
     public: void Requested(const bool _value);
+
+    /// \internal
+    /// \brief Provide the owning NodeShared so CreateZenohGet can
+    /// reach the per-process Querier cache.
+    /// \param[in] _shared NodeShared owning the Zenoh session.
+    public: void SetNodeShared(class NodeShared *_shared);
 
     /// \brief Block the current thread until the response to the
     /// service request is available or until the timeout expires.
