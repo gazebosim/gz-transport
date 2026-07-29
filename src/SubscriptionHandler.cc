@@ -155,10 +155,10 @@ namespace gz::transport
   /////////////////////////////////////////////////
   void ISubscriptionHandler::CreateGenericZenohSubscriber(
     std::shared_ptr<zenoh::Session> _session,
-    const std::string &_topic)
+    const FullyQualifiedTopic &_fullyQualifiedTopic)
   {
     MessageInfo msgInfo;
-    msgInfo.SetTopic(_topic);
+    msgInfo.SetTopic(_fullyQualifiedTopic.Topic());
     msgInfo.SetType(this->TypeName());
     auto dataHandler = [this, msgInfo](const zenoh::Sample &_sample)
     {
@@ -175,7 +175,8 @@ namespace gz::transport
 
         auto output = this->CreateMsg(
           _sample.get_payload().as_string(), msgType);
-        this->RunLocalCallback(*output, msgInfo);
+        if (output)
+          this->RunLocalCallback(*output, msgInfo);
       }
       else
       {
@@ -186,10 +187,11 @@ namespace gz::transport
 
     this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(
       _session->declare_subscriber(
-        _topic, dataHandler, zenoh::closures::none));
+        *_fullyQualifiedTopic.FullTopic(), dataHandler, zenoh::closures::none));
 
     std::string token = TopicUtils::CreateLivelinessToken(
-      _topic, this->ProcUuid(), this->NodeUuid(), "MS", this->TypeName());
+      *_fullyQualifiedTopic.FullTopic(), this->ProcUuid(), this->NodeUuid(),
+      "MS", this->TypeName());
 
     if (token.empty())
       return;
