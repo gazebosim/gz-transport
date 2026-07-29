@@ -148,10 +148,9 @@ namespace gz::transport
     std::string topic = _topic;
     this->Options().TopicRemap(_topic, topic);
 
-    FullyQualifiedTopic fullyQualifiedTopic(
-      this->Options().Partition(), this->Options().NameSpace(), topic);
-
-    if (!fullyQualifiedTopic.FullTopic())
+    std::string fullTopic;
+    if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+      this->Options().NameSpace(), topic, fullTopic))
     {
       std::cerr << "Topic [" << topic << "] is not valid." << std::endl;
       return nullptr;
@@ -171,6 +170,8 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
     else if (impl == "zenoh")
     {
+      FullyQualifiedTopic fullyQualifiedTopic(
+        this->Options().Partition(), this->Options().NameSpace(), topic);
       subscrHandlerPtr->SetCallback(std::move(_cb),
         this->Shared()->Session(), fullyQualifiedTopic);
     }
@@ -185,9 +186,9 @@ namespace gz::transport
     // it will recover the subscription handler associated to the topic and
     // will invoke the callback.
     this->Shared()->localSubscribers.normal.AddHandler(
-      *fullyQualifiedTopic.FullTopic(), this->NodeUuid(), subscrHandlerPtr);
+      fullTopic, this->NodeUuid(), subscrHandlerPtr);
 
-    if (!this->SubscribeHelper(*fullyQualifiedTopic.FullTopic()))
+    if (!this->SubscribeHelper(fullTopic))
       return nullptr;
 
     return subscrHandlerPtr;
