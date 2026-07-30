@@ -40,9 +40,15 @@ void cb(const msgs::Vector3d &)
 }
 
 //////////////////////////////////////////////////
+/// \brief Usage: subscriberOnly_aux <partition> [topic] [lifetimeSec]
+/// [unsubscribeAfterSec].
+/// Subscribe to a topic without any publisher and stay alive for
+/// lifetimeSec, giving the test process time to discover this subscription.
+/// If unsubscribeAfterSec is positive, unsubscribe after that time while
+/// keeping the process alive until lifetimeSec.
 int main(int argc, char **argv)
 {
-  if (argc != 2)
+  if (argc < 2 || argc > 5)
   {
     std::cerr << "Partition name has not be passed as argument" << std::endl;
     return -1;
@@ -51,9 +57,20 @@ int main(int argc, char **argv)
   // Set the partition name for this test.
   gz::utils::setenv("GZ_PARTITION", argv[1]);
 
-  // Subscribe to a topic without any publisher and stay alive for a while,
-  // giving the test process time to discover this subscription.
+  const std::string topic = argc > 2 ? argv[2] : g_topic;
+  const int lifetimeSec = argc > 3 ? std::stoi(argv[3]) : 10;
+  const int unsubscribeAfterSec = argc > 4 ? std::stoi(argv[4]) : 0;
+
   transport::Node node;
-  node.Subscribe(g_topic, cb);
-  std::this_thread::sleep_for(std::chrono::seconds(10));
+  node.Subscribe(topic, cb);
+
+  int elapsedSec = 0;
+  if (unsubscribeAfterSec > 0)
+  {
+    std::this_thread::sleep_for(std::chrono::seconds(unsubscribeAfterSec));
+    node.Unsubscribe(topic);
+    elapsedSec = unsubscribeAfterSec;
+  }
+
+  std::this_thread::sleep_for(std::chrono::seconds(lifetimeSec - elapsedSec));
 }

@@ -2454,6 +2454,30 @@ TEST(NodeTest, TopicListSubscriberOnly)
   node.TopicList(topics);
   ASSERT_EQ(1u, topics.size());
   EXPECT_EQ(g_topic, topics.at(0));
+
+  // After unsubscribing, the topic should not be listed anymore.
+  EXPECT_TRUE(node.Unsubscribe(g_topic));
+  topics.clear();
+  node.TopicList(topics);
+  EXPECT_TRUE(topics.empty());
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates a node that subscribes to a topic without any
+/// publisher. The test verifies that TopicInfo() includes the subscribers
+/// from this process.
+TEST(NodeTest, TopicInfoSubscriberOnly)
+{
+  transport::Node node;
+
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+
+  std::vector<transport::MessagePublisher> publishers;
+  std::vector<transport::MessagePublisher> subscribers;
+  EXPECT_TRUE(node.TopicInfo(g_topic, publishers, subscribers));
+  EXPECT_EQ(publishers.size(), 0u);
+  ASSERT_EQ(subscribers.size(), 1u);
+  EXPECT_EQ(subscribers.front().MsgTypeName(), "gz.msgs.Int32");
 }
 
 //////////////////////////////////////////////////
