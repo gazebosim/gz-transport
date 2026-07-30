@@ -168,7 +168,7 @@ namespace gz::transport
     /// \param[in] _topic The topic.
     public: void CreateGenericZenohSubscriber(
       std::shared_ptr<zenoh::Session> _session,
-      const std::string &_topic);
+      const FullyQualifiedTopic &_fullyQualifiedTopic);
 #endif
   };
 
@@ -225,10 +225,10 @@ namespace gz::transport
     /// \param[in] _topic The topic associated to this callback.
     public: void SetCallback(const MsgCallback<T> &_cb,
                              std::shared_ptr<zenoh::Session> _session,
-                             const std::string &_topic)
+                             const FullyQualifiedTopic &_fullyQualifiedTopic)
     {
       this->SetCallback(std::move(_cb));
-      this->CreateGenericZenohSubscriber(_session, _topic);
+      this->CreateGenericZenohSubscriber(_session, _fullyQualifiedTopic);
     }
 #endif
 
@@ -356,10 +356,10 @@ namespace gz::transport
     /// \param[in] _topic The topic associated to this callback.
     public: void SetCallback(const MsgCallback<ProtoMsg> &_cb,
                              std::shared_ptr<zenoh::Session> _session,
-                             const std::string &_topic)
+                             const FullyQualifiedTopic &_fullyQualifiedTopic)
     {
       this->SetCallback(std::move(_cb));
-      this->CreateGenericZenohSubscriber(_session, _topic);
+      this->CreateGenericZenohSubscriber(_session, _fullyQualifiedTopic);
     }
 #endif
 
