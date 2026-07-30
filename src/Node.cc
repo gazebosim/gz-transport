@@ -1079,6 +1079,21 @@ bool Node::TopicInfo(const std::string &_topic,
     convert(subs, _subscribers);
   }
 
+  // Add the subscribers within this process. They are not part of the
+  // discovery information because a process discards its own discovery
+  // messages.
+  for (const auto &pub : this->dataPtr->shared->localSubscribers.Convert(
+      this->dataPtr->shared->dataPtr->myAddress,
+      this->dataPtr->shared->pUuid))
+  {
+    if (pub.Topic() == fullyQualifiedTopic &&
+        std::find(_subscribers.begin(), _subscribers.end(), pub) ==
+        _subscribers.end())
+    {
+      _subscribers.push_back(pub);
+    }
+  }
+
   return true;
 }
 
