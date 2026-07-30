@@ -2022,11 +2022,12 @@ bool NodeShared::SubscribeHelper(const std::string &_fullyQualifiedTopic,
     this->dataPtr->topicsSubscribed[_nUuid].insert(_fullyQualifiedTopic);
   }
 
-  // Discover the list of nodes that publish on the topic.
+  // Discover the list of nodes that publish on the topic. The node UUID is
+  // announced so that other processes can track this subscription.
   std::string impl = this->GzImplementation();
   if (impl == "zeromq")
   {
-    return this->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic);
+    return this->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic, _nUuid);
   }
   return true;
 }

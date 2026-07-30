@@ -5,6 +5,7 @@ set(tests
   scopedTopic.cc
   callback_scope_TEST.cc
   statistics.cc
+  topicListFirstCall.cc
   twoProcsPubSub.cc
   twoProcsPubSubStats.cc
   twoProcsSrvCall.cc

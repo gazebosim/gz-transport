@@ -457,6 +457,16 @@ namespace gz
 
         // Start the thread that receives discovery information.
         this->threadReception = std::thread(&Discovery::RecvMessages, this);
+
+        // Request the list of current subscribers so that the cache is
+        // already complete when the initialization phase finishes. New
+        // subscriptions are tracked through the SUBSCRIBE announcements.
+        if constexpr (std::is_same_v<Pub, MessagePublisher>)
+        {
+          Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
+          this->SendMsg(
+            DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REQ, pub);
+        }
       }
 
 #ifdef HAVE_ZENOH
@@ -518,9 +528,13 @@ namespace gz
       /// \sa SetConnectionsCb.
       /// \sa SetDisconnectionsCb.
       /// \param[in] _topic Topic name requested.
+      /// \param[in] _nUuid Node UUID of the subscriber requesting the topic,
+      /// announced so that other processes can track this subscription.
+      /// Empty when the request is not tied to a subscription.
       /// \return True if the method succeeded or false otherwise
       /// (e.g. if the discovery has not been started).
-      public: bool Discover(const std::string &_topic) const
+      public: bool Discover(const std::string &_topic,
+                            const std::string &_nUuid = "") const
       {
         DiscoveryCallback<Pub> cb;
         bool found;
@@ -538,6 +552,7 @@ namespace gz
         Pub pub;
         pub.SetTopic(_topic);
         pub.SetPUuid(this->pUuid);
+        pub.SetNUuid(_nUuid);
 
         // Send a discovery request.
         this->SendMsg(DestinationType::ALL, msgs::Discovery::SUBSCRIBE, pub);
@@ -1244,6 +1259,21 @@ namespace gz
               break;
             }
 
+            // Register the remote subscriber. Subscribers running an older
+            // version do not announce their node UUID and are only tracked
+            // through the SUBSCRIBERS_REQ mechanism.
+            if constexpr (std::is_same_v<Pub, MessagePublisher>)
+            {
+              if (!msg.sub().n_uuid().empty())
+              {
+                Pub subscriber(recvTopic, "", "", recvPUuid,
+                  msg.sub().n_uuid(), kGenericMessageType,
+                  AdvertiseMessageOptions());
+                std::lock_guard<std::mutex> lock(this->mutex);
+                this->remoteSubscribers.AddPublisher(subscriber);
+              }
+            }
+
             // Check if at least one of my nodes advertises the topic requested.
             Addresses_M<Pub> addresses;
             {
@@ -1418,6 +1448,7 @@ namespace gz
           case msgs::Discovery::SUBSCRIBE:
           {
             discoveryMsg.mutable_sub()->set_topic(_pub.Topic());
+            discoveryMsg.mutable_sub()->set_n_uuid(_pub.NUuid());
             break;
           }
           case msgs::Discovery::HEARTBEAT:
