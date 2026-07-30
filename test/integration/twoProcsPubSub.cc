@@ -352,7 +352,8 @@ TEST(twoProcPubSub, TopicList)
   EXPECT_EQ(topics.at(0), g_topic);
   topics.clear();
 
-  // The second call should never block since discovery already completed.
+  // The second call should finish as soon as all the known processes
+  // report their subscribers, well below the internal timeout.
   auto start2 = std::chrono::steady_clock::now();
   node.TopicList(topics);
   auto end2 = std::chrono::steady_clock::now();
@@ -361,7 +362,7 @@ TEST(twoProcPubSub, TopicList)
 
   auto elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>
     (end2 - start2).count();
-  EXPECT_LT(elapsed2, 2);
+  EXPECT_LT(elapsed2, 50);
 
   reset();
 }

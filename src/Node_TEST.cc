@@ -2414,10 +2414,11 @@ TEST(NodeTest, TopicList)
 
   // The first TopicList() call might block if the discovery is still
   // initializing (it may happen if we run this test alone).
-  // However, the second call should never block.
+  // However, the second call should finish as soon as all the known
+  // processes report their subscribers, well below the internal timeout.
   auto elapsed = end - start;
   EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>
-      (elapsed).count(), 2);
+      (elapsed).count(), 50);
 }
 
 //////////////////////////////////////////////////

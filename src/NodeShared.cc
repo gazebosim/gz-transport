@@ -1215,16 +1215,31 @@ void NodeShared::OnSubscribers()
 {
   // Get the list of local subscribers while holding the lock.
   std::vector<MessagePublisher> pubs;
+  uint64_t generation;
   {
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
     pubs = this->localSubscribers.Convert(
       this->dataPtr->myAddress, this->pUuid);
+    generation = this->dataPtr->subscriptionsGeneration;
   }
 
-  // Reply to the SUBSCRIBERS_REQ with multiple SUBSCRIBERS_REP.
+  // Reply to the SUBSCRIBERS_REQ with a snapshot of multiple
+  // SUBSCRIBERS_REP. An empty snapshot is sent when there are no
+  // subscriptions, so that the requester can account this process.
   // Called outside the lock to avoid deadlocks with Discovery::mutex.
-  for (auto const &publisher : pubs)
-    this->dataPtr->msgDiscovery->SendSubscribersRep(publisher);
+  if (pubs.empty())
+  {
+    this->dataPtr->msgDiscovery->SendSubscribersRep(
+      MessagePublisher(), 0, generation);
+  }
+  else
+  {
+    for (auto const &publisher : pubs)
+    {
+      this->dataPtr->msgDiscovery->SendSubscribersRep(
+        publisher, static_cast<uint32_t>(pubs.size()), generation);
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -1960,6 +1975,7 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
     shouldNotifyPublishers = true;
     localAddress = this->dataPtr->myAddress;
     localPUuid = this->pUuid;
+    ++this->dataPtr->subscriptionsGeneration;
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
@@ -2020,6 +2036,7 @@ bool NodeShared::SubscribeHelper(const std::string &_fullyQualifiedTopic,
     std::lock_guard<std::recursive_mutex> lk(this->mutex);
     // Add the topic to the list of subscribed topics (if it was not before).
     this->dataPtr->topicsSubscribed[_nUuid].insert(_fullyQualifiedTopic);
+    ++this->dataPtr->subscriptionsGeneration;
   }
 
   // Discover the list of nodes that publish on the topic. The node UUID is

@@ -60,6 +60,7 @@
 
 #include <algorithm>
 #include <condition_variable>
+#include <cstdint>
 #include <limits>
 #include <map>
 #include <memory>
@@ -583,12 +584,35 @@ namespace gz
         return true;
       }
 
-      /// \brief Send the response to a SUBSCRIBERS_REQ message.
-      /// \param[in] _pub Information to send.
-      public: void SendSubscribersRep(const MessagePublisher &_pub) const
+      /// \brief Send one response of the burst answering a SUBSCRIBERS_REQ
+      /// message. The burst is a snapshot of all the subscriptions of this
+      /// process: the receiver knows that the snapshot is complete when
+      /// _count messages have been received.
+      /// \param[in] _pub Information to send. An empty topic is used to
+      /// answer when the process has no subscriptions (_count is zero).
+      /// \param[in] _count Number of messages in this burst.
+      /// \param[in] _generation Subscription generation of this process when
+      /// the snapshot was taken.
+      public: void SendSubscribersRep(const MessagePublisher &_pub,
+                                      const uint32_t _count,
+                                      const uint64_t _generation) const
       {
-        this->SendMsg(
-          DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REP, _pub);
+        gz::msgs::Discovery discoveryMsg;
+        discoveryMsg.set_version(this->Version());
+        discoveryMsg.set_type(msgs::Discovery::SUBSCRIBERS_REP);
+        discoveryMsg.set_process_uuid(this->pUuid);
+        if (!_pub.Topic().empty())
+          _pub.FillDiscovery(discoveryMsg);
+
+        auto *snapshot = discoveryMsg.mutable_subscribers_snapshot();
+        snapshot->set_count(_count);
+        snapshot->set_generation(_generation);
+
+        this->SendMulticast(discoveryMsg);
+
+        // Set the RELAY flag in the header and send to the unicast relays.
+        discoveryMsg.mutable_flags()->set_relay(true);
+        this->SendUnicast(discoveryMsg);
       }
 
       /// \brief Register a node from this process as a remote subscriber.
@@ -829,10 +853,17 @@ namespace gz
       }
 
       /// \brief Get the list of topics currently advertised and subscribed
-      /// in the network.
+      /// in the network. The call blocks until every known process has
+      /// reported a complete snapshot of its subscribers or a short timeout
+      /// expires. The wait normally finishes in a few milliseconds, when
+      /// the last snapshot arrives.
       /// \param[out] _topics List of advertised topics.
       public: void TopicList(std::vector<std::string> &_topics)
       {
+        [[maybe_unused]] Timestamp requestTime =
+          std::chrono::steady_clock::now();
+        [[maybe_unused]] std::vector<std::string> knownProcs;
+
         // Request the list of subscribers. This request is only meaningful
         // for message discovery over UDP: the Zenoh backend keeps
         // remoteSubscribers updated via liveliness tokens and nothing
@@ -841,6 +872,12 @@ namespace gz
         {
           if (!this->useZenoh)
           {
+            {
+              std::lock_guard<std::mutex> lock(this->mutex);
+              for (const auto &proc : this->activity)
+                knownProcs.push_back(proc.first);
+            }
+
             Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
             this->SendMsg(
               DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REQ, pub);
@@ -848,7 +885,39 @@ namespace gz
         }
 
         this->WaitForInit();
-        std::lock_guard<std::mutex> lock(this->mutex);
+        std::unique_lock<std::mutex> lock(this->mutex);
+
+        if constexpr (std::is_same_v<Pub, MessagePublisher>)
+        {
+          if (!this->useZenoh)
+          {
+            // Wait until every process known at request time has reported a
+            // snapshot after the request or the timeout expires. A lost
+            // reply or a process running an older version is covered by the
+            // timeout: the cached information is used instead. A process
+            // that expired while waiting is not expected to reply.
+            this->subscribersRepCv.wait_until(lock,
+              requestTime +
+              std::chrono::milliseconds(kDefSubscribersRepTimeout),
+              [&]
+              {
+                for (const auto &proc : knownProcs)
+                {
+                  if (this->activity.find(proc) == this->activity.end())
+                    continue;
+
+                  auto it = this->subscribersSnapshots.find(proc);
+                  if (it == this->subscribersSnapshots.end() ||
+                      it->second.completed < requestTime)
+                  {
+                    return false;
+                  }
+                }
+                return true;
+              });
+          }
+        }
+
         this->info.TopicList(_topics);
 
         std::vector<std::string> remoteSubs;
@@ -909,6 +978,7 @@ namespace gz
               // Remove all the info entries for this process UUID.
               this->info.DelPublishersByProc(it->first);
               this->remoteSubscribers.DelPublishersByProc(it->first);
+              this->subscribersSnapshots.erase(it->first);
 
               uuids.push_back(it->first);
 
@@ -1319,7 +1389,43 @@ namespace gz
 
             {
               std::lock_guard<std::mutex> lock(this->mutex);
-              this->remoteSubscribers.AddPublisher(publisher);
+
+              if (msg.has_subscribers_snapshot())
+              {
+                const auto &snapshot = msg.subscribers_snapshot();
+                auto &progress = this->subscribersSnapshots[recvPUuid];
+
+                // A new generation starts an authoritative snapshot:
+                // replace all the entries known for this process.
+                if (!progress.started ||
+                    progress.generation != snapshot.generation())
+                {
+                  progress.started = true;
+                  progress.generation = snapshot.generation();
+                  progress.expected = snapshot.count();
+                  progress.received = 0;
+                  this->remoteSubscribers.DelPublishersByProc(recvPUuid);
+                }
+
+                if (!publisher.Topic().empty())
+                {
+                  this->remoteSubscribers.AddPublisher(publisher);
+                  ++progress.received;
+                }
+
+                if (progress.received >= progress.expected)
+                {
+                  progress.completed = std::chrono::steady_clock::now();
+                  this->subscribersRepCv.notify_all();
+                }
+              }
+              else
+              {
+                // A process running an older version does not attach the
+                // snapshot metadata. Its information is merged and its
+                // completion is covered by the TopicList() timeout.
+                this->remoteSubscribers.AddPublisher(publisher);
+              }
             }
             break;
           }
@@ -1377,6 +1483,7 @@ namespace gz
               std::lock_guard<std::mutex> lock(this->mutex);
               this->info.DelPublishersByProc(recvPUuid);
               this->remoteSubscribers.DelPublishersByProc(recvPUuid);
+              this->subscribersSnapshots.erase(recvPUuid);
             }
 
             break;
@@ -1680,6 +1787,11 @@ namespace gz
       /// \sa SetHeartbeatInterval.
       private: static const unsigned int kDefHeartbeatInterval = 1000;
 
+      /// \brief Default maximum time waiting for the subscriber snapshots
+      /// in TopicList() (ms.). The wait normally finishes much earlier,
+      /// when every known process has answered.
+      private: static const unsigned int kDefSubscribersRepTimeout = 100;
+
       /// \brief Default silence interval value (ms.).
       /// \sa MaxSilenceInterval.
       /// \sa SetMaxSilenceInterval.
@@ -1746,6 +1858,35 @@ namespace gz
 
       /// \brief Remote subscribers.
       private: TopicStorage<Pub> remoteSubscribers;
+
+      /// \brief Progress of the snapshot that a remote process reports in
+      /// a SUBSCRIBERS_REP burst.
+      private: struct SubscribersSnapshotProgress
+      {
+        /// \brief True when at least one burst has been received.
+        bool started = false;
+
+        /// \brief Subscription generation of the last burst.
+        uint64_t generation = 0;
+
+        /// \brief Number of messages expected in the burst.
+        uint32_t expected = 0;
+
+        /// \brief Number of messages received from the burst.
+        uint32_t received = 0;
+
+        /// \brief Last time a complete snapshot was received.
+        Timestamp completed = Timestamp::min();
+      };
+
+      /// \brief Snapshot progress of each remote process, keyed by its
+      /// process UUID.
+      private: std::map<std::string, SubscribersSnapshotProgress>
+        subscribersSnapshots;
+
+      /// \brief Condition variable notified every time a remote process
+      /// completes a subscribers snapshot.
+      private: mutable std::condition_variable subscribersRepCv;
 
       /// \brief Activity information. Every time there is a message from a
       /// remote node, its activity information is updated. If we do not hear

@@ -37,9 +37,8 @@ static std::string partition;  // NOLINT(*)
 //////////////////////////////////////////////////
 /// \brief This test spawns a process that only subscribes to a topic. The
 /// test verifies that the first TopicList() call of an initialized node
-/// already includes the topic thanks to the reply collection window. This
-/// test needs its own process because the collection window only applies to
-/// the first TopicList() call of a process.
+/// already includes the topic, thanks to the subscription announcements and
+/// the subscriber snapshots collected before returning.
 TEST(topicListFirstCall, SubscriberInFirstCall)
 {
   transport::Node node;
@@ -66,13 +65,14 @@ TEST(topicListFirstCall, SubscriberInFirstCall)
   EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>(
     elapsed).count(), 2000);
 
-  // The second call should never block.
+  // The second call should finish as soon as all the known processes
+  // report their subscribers, well below the internal timeout.
   topics.clear();
   auto start2 = std::chrono::steady_clock::now();
   node.TopicList(topics);
   auto elapsed2 = std::chrono::steady_clock::now() - start2;
   EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>(
-    elapsed2).count(), 2);
+    elapsed2).count(), 50);
 }
 
 //////////////////////////////////////////////////
