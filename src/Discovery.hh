@@ -506,6 +506,7 @@ namespace gz
           if (!this->info.AddPublisher(_publisher))
             return false;
 
+          this->advertisementsChanged = true;
           cb = this->connectionCb;
         }
 
@@ -1058,12 +1059,24 @@ namespace gz
         Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
         this->SendMsg(DestinationType::ALL, msgs::Discovery::HEARTBEAT, pub);
 
+        // Re-advertise the topics advertised inside this process only when
+        // needed: the local publishers changed, a new remote process needs
+        // to learn about them, or a slow periodic refresh that covers lost
+        // advertisements. This avoids re-sending an unchanged graph on
+        // every heartbeat.
         std::map<std::string, std::vector<Pub>> nodes;
         {
           std::lock_guard<std::mutex> lock(this->mutex);
 
-          // Re-advertise topics that are advertised inside this process.
-          this->info.PublishersByProc(this->pUuid, nodes);
+          ++this->heartbeatsSinceRefresh;
+          if (this->advertisementsChanged || this->newPeerSeen ||
+              this->heartbeatsSinceRefresh >= kDefAdvertiseRefreshHeartbeats)
+          {
+            this->advertisementsChanged = false;
+            this->newPeerSeen = false;
+            this->heartbeatsSinceRefresh = 0;
+            this->info.PublishersByProc(this->pUuid, nodes);
+          }
         }
 
         for (const auto &topic : nodes)
@@ -1275,6 +1288,12 @@ namespace gz
         std::function<void()> subscribersReqCb;
         {
           std::lock_guard<std::mutex> lock(this->mutex);
+          if (this->activity.find(recvPUuid) == this->activity.end())
+          {
+            // A new process needs to learn about our publishers: schedule a
+            // re-advertisement on the next heartbeat.
+            this->newPeerSeen = true;
+          }
           this->activity[recvPUuid] = std::chrono::steady_clock::now();
           connectCb = this->connectionCb;
           disconnectCb = this->disconnectionCb;
@@ -1792,6 +1811,11 @@ namespace gz
       /// when every known process has answered.
       private: static const unsigned int kDefSubscribersRepTimeout = 100;
 
+      /// \brief Number of heartbeats between two periodic full
+      /// re-advertisements of the local publishers. The periodic refresh
+      /// covers lost advertisement datagrams.
+      private: static const unsigned int kDefAdvertiseRefreshHeartbeats = 10;
+
       /// \brief Default silence interval value (ms.).
       /// \sa MaxSilenceInterval.
       /// \sa SetMaxSilenceInterval.
@@ -1929,6 +1953,17 @@ namespace gz
 
       /// \brief Number of heartbeats sent while discovery is uninitialized.
       private: unsigned int numHeartbeatsUninitialized;
+
+      /// \brief True when the local publishers changed since the last
+      /// re-advertisement.
+      private: bool advertisementsChanged = false;
+
+      /// \brief True when a process unknown until now has been detected
+      /// since the last re-advertisement.
+      private: bool newPeerSeen = false;
+
+      /// \brief Number of heartbeats since the last full re-advertisement.
+      private: unsigned int heartbeatsSinceRefresh = 0;
 
       /// \brief Used to block/unblock until the initialization phase finishes.
       private: mutable std::condition_variable initializedCv;
