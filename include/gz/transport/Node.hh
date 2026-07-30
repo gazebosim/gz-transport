@@ -330,7 +330,7 @@ namespace gz::transport
     /// Supported function callbacks are:
     ///   * free function
     ///   * member function
-    ///   * lambda function
+    ///   * std::function
     /// The callback function can contain one (_msg) or both (_msg, _info) of
     /// the following parameters:
     ///   * _msg Protobuf message containing a new topic update.
@@ -340,6 +340,30 @@ namespace gz::transport
     /// \sa SubscribeImpl
     public: template <typename ...Args>
     bool Subscribe(Args && ...args);
+
+    /// \brief Subscribe to a topic registering a callback with explicit
+    /// MessageT.
+    ///
+    /// Example:
+    /// \code
+    /// node.Subscribe<msgs::Int32>(topic, [&](const msgs::Int32 &_msg)
+    /// {
+    ///   // do something
+    /// });
+    /// \endcode
+    ///
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _cb Callback function (lambda, std::function, or functor).
+    /// \param[in] _args Additional arguments forwarded to SubscribeImpl.
+    /// \return true when successfully subscribed or false otherwise.
+    ///
+    /// \note If a lambda that doesn't capture any values is used as the
+    /// callback, a compiler error will be generated due to a template matching
+    /// ambiguity.
+    // TODO(azeey): Fix ambiguity when using non-capturing lambdas
+    public: template <typename MessageT, typename CallbackT, typename ...Args>
+    bool Subscribe(const std::string &_topic, CallbackT && _cb,
+                   Args && ..._args);
 
     /// \brief Create a subscriber to a topic registering a callback
     /// This is function is overloaded with different variants of callback
@@ -363,6 +387,32 @@ namespace gz::transport
     public: template <typename ...Args>
     Node::Subscriber CreateSubscriber(const std::string &_topic,
                                       Args && ...args);
+
+    /// \brief Create a subscriber to a topic registering a callback
+    /// with explicit MessageT.
+    ///
+    /// Example:
+    /// \code
+    /// auto sub = node.CreateSubscriber<msgs::Int32>(topic,
+    ///   [&](const msgs::Int32 &_msg)
+    ///   {
+    ///     // do something
+    ///   });
+    /// \endcode
+    ///
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _cb Callback function (lambda, std::function, or functor).
+    /// \param[in] args Additional arguments forwarded to SubscribeImpl.
+    /// \return A Node::Subscriber object.
+    ///
+    /// \note If a lambda that doesn't capture any values is used as the
+    /// callback, a compiler error will be generated due to a template matching
+    /// ambiguity.
+    // TODO(azeey): Fix ambiguity when using non-capturing lambdas
+    public: template <typename MessageT, typename CallbackT, typename ...Args>
+    Node::Subscriber CreateSubscriber(const std::string &_topic,
+                                      CallbackT && _cb,
+                                      Args && ..._args);
 
     /// \brief Get the list of topics subscribed by this node. Note that
     /// we might be interested in one topic but we still don't know the
