@@ -366,6 +366,31 @@ TEST(twoProcPubSub, TopicList)
 }
 
 //////////////////////////////////////////////////
+/// \brief This test spawns a process that only subscribes to a topic, without
+/// any publisher involved. The test verifies that a node whose discovery is
+/// already initialized eventually reports the topic in TopicList().
+TEST(twoProcPubSub, TopicListSubscriberOnly)
+{
+  reset();
+
+  transport::Node node;
+  std::vector<std::string> topics;
+
+  // Make sure that discovery is initialized before spawning the subscriber,
+  // so this test does not benefit from the initialization wait inside the
+  // first TopicList() call.
+  node.TopicList(topics);
+
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kSubscriberOnly, partition});
+
+  EXPECT_TRUE(transport::waitForTopic(node, "/subscriber_only",
+    std::chrono::milliseconds(5000)));
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief This test spawns two nodes on different processes. One of the nodes
 /// advertises a topic and the other uses TopicInfo() for getting information
 /// about the topic.

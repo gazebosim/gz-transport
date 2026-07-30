@@ -2441,6 +2441,22 @@ TEST(NodeTest, TopicListRemap)
 }
 
 //////////////////////////////////////////////////
+/// \brief This test creates a node that subscribes to a topic without any
+/// publisher. The test verifies that TopicList() includes topics that are
+/// only subscribed within this process.
+TEST(NodeTest, TopicListSubscriberOnly)
+{
+  std::vector<std::string> topics;
+  transport::Node node;
+
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+
+  node.TopicList(topics);
+  ASSERT_EQ(1u, topics.size());
+  EXPECT_EQ(g_topic, topics.at(0));
+}
+
+//////////////////////////////////////////////////
 /// \brief This test creates two nodes and advertises some services. The test
 /// verifies that ServiceList() returns the list of all the services advertised.
 TEST(NodeTest, ServiceList)
