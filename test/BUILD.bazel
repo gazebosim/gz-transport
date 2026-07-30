@@ -67,6 +67,8 @@ integration_test_sources = [
     "callback_scope_TEST.cc",
     "statistics.cc",
     "topicListFirstCall.cc",
+    "topicListStartupSync.cc",
+    "topicListTraffic.cc",
     "twoProcsPubSub.cc",
     "twoProcsPubSubStats.cc",
     "twoProcsSrvCall.cc",
@@ -83,6 +85,8 @@ integration_test_sources = [
 # bazel test test:all --runs_per_test 10
 flaky_test_srcs = [
     "topicListFirstCall.cc",
+    "topicListStartupSync.cc",
+    "topicListTraffic.cc",
     "twoProcsPubSub.cc",
     "twoProcsSrvCall.cc",
     "twoProcsSrvCallWithoutInput.cc",
