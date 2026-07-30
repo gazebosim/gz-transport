@@ -17,12 +17,15 @@
 #include <gz/msgs/discovery.pb.h>
 #include <gz/msgs/statistic.pb.h>
 
+#include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <unordered_set>
 #include <vector>
 
@@ -1107,6 +1110,64 @@ bool Node::ServiceInfo(const std::string &_service,
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+Node::ServiceTypeResolution Node::ResolveServiceTypes(
+    const std::string &_service, std::string &_reqType,
+    std::string &_repType, const unsigned int _timeoutMs) const
+{
+  const bool resolveReq = _reqType.empty();
+  const bool resolveRep = _repType.empty();
+  if (!resolveReq && !resolveRep)
+    return ServiceTypeResolution::kResolved;
+
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+        this->Options().NameSpace(), _service, fullyQualifiedTopic))
+  {
+    return ServiceTypeResolution::kInvalidService;
+  }
+
+  // Poll discovery until a provider appears or the timeout expires.
+  const std::chrono::milliseconds pollInterval{100};
+  auto deadline = std::chrono::steady_clock::now() +
+    std::chrono::milliseconds(_timeoutMs);
+
+  std::vector<ServicePublisher> publishers;
+  while (true)
+  {
+    this->ServiceInfo(_service, publishers);
+    if (!publishers.empty())
+      break;
+
+    auto remaining = deadline - std::chrono::steady_clock::now();
+    if (remaining <= std::chrono::milliseconds::zero())
+      return ServiceTypeResolution::kNoProviders;
+
+    std::this_thread::sleep_for(std::min<std::chrono::milliseconds>(
+      pollInterval,
+      std::chrono::duration_cast<std::chrono::milliseconds>(remaining)));
+  }
+
+  const std::string reqType = publishers.front().ReqTypeName();
+  const std::string repType = publishers.front().RepTypeName();
+
+  for (const ServicePublisher &pub : publishers)
+  {
+    if ((resolveReq && pub.ReqTypeName() != reqType) ||
+        (resolveRep && pub.RepTypeName() != repType))
+    {
+      return ServiceTypeResolution::kAmbiguousTypes;
+    }
+  }
+
+  if (resolveReq)
+    _reqType = reqType;
+  if (resolveRep)
+    _repType = repType;
+
+  return ServiceTypeResolution::kResolved;
 }
 
 /////////////////////////////////////////////////

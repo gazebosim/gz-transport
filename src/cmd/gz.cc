@@ -27,6 +27,7 @@
 #include <mutex>
 #include <numeric>
 #include <string>
+#include <utility>
 #include <vector>
 
 #ifdef _MSC_VER
@@ -212,7 +213,7 @@ extern "C" void cmdTopicPub(const char *_topic,
 //////////////////////////////////////////////////
 extern "C" void cmdServiceReq(const char *_service,
   const char *_reqType, const char *_repType, const int _timeout,
-  const char *_reqData)
+  const char *_reqData, const int _verbose)
 {
   if (!_service)
   {
@@ -224,37 +225,69 @@ extern "C" void cmdServiceReq(const char *_service,
   std::string repType = _repType ? _repType : "";
   Node node;
 
-  if (reqType.empty() || repType.empty())
+  const bool inferReq = reqType.empty();
+  const bool inferRep = repType.empty();
+  if (inferReq || inferRep)
   {
-    std::vector<ServicePublisher> publishers;
-    node.ServiceInfo(_service, publishers);
+    const unsigned int timeoutMs =
+      _timeout > 0 ? static_cast<unsigned int>(_timeout) : 0u;
 
-    if (publishers.empty())
+    switch (node.ResolveServiceTypes(_service, reqType, repType, timeoutMs))
     {
-      std::cerr << "No service providers on service [" << _service << "]\n";
-      return;
-    }
-
-    const std::string discoveredReqType = publishers[0].ReqTypeName();
-    const std::string discoveredRepType = publishers[0].RepTypeName();
-
-    for (size_t i = 1; i < publishers.size(); ++i)
-    {
-      if (publishers[i].ReqTypeName() != discoveredReqType ||
-          publishers[i].RepTypeName() != discoveredRepType)
+      case Node::ServiceTypeResolution::kInvalidService:
+        std::cerr << "Service [" << _service << "] is not valid.\n";
+        return;
+      case Node::ServiceTypeResolution::kNoProviders:
+        std::cerr << "No service providers on service [" << _service
+          << "] after waiting " << timeoutMs << " ms.\n"
+          << "Use --reqtype and --reptype to request without discovery.\n";
+        return;
+      case Node::ServiceTypeResolution::kAmbiguousTypes:
       {
+        std::vector<ServicePublisher> publishers;
+        node.ServiceInfo(_service, publishers);
+
         std::cerr << "Ambiguous service types for service [" << _service
-          << "].\n" << "  Provider 1: request=" << discoveredReqType
-          << ", response=" << discoveredRepType << "\n"
-          << "  Provider 2: request=" << publishers[i].ReqTypeName()
-          << ", response=" << publishers[i].RepTypeName() << "\n"
-          << "Use --reqtype and --reptype to specify explicitly.\n";
+          << "]:\n";
+        std::vector<std::pair<std::string, std::string>> uniqueTypes;
+        for (const ServicePublisher &pub : publishers)
+        {
+          auto types = std::make_pair(pub.ReqTypeName(), pub.RepTypeName());
+          if (std::find(uniqueTypes.begin(), uniqueTypes.end(), types) !=
+              uniqueTypes.end())
+          {
+            continue;
+          }
+          uniqueTypes.push_back(types);
+          std::cerr << "  request=" << types.first
+            << ", response=" << types.second << "\n";
+        }
+        std::cerr << "Use --reqtype and --reptype to specify explicitly.\n";
+        if (std::any_of(uniqueTypes.begin(), uniqueTypes.end(),
+              [](const auto &_types)
+              {
+                return _types.second == "gz.msgs.Empty";
+              }))
+        {
+          std::cerr << "Use --oneway to select the one-way provider.\n";
+        }
         return;
       }
+      case Node::ServiceTypeResolution::kResolved:
+      default:
+        break;
     }
 
-    reqType = reqType.empty() ? discoveredReqType : reqType;
-    repType = repType.empty() ? discoveredRepType : repType;
+    // Let the user know which types were inferred without polluting stdout.
+    if (_verbose)
+    {
+      std::cerr << "Inferred types:";
+      if (inferReq)
+        std::cerr << " request=" << reqType;
+      if (inferRep)
+        std::cerr << (inferReq ? ", response=" : " response=") << repType;
+      std::cerr << "\n";
+    }
   }
 
   if (!_reqData)
