@@ -1790,7 +1790,7 @@ namespace gz
       /// \brief Default maximum time waiting for the subscriber snapshots
       /// in TopicList() (ms.). The wait normally finishes much earlier,
       /// when every known process has answered.
-      private: static const unsigned int kDefSubscribersRepTimeout = 100;
+      private: static constexpr unsigned int kDefSubscribersRepTimeout = 100;
 
       /// \brief Default silence interval value (ms.).
       /// \sa MaxSilenceInterval.
