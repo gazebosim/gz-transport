@@ -254,3 +254,56 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+
+//////////////////////////////////////////////////
+/// \brief A process running an older version reports subscribers without
+/// the snapshot metadata: its information is merged into the results, and
+/// a BYE message purges the process and its subscriptions.
+TEST(topicListTraffic, LegacyPeerAndBye)
+{
+  transport::Node node;
+  std::vector<std::string> topics;
+  node.TopicList(topics);
+
+  DiscoveryWire wire;
+
+  // The legacy peer heartbeats and reports one subscription without the
+  // snapshot metadata, like versions predating it.
+  gz::msgs::Discovery heartbeat;
+  heartbeat.set_version(kWireVersion);
+  heartbeat.set_type(gz::msgs::Discovery::HEARTBEAT);
+  heartbeat.set_process_uuid("topicListTraffic-legacy-peer");
+  wire.Send(heartbeat);
+
+  gz::msgs::Discovery rep;
+  rep.set_version(kWireVersion);
+  rep.set_type(gz::msgs::Discovery::SUBSCRIBERS_REP);
+  rep.set_process_uuid("topicListTraffic-legacy-peer");
+  auto *pub = rep.mutable_pub();
+  pub->set_topic("@/" + partition + "@/legacy_sub");
+  pub->set_process_uuid("topicListTraffic-legacy-peer");
+  pub->set_node_uuid("legacy-node");
+  wire.Send(rep);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  // The topic is reported. The call pays the timeout because a legacy
+  // peer never reports a snapshot completion.
+  topics.clear();
+  node.TopicList(topics);
+  EXPECT_TRUE(std::find(topics.begin(), topics.end(), "/legacy_sub") !=
+    topics.end());
+
+  // BYE purges the process and its subscriptions.
+  gz::msgs::Discovery bye;
+  bye.set_version(kWireVersion);
+  bye.set_type(gz::msgs::Discovery::BYE);
+  bye.set_process_uuid("topicListTraffic-legacy-peer");
+  wire.Send(bye);
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  topics.clear();
+  node.TopicList(topics);
+  EXPECT_TRUE(std::find(topics.begin(), topics.end(), "/legacy_sub") ==
+    topics.end());
+}
