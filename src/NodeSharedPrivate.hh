@@ -302,6 +302,11 @@ namespace gz::transport
     /// \brief When true, the reception thread will finish.
     public: std::atomic<bool> exit = false;
 
+    /// \brief Subscription generation of this process. Increased on every
+    /// subscription change, attached to the subscriber snapshots so that
+    /// remote processes can identify them.
+    public: std::atomic<uint64_t> subscriptionsGeneration = 0;
+
     /// \brief Timeout used for receiving messages (ms.).
     public: inline static const int Timeout = 250;
 

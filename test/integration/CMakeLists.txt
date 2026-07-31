@@ -5,6 +5,8 @@ set(tests
   scopedTopic.cc
   callback_scope_TEST.cc
   statistics.cc
+  topicListFirstCall.cc
+  topicListStartupSync.cc
   twoProcsPubSub.cc
   twoProcsPubSubStats.cc
   twoProcsSrvCall.cc
@@ -44,6 +46,7 @@ set(auxiliary_files
   pub_aux
   pub_aux_throttled
   scopedTopicSubscriber_aux
+  subscriberOnly_aux
   twoProcsPublisher_aux
   twoProcsPubSubMixedSubscribers_aux
   twoProcsPubSubSingleSubscriber_aux

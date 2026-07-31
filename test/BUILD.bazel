@@ -36,6 +36,7 @@ test_executables = [
     "pub_aux",
     "pub_aux_throttled",
     "scopedTopicSubscriber_aux",
+    "subscriberOnly_aux",
     "twoProcsPublisher_aux",
     "twoProcsPubSubMixedSubscribers_aux",
     "twoProcsPubSubSingleSubscriber_aux",
@@ -65,6 +66,8 @@ integration_test_sources = [
     "scopedTopic.cc",
     "callback_scope_TEST.cc",
     "statistics.cc",
+    "topicListFirstCall.cc",
+    "topicListStartupSync.cc",
     "twoProcsPubSub.cc",
     "twoProcsPubSubStats.cc",
     "twoProcsSrvCall.cc",
@@ -80,6 +83,8 @@ integration_test_sources = [
 # Found with
 # bazel test test:all --runs_per_test 10
 flaky_test_srcs = [
+    "topicListFirstCall.cc",
+    "topicListStartupSync.cc",
     "twoProcsPubSub.cc",
     "twoProcsSrvCall.cc",
     "twoProcsSrvCallWithoutInput.cc",
@@ -96,6 +101,7 @@ flaky_test_srcs = [
         'PUB_EXE=\\"./test/pub_aux\\"',
         'PUB_THROTTLED_EXE=\\"./test/pub_aux_throttled\\"',
         'SCOPED_TOPIC_SUBSCRIBER_EXE=\\"./test/scopedTopicSubscriber_aux\\"',
+        'SUBSCRIBER_ONLY_EXE=\\"./test/subscriberOnly_aux\\"',
         'TWO_PROCS_PUBLISHER_EXE=\\"./test/twoProcsPublisher_aux\\"',
         'TWO_PROCS_PUB_SUB_MIXED_SUBSCRIBERS_EXE=\\"./test/twoProcsPubSubMixedSubscribers_aux\\"',
         'TWO_PROCS_PUB_SUB_SINGLE_SUBSCRIBER_EXE=\\"./test/twoProcsPubSubSingleSubscriber_aux\\"',
