@@ -1659,7 +1659,7 @@ namespace gz
       /// \brief Number of heartbeats between two periodic full
       /// re-advertisements of the local publishers. The periodic refresh
       /// covers lost advertisement datagrams.
-      private: static const unsigned int kDefAdvertiseRefreshHeartbeats = 10;
+      private: static constexpr unsigned int kDefAdvertiseRefreshHeartbeats = 10;
 
       /// \brief Default silence interval value (ms.).
       /// \sa MaxSilenceInterval.
