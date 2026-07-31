@@ -17,11 +17,12 @@
 
 #include <algorithm>
 #include <chrono>
+#include <filesystem>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "gz/transport/Node.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include <gz/utils/Environment.hh>
 #include <gz/utils/Subprocess.hh>
@@ -43,10 +44,17 @@ static std::string partition;  // NOLINT(*)
 TEST(topicListStartupSync, PreexistingSubscriberInFirstCall)
 {
   // The remote subscriber exists before this process starts its discovery.
+  const std::string readyFile = "subscriberOnly_" + partition + ".ready";
+  std::filesystem::remove(readyFile);
   auto pi = testing::SubprocessJoinWrapper(
-    {test_executables::kSubscriberOnly, partition, "/subscriber_only", "12"});
+    {test_executables::kSubscriberOnly, partition, "/subscriber_only", "12",
+     "0", readyFile});
 
-  std::this_thread::sleep_for(std::chrono::seconds(2));
+  // Wait until the remote process is subscribed.
+  ASSERT_TRUE(transport::waitUntil([&readyFile]
+    {
+      return std::filesystem::exists(readyFile);
+    }));
 
   // The first transport node starts the discovery of this process, which
   // requests the current subscribers.

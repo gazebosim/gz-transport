@@ -17,11 +17,13 @@
 
 #include <algorithm>
 #include <chrono>
+#include <filesystem>
 #include <string>
 #include <thread>
 #include <vector>
 
 #include "gz/transport/Node.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include <gz/utils/Environment.hh>
 #include <gz/utils/Subprocess.hh>
@@ -43,14 +45,22 @@ TEST(topicListFirstCall, SubscriberInFirstCall)
 {
   transport::Node node;
 
-  // Let discovery initialize without calling TopicList().
+  // Let discovery initialize without calling TopicList(). This wait cannot
+  // poll: any query would exercise the API under test. The value covers
+  // the two heartbeat initialization phase with margin.
   std::this_thread::sleep_for(std::chrono::seconds(4));
 
+  const std::string readyFile = "subscriberOnly_" + partition + ".ready";
+  std::filesystem::remove(readyFile);
   auto pi = testing::SubprocessJoinWrapper(
-    {test_executables::kSubscriberOnly, partition});
+    {test_executables::kSubscriberOnly, partition, "/subscriber_only", "12",
+     "0", readyFile});
 
-  // Give the remote process time to start and subscribe.
-  std::this_thread::sleep_for(std::chrono::seconds(2));
+  // Wait until the remote process is subscribed.
+  ASSERT_TRUE(transport::waitUntil([&readyFile]
+    {
+      return std::filesystem::exists(readyFile);
+    }));
 
   // The first call should collect the remote subscriber replies.
   auto start = std::chrono::steady_clock::now();

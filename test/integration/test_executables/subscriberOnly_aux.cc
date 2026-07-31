@@ -18,6 +18,7 @@
 #include <gz/msgs/vector3d.pb.h>
 
 #include <chrono>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -41,14 +42,16 @@ void cb(const msgs::Vector3d &)
 
 //////////////////////////////////////////////////
 /// \brief Usage: subscriberOnly_aux <partition> [topic] [lifetimeSec]
-/// [unsubscribeAfterSec].
+/// [unsubscribeAfterSec] [readyFile].
 /// Subscribe to a topic without any publisher and stay alive for
 /// lifetimeSec, giving the test process time to discover this subscription.
 /// If unsubscribeAfterSec is positive, unsubscribe after that time while
-/// keeping the process alive until lifetimeSec.
+/// keeping the process alive until lifetimeSec. If readyFile is provided,
+/// create that file right after subscribing, so that the test can
+/// synchronize without waiting a fixed time.
 int main(int argc, char **argv)
 {
-  if (argc < 2 || argc > 5)
+  if (argc < 2 || argc > 6)
   {
     std::cerr << "Partition name has not be passed as argument" << std::endl;
     return -1;
@@ -60,9 +63,13 @@ int main(int argc, char **argv)
   const std::string topic = argc > 2 ? argv[2] : g_topic;
   const int lifetimeSec = argc > 3 ? std::stoi(argv[3]) : 10;
   const int unsubscribeAfterSec = argc > 4 ? std::stoi(argv[4]) : 0;
+  const std::string readyFile = argc > 5 ? argv[5] : "";
 
   transport::Node node;
   node.Subscribe(topic, cb);
+
+  if (!readyFile.empty())
+    std::ofstream(readyFile) << "ready";
 
   int elapsedSec = 0;
   if (unsubscribeAfterSec > 0)
