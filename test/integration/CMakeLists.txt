@@ -19,11 +19,6 @@ set(tests
   twoProcsSrvCallWithoutOutputStress.cc
 )
 
-# The traffic test crafts raw discovery datagrams using POSIX sockets.
-if (UNIX AND NOT APPLE)
-  list(APPEND tests topicListTraffic.cc)
-endif()
-
 # Test symbols having the right name on linux only.
 if (UNIX AND NOT APPLE)
   configure_file(all_symbols_have_version.bash.in

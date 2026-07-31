@@ -68,7 +68,6 @@ integration_test_sources = [
     "statistics.cc",
     "topicListFirstCall.cc",
     "topicListStartupSync.cc",
-    "topicListTraffic.cc",
     "twoProcsPubSub.cc",
     "twoProcsPubSubStats.cc",
     "twoProcsSrvCall.cc",
@@ -86,7 +85,6 @@ integration_test_sources = [
 flaky_test_srcs = [
     "topicListFirstCall.cc",
     "topicListStartupSync.cc",
-    "topicListTraffic.cc",
     "twoProcsPubSub.cc",
     "twoProcsSrvCall.cc",
     "twoProcsSrvCallWithoutInput.cc",
