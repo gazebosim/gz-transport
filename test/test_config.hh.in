@@ -51,6 +51,10 @@ constexpr const char * kPubThrottled = PUB_THROTTLED_EXE;
 constexpr const char * kScopedTopicSubscriber = SCOPED_TOPIC_SUBSCRIBER_EXE;
 #endif  // SCOPED_TOPIC_SUBSCRIBER_EXE
 
+#ifdef SUBSCRIBER_ONLY_EXE
+constexpr const char * kSubscriberOnly = SUBSCRIBER_ONLY_EXE;
+#endif  // SUBSCRIBER_ONLY_EXE
+
 #ifdef TWO_PROCS_PUBLISHER_EXE
 constexpr const char * kTwoProcsPublisher = TWO_PROCS_PUBLISHER_EXE;
 #endif  // TWO_PROCS_PUBLISHER_EXE
