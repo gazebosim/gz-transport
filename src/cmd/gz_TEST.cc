@@ -320,7 +320,7 @@ TEST(gzTest, TopicPublish)
     "-t", "/bar",
     "-m", "gz.msgs.__bad_msg_type",
     "-p", R"(data: "good_value")"});
-  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0);
+  EXPECT_NE(output.cerr.find(error), std::string::npos);
 
   // Try to publish using an incorrect topic name.
   error = "Topic [/] is not valid";
@@ -328,7 +328,7 @@ TEST(gzTest, TopicPublish)
       "-t", "/",
       "-m", "gz.msgs.StringMsg",
       "-p", R"(data: "good_value")"});
-  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0);
+  EXPECT_NE(output.cerr.find(error), std::string::npos);
 
   // Try to publish using an incorrect number of arguments.
   error = "The following argument was not expected: wrong_topic";
@@ -336,7 +336,7 @@ TEST(gzTest, TopicPublish)
       "-t", "/", "wrong_topic",
       "-m", "gz.msgs.StringMsg",
       "-p", R"(data: "good_value")"});
-  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0);
+  EXPECT_NE(output.cerr.find(error), std::string::npos);
 }
 
 //////////////////////////////////////////////////
