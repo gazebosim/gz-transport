@@ -586,8 +586,9 @@ TEST(twoProcPubSub, PubSubTwoProcsMixedSubscribers)
   auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   EXPECT_TRUE(pub);
 
-  // No subscribers yet.
-  EXPECT_FALSE(pub.HasConnections());
+  // No subscribers yet. Wait in case a remote subscriber from a previous
+  // test is still being cleaned up.
+  EXPECT_TRUE(transport::waitUntil([&pub]{return !pub.HasConnections();}));
 
   auto pi = gz::utils::Subprocess(
     {test_executables::kTwoProcsPubSubMixedSubscribers, partition});
