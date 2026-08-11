@@ -1,5 +1,46 @@
 ## Gazebo Transport 13.X
 
+### Gazebo Transport 13.5.1 (2026-08-11)
+
+1. Fix TopicList() subscribers information
+    * [Pull request #919](https://github.com/gazebosim/gz-transport/pull/919)
+
+1. Refactor tests and support running tests in parallel
+    * [Pull request #900](https://github.com/gazebosim/gz-transport/pull/900)
+
+1. Use proto DynamicCastMessage if available
+    * [Pull request #886](https://github.com/gazebosim/gz-transport/pull/886)
+
+1. Fix compiler warning with protobuf 35.0
+    * [Pull request #878](https://github.com/gazebosim/gz-transport/pull/878)
+
+1. Fix Python test PYTHONPATH: use ENVIRONMENT_MODIFICATION instead of ENVIRONMENT
+    * [Pull request #862](https://github.com/gazebosim/gz-transport/pull/862)
+
+1. ci.yml fix push branch regex
+    * [Pull request #858](https://github.com/gazebosim/gz-transport/pull/858)
+
+1. Fix async signal safety undefined behavior in waitForShutdown()
+    * [Pull request #852](https://github.com/gazebosim/gz-transport/pull/852)
+
+1. Fix memory leak
+    * [Pull request #846](https://github.com/gazebosim/gz-transport/pull/846)
+
+1. Add benchmark suite
+    * [Pull request #839](https://github.com/gazebosim/gz-transport/pull/839)
+
+1. Fix unused result warnings
+    * [Pull request #817](https://github.com/gazebosim/gz-transport/pull/817)
+
+1. Document duplicate service advertise behavior
+    * [Pull request #805](https://github.com/gazebosim/gz-transport/pull/805)
+
+1. Refactor TopicUtils::AsValidTopic() removing regex
+    * [Pull request #780](https://github.com/gazebosim/gz-transport/pull/780)
+
+1. Fix unused-result complaint
+    * [Pull request #766](https://github.com/gazebosim/gz-transport/pull/766)
+
 ### Gazebo Transport 13.5.0 (2025-10-21)
 
 1. Fix deadlock in service requests when running local callbacks
