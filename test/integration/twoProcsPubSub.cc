@@ -17,6 +17,7 @@
 #include <gz/msgs/int32.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <string>
@@ -80,10 +81,13 @@ void cbInfo(const msgs::Int32 &_msg,
 
 //////////////////////////////////////////////////
 /// \brief A generic callback.
-void genericCb(const transport::ProtoMsg &/*_msg*/)
+void genericCb(const transport::ProtoMsg &/*_msg*/,
+               const transport::MessageInfo &_info)
 {
   genericCbExecuted = true;
   ++counter;
+
+  EXPECT_EQ(_info.Topic().find("@"), std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -211,9 +215,10 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
   };
 
   auto genericCb = [&](const char *, const size_t /*_size*/,
-                       const transport::MessageInfo &)
+                       const transport::MessageInfo &_info)
   {
     genericRawCbExecuted = true;
+    EXPECT_EQ(_info.Topic().find("@"), std::string::npos);
   };
 
   transport::Node node1;
@@ -357,6 +362,77 @@ TEST(twoProcPubSub, TopicList)
   auto elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>
     (end2 - start2).count();
   EXPECT_LT(elapsed2, 2);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns a process that only subscribes to a topic, without
+/// any publisher involved. The test verifies that a node whose discovery is
+/// already initialized eventually reports the topic in TopicList().
+TEST(twoProcPubSub, TopicListSubscriberOnly)
+{
+  reset();
+
+  transport::Node node;
+  std::vector<std::string> topics;
+
+  // Make sure that discovery is initialized before spawning the subscriber,
+  // so this test does not benefit from the initialization wait inside the
+  // first TopicList() call.
+  node.TopicList(topics);
+
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kSubscriberOnly, partition});
+
+  EXPECT_TRUE(transport::waitForTopic(node, "/subscriber_only",
+    std::chrono::milliseconds(5000)));
+
+  // The remote subscription should also be visible in TopicInfo().
+  std::vector<transport::MessagePublisher> publishers;
+  std::vector<transport::MessagePublisher> subscribers;
+  EXPECT_TRUE(node.TopicInfo("/subscriber_only", publishers, subscribers));
+  EXPECT_EQ(publishers.size(), 0u);
+  EXPECT_EQ(subscribers.size(), 1u);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns a process that subscribes to a topic and
+/// unsubscribes after a while, keeping the process alive. The test verifies
+/// that TopicList() stops reporting the topic after the unsubscription.
+TEST(twoProcPubSub, TopicListRemovesUnsubscribed)
+{
+  reset();
+
+  transport::Node node;
+  std::vector<std::string> topics;
+
+  // Make sure that discovery is initialized before spawning the subscriber.
+  node.TopicList(topics);
+
+  // The remote process subscribes to /unsub_test, unsubscribes after 4
+  // seconds and stays alive for 15 seconds.
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kSubscriberOnly, partition, "/unsub_test", "15", "4"});
+
+  ASSERT_TRUE(transport::waitForTopic(node, "/unsub_test",
+    std::chrono::milliseconds(4000)));
+
+  // After the remote node unsubscribes, the topic should disappear from
+  // TopicList() while its process is still alive. Note that the timeout is
+  // shorter than the remaining lifetime of the remote process, so a topic
+  // removal triggered by the process termination cannot make this pass.
+  auto topicAbsent = [&node]()
+  {
+    std::vector<std::string> topicsNow;
+    node.TopicList(topicsNow);
+    return std::find(topicsNow.begin(), topicsNow.end(), "/unsub_test") ==
+      topicsNow.end();
+  };
+  EXPECT_TRUE(transport::waitUntil(topicAbsent,
+    std::chrono::milliseconds(8000), std::chrono::milliseconds(100)));
 
   reset();
 }

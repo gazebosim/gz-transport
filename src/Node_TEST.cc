@@ -128,12 +128,15 @@ void rawCbInfo(const char *_msgData, const size_t _size,
 
 //////////////////////////////////////////////////
 /// \brief A generic callback.
-void genericCb(const transport::ProtoMsg &_msg)
+void genericCb(const transport::ProtoMsg &_msg,
+               const transport::MessageInfo &_info)
 {
   std::string content;
   ASSERT_TRUE(google::protobuf::TextFormat::PrintToString(_msg, &content));
   EXPECT_TRUE(content.find(std::to_string(data)) != std::string::npos);
   genericCbExecuted = true;
+
+  EXPECT_EQ(_info.Topic().find("@"), std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -2435,6 +2438,46 @@ TEST(NodeTest, TopicListRemap)
 
   // The topic advertised should be remapped.
   EXPECT_EQ(g_topic_remap, topics.at(0));
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates a node that subscribes to a topic without any
+/// publisher. The test verifies that TopicList() includes topics that are
+/// only subscribed within this process.
+TEST(NodeTest, TopicListSubscriberOnly)
+{
+  std::vector<std::string> topics;
+  transport::Node node;
+
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+
+  node.TopicList(topics);
+  ASSERT_EQ(1u, topics.size());
+  EXPECT_EQ(g_topic, topics.at(0));
+
+  // After unsubscribing, the topic should not be listed anymore.
+  EXPECT_TRUE(node.Unsubscribe(g_topic));
+  topics.clear();
+  node.TopicList(topics);
+  EXPECT_TRUE(topics.empty());
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates a node that subscribes to a topic without any
+/// publisher. The test verifies that TopicInfo() includes the subscribers
+/// from this process.
+TEST(NodeTest, TopicInfoSubscriberOnly)
+{
+  transport::Node node;
+
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+
+  std::vector<transport::MessagePublisher> publishers;
+  std::vector<transport::MessagePublisher> subscribers;
+  EXPECT_TRUE(node.TopicInfo(g_topic, publishers, subscribers));
+  EXPECT_EQ(publishers.size(), 0u);
+  ASSERT_EQ(subscribers.size(), 1u);
+  EXPECT_EQ(subscribers.front().MsgTypeName(), "gz.msgs.Int32");
 }
 
 //////////////////////////////////////////////////
