@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <cstring>
+#include <future>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -338,27 +339,53 @@ NodeShared::NodeShared()
       opts.timeout_ms = kZenohLivelinessGetTimeoutMs;
 
       zenoh::ZResult result = Z_OK;
-      auto replies = this->Session()->liveliness_get(
+
+      // Completion latch: on_drop runs once all the replies have been
+      // received or the Zenoh side timeout expires. The shared ownership
+      // keeps the promise alive even if we stop waiting before on_drop
+      // runs, and set_value() is guarded because a promise can only be
+      // satisfied once.
+      auto livelinessDone = std::make_shared<std::promise<void>>();
+      auto livelinessDoneFuture = livelinessDone->get_future();
+
+      this->Session()->liveliness_get(
         zenoh::KeyExpr("@gz/**"),
-        zenoh::channels::FifoChannel(SIZE_MAX - 1),
+        [this](zenoh::Reply &_reply)
+        {
+          // Defense in depth: the Zenoh side timeout bounds the callback
+          // window well before Shutdown() can run, but never dispatch
+          // into the discovery objects while shutting down.
+          if (this->dataPtr->isShutdown)
+            return;
+          if (!_reply.is_ok())
+            return;
+          const auto &sample = _reply.get_ok();
+          // Both handlers filter by entityType internally, so it is
+          // safe to dispatch every sample to both.
+          this->dataPtr->msgDiscovery->LivelinessMsgDataHandler(sample);
+          this->dataPtr->srvDiscovery->LivelinessSrvDataHandler(sample);
+        },
+        [livelinessDone]()
+        {
+          try
+          {
+            livelinessDone->set_value();
+          }
+          catch (const std::future_error &)
+          {
+          }
+        },
         std::move(opts),
         &result);
 
       if (result == Z_OK)
       {
-        for (auto res = replies.recv();
-             std::holds_alternative<zenoh::Reply>(res);
-             res = replies.recv())
-        {
-          const auto &reply = std::get<zenoh::Reply>(res);
-          if (!reply.is_ok())
-            continue;
-          const auto &sample = reply.get_ok();
-          // Both handlers filter by entityType internally, so it is
-          // safe to dispatch every sample to both.
-          this->dataPtr->msgDiscovery->LivelinessMsgDataHandler(sample);
-          this->dataPtr->srvDiscovery->LivelinessSrvDataHandler(sample);
-        }
+        // Bounded wait that preserves the synchronous cold start: without
+        // it, the first discovery queries could run before the initial
+        // graph is known. On timeout we proceed with the information
+        // received so far, as before.
+        livelinessDoneFuture.wait_for(std::chrono::milliseconds(
+          kZenohLivelinessGetTimeoutMs + 500));
       }
     }
     catch (const zenoh::ZException &e)
