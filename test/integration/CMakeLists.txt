@@ -48,6 +48,7 @@ set(auxiliary_files
   pub_aux
   pub_aux_throttled
   scopedTopicSubscriber_aux
+  subscriberOnly_aux
   twoProcsPublisher_aux
   twoProcsPubSubMixedSubscribers_aux
   twoProcsPubSubSingleSubscriber_aux

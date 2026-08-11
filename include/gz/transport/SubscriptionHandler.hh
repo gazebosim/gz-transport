@@ -181,7 +181,7 @@ namespace gz::transport
     /// \param[in] _topic The topic.
     public: void CreateGenericZenohSubscriber(
       std::shared_ptr<zenoh::Session> _session,
-      const std::string &_topic);
+      const FullyQualifiedTopic &_fullyQualifiedTopic);
 #endif
   };
 
@@ -239,10 +239,10 @@ namespace gz::transport
     /// \param[in] _topic The topic associated to this callback.
     public: void SetCallback(const MsgCallback<T> &_cb,
                              std::shared_ptr<zenoh::Session> _session,
-                             const std::string &_topic)
+                             const FullyQualifiedTopic &_fullyQualifiedTopic)
     {
       this->SetCallback(std::move(_cb));
-      const std::string topic = _topic;
+      const std::string topic = _fullyQualifiedTopic.Topic();
       std::weak_ptr<SubscriptionHandler<T>> weakSelf = this->weak_from_this();
       this->SetZenohSubscriberDispatch(
         topic, this->TypeName(),
@@ -261,7 +261,7 @@ namespace gz::transport
           info.SetIntraProcess(false);
           self->RunLocalCallback(*msg, info);
         });
-      this->CreateGenericZenohSubscriber(_session, _topic);
+      this->CreateGenericZenohSubscriber(_session, _fullyQualifiedTopic);
     }
 #endif
 
@@ -390,10 +390,10 @@ namespace gz::transport
     /// \param[in] _topic The topic associated to this callback.
     public: void SetCallback(const MsgCallback<ProtoMsg> &_cb,
                              std::shared_ptr<zenoh::Session> _session,
-                             const std::string &_topic)
+                             const FullyQualifiedTopic &_fullyQualifiedTopic)
     {
       this->SetCallback(std::move(_cb));
-      const std::string topic = _topic;
+      const std::string topic = _fullyQualifiedTopic.Topic();
       std::weak_ptr<SubscriptionHandler<ProtoMsg>> weakSelf =
         this->weak_from_this();
       this->SetZenohSubscriberDispatch(
@@ -413,7 +413,7 @@ namespace gz::transport
           info.SetIntraProcess(false);
           self->RunLocalCallback(*msg, info);
         });
-      this->CreateGenericZenohSubscriber(_session, _topic);
+      this->CreateGenericZenohSubscriber(_session, _fullyQualifiedTopic);
     }
 #endif
 
