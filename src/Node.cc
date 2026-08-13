@@ -981,7 +981,7 @@ bool Node::EnableStats(const std::string &_topic, bool _enable,
   // Callback used to publish a statistics message.
   // cppcheck-suppress unreadVariable
   std::function<void(const TopicStatistics &_stats)> statCb =
-    [=](const TopicStatistics &_stats) mutable
+    [this](const TopicStatistics &_stats) mutable
     {
       if (this->dataPtr->statPub.ThrottledUpdateReady())
       {
