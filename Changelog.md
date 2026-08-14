@@ -1,6 +1,6 @@
 ## Gazebo Transport 14.X
 
-### Gazebo Transport 14.2.1 (2026-08-11)
+### Gazebo Transport 14.3.0 (2026-08-14)
 
 1. Bazel updates:
     * [Pull request #891](https://github.com/gazebosim/gz-transport/pull/891)
