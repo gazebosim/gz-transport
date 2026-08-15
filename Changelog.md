@@ -1,6 +1,6 @@
 ## Gazebo Transport 13.X
 
-### Gazebo Transport 13.5.1 (2026-08-11)
+### Gazebo Transport 13.6.0 (2026-08-15)
 
 1. Fix TopicList() subscribers information
     * [Pull request #919](https://github.com/gazebosim/gz-transport/pull/919)
