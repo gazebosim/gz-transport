@@ -1,5 +1,55 @@
 ## Gazebo Transport 14.X
 
+### Gazebo Transport 14.3.0 (2026-08-14)
+
+1. Bazel updates:
+    * [Pull request #891](https://github.com/gazebosim/gz-transport/pull/891)
+    * [Pull request #772](https://github.com/gazebosim/gz-transport/pull/772)
+    * [Pull request #770](https://github.com/gazebosim/gz-transport/pull/770)
+    * [Pull request #755](https://github.com/gazebosim/gz-transport/pull/755)
+    * [Pull request #745](https://github.com/gazebosim/gz-transport/pull/745)
+    * [Pull request #715](https://github.com/gazebosim/gz-transport/pull/715)
+
+1. Fix TopicList() subscribers information
+    * [Pull request #915](https://github.com/gazebosim/gz-transport/pull/915)
+
+1. Refactor tests and support running tests in parallel
+    * [Pull request #807](https://github.com/gazebosim/gz-transport/pull/807)
+
+1. Use proto DynamicCastMessage if available
+    * [Pull request #883](https://github.com/gazebosim/gz-transport/pull/883)
+
+1. Fix compiler warning with protobuf 35.0
+    * [Pull request #875](https://github.com/gazebosim/gz-transport/pull/875)
+
+1. Fix Python test PYTHONPATH: use ENVIRONMENT_MODIFICATION instead of ENVIRONMENT
+    * [Pull request #849](https://github.com/gazebosim/gz-transport/pull/849)
+
+1. ci.yml fix push branch regex
+    * [Pull request #855](https://github.com/gazebosim/gz-transport/pull/855)
+
+1. Fix async signal safety undefined behavior in waitForShutdown()
+    * [Pull request #848](https://github.com/gazebosim/gz-transport/pull/848)
+
+1. Fix memory leak
+    * [Pull request #843](https://github.com/gazebosim/gz-transport/pull/843)
+
+1. Add benchmark suite
+    * [Pull request #833](https://github.com/gazebosim/gz-transport/pull/833)
+
+1. Fixes for unused-result warnings
+    * [Pull request #814](https://github.com/gazebosim/gz-transport/pull/814)
+
+1. Document duplicate service advertise behavior
+    * [Pull request #804](https://github.com/gazebosim/gz-transport/pull/804)
+
+1. Refactor TopicUtils::AsValidTopic() removing regex
+    * [Pull request #779](https://github.com/gazebosim/gz-transport/pull/779)
+
+1. Fix unused-result complaint
+    * [Pull request #763](https://github.com/gazebosim/gz-transport/pull/763)
+
+
 ### Gazebo Transport 14.2.0 (2025-10-21)
 
 1. Fix deadlock in service requests when running local callbacks
