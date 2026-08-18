@@ -223,6 +223,11 @@ NodeShared::NodeShared()
     this->dataPtr->topicStatsEnabled = (gzStats == "1");
   }
 
+  // Set the capacity of the queue used to deliver messages to local
+  // (intraprocess) subscribers.
+  this->dataPtr->localHwm = this->dataPtr->NonNegativeEnvVar(
+    "GZ_TRANSPORT_LOCAL_HWM", kDefaultLocalHwm);
+
   // My process UUID.
   Uuid uuid;
   this->pUuid = uuid.ToString();
@@ -1348,6 +1353,12 @@ int NodeShared::SndHwm()
   return sndHwm;
 }
 
+/////////////////////////////////////////////////
+int NodeShared::LocalHwm() const
+{
+  return static_cast<int>(this->dataPtr->localHwm);
+}
+
 //////////////////////////////////////////////////
 bool NodeShared::HandlerWrapper::HasSubscriber(
     const std::string &_fullyQualifiedTopic,
@@ -1650,6 +1661,52 @@ void NodeSharedPrivate::AccessControlHandler()
 }
 
 /////////////////////////////////////////////////
+void NodeSharedPrivate::EnqueuePubMsg(
+    std::unique_ptr<PublishMsgDetails> _msgDetails)
+{
+  std::string droppedTopic;
+  {
+    std::unique_lock<std::mutex> queueLock(this->pubThreadMutex);
+
+    auto &topicIters = this->pubQueueIters[_msgDetails->fullyQualifiedTopic];
+
+    // The queue of this topic is full. Drop its oldest message so that the
+    // queue does not grow in an unbounded way when the local subscription
+    // callbacks are slower than the publication rate.
+    if (this->localHwm > 0 && topicIters.size() >= this->localHwm)
+    {
+      if (this->pubQueueDropWarned.insert(
+            _msgDetails->fullyQualifiedTopic).second)
+      {
+        droppedTopic = _msgDetails->fullyQualifiedTopic;
+      }
+
+      this->pubQueue.erase(topicIters.front());
+      topicIters.pop_front();
+    }
+
+    topicIters.push_back(
+      this->pubQueue.insert(this->pubQueue.end(), std::move(_msgDetails)));
+  }
+
+  this->signalNewPub.notify_one();
+
+  // Warn outside the lock so that slow I/O does not block the publishers
+  // or the delivery thread.
+  if (!droppedTopic.empty())
+  {
+    std::cerr << "The local subscribers of [" << droppedTopic
+              << "] are processing messages slower than the publication "
+              << "rate. Dropping the oldest queued message. This warning "
+              << "will not be repeated for this topic until its queued "
+              << "messages fully drain. Use the GZ_TRANSPORT_LOCAL_HWM "
+              << "environment variable to tune the queue capacity (current "
+              << "capacity: " << this->localHwm << " messages per topic)."
+              << std::endl;
+  }
+}
+
+/////////////////////////////////////////////////
 void NodeSharedPrivate::PublishThread()
 {
   // Loop until exits
@@ -1679,6 +1736,23 @@ void NodeSharedPrivate::PublishThread()
       // Get the message
       msgDetails = std::move(this->pubQueue.front());
       this->pubQueue.pop_front();
+
+      // Keep the per topic bookkeeping in sync with the pubQueue. The
+      // front of the deque of this topic references the entry just popped.
+      auto topicItersIt =
+        this->pubQueueIters.find(msgDetails->fullyQualifiedTopic);
+      if (topicItersIt != this->pubQueueIters.end())
+      {
+        topicItersIt->second.pop_front();
+        if (topicItersIt->second.empty())
+        {
+          this->pubQueueIters.erase(topicItersIt);
+
+          // The backlog of this topic fully drained. Allow the drop
+          // warning to be shown again on the next overload episode.
+          this->pubQueueDropWarned.erase(msgDetails->fullyQualifiedTopic);
+        }
+      }
     }
 
     // Send the message to all the local handlers.

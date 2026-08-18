@@ -58,6 +58,12 @@ int sndHwm()
 }
 
 //////////////////////////////////////////////////
+int localHwm()
+{
+  return NodeShared::Instance()->LocalHwm();
+}
+
+//////////////////////////////////////////////////
 /// \internal
 /// \brief Private data for Node::Publisher class.
 class Node::PublisherPrivate
@@ -459,6 +465,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 
     pubMsgDetails->publisherNodeUUID = this->dataPtr->publisher.NUuid();
 
+    pubMsgDetails->fullyQualifiedTopic = this->dataPtr->publisher.Topic();
+
     if (subscribers.haveLocal)
     {
       for (const auto &node : subscribers.localHandlers)
@@ -518,14 +526,7 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 
     // Add the publish message details to the publish queue. The message
     // will be published asynchronously to the local and raw callbacks.
-    {
-      std::unique_lock<std::mutex> queueLock(
-          this->dataPtr->shared->dataPtr->pubThreadMutex);
-      this->dataPtr->shared->dataPtr->pubQueue.push_back(
-          std::move(pubMsgDetails));
-    }
-
-    this->dataPtr->shared->dataPtr->signalNewPub.notify_one();
+    this->dataPtr->shared->dataPtr->EnqueuePubMsg(std::move(pubMsgDetails));
   }
 
   // Handle remote subscribers.

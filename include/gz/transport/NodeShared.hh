@@ -277,6 +277,16 @@ namespace gz::transport
     /// If your buffer reaches the maximum capacity data will be dropped.
     public: int SndHwm();
 
+    /// \brief Get the capacity (High Water Mark) of the queue that stores
+    /// messages to be delivered to local (intraprocess) subscribers. Note
+    /// that this limit is applied per topic.
+    /// \return The capacity of the local publication queue (units are
+    /// messages). A value of 0 indicates an unlimited queue. The default
+    /// capacity is contained in the #kDefaultLocalHwm variable.
+    /// When a topic reaches this capacity, its oldest queued message is
+    /// dropped to make room for a new one.
+    public: int LocalHwm() const;
+
     /// \brief Turn topic statistics on or off.
     /// \param[in] _topic The name of the topic on which to enable or disable
     /// statistics.

@@ -2565,6 +2565,14 @@ TEST(NodeTest, SndHwm)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check the high water mark of the local publication queue.
+TEST(NodeTest, LocalHwm)
+{
+  // LocalHwm is applicable to all backends.
+  EXPECT_EQ(transport::kDefaultLocalHwm, transport::localHwm());
+}
+
+//////////////////////////////////////////////////
 /// \brief Check that we destruct a Node object before a Node::Publisher.
 TEST(NodePubTest, DestructionOrder)
 {

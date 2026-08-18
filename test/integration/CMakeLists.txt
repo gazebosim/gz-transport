@@ -4,6 +4,7 @@ set(tests
   authPubSub.cc
   scopedTopic.cc
   callback_scope_TEST.cc
+  localHwm.cc
   statistics.cc
   twoProcsPubSub.cc
   twoProcsPubSubStats.cc

@@ -14,6 +14,19 @@ release will remove the deprecated code.
     * `waitForShutdown()` moved from `Node.hh` / `Node.cc` to `WaitHelpers.hh` / `WaitHelpers.cc`. `Node.hh` re-exports via `#include "gz/transport/WaitHelpers.hh"`, so no code changes are required for existing users of `waitForShutdown()`.
     * `waitUntil()`, `waitForService()`, `waitForTopic()` moved from `Helpers.hh` / `Helpers.cc` to `WaitHelpers.hh` / `WaitHelpers.cc`. Code using these functions must now `#include "gz/transport/WaitHelpers.hh"` directly.
 
+### Modifications
+
+1. The queue used to deliver messages to local (intraprocess) subscribers
+   is now bounded per topic. When a topic has `GZ_TRANSPORT_LOCAL_HWM`
+   messages queued (1000 by default), publishing a new message drops the
+   oldest queued message of that topic instead of letting the queue grow
+   without limit. Previously the queue was unbounded, so a subscriber
+   processing messages slower than the publication rate would make the
+   process run out of memory. Set the `GZ_TRANSPORT_LOCAL_HWM` environment
+   variable to tune the capacity, or to 0 to restore the previous unbounded
+   behavior. The new `localHwm()` function returns the current capacity.
+   * [GitHub issue 926](https://github.com/gazebosim/gz-transport/issues/926)
+
 ### Deprecations
 
 1. The `gzTransportPublish` function in `CIface.h` has been deprecated because
