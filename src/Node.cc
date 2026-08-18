@@ -828,6 +828,23 @@ void Node::TopicList(std::vector<std::string> &_topics) const
 
   this->dataPtr->shared->dataPtr->msgDiscovery->TopicList(allTopics);
 
+  // Add the topics subscribed within this process. They are not part of the
+  // discovery information because a process discards its own discovery
+  // messages.
+  {
+    std::lock_guard<std::recursive_mutex> lock(this->dataPtr->shared->mutex);
+    for (const auto &pub : this->dataPtr->shared->localSubscribers.Convert(
+        this->dataPtr->shared->dataPtr->myAddress,
+        this->dataPtr->shared->pUuid))
+    {
+      if (std::find(allTopics.begin(), allTopics.end(), pub.Topic()) ==
+          allTopics.end())
+      {
+        allTopics.push_back(pub.Topic());
+      }
+    }
+  }
+
   for (const auto &fullyQualifiedTopic : allTopics)
   {
     std::string partition;
@@ -968,7 +985,7 @@ bool Node::EnableStats(const std::string &_topic, bool _enable,
   // Callback used to publish a statistics message.
   // cppcheck-suppress unreadVariable
   std::function<void(const TopicStatistics &_stats)> statCb =
-    [=](const TopicStatistics &_stats) mutable
+    [this](const TopicStatistics &_stats) mutable
     {
       if (this->dataPtr->statPub.ThrottledUpdateReady())
       {
@@ -1064,6 +1081,21 @@ bool Node::TopicInfo(const std::string &_topic,
         fullyQualifiedTopic, subs))
   {
     convert(subs, _subscribers);
+  }
+
+  // Add the subscribers within this process. They are not part of the
+  // discovery information because a process discards its own discovery
+  // messages.
+  for (const auto &pub : this->dataPtr->shared->localSubscribers.Convert(
+      this->dataPtr->shared->dataPtr->myAddress,
+      this->dataPtr->shared->pUuid))
+  {
+    if (pub.Topic() == fullyQualifiedTopic &&
+        std::find(_subscribers.begin(), _subscribers.end(), pub) ==
+        _subscribers.end())
+    {
+      _subscribers.push_back(pub);
+    }
   }
 
   return true;
