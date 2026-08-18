@@ -37,6 +37,7 @@
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "NodePrivate.hh"
 #include "NodeSharedPrivate.hh"
@@ -1130,24 +1131,14 @@ Node::ServiceTypeResolution Node::ResolveServiceTypes(
   }
 
   // Poll discovery until a provider appears or the timeout expires.
-  const std::chrono::milliseconds pollInterval{100};
-  auto deadline = std::chrono::steady_clock::now() +
-    std::chrono::milliseconds(_timeoutMs);
-
   std::vector<ServicePublisher> publishers;
-  while (true)
+  if (!waitUntil([&]{
+        this->ServiceInfo(_service, publishers);
+        return !publishers.empty();
+      },
+      std::chrono::milliseconds(_timeoutMs), std::chrono::milliseconds(100)))
   {
-    this->ServiceInfo(_service, publishers);
-    if (!publishers.empty())
-      break;
-
-    auto remaining = deadline - std::chrono::steady_clock::now();
-    if (remaining <= std::chrono::milliseconds::zero())
-      return ServiceTypeResolution::kNoProviders;
-
-    std::this_thread::sleep_for(std::min<std::chrono::milliseconds>(
-      pollInterval,
-      std::chrono::duration_cast<std::chrono::milliseconds>(remaining)));
+    return ServiceTypeResolution::kNoProviders;
   }
 
   const std::string reqType = publishers.front().ReqTypeName();
