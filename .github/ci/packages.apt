@@ -1,3 +1,4 @@
+cppzmq-dev
 libgz-cmake5-dev
 libgz-math9-dev
 libgz-msgs12-dev
@@ -6,6 +7,8 @@ libgz-utils4-cli-dev
 libprotobuf-dev
 libprotoc-dev
 libsqlite3-dev
+libzenohc-dev
+libzenohcpp-dev
 libzmq3-dev
 pkg-config
 protobuf-compiler
