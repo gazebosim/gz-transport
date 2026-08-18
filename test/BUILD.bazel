@@ -65,6 +65,7 @@ integration_test_sources = [
     "authPubSub.cc",
     "scopedTopic.cc",
     "callback_scope_TEST.cc",
+    "localHwm.cc",
     "statistics.cc",
     "twoProcsPubSub.cc",
     "twoProcsPubSubStats.cc",
