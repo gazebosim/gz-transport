@@ -45,6 +45,7 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/Node.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 namespace gz::transport
 {
@@ -194,13 +195,9 @@ extern "C" void cmdTopicPub(const char *_topic,
       // Wait for subscribers to be discovered before publishing. After the
       // timeout the message is published anyway, preserving the fire and
       // forget behavior when nobody is listening (see issue #47).
-      auto deadline = std::chrono::steady_clock::now() +
-        std::chrono::milliseconds(3000);
-      while (!pub.HasConnections() &&
-             std::chrono::steady_clock::now() < deadline)
-      {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-      }
+      waitUntil([&pub]{return pub.HasConnections();},
+                std::chrono::milliseconds(3000),
+                std::chrono::milliseconds(50));
 
       // Give new connections a moment to be fully established.
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
