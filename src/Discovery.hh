@@ -66,6 +66,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -817,16 +818,19 @@ namespace gz
       /// \param[out] _topics List of advertised topics.
       public: void TopicList(std::vector<std::string> &_topics)
       {
-        if (!this->useZenoh)
+        // Request the list of subscribers. This request is only meaningful
+        // for message discovery over UDP: the Zenoh backend keeps
+        // remoteSubscribers updated via liveliness tokens and nothing
+        // answers this request on the service discovery channel.
+        if constexpr (std::is_same_v<Pub, MessagePublisher>)
         {
-          std::lock_guard<std::mutex> lock(this->mutex);
-          this->remoteSubscribers.Clear();
+          if (!this->useZenoh)
+          {
+            Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
+            this->SendMsg(
+              DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REQ, pub);
+          }
         }
-
-        // Request the list of subscribers.
-        Publisher pub("", "", this->pUuid, "", AdvertiseOptions());
-        this->SendMsg(
-          DestinationType::ALL, msgs::Discovery::SUBSCRIBERS_REQ, pub);
 
         this->WaitForInit();
         std::lock_guard<std::mutex> lock(this->mutex);
@@ -889,6 +893,7 @@ namespace gz
             {
               // Remove all the info entries for this process UUID.
               this->info.DelPublishersByProc(it->first);
+              this->remoteSubscribers.DelPublishersByProc(it->first);
 
               uuids.push_back(it->first);
 
@@ -1305,6 +1310,12 @@ namespace gz
             Pub publisher;
             publisher.SetFromDiscovery(msg);
 
+            {
+              std::lock_guard<std::mutex> lock(this->mutex);
+              this->remoteSubscribers.DelPublisherByNode(
+                publisher.Topic(), publisher.PUuid(), publisher.NUuid());
+            }
+
             if (unregisterCb)
               unregisterCb(publisher);
 
@@ -1335,6 +1346,7 @@ namespace gz
             {
               std::lock_guard<std::mutex> lock(this->mutex);
               this->info.DelPublishersByProc(recvPUuid);
+              this->remoteSubscribers.DelPublishersByProc(recvPUuid);
             }
 
             break;
