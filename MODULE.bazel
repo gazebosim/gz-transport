@@ -46,10 +46,3 @@ archive_override(
     strip_prefix = "gz-msgs-main",
     urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/main.tar.gz"],
 )
-
-single_version_override(
-    module_name = "zenoh-cpp",
-    patch_strip = 1,
-    patches = ["//patches:zenoh-cpp.patch"],
-    version = "1.7.2.bcr.1",
-)
