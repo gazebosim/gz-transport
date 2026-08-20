@@ -298,8 +298,11 @@ TEST(gzTest, TopicPublish)
   g_topicCBStr = "bad_value";
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
+  // Each attempt waits for the subscriber to be discovered before
+  // publishing, so a few retries are enough. Keep the total runtime within
+  // the test timeout even when discovery is completely broken.
   unsigned int retries = 0;
-  while (retries++ < 100u)
+  while (retries++ < 30u)
   {
     auto output = custom_exec_str({"topic",
         "-t", "/bar",
