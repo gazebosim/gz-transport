@@ -377,6 +377,54 @@ TEST(gzTest, cmdServiceReqOnewayDisambiguation)
     kTimeout, g_reqData.c_str());
   EXPECT_EQ(stdOutBuffer.str(), "data: 10\n\n");
   EXPECT_EQ(stdErrBuffer.str(), "");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  // The underscore spelling of a type is normalized, so it selects the
+  // one-way provider just like the canonical spelling does.
+  g_onewayData = 0;
+  cmdServiceReq(service.c_str(), nullptr, "gz_msgs.Empty",
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(), "");
+  EXPECT_EQ(10, g_onewayData);
+
+  restoreIO();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a one-way request is reported, rather than silently
+/// dropped, when no provider offers the requested types.
+TEST(gzTest, cmdServiceReqOnewayNoCompatibleProvider)
+{
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const int kTimeout = 10;
+  const std::string service = "/twoway_only";
+
+  // The only provider is two-way.
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(service, srvEchoOk));
+
+  // Asking for a one-way request cannot be served by it. The request type
+  // is inferred, so the resolver reports the incompatibility.
+  cmdServiceReq(service.c_str(), nullptr, "gz.msgs.Empty",
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(),
+      "No provider on service [/twoway_only] offers "
+      "response type [gz.msgs.Empty].\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  // With both types given explicitly nothing is resolved, so the one-way
+  // branch itself has to catch the unroutable request.
+  cmdServiceReq(service.c_str(), "gz.msgs.Int32", "gz.msgs.Empty",
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(),
+      "No one-way provider on service [/twoway_only] accepts "
+      "request type [gz.msgs.Int32].\n");
 
   restoreIO();
 }

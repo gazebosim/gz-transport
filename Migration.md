@@ -22,7 +22,13 @@ release will remove the deprecated code.
       request is only sent once a provider appears (waiting up to `--timeout`
       ms). In particular, a one-way request with inferred types now fails if
       nobody advertises the service, whereas explicit `--reqtype`/`--reptype`
-      (or `--oneway --reqtype T`) still send without consulting discovery.
+      (or `--oneway --reqtype T`) still send without waiting for discovery.
+    * A type given explicitly also selects which providers the other,
+      inferred type is read from, so `--oneway` (or `--reptype`) can now
+      disambiguate a service offered with more than one signature. If the
+      service is advertised but no provider offers the given type, the
+      command reports it instead of sending a request that nobody can
+      answer.
 
 ### Moved
 

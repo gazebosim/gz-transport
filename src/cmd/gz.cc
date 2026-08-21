@@ -36,6 +36,7 @@
 #endif
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/json_util.h>
+#include <gz/msgs/empty.pb.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -225,6 +226,24 @@ extern "C" void cmdServiceReq(const char *_service,
   std::string repType = _repType ? _repType : "";
   Node node;
 
+  // Service providers advertise canonical protobuf names ("gz.msgs.Empty"),
+  // but the factory also accepts the underscore spelling ("gz_msgs.Empty").
+  // Normalize up front so that every later comparison, both against the
+  // advertised types and against gz.msgs.Empty, sees the canonical name.
+  // Names the factory does not recognize are left alone; they are reported
+  // below, when the message is created.
+  auto canonicalType = [](const std::string &_type) -> std::string
+  {
+    if (auto msg = msgs::Factory::New(_type))
+      return std::string(msg->GetTypeName());
+    return _type;
+  };
+
+  if (!reqType.empty())
+    reqType = canonicalType(reqType);
+  if (!repType.empty())
+    repType = canonicalType(repType);
+
   const bool inferReq = reqType.empty();
   const bool inferRep = repType.empty();
   if (inferReq || inferRep)
@@ -273,6 +292,18 @@ extern "C" void cmdServiceReq(const char *_service,
         }
         return;
       }
+      case Node::ServiceTypeResolution::kIncompatibleTypes:
+      {
+        std::cerr << "No provider on service [" << _service << "] offers ";
+        if (!inferReq)
+          std::cerr << "request type [" << reqType << "]";
+        if (!inferReq && !inferRep)
+          std::cerr << " and ";
+        if (!inferRep)
+          std::cerr << "response type [" << repType << "]";
+        std::cerr << ".\n";
+        return;
+      }
       case Node::ServiceTypeResolution::kResolved:
       default:
         break;
@@ -315,9 +346,38 @@ extern "C" void cmdServiceReq(const char *_service,
 
   bool result;
 
-  if (repType == "gz.msgs.Empty")
+  // Match how the core decides that a request is one-way
+  // (see NodeShared::SendPendingRemoteReqs).
+  if (rep->GetTypeName() == msgs::Empty().GetTypeName())
   {
-    // One-way service.
+    // A one-way request is never answered, so nothing downstream can report
+    // that it failed to reach anybody: the core silently drops it when no
+    // provider advertises this exact pair of types. Check discovery first so
+    // that an unroutable request is reported instead of exiting successfully
+    // having sent nothing. An empty list means discovery has not seen the
+    // service at all, in which case the request is still sent, preserving
+    // the documented behavior that explicit types do not require discovery.
+    std::vector<ServicePublisher> publishers;
+    node.ServiceInfo(_service, publishers);
+    if (!publishers.empty() &&
+        std::none_of(publishers.begin(), publishers.end(),
+          [&](const ServicePublisher &_pub)
+          {
+            return _pub.ReqTypeName() == req->GetTypeName() &&
+                   _pub.RepTypeName() == rep->GetTypeName();
+          }))
+    {
+      std::cerr << "No one-way provider on service [" << _service
+        << "] accepts request type [" << req->GetTypeName() << "].\n";
+      return;
+    }
+
+    // One-way service. No response is ever sent, so the return value and
+    // `result` carry no information and the wait below can only expire.
+    // It is kept, and deliberately not tied to _timeout, purely to give
+    // ZeroMQ a window to flush the request before this process exits: the
+    // requester socket is created with linger set to 0, so returning
+    // immediately would discard anything still queued.
     node.Request(_service, *req, 1000, *rep, result);
   }
   else

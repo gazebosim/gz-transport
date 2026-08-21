@@ -810,19 +810,32 @@ namespace gz::transport
       /// \brief The advertised providers disagree on at least one of the
       /// types being resolved.
       kAmbiguousTypes,
+
+      /// \brief The service is advertised, but no provider offers the
+      /// types that were specified by the caller.
+      kIncompatibleTypes,
     };
 
     /// \brief Resolve the request and response types advertised by the
     /// providers of a service. Only the types that are empty on entry are
-    /// resolved; non-empty types are left untouched and excluded from the
-    /// ambiguity check. If the service is not advertised yet, this function
-    /// keeps polling discovery until a provider appears or _timeoutMs
-    /// expires.
+    /// resolved; non-empty types are left untouched and are instead used to
+    /// select the providers that the empty types are resolved from. Only
+    /// those matching providers take part in the ambiguity check. If the
+    /// service is not advertised yet, this function keeps polling discovery
+    /// until a matching provider appears or _timeoutMs expires.
+    ///
+    /// Non-empty types must be spelled the same way the providers advertise
+    /// them, i.e. using the canonical protobuf name ("gz.msgs.Empty").
+    ///
+    /// If both types are non-empty there is nothing to resolve, so discovery
+    /// is not consulted at all and kResolved is returned.
     /// \param[in] _service Name of the service.
-    /// \param[in, out] _reqType Request type. Resolved if empty on entry.
-    /// \param[in, out] _repType Response type. Resolved if empty on entry.
+    /// \param[in, out] _reqType Request type. Resolved if empty on entry,
+    /// used to select the providers otherwise.
+    /// \param[in, out] _repType Response type. Resolved if empty on entry,
+    /// used to select the providers otherwise.
     /// \param[in] _timeoutMs Maximum time to wait, in milliseconds, for a
-    /// service provider to appear.
+    /// matching service provider to appear.
     /// \return ServiceTypeResolution::kResolved if all the empty types were
     /// resolved, or the reason for the failure otherwise.
     public: ServiceTypeResolution ResolveServiceTypes(
