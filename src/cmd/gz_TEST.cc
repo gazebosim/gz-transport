@@ -349,8 +349,11 @@ TEST(ignTest, TopicPublish)
   std::string ign = std::string(IGN_PATH);
   std::string output;
 
+  // Each attempt waits for the subscriber to be discovered before
+  // publishing, so fewer retries are enough. Keep the total runtime within
+  // the test timeout even when discovery is completely broken.
   unsigned int retries = 0;
-  while (g_topicCBStr != "good_value" && retries++ < 200u)
+  while (g_topicCBStr != "good_value" && retries++ < 50u)
   {
     // Send on alternating retries
     if (retries % 2)
