@@ -150,6 +150,11 @@ flaky_test_srcs = [
     "src/Node_TEST.cc",
 ]
 
+# Tests that should not be executed in parallel
+exclusive_test_srcs = [
+    "src/Clock_TEST.cc",
+]
+
 [cc_test(
     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
     srcs = [src],
@@ -158,6 +163,7 @@ flaky_test_srcs = [
         "GZ_IP": "127.0.0.1",
     },
     flaky = src in flaky_test_srcs,
+    tags = ["exclusive"] if src in exclusive_test_srcs else [],
     deps = [
         ":gz-transport",
         ":gz-transport-discovery-header",
