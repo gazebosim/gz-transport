@@ -11,7 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  test-default:
+    name: Test (enable_zenoh=false)
     uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.7.0
     with:
       folders: |
@@ -25,4 +26,21 @@ jobs:
       exclude_windows: true
       # Use opt compilation mode to prevent perf-related test flakiness.
       # This only adds a couple minutes of build time overhead.
-      bazel_test_command: "bazel test -c opt --test_output=errors //..."
+      bazel_test_command: "bazel test -c opt --//:enable_zenoh=false --test_output=errors //..."
+
+  test-zenoh:
+    name: Test (enable_zenoh=true)
+    uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.7.0
+    with:
+      folders: |
+        [
+          "."
+        ]
+      exclude: |
+        [
+          {"folder": ".", "bzlmodEnabled": false}
+        ]
+      exclude_windows: true
+      # Use opt compilation mode to prevent perf-related test flakiness.
+      # This only adds a couple minutes of build time overhead.
+      bazel_test_command: "bazel test -c opt --//:enable_zenoh=true --test_output=errors //..."
