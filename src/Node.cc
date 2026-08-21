@@ -1230,8 +1230,15 @@ Node::Publisher Node::Advertise(const std::string &_topic,
     return Publisher();
   }
 
-  std::string topicWithoutPartition = fullyQualifiedTopic;
-  topicWithoutPartition.erase(0, topicWithoutPartition.find_last_of("@") + 1);
+    std::string partition;
+    std::string topicWithoutPartition;
+    if (!TopicUtils::DecomposeFullyQualifiedTopic(fullyQualifiedTopic,
+          partition, topicWithoutPartition))
+    { 
+      std::cerr << "Topic [" << fullyQualifiedTopic << "] is not valid."
+                << std::endl;
+      return Publisher();
+    }
 
   auto currentTopics = this->AdvertisedTopics();
 
