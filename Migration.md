@@ -27,8 +27,8 @@ release will remove the deprecated code.
       inferred type is read from, so `--oneway` (or `--reptype`) can now
       disambiguate a service offered with more than one signature. If the
       service is advertised but no provider offers the given type, the
-      command reports it instead of sending a request that nobody can
-      answer.
+      command reports it (while resolving the other type) instead of
+      sending a request that nobody can answer.
 
 ### Moved
 

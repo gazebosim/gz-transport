@@ -282,7 +282,11 @@ extern "C" void cmdServiceReq(const char *_service,
             << ", response=" << types.second << "\n";
         }
         std::cerr << "Use --reqtype and --reptype to specify explicitly.\n";
-        if (std::any_of(uniqueTypes.begin(), uniqueTypes.end(),
+        // Only suggest --oneway when it has not been given already: with an
+        // explicit response type the ambiguity is on the request type, which
+        // --oneway cannot settle.
+        if (inferRep &&
+            std::any_of(uniqueTypes.begin(), uniqueTypes.end(),
               [](const auto &_types)
               {
                 return _types.second == "gz.msgs.Empty";
@@ -293,17 +297,13 @@ extern "C" void cmdServiceReq(const char *_service,
         return;
       }
       case Node::ServiceTypeResolution::kIncompatibleTypes:
-      {
-        std::cerr << "No provider on service [" << _service << "] offers ";
-        if (!inferReq)
-          std::cerr << "request type [" << reqType << "]";
-        if (!inferReq && !inferRep)
-          std::cerr << " and ";
-        if (!inferRep)
-          std::cerr << "response type [" << repType << "]";
-        std::cerr << ".\n";
+        // The resolver is only consulted when at least one type is missing,
+        // so exactly one type was given here and it is the one that no
+        // provider offers.
+        std::cerr << "No provider on service [" << _service << "] offers "
+          << (inferReq ? "response" : "request") << " type ["
+          << (inferReq ? repType : reqType) << "].\n";
         return;
-      }
       case Node::ServiceTypeResolution::kResolved:
       default:
         break;
@@ -350,34 +350,18 @@ extern "C" void cmdServiceReq(const char *_service,
   // (see NodeShared::SendPendingRemoteReqs).
   if (rep->GetTypeName() == msgs::Empty().GetTypeName())
   {
-    // A one-way request is never answered, so nothing downstream can report
-    // that it failed to reach anybody: the core silently drops it when no
-    // provider advertises this exact pair of types. Check discovery first so
-    // that an unroutable request is reported instead of exiting successfully
-    // having sent nothing. An empty list means discovery has not seen the
-    // service at all, in which case the request is still sent, preserving
-    // the documented behavior that explicit types do not require discovery.
-    std::vector<ServicePublisher> publishers;
-    node.ServiceInfo(_service, publishers);
-    if (!publishers.empty() &&
-        std::none_of(publishers.begin(), publishers.end(),
-          [&](const ServicePublisher &_pub)
-          {
-            return _pub.ReqTypeName() == req->GetTypeName() &&
-                   _pub.RepTypeName() == rep->GetTypeName();
-          }))
-    {
-      std::cerr << "No one-way provider on service [" << _service
-        << "] accepts request type [" << req->GetTypeName() << "].\n";
-      return;
-    }
-
     // One-way service. No response is ever sent, so the return value and
     // `result` carry no information and the wait below can only expire.
     // It is kept, and deliberately not tied to _timeout, purely to give
     // ZeroMQ a window to flush the request before this process exits: the
     // requester socket is created with linger set to 0, so returning
     // immediately would discard anything still queued.
+    //
+    // With explicit types this is best effort by design: discovery is not
+    // consulted (Node::ServiceInfo() would block until discovery is
+    // initialized), so a request that no provider can serve is dropped
+    // silently. When a type is inferred, ResolveServiceTypes() above has
+    // already checked that a compatible provider exists.
     node.Request(_service, *req, 1000, *rep, result);
   }
   else

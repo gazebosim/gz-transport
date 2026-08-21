@@ -98,6 +98,11 @@ void srvOnewayInt(const msgs::Int32 &_req)
   g_onewayData = _req.data();
 }
 
+/// \brief Provide a one-way service with a different request type.
+void srvOnewayString(const msgs::StringMsg &)
+{
+}
+
 //////////////////////////////////////////////////
 /// \brief Check cmdTopicInfo running the advertiser on a the same process.
 TEST(gzTest, cmdTopicInfo)
@@ -392,8 +397,9 @@ TEST(gzTest, cmdServiceReqOnewayDisambiguation)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check that a one-way request is reported, rather than silently
-/// dropped, when no provider offers the requested types.
+/// \brief Check that a one-way request with an inferred type is reported,
+/// rather than silently dropped, when no provider offers the requested
+/// types, while explicit types remain best effort.
 TEST(gzTest, cmdServiceReqOnewayNoCompatibleProvider)
 {
   std::stringstream stdOutBuffer;
@@ -417,14 +423,43 @@ TEST(gzTest, cmdServiceReqOnewayNoCompatibleProvider)
       "response type [gz.msgs.Empty].\n");
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
-  // With both types given explicitly nothing is resolved, so the one-way
-  // branch itself has to catch the unroutable request.
+  // With both types given explicitly discovery is not consulted: the
+  // request is sent best effort and nothing is reported.
   cmdServiceReq(service.c_str(), "gz.msgs.Int32", "gz.msgs.Empty",
     kTimeout, g_reqData.c_str());
   EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(), "");
+
+  restoreIO();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that --oneway is not suggested when the response type is
+/// already explicit and the request type is the ambiguous one.
+TEST(gzTest, cmdServiceReqOnewayAmbiguousRequest)
+{
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const int kTimeout = 10;
+  const std::string service = "/oneway_ambiguous";
+
+  transport::Node node1;
+  transport::Node node2;
+
+  // Two one-way providers that disagree on the request type.
+  EXPECT_TRUE(node1.Advertise(service, srvOnewayInt));
+  EXPECT_TRUE(node2.Advertise(service, srvOnewayString));
+
+  cmdServiceReq(service.c_str(), nullptr, "gz.msgs.Empty",
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
   EXPECT_EQ(stdErrBuffer.str(),
-      "No one-way provider on service [/twoway_only] accepts "
-      "request type [gz.msgs.Int32].\n");
+      "Ambiguous service types for service [/oneway_ambiguous]:\n"
+      "  request=gz.msgs.Int32, response=gz.msgs.Empty\n"
+      "  request=gz.msgs.StringMsg, response=gz.msgs.Empty\n"
+      "Use --reqtype and --reptype to specify explicitly.\n");
 
   restoreIO();
 }
