@@ -3,15 +3,9 @@ on:
   push:
     branches:
       - 'scpeters/bazel_repeat_tests'
-  workflow_dispatch:
-    inputs:
-      runs_per_test:
-        default: 10
-        required: false
-        type: string
 
 jobs:
-  call-repeat-tests:
+  repeat-flaky-tests:
     uses: ./.github/workflows/bazel_repeat_tests.yml
     with:
       flaky: 1
