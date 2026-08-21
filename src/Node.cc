@@ -17,8 +17,11 @@
 #include <gz/msgs/discovery.pb.h>
 #include <gz/msgs/statistic.pb.h>
 
+#include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -34,6 +37,7 @@
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "NodePrivate.hh"
 #include "NodeSharedPrivate.hh"
@@ -1139,6 +1143,75 @@ bool Node::ServiceInfo(const std::string &_service,
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+Node::ServiceTypeResolution Node::ResolveServiceTypes(
+    const std::string &_service, std::string &_reqType,
+    std::string &_repType, const unsigned int _timeoutMs) const
+{
+  const bool resolveReq = _reqType.empty();
+  const bool resolveRep = _repType.empty();
+  if (!resolveReq && !resolveRep)
+    return ServiceTypeResolution::kResolved;
+
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+        this->Options().NameSpace(), _service, fullyQualifiedTopic))
+  {
+    return ServiceTypeResolution::kInvalidService;
+  }
+
+  // A type that the caller pinned down selects which providers the
+  // remaining type is resolved from, so that an explicit type can
+  // disambiguate a service offered with more than one signature.
+  auto compatible = [&](const ServicePublisher &_pub)
+  {
+    return (resolveReq || _pub.ReqTypeName() == _reqType) &&
+           (resolveRep || _pub.RepTypeName() == _repType);
+  };
+
+  // Poll discovery until a compatible provider appears or the timeout
+  // expires.
+  std::vector<ServicePublisher> publishers;
+  bool anyProvider = false;
+  if (!waitUntil([&]{
+        std::vector<ServicePublisher> allPublishers;
+        this->ServiceInfo(_service, allPublishers);
+        anyProvider = !allPublishers.empty();
+
+        publishers.clear();
+        std::copy_if(allPublishers.begin(), allPublishers.end(),
+            std::back_inserter(publishers), compatible);
+        return !publishers.empty();
+      },
+      std::chrono::milliseconds(_timeoutMs), std::chrono::milliseconds(100)))
+  {
+    // Distinguish "nobody is there" from "somebody is there, but not with
+    // the types you asked for": only the latter is worth telling the user
+    // to fix their types over.
+    return anyProvider ? ServiceTypeResolution::kIncompatibleTypes
+                       : ServiceTypeResolution::kNoProviders;
+  }
+
+  const std::string reqType = publishers.front().ReqTypeName();
+  const std::string repType = publishers.front().RepTypeName();
+
+  for (const ServicePublisher &pub : publishers)
+  {
+    if ((resolveReq && pub.ReqTypeName() != reqType) ||
+        (resolveRep && pub.RepTypeName() != repType))
+    {
+      return ServiceTypeResolution::kAmbiguousTypes;
+    }
+  }
+
+  if (resolveReq)
+    _reqType = reqType;
+  if (resolveRep)
+    _repType = repType;
+
+  return ServiceTypeResolution::kResolved;
 }
 
 /////////////////////////////////////////////////

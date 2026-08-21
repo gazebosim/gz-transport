@@ -27,6 +27,7 @@
 #include <mutex>
 #include <numeric>
 #include <string>
+#include <utility>
 #include <vector>
 
 #ifdef _MSC_VER
@@ -35,6 +36,7 @@
 #endif
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/json_util.h>
+#include <gz/msgs/empty.pb.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -224,7 +226,7 @@ extern "C" void cmdTopicPub(const char *_topic,
 //////////////////////////////////////////////////
 extern "C" void cmdServiceReq(const char *_service,
   const char *_reqType, const char *_repType, const int _timeout,
-  const char *_reqData)
+  const char *_reqData, const int _verbose)
 {
   if (!_service)
   {
@@ -236,37 +238,99 @@ extern "C" void cmdServiceReq(const char *_service,
   std::string repType = _repType ? _repType : "";
   Node node;
 
-  if (reqType.empty() || repType.empty())
+  // Service providers advertise canonical protobuf names ("gz.msgs.Empty"),
+  // but the factory also accepts the underscore spelling ("gz_msgs.Empty").
+  // Normalize up front so that every later comparison, both against the
+  // advertised types and against gz.msgs.Empty, sees the canonical name.
+  // Names the factory does not recognize are left alone; they are reported
+  // below, when the message is created.
+  auto canonicalType = [](const std::string &_type) -> std::string
   {
-    std::vector<ServicePublisher> publishers;
-    node.ServiceInfo(_service, publishers);
+    if (auto msg = msgs::Factory::New(_type))
+      return std::string(msg->GetTypeName());
+    return _type;
+  };
 
-    if (publishers.empty())
+  if (!reqType.empty())
+    reqType = canonicalType(reqType);
+  if (!repType.empty())
+    repType = canonicalType(repType);
+
+  const bool inferReq = reqType.empty();
+  const bool inferRep = repType.empty();
+  if (inferReq || inferRep)
+  {
+    const unsigned int timeoutMs =
+      _timeout > 0 ? static_cast<unsigned int>(_timeout) : 0u;
+
+    switch (node.ResolveServiceTypes(_service, reqType, repType, timeoutMs))
     {
-      std::cerr << "No service providers on service [" << _service << "]\n";
-      return;
-    }
-
-    const std::string discoveredReqType = publishers[0].ReqTypeName();
-    const std::string discoveredRepType = publishers[0].RepTypeName();
-
-    for (size_t i = 1; i < publishers.size(); ++i)
-    {
-      if (publishers[i].ReqTypeName() != discoveredReqType ||
-          publishers[i].RepTypeName() != discoveredRepType)
+      case Node::ServiceTypeResolution::kInvalidService:
+        std::cerr << "Service [" << _service << "] is not valid.\n";
+        return;
+      case Node::ServiceTypeResolution::kNoProviders:
+        std::cerr << "No service providers on service [" << _service
+          << "] after waiting " << timeoutMs << " ms.\n"
+          << "Use --reqtype and --reptype to request without discovery.\n";
+        return;
+      case Node::ServiceTypeResolution::kAmbiguousTypes:
       {
+        std::vector<ServicePublisher> publishers;
+        node.ServiceInfo(_service, publishers);
+
         std::cerr << "Ambiguous service types for service [" << _service
-          << "].\n" << "  Provider 1: request=" << discoveredReqType
-          << ", response=" << discoveredRepType << "\n"
-          << "  Provider 2: request=" << publishers[i].ReqTypeName()
-          << ", response=" << publishers[i].RepTypeName() << "\n"
-          << "Use --reqtype and --reptype to specify explicitly.\n";
+          << "]:\n";
+        std::vector<std::pair<std::string, std::string>> uniqueTypes;
+        for (const ServicePublisher &pub : publishers)
+        {
+          auto types = std::make_pair(pub.ReqTypeName(), pub.RepTypeName());
+          if (std::find(uniqueTypes.begin(), uniqueTypes.end(), types) !=
+              uniqueTypes.end())
+          {
+            continue;
+          }
+          uniqueTypes.push_back(types);
+          std::cerr << "  request=" << types.first
+            << ", response=" << types.second << "\n";
+        }
+        std::cerr << "Use --reqtype and --reptype to specify explicitly.\n";
+        // Only suggest --oneway when it has not been given already: with an
+        // explicit response type the ambiguity is on the request type, which
+        // --oneway cannot settle.
+        if (inferRep &&
+            std::any_of(uniqueTypes.begin(), uniqueTypes.end(),
+              [](const auto &_types)
+              {
+                return _types.second == "gz.msgs.Empty";
+              }))
+        {
+          std::cerr << "Use --oneway to select the one-way provider.\n";
+        }
         return;
       }
+      case Node::ServiceTypeResolution::kIncompatibleTypes:
+        // The resolver is only consulted when at least one type is missing,
+        // so exactly one type was given here and it is the one that no
+        // provider offers.
+        std::cerr << "No provider on service [" << _service << "] offers "
+          << (inferReq ? "response" : "request") << " type ["
+          << (inferReq ? repType : reqType) << "].\n";
+        return;
+      case Node::ServiceTypeResolution::kResolved:
+      default:
+        break;
     }
 
-    reqType = reqType.empty() ? discoveredReqType : reqType;
-    repType = repType.empty() ? discoveredRepType : repType;
+    // Let the user know which types were inferred without polluting stdout.
+    if (_verbose)
+    {
+      std::cerr << "Inferred types:";
+      if (inferReq)
+        std::cerr << " request=" << reqType;
+      if (inferRep)
+        std::cerr << (inferReq ? ", response=" : " response=") << repType;
+      std::cerr << "\n";
+    }
   }
 
   if (!_reqData)
@@ -294,9 +358,22 @@ extern "C" void cmdServiceReq(const char *_service,
 
   bool result;
 
-  if (repType == "gz.msgs.Empty")
+  // Match how the core decides that a request is one-way
+  // (see NodeShared::SendPendingRemoteReqs).
+  if (rep->GetTypeName() == msgs::Empty().GetTypeName())
   {
-    // One-way service.
+    // One-way service. No response is ever sent, so the return value and
+    // `result` carry no information and the wait below can only expire.
+    // It is kept, and deliberately not tied to _timeout, purely to give
+    // ZeroMQ a window to flush the request before this process exits: the
+    // requester socket is created with linger set to 0, so returning
+    // immediately would discard anything still queued.
+    //
+    // With explicit types this is best effort by design: discovery is not
+    // consulted (Node::ServiceInfo() would block until discovery is
+    // initialized), so a request that no provider can serve is dropped
+    // silently. When a type is inferred, ResolveServiceTypes() above has
+    // already checked that a compatible provider exists.
     node.Request(_service, *req, 1000, *rep, result);
   }
   else
