@@ -12,7 +12,7 @@ package(
 filegroup(
     name = "test_configs",
     srcs = glob(["config/*.json5"]),
-    visibility = ["//visibility:public"],
+    visibility = ["//:__subpackages__"],
 )
 
 gz_configure_header(
