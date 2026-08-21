@@ -53,12 +53,17 @@ extern "C" void cmdTopicPub(const char *_topic,
 /// \param[in] _service Service name.
 /// \param[in] _reqType Message type used in the request. May be null, in which
 ///                     case the type is resolved from the advertised service
-///                     provider (see Node::ResolveServiceTypes()).
+///                     provider (see Node::ResolveServiceTypes()). When given,
+///                     it also selects which providers the other type is
+///                     resolved from. Both the canonical ("gz.msgs.Empty")
+///                     and the underscore ("gz_msgs.Empty") spellings are
+///                     accepted.
 /// \param[in] _repType Message type used in the response. May be null, in
 ///                     which case the type is resolved from the advertised
-///                     service provider. If "gz.msgs.Empty" is used or
-///                     resolved, the request will be one-way and _timeout
-///                     will be ignored.
+///                     service provider. When given, it also selects which
+///                     providers the other type is resolved from. If
+///                     "gz.msgs.Empty" is used or resolved, the request will
+///                     be one-way and _timeout will be ignored.
 /// \param[in] _timeout The request will timeout after '_timeout' ms. When
 ///                     types are being resolved, this value also bounds how
 ///                     long to wait for a service provider to appear.

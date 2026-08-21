@@ -1953,13 +1953,24 @@ TEST(NodeTest, ResolveServiceTypes)
   EXPECT_EQ("gz.msgs.Int32", reqType);
   EXPECT_EQ("gz.msgs.Int32", repType);
 
-  // Non-empty types are left untouched.
-  reqType = "custom.msgs.Type";
+  // A non-empty type is left untouched, and selects the providers that the
+  // empty type is resolved from.
+  reqType = "gz.msgs.Int32";
   repType.clear();
   EXPECT_EQ(Resolution::kResolved,
     node.ResolveServiceTypes(g_topic, reqType, repType));
-  EXPECT_EQ("custom.msgs.Type", reqType);
+  EXPECT_EQ("gz.msgs.Int32", reqType);
   EXPECT_EQ("gz.msgs.Int32", repType);
+
+  // A non-empty type that no provider offers is reported, instead of
+  // resolving the other type from a provider that could never serve the
+  // request.
+  reqType = "custom.msgs.Type";
+  repType.clear();
+  EXPECT_EQ(Resolution::kIncompatibleTypes,
+    node.ResolveServiceTypes(g_topic, reqType, repType));
+  EXPECT_EQ("custom.msgs.Type", reqType);
+  EXPECT_TRUE(repType.empty());
 
   // Nothing to resolve: no discovery involved, even without providers.
   reqType = "custom.msgs.Type";
@@ -2056,13 +2067,21 @@ TEST(NodeTest, ResolveServiceTypesAmbiguous)
   EXPECT_EQ(Resolution::kAmbiguousTypes,
     node1.ResolveServiceTypes(g_topic, reqType, repType));
 
-  // An explicit response type is excluded from the ambiguity check and the
-  // request type is agreed on by all the providers.
+  // An explicit response type selects one of the two providers, so the
+  // request type is no longer ambiguous.
   reqType.clear();
   repType = "gz.msgs.StringMsg";
   EXPECT_EQ(Resolution::kResolved,
     node1.ResolveServiceTypes(g_topic, reqType, repType));
   EXPECT_EQ("gz.msgs.Int32", reqType);
+
+  // An explicit response type that neither provider offers is reported as
+  // incompatible rather than resolved from the wrong provider.
+  reqType.clear();
+  repType = "gz.msgs.Vector3d";
+  EXPECT_EQ(Resolution::kIncompatibleTypes,
+    node1.ResolveServiceTypes(g_topic, reqType, repType));
+  EXPECT_TRUE(reqType.empty());
 
   reset();
 }

@@ -21,11 +21,11 @@
 #include <cassert>
 #include <chrono>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <unordered_set>
 #include <vector>
 
@@ -1162,15 +1162,36 @@ Node::ServiceTypeResolution Node::ResolveServiceTypes(
     return ServiceTypeResolution::kInvalidService;
   }
 
-  // Poll discovery until a provider appears or the timeout expires.
+  // A type that the caller pinned down selects which providers the
+  // remaining type is resolved from, so that an explicit type can
+  // disambiguate a service offered with more than one signature.
+  auto compatible = [&](const ServicePublisher &_pub)
+  {
+    return (resolveReq || _pub.ReqTypeName() == _reqType) &&
+           (resolveRep || _pub.RepTypeName() == _repType);
+  };
+
+  // Poll discovery until a compatible provider appears or the timeout
+  // expires.
   std::vector<ServicePublisher> publishers;
+  bool anyProvider = false;
   if (!waitUntil([&]{
-        this->ServiceInfo(_service, publishers);
+        std::vector<ServicePublisher> allPublishers;
+        this->ServiceInfo(_service, allPublishers);
+        anyProvider = !allPublishers.empty();
+
+        publishers.clear();
+        std::copy_if(allPublishers.begin(), allPublishers.end(),
+            std::back_inserter(publishers), compatible);
         return !publishers.empty();
       },
       std::chrono::milliseconds(_timeoutMs), std::chrono::milliseconds(100)))
   {
-    return ServiceTypeResolution::kNoProviders;
+    // Distinguish "nobody is there" from "somebody is there, but not with
+    // the types you asked for": only the latter is worth telling the user
+    // to fix their types over.
+    return anyProvider ? ServiceTypeResolution::kIncompatibleTypes
+                       : ServiceTypeResolution::kNoProviders;
   }
 
   const std::string reqType = publishers.front().ReqTypeName();
