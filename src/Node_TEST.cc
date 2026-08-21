@@ -1221,6 +1221,34 @@ TEST(NodeTest, AdvertiseRelativeTopicTwice)
 }
 
 //////////////////////////////////////////////////
+/// \brief Advertise a remapped topic twice on the same node.
+TEST(NodeTest, AdvertiseRemappedTopicTwice)
+{
+  transport::NodeOptions opts;
+  opts.AddTopicRemap("/remap_from", "/remap_to");
+  transport::Node node(opts);
+
+  auto pub1 = node.Advertise<msgs::Int32>("/remap_from");
+  EXPECT_TRUE(pub1);
+  auto pub2 = node.Advertise<msgs::Int32>("/remap_from");
+  EXPECT_FALSE(pub2);
+}
+
+//////////////////////////////////////////////////
+/// \brief Advertise a namespaced relative topic twice on the same node.
+TEST(NodeTest, AdvertiseNamespacedTopicTwice)
+{
+  transport::NodeOptions opts;
+  opts.SetNameSpace("my_ns");
+  transport::Node node(opts);
+
+  auto pub1 = node.Advertise<msgs::Int32>("ns_topic");
+  EXPECT_TRUE(pub1);
+  auto pub2 = node.Advertise<msgs::Int32>("ns_topic");
+  EXPECT_FALSE(pub2);
+}
+
+//////////////////////////////////////////////////
 /// \brief Use two threads using their own transport nodes. One thread
 /// will publish a message, whereas the other thread is subscribed to the topic.
 TEST(NodeTest, PubSubTwoThreadsSameTopic)
