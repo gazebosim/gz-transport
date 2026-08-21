@@ -1197,6 +1197,30 @@ TEST(NodeTest, AdvertiseTwoEqualTopics)
 }
 
 //////////////////////////////////////////////////
+/// \brief Advertise the same topic with the same type twice on the same node.
+TEST(NodeTest, AdvertiseSameTopicSameTypeOnSameNode)
+{
+  transport::Node node;
+
+  auto pub1 = node.Advertise<msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub1);
+  auto pub2 = node.Advertise<msgs::Int32>(g_topic);
+  EXPECT_FALSE(pub2);
+}
+
+//////////////////////////////////////////////////
+/// \brief Advertise a relative topic (no leading slash) twice on the same node.
+TEST(NodeTest, AdvertiseRelativeTopicTwice)
+{
+  transport::Node node;
+
+  auto pub1 = node.Advertise<msgs::Int32>("relative_topic");
+  EXPECT_TRUE(pub1);
+  auto pub2 = node.Advertise<msgs::Int32>("relative_topic");
+  EXPECT_FALSE(pub2);
+}
+
+//////////////////////////////////////////////////
 /// \brief Use two threads using their own transport nodes. One thread
 /// will publish a message, whereas the other thread is subscribed to the topic.
 TEST(NodeTest, PubSubTwoThreadsSameTopic)
