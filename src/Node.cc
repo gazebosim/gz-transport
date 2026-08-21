@@ -1230,10 +1230,13 @@ Node::Publisher Node::Advertise(const std::string &_topic,
     return Publisher();
   }
 
+  std::string topicWithoutPartition = fullyQualifiedTopic;
+  topicWithoutPartition.erase(0, topicWithoutPartition.find_last_of("@") + 1);
+
   auto currentTopics = this->AdvertisedTopics();
 
   if (std::find(currentTopics.begin(), currentTopics.end(),
-        _topic) != currentTopics.end())
+        topicWithoutPartition) != currentTopics.end())
   {
     std::cerr << "Topic [" << topic << "] already advertised. You cannot"
       << " advertise the same topic twice on the same node."
