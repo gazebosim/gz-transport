@@ -29,6 +29,7 @@
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "test_config.hh"
 #include "test_utils.hh"
@@ -411,7 +412,7 @@ TEST(gzTest, ServiceOnewayRequest)
     {"service", "-s", service, "--reqtype", "gz.msgs.StringMsg",
      "--req", "data: \"good_value\""});
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  transport::waitUntil([]{ return g_topicCBStr == "good_value"; });
   EXPECT_EQ("good_value", g_topicCBStr);
 }
 
