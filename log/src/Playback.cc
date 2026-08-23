@@ -20,19 +20,26 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
-#include <functional>
+#include <cstdint>
+#include <ios>
 #include <memory>
 #include <mutex>
+#include <regex>
+#include <string>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 #include <gz/transport/Node.hh>
+#include <gz/transport/NodeOptions.hh>
+#include <gz/transport/log/Batch.hh>
+#include <gz/transport/log/Descriptor.hh>
 #include <gz/transport/log/Log.hh>
 #include <gz/transport/log/Playback.hh>
+#include <gz/transport/log/QualifiedTime.hh>
+#include <gz/transport/log/QueryOptions.hh>
 #include "Console.hh"
-#include "build_config.hh"
-#include "raii-sqlite3.hh"
 
 using namespace gz::transport;
 using namespace gz::transport::log;

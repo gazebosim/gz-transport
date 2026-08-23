@@ -17,6 +17,7 @@
 #ifndef GZ_TRANSPORT_LOG_RECORDER_HH_
 #define GZ_TRANSPORT_LOG_RECORDER_HH_
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <regex>

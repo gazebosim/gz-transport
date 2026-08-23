@@ -15,11 +15,12 @@
  *
 */
 
+#include <memory>
+#include <utility>
 #include <vector>
 
 #include "gz/transport/log/Batch.hh"
 #include "BatchPrivate.hh"
-#include "build_config.hh"
 #include "MsgIterPrivate.hh"
 #include "raii-sqlite3.hh"
 

@@ -19,6 +19,7 @@
 #define GZ_TRANSPORT_LOG_LOG_HH_
 
 #include <chrono>
+#include <cstddef>
 #include <ios>
 #include <memory>
 #include <string>

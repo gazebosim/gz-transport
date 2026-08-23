@@ -15,7 +15,6 @@
  *
 */
 
-#include <gz/transport/log/Export.hh>
 
 /// \brief Sets verbosity of library
 /// \param[in] _level [0-4] Verbosity level

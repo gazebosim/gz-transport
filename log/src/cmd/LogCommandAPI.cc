@@ -17,17 +17,18 @@
 
 #include "LogCommandAPI.hh"
 
+#include <chrono>
 #include <csignal>
 #include <filesystem>
 #include <iostream>
 #include <regex>
 #include <string>
+#include <thread>
 
-#include <gz/transport/log/Export.hh>
 #include <gz/transport/log/Playback.hh>
 #include <gz/transport/log/Recorder.hh>
-#include <gz/transport/Node.hh>
 #include <gz/transport/NodeOptions.hh>
+#include <gz/transport/WaitHelpers.hh>
 #include "../Console.hh"
 
 using namespace gz;

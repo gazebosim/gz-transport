@@ -16,6 +16,7 @@
 */
 
 #include <chrono>
+#include <utility>
 
 #include <gz/transport/log/QualifiedTime.hh>
 

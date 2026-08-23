@@ -16,6 +16,7 @@
 */
 
 #include <chrono>
+#include <cstddef>
 #include <string>
 
 #include "gz/transport/log/Message.hh"

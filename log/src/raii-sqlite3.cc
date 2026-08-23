@@ -17,6 +17,7 @@
 
 #include <sqlite3.h>
 
+#include <cstddef>
 #include <string>
 
 #include "Console.hh"

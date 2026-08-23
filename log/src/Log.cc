@@ -21,14 +21,15 @@
 #include <cstdint>
 #include <cstdlib>
 #include <fstream>
-#include <functional>
+#include <ios>
 #include <memory>
 #include <string>
 #include <utility>
 
+#include "gz/transport/log/Batch.hh"
 #include "gz/transport/log/Descriptor.hh"
 #include "gz/transport/log/Log.hh"
-#include "gz/transport/log/SqlStatement.hh"
+#include "gz/transport/log/QueryOptions.hh"
 #include "BatchPrivate.hh"
 #include "build_config.hh"
 #include "Console.hh"

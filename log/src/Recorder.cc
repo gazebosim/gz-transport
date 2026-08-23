@@ -17,28 +17,35 @@
 
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <deque>
 #include <functional>
+#include <ios>
 #include <memory>
 #include <mutex>
 #include <regex>
 #include <set>
+#include <string>
+#include <thread>
 #include <utility>
 #include <vector>
-#include <thread>
 
 #include <gz/transport/Clock.hh>
 #include <gz/transport/log/Log.hh>
 #include <gz/transport/log/Recorder.hh>
 #include <gz/transport/MessageInfo.hh>
 #include <gz/transport/Node.hh>
+#include <gz/transport/NodeShared.hh>
+#include <gz/transport/Publisher.hh>
+#include <gz/transport/TopicUtils.hh>
 #include <gz/transport/TransportTypes.hh>
+#include <gz/transport/Uuid.hh>
 
 #include "Console.hh"
 #include "../../src/Discovery.hh"
-#include "raii-sqlite3.hh"
-#include "build_config.hh"
 
 using namespace gz::transport;
 using namespace gz::transport::log;

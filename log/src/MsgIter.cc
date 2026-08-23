@@ -17,11 +17,15 @@
 
 #include <sqlite3.h>
 
+#include <chrono>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "Console.hh"
+#include "gz/transport/log/Message.hh"
 #include "gz/transport/log/MsgIter.hh"
+#include "gz/transport/log/SqlStatement.hh"
 #include "MsgIterPrivate.hh"
 #include "raii-sqlite3.hh"
 

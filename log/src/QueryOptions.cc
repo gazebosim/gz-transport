@@ -19,9 +19,13 @@
 #include <regex>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include <gz/transport/log/Descriptor.hh>
+#include <gz/transport/log/QualifiedTime.hh>
 #include <gz/transport/log/QueryOptions.hh>
+#include <gz/transport/log/SqlStatement.hh>
 
 using namespace gz::transport;
 using namespace gz::transport::log;

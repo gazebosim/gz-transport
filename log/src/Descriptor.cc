@@ -17,6 +17,7 @@
 
 #include "Descriptor.hh"
 
+#include <cstdint>
 #include <string>
 #include <utility>
 

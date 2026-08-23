@@ -18,6 +18,7 @@
 #define GZ_TRANSPORT_LOG_PLAYBACK_HH_
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <regex>
 #include <string>

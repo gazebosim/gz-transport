@@ -15,8 +15,10 @@
  *
 */
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
+#include <utility>
 
 #include <gz/transport/log/SqlStatement.hh>
 

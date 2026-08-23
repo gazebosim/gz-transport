@@ -18,6 +18,8 @@
 #ifndef GZ_TRANSPORT_LOG_SQLSTATEMENT_HH_
 #define GZ_TRANSPORT_LOG_SQLSTATEMENT_HH_
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
