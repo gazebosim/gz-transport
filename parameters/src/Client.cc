@@ -18,15 +18,20 @@
 #include "gz/transport/parameters/Client.hh"
 
 #include <memory>
-#include <sstream>
+#include <stdexcept>
 #include <string>
 
-#include <gz/msgs/boolean.pb.h>
+#include <google/protobuf/message.h>
+
+#include <gz/msgs/Factory.hh>
+#include <gz/msgs/empty.pb.h>
 #include <gz/msgs/parameter.pb.h>
+#include <gz/msgs/parameter_declarations.pb.h>
 #include <gz/msgs/parameter_error.pb.h>
 #include <gz/msgs/parameter_name.pb.h>
 #include <gz/msgs/parameter_value.pb.h>
 
+#include "gz/transport/Node.hh"
 #include "gz/transport/parameters/result.hh"
 
 #include "Utils.hh"

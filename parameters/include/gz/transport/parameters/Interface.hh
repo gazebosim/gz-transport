@@ -18,18 +18,23 @@
 #ifndef GZ_TRANSPORT_PARAMETERS_INTERFACE_HH_
 #define GZ_TRANSPORT_PARAMETERS_INTERFACE_HH_
 
-#include <functional>
 #include <memory>
 #include <string>
-#include <variant>
-
-#include <google/protobuf/message.h>
-
-#include <gz/msgs/parameter_declarations.pb.h>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/parameters/result.hh"
 #include "gz/transport/parameters/Export.hh"
+
+// Forward declarations.
+namespace google::protobuf
+{
+  class Message;
+}
+
+namespace gz::msgs
+{
+  class ParameterDeclarations;
+}
 
 namespace gz::transport::parameters
 {

@@ -19,6 +19,7 @@
 #include "gz/transport/parameters/Registry.hh"
 
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/parameter_declarations.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 
 #include "gtest/gtest.h"

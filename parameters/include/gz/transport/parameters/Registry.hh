@@ -18,13 +18,8 @@
 #ifndef GZ_TRANSPORT_PARAMETERS_REGISTRY_HH_
 #define GZ_TRANSPORT_PARAMETERS_REGISTRY_HH_
 
-#include <functional>
 #include <memory>
 #include <string>
-
-#include <google/protobuf/message.h>
-
-#include <gz/msgs/parameter_declarations.pb.h>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/parameters/result.hh"

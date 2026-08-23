@@ -17,6 +17,7 @@
 
 #include <ostream>
 #include <sstream>
+#include <string>
 
 #include "gz/transport/parameters/result.hh"
 

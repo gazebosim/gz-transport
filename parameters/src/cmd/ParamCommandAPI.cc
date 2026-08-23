@@ -17,18 +17,17 @@
 
 #include "ParamCommandAPI.hh"
 
+#include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
+#include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/empty.pb.h>
-#include <gz/msgs/parameter.pb.h>
+#include <gz/msgs/Factory.hh>
 #include <gz/msgs/parameter_declarations.pb.h>
-#include <gz/msgs/parameter_name.pb.h>
-#include <gz/msgs/parameter_value.pb.h>
 
 #include <gz/transport/parameters/Client.hh>
 

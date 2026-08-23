@@ -18,7 +18,7 @@
 #ifndef GZ_TRANSPORT_PARAMETERS_EXCEPTIONS_HH_
 #define GZ_TRANSPORT_PARAMETERS_EXCEPTIONS_HH_
 
-#include <ostream>
+#include <iosfwd>
 #include <string>
 
 #include "gz/transport/config.hh"

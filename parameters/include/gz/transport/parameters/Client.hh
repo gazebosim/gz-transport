@@ -21,12 +21,7 @@
 #include <memory>
 #include <string>
 
-#include "google/protobuf/message.h"
-
-#include "gz/msgs/parameter_declarations.pb.h"
-
 #include "gz/transport/config.hh"
-#include "gz/transport/Node.hh"
 #include "gz/transport/parameters/Export.hh"
 #include "gz/transport/parameters/Interface.hh"
 
