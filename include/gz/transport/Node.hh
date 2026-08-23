@@ -17,6 +17,8 @@
 #ifndef GZ_TRANSPORT_NODE_HH_
 #define GZ_TRANSPORT_NODE_HH_
 
+#include <cstdint>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -25,6 +27,7 @@
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
+#include "gz/transport/MessageInfo.hh"
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/Publisher.hh"
@@ -32,6 +35,8 @@
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TransportTypes.hh"
+// Not used by this header. Kept so that users of waitForShutdown() and
+// friends that only include Node.hh keep compiling.
 #include "gz/transport/WaitHelpers.hh"
 
 namespace zenoh

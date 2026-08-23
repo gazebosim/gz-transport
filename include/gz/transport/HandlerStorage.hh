@@ -18,6 +18,7 @@
 #ifndef GZ_TRANSPORT_HANDLERSTORAGE_HH_
 #define GZ_TRANSPORT_HANDLERSTORAGE_HH_
 
+#include <cstddef>
 #include <map>
 #include <memory>
 #include <string>

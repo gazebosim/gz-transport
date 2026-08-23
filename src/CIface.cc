@@ -18,10 +18,15 @@
 #include <cstring>
 #include <map>
 #include <memory>
+#include <string>
 
-#include "gz/transport/Node.hh"
-#include "gz/transport/SubscribeOptions.hh"
 #include "gz/transport/CIface.h"
+#include "gz/transport/MessageInfo.hh"
+#include "gz/transport/Node.hh"
+#include "gz/transport/NodeOptions.hh"
+#include "gz/transport/SubscribeOptions.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 /// \brief A wrapper to store a Gazebo Transport node and its publishers.
 struct GzTransportNode

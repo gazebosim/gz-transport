@@ -19,8 +19,8 @@
 #define GZ_TRANSPORT_DETAIL_NODE_HH_
 
 #include <gz/msgs/empty.pb.h>
-#include <algorithm>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <string>

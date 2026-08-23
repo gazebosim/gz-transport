@@ -17,16 +17,8 @@
 #ifndef GZ_TRANSPORT_TRANSPORTTYPES_HH_
 #define GZ_TRANSPORT_TRANSPORTTYPES_HH_
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-#include <google/protobuf/message.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 #include <chrono>
+#include <cstddef>
 #include <functional>
 #include <map>
 #include <memory>
@@ -34,7 +26,12 @@
 #include <vector>
 
 #include "gz/transport/config.hh"
-#include "gz/transport/Publisher.hh"
+
+namespace google::protobuf
+{
+  /// \brief Forward declaration.
+  class Message;
+}
 
 namespace zenoh
 {
@@ -51,8 +48,10 @@ namespace gz::transport
   class IRepHandler;
   class IReqHandler;
   class ISubscriptionHandler;
-  class RawSubscriptionHandler;
   class MessageInfo;
+  class MessagePublisher;
+  class RawSubscriptionHandler;
+  class ServicePublisher;
 
   /// \def Addresses_M
   /// \brief Map that stores all generic publishers.

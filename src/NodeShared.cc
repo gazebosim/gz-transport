@@ -17,17 +17,27 @@
 #include <google/protobuf/text_format.h>
 #include <gz/msgs/empty.pb.h>
 
+#include <algorithm>
+#include <cassert>
 #include <chrono>
+#include <cstdlib>
 #include <cstring>
+#include <functional>
 #include <iostream>
+#include <iterator>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <shared_mutex>  //NOLINT
+#include <stdexcept>
 #include <string>
 #include <thread>
-#include <vector>
 #include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
@@ -36,10 +46,12 @@
 
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Helpers.hh"
+#include "gz/transport/MessageInfo.hh"
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/ReqHandler.hh"
 #include "gz/transport/SubscriptionHandler.hh"
+#include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 

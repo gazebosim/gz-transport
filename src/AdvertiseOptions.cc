@@ -16,8 +16,7 @@
 */
 
 #include <cstdint>
-#include <cstring>
-#include <iostream>
+#include <ostream>
 
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Helpers.hh"

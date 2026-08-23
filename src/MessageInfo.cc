@@ -16,6 +16,7 @@
 */
 
 #include <string>
+#include <utility>
 
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/TopicUtils.hh"

@@ -16,9 +16,12 @@
 */
 #include <gz/msgs/statistic.pb.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <sstream>
+#include <cstdint>
+#include <map>
+#include <string>
 
 #include "gz/transport/TopicStatistics.hh"
 

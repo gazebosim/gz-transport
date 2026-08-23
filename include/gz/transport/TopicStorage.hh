@@ -19,13 +19,13 @@
 #define GZ_TRANSPORT_TOPICSTORAGE_HH_
 
 #include <algorithm>
+#include <cstddef>
+#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "gz/transport/config.hh"
-#include "gz/transport/Export.hh"
-#include "gz/transport/Publisher.hh"
 #include "gz/transport/TransportTypes.hh"
 
 namespace gz::transport

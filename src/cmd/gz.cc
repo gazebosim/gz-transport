@@ -21,12 +21,15 @@
 #include <chrono>
 #include <cmath>
 #include <condition_variable>
-#include <ctime>
+#include <cstdint>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <mutex>
 #include <numeric>
+#include <ratio>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -45,8 +48,9 @@
 
 #include "gz.hh"
 #include "gz/transport/config.hh"
-#include "gz/transport/Helpers.hh"
 #include "gz/transport/Node.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/TransportTypes.hh"
 #include "gz/transport/WaitHelpers.hh"
 
 namespace gz::transport

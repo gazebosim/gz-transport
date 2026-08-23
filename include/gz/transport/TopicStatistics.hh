@@ -17,25 +17,18 @@
 #ifndef GZ_TRANSPORT_TOPICSTATISTICS_HH_
 #define GZ_TRANSPORT_TOPICSTATISTICS_HH_
 
-#include <gz/msgs/statistic.pb.h>
-
-#include <algorithm>
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <string>
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 
-#ifdef _WIN32
-#ifndef NOMINMAX
-  #define NOMINMAX
-#endif
-#ifdef min
-  #undef min
-  #undef max
-#endif
-#include <windows.h>
-#endif
+namespace gz::msgs
+{
+  // Forward declaration.
+  class Metric;
+}
 
 namespace gz::transport
 {
@@ -90,10 +83,10 @@ namespace gz::transport
     private: double sumSquareMeanDist = 0;
 
     /// \brief Minimum sample.
-    private: double min = std::numeric_limits<double>::max();
+    private: double min = (std::numeric_limits<double>::max)();
 
     /// \brief Maximum sample.
-    private: double max = std::numeric_limits<double>::min();
+    private: double max = (std::numeric_limits<double>::min)();
   };
 
   /// \brief Encapsulates statistics for a single topic. The set of

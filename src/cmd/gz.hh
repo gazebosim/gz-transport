@@ -20,10 +20,6 @@
 #ifndef GZ_TRANSPORT_GZ_HH_
 #define GZ_TRANSPORT_GZ_HH_
 
-#include <cstring>
-
-#include "gz/transport/Export.hh"
-
 /// \brief External hook to execute 'gz topic -i' from the command line.
 /// \param[in] _topic Topic name.
 extern "C" void cmdTopicInfo(const char *_topic);

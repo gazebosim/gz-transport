@@ -18,6 +18,7 @@
 #define GZ_TRANSPORT_CLOCK_HH_
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <string>
 

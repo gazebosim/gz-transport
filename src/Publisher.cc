@@ -15,16 +15,13 @@
  *
 */
 
-#include <cstdint>
-#include <cstring>
-#include <iostream>
+#include <gz/msgs/discovery.pb.h>
+
 #include <string>
 
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/Publisher.hh"
-#include "gz/transport/NodeShared.hh"
-#include "gz/transport/SubscriptionHandler.hh"
 
 namespace gz::transport
 {

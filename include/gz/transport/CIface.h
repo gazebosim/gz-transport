@@ -18,7 +18,7 @@
 #ifndef INCLUDE_GZ_TRANSPORT_CIFACE_H_
 #define INCLUDE_GZ_TRANSPORT_CIFACE_H_
 
-#include <cstddef>
+#include <stddef.h>
 
 #include "gz/transport/Export.hh"
 

@@ -17,6 +17,8 @@
 
 #include <memory>
 #include <string>
+#include <utility>
+
 #include "gz/transport/config.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/TopicUtils.hh"

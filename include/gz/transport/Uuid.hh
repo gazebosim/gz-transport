@@ -18,7 +18,7 @@
 #ifndef GZ_TRANSPORT_UUID_HH_
 #define GZ_TRANSPORT_UUID_HH_
 
-#include <iostream>
+#include <ostream>
 #include <string>
 
 #include "gz/transport/config.hh"

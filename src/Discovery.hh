@@ -17,8 +17,8 @@
 
 #ifndef GZ_TRANSPORT_DISCOVERY_HH_
 #define GZ_TRANSPORT_DISCOVERY_HH_
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
 
 #ifdef _WIN32
   // For socket(), connect(), send(), and recv().
@@ -59,7 +59,11 @@
 #include <gz/msgs/discovery.pb.h>
 
 #include <algorithm>
+#include <chrono>
 #include <condition_variable>
+#include <cstdint>
+#include <functional>
+#include <iostream>
 #include <limits>
 #include <map>
 #include <memory>

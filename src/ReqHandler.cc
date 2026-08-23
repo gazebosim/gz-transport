@@ -16,9 +16,12 @@
 */
 
 #include <condition_variable>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
+
 #include "gz/transport/config.hh"
 #include "gz/transport/ReqHandler.hh"
 #include "gz/transport/Uuid.hh"

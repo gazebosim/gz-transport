@@ -18,27 +18,21 @@
 #ifndef GZ_TRANSPORT_NODESHARED_HH_
 #define GZ_TRANSPORT_NODESHARED_HH_
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-#include <google/protobuf/message.h>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
+#include <cstddef>
+#include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
 #include <thread>
-#include <vector>
-#include <map>
 #include <unordered_set>
+#include <vector>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
 #include "gz/transport/HandlerStorage.hh"
+#include "gz/transport/MessageInfo.hh"
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/SubscriptionHandler.hh"

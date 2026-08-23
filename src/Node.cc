@@ -14,30 +14,41 @@
  * limitations under the License.
  *
 */
-#include <gz/msgs/discovery.pb.h>
 #include <gz/msgs/statistic.pb.h>
 
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <functional>
 #include <iostream>
 #include <iterator>
-#include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
-#include "gz/transport/Helpers.hh"
+#include "gz/transport/config.hh"
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/Node.hh"
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/NodeShared.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/SubscribeOptions.hh"
+#include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
 #include "gz/transport/WaitHelpers.hh"
+
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
 
 #include "NodePrivate.hh"
 #include "NodeSharedPrivate.hh"

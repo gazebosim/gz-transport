@@ -15,6 +15,8 @@
  *
 */
 
+#include <gz/msgs/discovery.pb.h>
+
 #include <cstdint>
 #include <iostream>
 #include <string>

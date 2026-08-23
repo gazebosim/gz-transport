@@ -19,8 +19,8 @@
 #define GZ_TRANSPORT_ADVERTISEOPTIONS_HH_
 
 #include <cstdint>
-#include <iostream>
 #include <memory>
+#include <ostream>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"

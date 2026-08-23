@@ -20,26 +20,41 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cctype>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <filesystem>
+#include <functional>
+#include <iostream>
 #include <list>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include <zmq.hpp>
-#ifdef HAVE_ZENOH
-#include <zenoh.hxx>
-#endif
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Exception.hh"
-#include "gz/transport/Node.hh"
+#include "gz/transport/HandlerStorage.hh"
+#include "gz/transport/Helpers.hh"
+#include "gz/transport/MessageInfo.hh"
+#include "gz/transport/NodeShared.hh"
+#include "gz/transport/Publisher.hh"
+#include "gz/transport/TopicStatistics.hh"
+#include "gz/transport/TransportTypes.hh"
 #include "Discovery.hh"
+
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
 
 namespace gz::transport
 {

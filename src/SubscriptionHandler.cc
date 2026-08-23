@@ -15,9 +15,20 @@
  *
 */
 
+#include <chrono>
+#include <cstddef>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
+
 #include "gz/transport/config.hh"
+#include "gz/transport/MessageInfo.hh"
+#include "gz/transport/SubscribeOptions.hh"
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicUtils.hh"
+#include "gz/transport/TransportTypes.hh"
+#include "gz/transport/Uuid.hh"
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>

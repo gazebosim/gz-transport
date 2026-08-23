@@ -31,7 +31,6 @@
 #pragma warning(pop)
 #endif
 
-#include <chrono>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -45,7 +44,6 @@
 #include "gz/transport/SubscribeOptions.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
-#include "gz/transport/Uuid.hh"
 
 namespace zenoh
 {

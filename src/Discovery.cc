@@ -17,6 +17,7 @@
 
 #include <zmq.hpp>
 
+#include <chrono>
 #include <vector>
 
 #include "Discovery.hh"
