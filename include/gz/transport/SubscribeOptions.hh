@@ -46,6 +46,11 @@ namespace gz::transport
     /// \brief Destructor.
     public: ~SubscribeOptions();
 
+    /// \brief Assignment operator.
+    /// \param[in] _other The new SubscribeOptions.
+    /// \return A reference to this instance.
+    public: SubscribeOptions &operator=(const SubscribeOptions &_other);
+
     /// \brief Whether the subscription has been throttled.
     /// \return true when the subscription is throttled or false otherwise.
     /// \sa SetMsgsPerSec

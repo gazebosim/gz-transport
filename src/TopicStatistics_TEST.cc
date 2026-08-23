@@ -48,6 +48,29 @@ TEST(TopicsStatistics, Constructor)
 }
 
 //////////////////////////////////////////////////
+TEST(TopicsStatistics, CopyAndAssignment)
+{
+  TopicStatistics topicStats;
+  topicStats.Update("foo", 1, 0);
+  topicStats.Update("foo", 2, 1);
+  topicStats.Update("foo", 3, 3);
+  EXPECT_EQ(1u, topicStats.DroppedMsgCount());
+
+  TopicStatistics statsCopy(topicStats);
+  EXPECT_EQ(1u, statsCopy.DroppedMsgCount());
+  EXPECT_EQ(2u, statsCopy.PublicationStatistics().Count());
+
+  TopicStatistics statsAssigned;
+  statsAssigned = topicStats;
+  EXPECT_EQ(1u, statsAssigned.DroppedMsgCount());
+  EXPECT_EQ(2u, statsAssigned.PublicationStatistics().Count());
+
+  // Self assignment is a no-op.
+  statsAssigned = statsAssigned;
+  EXPECT_EQ(1u, statsAssigned.DroppedMsgCount());
+}
+
+//////////////////////////////////////////////////
 TEST(TopicsStatistics, DroppedMsg)
 {
   TopicStatistics topicStats;

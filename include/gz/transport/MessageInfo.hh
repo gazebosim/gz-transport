@@ -49,6 +49,16 @@ namespace gz::transport
     /// \brief Destructor.
     public: ~MessageInfo();
 
+    /// \brief Copy assignment operator.
+    /// \param[in] _other an instance to copy data from
+    /// \return A reference to this instance.
+    public: MessageInfo &operator=(const MessageInfo &_other);
+
+    /// \brief Move assignment operator.
+    /// \param[in] _other an instance data is moved from
+    /// \return A reference to this instance.
+    public: MessageInfo &operator=(MessageInfo &&_other);  // NOLINT
+
     /// \brief Get the topic name associated to the message.
     /// \return The topic name.
     public: const std::string &Topic() const;

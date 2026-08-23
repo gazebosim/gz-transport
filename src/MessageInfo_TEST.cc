@@ -16,6 +16,7 @@
 */
 
 #include <string>
+#include <utility>
 
 #include "gz/transport/MessageInfo.hh"
 #include "gtest/gtest.h"
@@ -125,4 +126,31 @@ TEST(MessageInfoTest, CopyConstructor)
   EXPECT_EQ("/a_partition", infoCopy.Partition());
   EXPECT_EQ("/b_topic", infoCopy.Topic());
   EXPECT_TRUE(infoCopy.IntraProcess());
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the copy and move assignment operators.
+TEST(MessageInfoTest, Assignment)
+{
+  transport::MessageInfo info;
+  info.SetTopicAndPartition("@/a_partition@/b_topic");
+  info.SetType("a_type");
+  info.SetIntraProcess(true);
+
+  transport::MessageInfo infoCopy;
+  infoCopy = info;
+  EXPECT_EQ("/a_partition", infoCopy.Partition());
+  EXPECT_EQ("/b_topic", infoCopy.Topic());
+  EXPECT_EQ("a_type", infoCopy.Type());
+  EXPECT_TRUE(infoCopy.IntraProcess());
+
+  // The source is not modified.
+  EXPECT_EQ("/b_topic", info.Topic());
+
+  transport::MessageInfo infoMoved;
+  infoMoved = std::move(infoCopy);
+  EXPECT_EQ("/a_partition", infoMoved.Partition());
+  EXPECT_EQ("/b_topic", infoMoved.Topic());
+  EXPECT_EQ("a_type", infoMoved.Type());
+  EXPECT_TRUE(infoMoved.IntraProcess());
 }

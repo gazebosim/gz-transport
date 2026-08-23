@@ -42,6 +42,14 @@ SubscribeOptions::~SubscribeOptions()
 }
 
 //////////////////////////////////////////////////
+SubscribeOptions &SubscribeOptions::operator=(const SubscribeOptions &_other)
+{
+  if (this != &_other)
+    *this->dataPtr = *_other.dataPtr;
+  return *this;
+}
+
+//////////////////////////////////////////////////
 bool SubscribeOptions::Throttled() const
 {
   return this->MsgsPerSec() != kUnthrottled;

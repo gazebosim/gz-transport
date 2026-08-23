@@ -76,6 +76,21 @@ MessageInfo::~MessageInfo()
 }
 
 //////////////////////////////////////////////////
+MessageInfo &MessageInfo::operator=(const MessageInfo &_other)
+{
+  if (this != &_other)
+    *this->dataPtr = *_other.dataPtr;
+  return *this;
+}
+
+//////////////////////////////////////////////////
+MessageInfo &MessageInfo::operator=(MessageInfo &&_other)  // NOLINT
+{
+  this->dataPtr = std::move(_other.dataPtr);
+  return *this;
+}
+
+//////////////////////////////////////////////////
 const std::string &MessageInfo::Topic() const
 {
   return this->dataPtr->topic;

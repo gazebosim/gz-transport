@@ -34,6 +34,23 @@ TEST(SubscribeOptionsTest, copyConstructor)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check the assignment operator.
+TEST(SubscribeOptionsTest, assignment)
+{
+  SubscribeOptions opts1;
+  opts1.SetMsgsPerSec(2u);
+  opts1.SetIgnoreLocalMessages(true);
+  SubscribeOptions opts2;
+  opts2 = opts1;
+  EXPECT_EQ(2u, opts2.MsgsPerSec());
+  EXPECT_TRUE(opts2.IgnoreLocalMessages());
+
+  // Self assignment is a no-op.
+  opts2 = opts2;
+  EXPECT_EQ(2u, opts2.MsgsPerSec());
+}
+
+//////////////////////////////////////////////////
 /// \brief Check the accessors.
 TEST(SubscribeOptionsTest, accessors)
 {

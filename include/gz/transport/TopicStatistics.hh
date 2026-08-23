@@ -113,6 +113,11 @@ namespace gz::transport
     /// \brief Default destructor.
     public: ~TopicStatistics();
 
+    /// \brief Assignment operator.
+    /// \param[in] _stats The new TopicStatistics.
+    /// \return A reference to this instance.
+    public: TopicStatistics &operator=(const TopicStatistics &_stats);
+
     /// \brief Update the topic statistics.
     /// \param[in] _sender Address of the sender.
     /// \param[in] _stamp Publication time stamp.

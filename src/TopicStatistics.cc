@@ -140,6 +140,14 @@ TopicStatistics::~TopicStatistics()
 }
 
 //////////////////////////////////////////////////
+TopicStatistics &TopicStatistics::operator=(const TopicStatistics &_stats)
+{
+  if (this != &_stats)
+    *this->dataPtr = *_stats.dataPtr;
+  return *this;
+}
+
+//////////////////////////////////////////////////
 void TopicStatistics::Update(const std::string &_sender,
     uint64_t _stamp, uint64_t _seq)
 {
