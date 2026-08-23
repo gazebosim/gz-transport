@@ -216,20 +216,6 @@ namespace gz::transport
       this->cb = _cb;
     }
 
-#ifdef HAVE_ZENOH
-    /// \brief Set the callback for this handler.
-    /// \param[in] _cb The callback.
-    /// \param[in] _session The Zenoh session.
-    /// \param[in] _topic The topic associated to this callback.
-    public: void SetCallback(const MsgCallback<T> &_cb,
-                             std::shared_ptr<zenoh::Session> _session,
-                             const FullyQualifiedTopic &_fullyQualifiedTopic)
-    {
-      this->SetCallback(std::move(_cb));
-      this->CreateGenericZenohSubscriber(_session, _fullyQualifiedTopic);
-    }
-#endif
-
     // Documentation inherited.
     public: bool RunLocalCallback(const ProtoMsg &_msg,
                                   const MessageInfo &_info)
@@ -347,20 +333,6 @@ namespace gz::transport
       this->cb = _cb;
     }
 
-#ifdef HAVE_ZENOH
-    /// \brief Set the callback for this handler.
-    /// \param[in] _cb The callback.
-    /// \param[in] _session The Zenoh session.
-    /// \param[in] _topic The topic associated to this callback.
-    public: void SetCallback(const MsgCallback<ProtoMsg> &_cb,
-                             std::shared_ptr<zenoh::Session> _session,
-                             const FullyQualifiedTopic &_fullyQualifiedTopic)
-    {
-      this->SetCallback(std::move(_cb));
-      this->CreateGenericZenohSubscriber(_session, _fullyQualifiedTopic);
-    }
-#endif
-
     // Documentation inherited.
     public: bool RunLocalCallback(const ProtoMsg &_msg,
                                   const MessageInfo &_info)
@@ -412,13 +384,12 @@ namespace gz::transport
     public: void SetCallback(const RawCallback &_callback);
 
 #ifdef HAVE_ZENOH
-    /// \brief Set the callback for this handler.
-    /// \param[in] _cb The callback.
+    /// \brief Create a Zenoh subscriber that triggers the raw callback.
     /// \param[in] _session The Zenoh session.
-    /// \param[in] _topic The topic associated to this callback.
-    public: void SetCallback(const RawCallback &_cb,
-                             std::shared_ptr<zenoh::Session> _session,
-                             const FullyQualifiedTopic &_fullyQualifiedTopic);
+    /// \param[in] _fullyQualifiedTopic The topic.
+    public: void CreateZenohSubscriber(
+      std::shared_ptr<zenoh::Session> _session,
+      const FullyQualifiedTopic &_fullyQualifiedTopic);
 #endif
 
     /// \brief Executes the raw callback registered for this handler.

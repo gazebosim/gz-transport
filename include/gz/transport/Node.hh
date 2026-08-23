@@ -29,7 +29,6 @@
 #include "gz/transport/Export.hh"
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/NodeOptions.hh"
-#include "gz/transport/NodeShared.hh"
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/SubscribeOptions.hh"
 #include "gz/transport/SubscriptionHandler.hh"
@@ -53,6 +52,7 @@ namespace gz::transport
   //
   // Forward declarations.
   class NodePrivate;
+  class NodeShared;
 
   /// \brief Get the capacity of the buffer (High Water Mark)
   /// that stores incoming Gazebo Transport messages. Note that this is a
@@ -925,6 +925,64 @@ namespace gz::transport
     /// \param[in] _fullyQualifiedTopic Fully qualified topic name
     /// \return True on success.
     private: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
+
+    /// \brief Get the UUID of the process shared by all the nodes.
+    /// \return The process UUID.
+    private: const std::string &ProcUuid() const;
+
+    /// \brief Register a subscription handler. The topic is remapped and
+    /// validated, the handler is stored in the shared node and the topic is
+    /// discovered. The callback must be set in the handler beforehand.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _handler Subscription handler.
+    /// \return True when successfully subscribed or false otherwise.
+    private: bool RegisterSubscription(const std::string &_topic,
+                                       const ISubscriptionHandlerPtr &_handler);
+
+    /// \brief Register a service handler. The service name is remapped and
+    /// validated, the handler is stored in the shared node and the service
+    /// is advertised. The callback must be set in the handler beforehand.
+    /// \param[in] _topic Service name to be advertised.
+    /// \param[in] _handler Service handler.
+    /// \param[in] _options Advertise options.
+    /// \return True when successfully advertised or false otherwise.
+    private: bool RegisterReplier(const std::string &_topic,
+                                  const IRepHandlerPtr &_handler,
+                                  const AdvertiseServiceOptions &_options);
+
+    /// \brief Get the fully qualified name of a service after applying the
+    /// topic remapping of this node.
+    /// \param[in] _topic Service name.
+    /// \param[out] _fullyQualifiedTopic Fully qualified service name.
+    /// \return True when the service name is valid or false otherwise.
+    private: bool FullyQualifiedService(
+        const std::string &_topic,
+        std::string &_fullyQualifiedTopic) const;
+
+    /// \brief Find a service handler in this process.
+    /// \param[in] _fullyQualifiedTopic Fully qualified service name.
+    /// \param[in] _reqTypeName Request type name.
+    /// \param[in] _repTypeName Response type name.
+    /// \return The handler or nullptr if there is no local service responder.
+    private: IRepHandlerPtr LocalReplier(
+        const std::string &_fullyQualifiedTopic,
+        const std::string &_reqTypeName,
+        const std::string &_repTypeName) const;
+
+    /// \brief Store a request handler and send the request to the remote
+    /// service responder, triggering discovery if its address is unknown.
+    /// The request and the response types must be set in the handler
+    /// beforehand. When a timeout is specified the call blocks until the
+    /// response is received or the timeout expires.
+    /// \param[in] _fullyQualifiedTopic Fully qualified service name.
+    /// \param[in] _handler Request handler.
+    /// \param[in] _timeout Maximum time to wait for the response (ms) or
+    /// std::nullopt to return immediately after sending the request.
+    /// \return True when the request was sent (and, with a timeout, the
+    /// response was received in time) or false otherwise.
+    private: bool SendRequest(const std::string &_fullyQualifiedTopic,
+                              const IReqHandlerPtr &_handler,
+                              const std::optional<unsigned int> &_timeout);
 
     /// \brief Subscribe to a topic registering a callback.
     /// Note that this callback does not include any message information.

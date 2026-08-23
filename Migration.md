@@ -36,6 +36,16 @@ release will remove the deprecated code.
     * `waitForShutdown()` moved from `Node.hh` / `Node.cc` to `WaitHelpers.hh` / `WaitHelpers.cc`. `Node.hh` re-exports via `#include "gz/transport/WaitHelpers.hh"`, so no code changes are required for existing users of `waitForShutdown()`.
     * `waitUntil()`, `waitForService()`, `waitForTopic()` moved from `Helpers.hh` / `Helpers.cc` to `WaitHelpers.hh` / `WaitHelpers.cc`. Code using these functions must now `#include "gz/transport/WaitHelpers.hh"` directly.
 
+2. The internal headers `NodeShared.hh`, `HandlerStorage.hh`,
+   `TopicStorage.hh` and `Uuid.hh` moved from `include/gz/transport/` to
+   `src/` and are no longer installed. `Node.hh` no longer includes
+   `NodeShared.hh`: the `Node` template methods now go through private, non
+   template helpers, so consumers no longer compile against the layout of
+   `NodeShared`, `HandlerStorage`, `TopicStorage` or `Uuid` (and no longer
+   pull `<uuid/uuid.h>`, `<mutex>` or `<thread>` through `Node.hh`). Code that
+   used these classes directly has no replacement; they were never part of the
+   supported API.
+
 ### Deprecations
 
 1. The `gzTransportPublish` function in `CIface.h` has been deprecated because
@@ -57,6 +67,25 @@ release will remove the deprecated code.
 1. Removed zeromq from public header and CMake target. Specifically,
     * Removed `zmq.hpp` include header in `include/gz/transport/Helpers.hh`,
     * Made the `CPPZMQ::CPPCMQ` target in `src/CMakeLists.txt` `PRIVATE`.
+2. Public headers now forward declare the types they only use by reference
+   instead of including their headers. Code that relied on these transitive
+   includes must include them directly:
+    * `Publisher.hh` no longer includes `<gz/msgs/discovery.pb.h>`.
+    * `TopicStatistics.hh` no longer includes `<gz/msgs/statistic.pb.h>`,
+      `<algorithm>` nor `<windows.h>`.
+    * `TransportTypes.hh` no longer includes `<google/protobuf/message.h>`
+      nor `Publisher.hh`.
+    * `RepHandler.hh`, `ReqHandler.hh` and `SubscriptionHandler.hh` no longer
+      include `Uuid.hh`.
+    * `parameters/Client.hh` no longer includes `Node.hh`;
+      `parameters/Interface.hh`, `parameters/Client.hh` and
+      `parameters/Registry.hh` no longer include `<google/protobuf/message.h>`
+      nor `<gz/msgs/parameter_declarations.pb.h>`.
+3. The zenoh specific `SetCallback(_cb, _session, _topic)` overloads of
+   `RepHandler`, `SubscriptionHandler` and `RawSubscriptionHandler` were
+   removed. Set the callback with `SetCallback(_cb)` and create the zenoh
+   entity with `CreateZenohQueriable()`, `CreateGenericZenohSubscriber()` or
+   `CreateZenohSubscriber()` respectively.
 
 ## Gazebo Transport 14.X to 15.X
 

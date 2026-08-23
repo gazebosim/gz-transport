@@ -25,7 +25,7 @@
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/TransportTypes.hh"
-#include "gz/transport/Uuid.hh"
+#include "Uuid.hh"
 
 #include "test_utils.hh"
 #include "gz/utils/Environment.hh"

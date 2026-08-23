@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "gz/transport/Uuid.hh"
+#include "Uuid.hh"
 
 namespace gz::transport
 {

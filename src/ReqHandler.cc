@@ -24,7 +24,7 @@
 
 #include "gz/transport/config.hh"
 #include "gz/transport/ReqHandler.hh"
-#include "gz/transport/Uuid.hh"
+#include "Uuid.hh"
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>

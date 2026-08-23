@@ -22,13 +22,12 @@
 #include <functional>
 #include <iostream>
 #include <memory>
-#include <mutex>
+#include <optional>
 #include <string>
 #include <utility>
 #include "gz/transport/Node.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/ReqHandler.hh"
-#include "gz/transport/TopicUtils.hh"
 
 namespace gz::transport
 {
@@ -144,50 +143,18 @@ namespace gz::transport
                          const MessageInfo &_info)> _cb,
       const SubscribeOptions &_opts)
   {
-    // Topic remapping.
-    std::string topic = _topic;
-    this->Options().TopicRemap(_topic, topic);
-
-    FullyQualifiedTopic fullyQualifiedTopic(
-      this->Options().Partition(), this->Options().NameSpace(), topic);
-
-    if (!fullyQualifiedTopic.FullTopic())
-    {
-      std::cerr << "Topic [" << topic << "] is not valid." << std::endl;
-      return nullptr;
-    }
-
     // Create a new subscription handler.
-    std::shared_ptr<SubscriptionHandler<MessageT>> subscrHandlerPtr(
-        new SubscriptionHandler<MessageT>(
-          this->Shared()->pUuid, this->NodeUuid(), _opts));
+    auto subscrHandlerPtr = std::make_shared<SubscriptionHandler<MessageT>>(
+      this->ProcUuid(), this->NodeUuid(), _opts);
 
     // Insert the callback into the handler.
-    std::string impl = this->Shared()->GzImplementation();
-    if (impl == "zeromq")
-    {
-      subscrHandlerPtr->SetCallback(std::move(_cb));
-    }
-#ifdef HAVE_ZENOH
-    else if (impl == "zenoh")
-    {
-      subscrHandlerPtr->SetCallback(std::move(_cb),
-        this->Shared()->Session(), fullyQualifiedTopic);
-    }
-#endif
-    else
-      return nullptr;
-
-    std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+    subscrHandlerPtr->SetCallback(std::move(_cb));
 
     // Store the subscription handler. Each subscription handler is
     // associated with a topic. When the receiving thread gets new data,
     // it will recover the subscription handler associated to the topic and
     // will invoke the callback.
-    this->Shared()->localSubscribers.normal.AddHandler(
-      *fullyQualifiedTopic.FullTopic(), this->NodeUuid(), subscrHandlerPtr);
-
-    if (!this->SubscribeHelper(*fullyQualifiedTopic.FullTopic()))
+    if (!this->RegisterSubscription(_topic, subscrHandlerPtr))
       return nullptr;
 
     return subscrHandlerPtr;
@@ -278,68 +245,18 @@ namespace gz::transport
     std::function<bool(const RequestT &, ReplyT &)> _cb,
     const AdvertiseServiceOptions &_options)
   {
-    // Topic remapping.
-    std::string topic = _topic;
-    this->Options().TopicRemap(_topic, topic);
-
-    std::string fullyQualifiedTopic;
-    if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-      this->Options().NameSpace(), topic, fullyQualifiedTopic))
-    {
-      std::cerr << "Service [" << topic << "] is not valid." << std::endl;
-      return false;
-    }
-
     // Create a new service reply handler.
-    std::shared_ptr<RepHandler<RequestT, ReplyT>> repHandlerPtr(
-      new RepHandler<RequestT, ReplyT>(this->Shared()->pUuid,
-        this->NodeUuid()));
+    auto repHandlerPtr = std::make_shared<RepHandler<RequestT, ReplyT>>(
+      this->ProcUuid(), this->NodeUuid());
 
     // Insert the callback into the handler.
-    std::string impl = this->Shared()->GzImplementation();
-    if (impl == "zeromq")
-      repHandlerPtr->SetCallback(_cb);
-#ifdef HAVE_ZENOH
-    else if (impl == "zenoh")
-    {
-      repHandlerPtr->SetCallback(_cb,
-        this->Shared()->Session(), fullyQualifiedTopic);
-    }
-#endif
-
-    std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-
-    // Add the topic to the list of advertised services.
-    this->SrvsAdvertised().insert(fullyQualifiedTopic);
+    repHandlerPtr->SetCallback(_cb);
 
     // Store the replier handler. Each replier handler is
     // associated with a topic. When the receiving thread gets new requests,
     // it will recover the replier handler associated to the topic and
     // will invoke the service call.
-    this->Shared()->Repliers().AddHandler(
-      fullyQualifiedTopic, this->NodeUuid(), repHandlerPtr);
-
-    if (impl == "zeromq")
-    {
-      // Notify the discovery service to register and advertise my responser.
-      ServicePublisher publisher(fullyQualifiedTopic,
-        this->Shared()->ReplierAddress(),
-        this->Shared()->replierId.ToString(),
-        this->Shared()->pUuid, this->NodeUuid(),
-        std::string(RequestT().GetTypeName()),
-        std::string(ReplyT().GetTypeName()), _options);
-
-      if (!this->Shared()->AdvertisePublisher(publisher))
-      {
-        std::cerr << "Node::Advertise(): Error advertising service ["
-                  << topic
-                  << "]. Did you forget to start the discovery service?"
-                  << std::endl;
-        return false;
-      }
-    }
-
-    return true;
+    return this->RegisterReplier(_topic, repHandlerPtr, _options);
   }
 
   //////////////////////////////////////////////////
@@ -463,81 +380,35 @@ namespace gz::transport
     const RequestT &_request,
     std::function<void(const ReplyT &_reply, const bool _result)> &_cb)
   {
-    // Topic remapping.
-    std::string topic = _topic;
-    this->Options().TopicRemap(_topic, topic);
-
     std::string fullyQualifiedTopic;
-    if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-      this->Options().NameSpace(), topic, fullyQualifiedTopic))
-    {
-      std::cerr << "Service [" << topic << "] is not valid." << std::endl;
+    if (!this->FullyQualifiedService(_topic, fullyQualifiedTopic))
       return false;
-    }
 
-    bool localResponserFound;
-    IRepHandlerPtr repHandler;
+    // If the responser is within my process, let's use it.
+    IRepHandlerPtr repHandler = this->LocalReplier(fullyQualifiedTopic,
+      std::string(RequestT().GetTypeName()),
+      std::string(ReplyT().GetTypeName()));
+    if (repHandler)
     {
-      std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-      localResponserFound = this->Shared()->Repliers().FirstHandler(
-            fullyQualifiedTopic,
-            std::string(RequestT().GetTypeName()),
-            std::string(ReplyT().GetTypeName()),
-            repHandler);
-    }
-
-    // If the responser is within my process.
-    if (localResponserFound)
-    {
-      // There is a responser in my process, let's use it.
       ReplyT rep;
       bool result = repHandler->RunLocalCallback(_request, rep);
-
       _cb(rep, result);
       return true;
     }
 
     // Create a new request handler.
-    std::shared_ptr<ReqHandler<RequestT, ReplyT>> reqHandlerPtr(
-      new ReqHandler<RequestT, ReplyT>(this->NodeUuid()));
+    auto reqHandlerPtr = std::make_shared<ReqHandler<RequestT, ReplyT>>(
+      this->NodeUuid());
 
     // Insert the request's parameters.
     reqHandlerPtr->SetMessage(&_request);
 
     // Insert the callback into the handler.
-    std::string impl = this->Shared()->GzImplementation();
     reqHandlerPtr->SetCallback(_cb);
 
-    {
-      std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-
-      // Store the request handler.
-      this->Shared()->Requests().AddHandler(
-        fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
-
-      // If the responser's address is known, make the request.
-      SrvAddresses_M addresses;
-      if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
-      {
-        this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-          std::string(RequestT().GetTypeName()),
-          std::string(ReplyT().GetTypeName()));
-      }
-      else if (impl == "zeromq")
-      {
-        // Discover the service responser.
-        if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
-        {
-          std::cerr << "Node::Request(): Error discovering service ["
-                    << topic
-                    << "]. Did you forget to start the discovery service?"
-                    << std::endl;
-          return false;
-        }
-      }
-    }
-
-    return true;
+    // Store the request handler and send the request.
+    return this->SendRequest(fullyQualifiedTopic, reqHandlerPtr,
+                             std::nullopt);
   }
 
   //////////////////////////////////////////////////
@@ -589,84 +460,37 @@ namespace gz::transport
           ReplyT &_reply,
           bool &_result)
   {
-    // Topic remapping.
-    std::string topic = _topic;
-    this->Options().TopicRemap(_topic, topic);
-
     std::string fullyQualifiedTopic;
-    if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-      this->Options().NameSpace(), topic, fullyQualifiedTopic))
-    {
-      std::cerr << "Service [" << topic << "] is not valid." << std::endl;
+    if (!this->FullyQualifiedService(_topic, fullyQualifiedTopic))
       return false;
+
+    // If the responser is within my process, let's use it.
+    IRepHandlerPtr repHandler = this->LocalReplier(fullyQualifiedTopic,
+      std::string(_request.GetTypeName()), std::string(_reply.GetTypeName()));
+    if (repHandler)
+    {
+      _result = repHandler->RunLocalCallback(_request, _reply);
+      return true;
     }
 
     // Create a new request handler.
-    std::shared_ptr<ReqHandler<RequestT, ReplyT>> reqHandlerPtr(
-      new ReqHandler<RequestT, ReplyT>(this->NodeUuid()));
+    auto reqHandlerPtr = std::make_shared<ReqHandler<RequestT, ReplyT>>(
+      this->NodeUuid());
 
     // Insert the request's parameters.
     reqHandlerPtr->SetMessage(&_request);
     reqHandlerPtr->SetResponse(&_reply);
 
-    bool localResponserFound;
-    IRepHandlerPtr repHandler;
-    {
-      std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-      localResponserFound = this->Shared()->Repliers().FirstHandler(
-          fullyQualifiedTopic, std::string(_request.GetTypeName()),
-          std::string(_reply.GetTypeName()), repHandler);
-    }
-
-    // If the responser is within my process.
-    if (localResponserFound)
-    {
-      // There is a responser in my process, let's use it.
-      _result = repHandler->RunLocalCallback(_request, _reply);
-      return true;
-    }
-
-    std::unique_lock<std::recursive_mutex> lk(this->Shared()->mutex);
-    // Store the request handler.
-    this->Shared()->Requests().AddHandler(
-      fullyQualifiedTopic, this->NodeUuid(), reqHandlerPtr);
-
-    // If the responser's address is known, make the request.
-    SrvAddresses_M addresses;
-    if (this->Shared()->TopicPublishers(fullyQualifiedTopic, addresses))
-    {
-      this->Shared()->SendPendingRemoteReqs(fullyQualifiedTopic,
-        std::string(_request.GetTypeName()),
-        std::string(_reply.GetTypeName()));
-    }
-    else if (this->Shared()->GzImplementation() == "zeromq")
-    {
-      // Discover the service responser.
-      if (!this->Shared()->DiscoverService(fullyQualifiedTopic))
-      {
-        std::cerr << "Node::Request(): Error discovering service ["
-                  << topic
-                  << "]. Did you forget to start the discovery service?"
-                  << std::endl;
-        return false;
-      }
-    }
-
-    // Wait until the REP is available.
-    bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
-
-    // The request was not executed.
-    if (!executed)
+    // Store the request handler, send the request and wait for the response.
+    if (!this->SendRequest(fullyQualifiedTopic, reqHandlerPtr, _timeout))
       return false;
 
-    // The request was executed but did not succeed.
     if (!reqHandlerPtr->Result())
     {
       _result = false;
       return true;
     }
 
-    // Parse the response.
     if (!_reply.ParseFromString(reqHandlerPtr->Response()))
     {
       std::cerr << "Node::Request(): Error Parsing the response"

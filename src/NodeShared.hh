@@ -31,15 +31,15 @@
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
-#include "gz/transport/HandlerStorage.hh"
+#include "HandlerStorage.hh"
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/SubscriptionHandler.hh"
-#include "gz/transport/TopicStorage.hh"
+#include "TopicStorage.hh"
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TransportTypes.hh"
-#include "gz/transport/Uuid.hh"
+#include "Uuid.hh"
 
 namespace zenoh
 {

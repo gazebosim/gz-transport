@@ -20,7 +20,7 @@
 #include <map>
 #include <string>
 
-#include "gz/transport/HandlerStorage.hh"
+#include "HandlerStorage.hh"
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/SubscriptionHandler.hh"

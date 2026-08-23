@@ -81,7 +81,7 @@
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/NetUtils.hh"
 #include "gz/transport/Publisher.hh"
-#include "gz/transport/TopicStorage.hh"
+#include "TopicStorage.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
 

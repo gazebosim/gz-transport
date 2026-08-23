@@ -28,7 +28,7 @@
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
-#include "gz/transport/Uuid.hh"
+#include "Uuid.hh"
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
@@ -252,8 +252,7 @@ namespace gz::transport
 
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
-  void RawSubscriptionHandler::SetCallback(
-    const RawCallback &_cb,
+  void RawSubscriptionHandler::CreateZenohSubscriber(
     std::shared_ptr<zenoh::Session> _session,
     const FullyQualifiedTopic &_fullyQualifiedTopic)
   {
@@ -305,8 +304,6 @@ namespace gz::transport
 
     this->dataPtr->zToken = std::make_unique<zenoh::LivelinessToken>(
         _session->liveliness_declare_token(token));
-
-    this->SetCallback(std::move(_cb));
   }
 #endif
 

@@ -22,7 +22,7 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/TopicUtils.hh"
-#include "gz/transport/Uuid.hh"
+#include "Uuid.hh"
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>

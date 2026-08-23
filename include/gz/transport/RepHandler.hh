@@ -100,7 +100,7 @@ namespace gz::transport
     /// \brief Create a Zenoh queriable.
     /// \param[in] _session Zenoh session.
     /// \param[in] _service The service.
-    protected: void CreateZenohQueriable(
+    public: void CreateZenohQueriable(
       std::shared_ptr<zenoh::Session> _session,
       const std::string &_service);
 #endif
@@ -141,25 +141,6 @@ namespace gz::transport
     {
       this->cb = _cb;
     }
-
-#ifdef HAVE_ZENOH
-    /// \brief Set the callback for this handler.
-    /// \param[in] _cb The callback with the following parameters:
-    /// * _req Protobuf message containing the service request params.
-    /// * _rep Protobuf message containing the service response.
-    /// * Returns true when the service response is considered
-    ///   successful or false otherwise.
-    /// \param[in] _session The Zenoh session.
-    /// \param[in] _service The service name.
-    public: void SetCallback(
-      const std::function<bool(const Req &, Rep &)> &_cb,
-      std::shared_ptr<zenoh::Session> _session,
-      const std::string &_service)
-    {
-      this->SetCallback(std::move(_cb));
-      this->CreateZenohQueriable(_session, _service);
-    }
-#endif
 
     // Documentation inherited.
     public: bool RunLocalCallback(const transport::ProtoMsg &_msgReq,

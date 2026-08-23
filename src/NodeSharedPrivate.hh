@@ -43,10 +43,10 @@
 
 #include "gz/transport/config.hh"
 #include "gz/transport/Exception.hh"
-#include "gz/transport/HandlerStorage.hh"
+#include "HandlerStorage.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/MessageInfo.hh"
-#include "gz/transport/NodeShared.hh"
+#include "NodeShared.hh"
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TransportTypes.hh"

@@ -22,7 +22,7 @@
 
 #include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/Publisher.hh"
-#include "gz/transport/TopicStorage.hh"
+#include "TopicStorage.hh"
 #include "gtest/gtest.h"
 
 using namespace gz;

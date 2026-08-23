@@ -24,7 +24,7 @@
 #include "gz/transport/NetUtils.hh"
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/Node.hh"
-#include "gz/transport/NodeShared.hh"
+#include "NodeShared.hh"
 
 namespace gz::transport
 {

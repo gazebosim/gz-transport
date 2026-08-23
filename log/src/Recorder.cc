@@ -38,14 +38,14 @@
 #include <gz/transport/log/Recorder.hh>
 #include <gz/transport/MessageInfo.hh>
 #include <gz/transport/Node.hh>
-#include <gz/transport/NodeShared.hh>
 #include <gz/transport/Publisher.hh>
 #include <gz/transport/TopicUtils.hh>
 #include <gz/transport/TransportTypes.hh>
-#include <gz/transport/Uuid.hh>
 
 #include "Console.hh"
 #include "../../src/Discovery.hh"
+#include "../../src/NodeShared.hh"
+#include "../../src/Uuid.hh"
 
 using namespace gz::transport;
 using namespace gz::transport::log;

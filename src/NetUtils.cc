@@ -40,7 +40,7 @@
 #include "gz/transport/config.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/NetUtils.hh"
-#include "gz/transport/Uuid.hh"
+#include "Uuid.hh"
 
 #ifdef HAVE_IFADDRS
 # include <ifaddrs.h>

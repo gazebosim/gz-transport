@@ -33,17 +33,21 @@
 #include <utility>
 #include <vector>
 
+#include "gz/transport/AdvertiseOptions.hh"
 #include "gz/transport/config.hh"
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/Node.hh"
 #include "gz/transport/NodeOptions.hh"
-#include "gz/transport/NodeShared.hh"
+#include "NodeShared.hh"
 #include "gz/transport/Publisher.hh"
+#include "gz/transport/RepHandler.hh"
+#include "gz/transport/ReqHandler.hh"
 #include "gz/transport/SubscribeOptions.hh"
+#include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
-#include "gz/transport/Uuid.hh"
+#include "Uuid.hh"
 #include "gz/transport/WaitHelpers.hh"
 
 #ifdef HAVE_ZENOH
@@ -924,23 +928,18 @@ bool Node::SubscribeRaw(
 
   const std::shared_ptr<RawSubscriptionHandler> handlerPtr =
       std::make_shared<RawSubscriptionHandler>(
-        this->Shared()->pUuid, this->dataPtr->nUuid, _msgType, _opts);
+        this->ProcUuid(), this->dataPtr->nUuid, _msgType, _opts);
 
   // Insert the callback into the handler.
-  std::string impl = this->Shared()->GzImplementation();
-  if (impl == "zeromq")
-  {
-    handlerPtr->SetCallback(_callback);
-  }
+  handlerPtr->SetCallback(_callback);
+
 #ifdef HAVE_ZENOH
-  else if (impl == "zenoh")
+  if (this->Shared()->GzImplementation() == "zenoh")
   {
-    handlerPtr->SetCallback(std::move(_callback),
+    handlerPtr->CreateZenohSubscriber(
       this->Shared()->Session(), fullyQualifiedTopic);
   }
 #endif
-  else
-    return false;
 
   std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
@@ -948,6 +947,158 @@ bool Node::SubscribeRaw(
         *fullyQualifiedTopic.FullTopic(), this->dataPtr->nUuid, handlerPtr);
 
   return this->SubscribeHelper(*fullyQualifiedTopic.FullTopic());
+}
+
+//////////////////////////////////////////////////
+bool Node::RegisterSubscription(const std::string &_topic,
+                                const ISubscriptionHandlerPtr &_handler)
+{
+  // Topic remapping.
+  std::string topic = _topic;
+  this->Options().TopicRemap(_topic, topic);
+
+  FullyQualifiedTopic fullyQualifiedTopic(this->dataPtr->options.Partition(),
+                                          this->dataPtr->options.NameSpace(),
+                                          topic);
+  if (!fullyQualifiedTopic.FullTopic())
+  {
+    std::cerr << "Topic [" << topic << "] is not valid." << std::endl;
+    return false;
+  }
+
+#ifdef HAVE_ZENOH
+  if (this->Shared()->GzImplementation() == "zenoh")
+  {
+    _handler->CreateGenericZenohSubscriber(
+      this->Shared()->Session(), fullyQualifiedTopic);
+  }
+#endif
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  this->dataPtr->shared->localSubscribers.normal.AddHandler(
+        *fullyQualifiedTopic.FullTopic(), this->dataPtr->nUuid, _handler);
+
+  return this->SubscribeHelper(*fullyQualifiedTopic.FullTopic());
+}
+
+//////////////////////////////////////////////////
+bool Node::RegisterReplier(const std::string &_topic,
+                           const IRepHandlerPtr &_handler,
+                           const AdvertiseServiceOptions &_options)
+{
+  std::string fullyQualifiedTopic;
+  if (!this->FullyQualifiedService(_topic, fullyQualifiedTopic))
+    return false;
+
+  std::string impl = this->Shared()->GzImplementation();
+#ifdef HAVE_ZENOH
+  if (impl == "zenoh")
+  {
+    _handler->CreateZenohQueriable(this->Shared()->Session(),
+                                   fullyQualifiedTopic);
+  }
+#endif
+
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  // Add the topic to the list of advertised services.
+  this->SrvsAdvertised().insert(fullyQualifiedTopic);
+
+  // Store the replier handler.
+  this->dataPtr->shared->Repliers().AddHandler(
+    fullyQualifiedTopic, this->dataPtr->nUuid, _handler);
+
+  if (impl == "zeromq")
+  {
+    // Notify the discovery service to register and advertise my responser.
+    ServicePublisher publisher(fullyQualifiedTopic,
+      this->dataPtr->shared->ReplierAddress(),
+      this->dataPtr->shared->replierId.ToString(),
+      this->ProcUuid(), this->dataPtr->nUuid,
+      _handler->ReqTypeName(), _handler->RepTypeName(), _options);
+
+    if (!this->dataPtr->shared->AdvertisePublisher(publisher))
+    {
+      std::cerr << "Node::Advertise(): Error advertising service ["
+                << _topic
+                << "]. Did you forget to start the discovery service?"
+                << std::endl;
+      return false;
+    }
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::FullyQualifiedService(const std::string &_topic,
+                                 std::string &_fullyQualifiedTopic) const
+{
+  // Topic remapping.
+  std::string topic = _topic;
+  this->Options().TopicRemap(_topic, topic);
+
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+        this->Options().NameSpace(), topic, _fullyQualifiedTopic))
+  {
+    std::cerr << "Service [" << topic << "] is not valid." << std::endl;
+    return false;
+  }
+  return true;
+}
+
+//////////////////////////////////////////////////
+IRepHandlerPtr Node::LocalReplier(const std::string &_fullyQualifiedTopic,
+                                  const std::string &_reqTypeName,
+                                  const std::string &_repTypeName) const
+{
+  IRepHandlerPtr repHandler;
+  std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+  if (!this->dataPtr->shared->Repliers().FirstHandler(_fullyQualifiedTopic,
+        _reqTypeName, _repTypeName, repHandler))
+  {
+    return nullptr;
+  }
+  return repHandler;
+}
+
+//////////////////////////////////////////////////
+bool Node::SendRequest(const std::string &_fullyQualifiedTopic,
+                       const IReqHandlerPtr &_handler,
+                       const std::optional<unsigned int> &_timeout)
+{
+  std::unique_lock<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
+
+  // Store the request handler.
+  this->dataPtr->shared->Requests().AddHandler(
+    _fullyQualifiedTopic, this->dataPtr->nUuid, _handler);
+
+  // If the responser's address is known, make the request.
+  SrvAddresses_M addresses;
+  if (this->dataPtr->shared->TopicPublishers(_fullyQualifiedTopic, addresses))
+  {
+    this->dataPtr->shared->SendPendingRemoteReqs(_fullyQualifiedTopic,
+      _handler->ReqTypeName(), _handler->RepTypeName());
+  }
+  else if (this->dataPtr->shared->GzImplementation() == "zeromq")
+  {
+    // Discover the service responser.
+    if (!this->dataPtr->shared->DiscoverService(_fullyQualifiedTopic))
+    {
+      std::cerr << "Node::Request(): Error discovering service ["
+                << _fullyQualifiedTopic
+                << "]. Did you forget to start the discovery service?"
+                << std::endl;
+      return false;
+    }
+  }
+
+  if (!_timeout)
+    return true;
+
+  // Wait for the response.
+  return _handler->WaitUntil(lk, *_timeout);
 }
 
 //////////////////////////////////////////////////
@@ -1019,6 +1170,12 @@ NodeShared *Node::Shared() const
 }
 
 //////////////////////////////////////////////////
+const std::string &Node::ProcUuid() const
+{
+  return this->dataPtr->shared->pUuid;
+}
+
+/////////////////////////////////////////////////
 const std::string &Node::NodeUuid() const
 {
   return this->dataPtr->nUuid;
