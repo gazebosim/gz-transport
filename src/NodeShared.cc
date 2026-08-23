@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
@@ -45,6 +46,7 @@
 #include <zmq.hpp>
 
 #include "gz/transport/AdvertiseOptions.hh"
+#include "gz/transport/Exception.hh"
 #include "gz/transport/Helpers.hh"
 #include "gz/transport/MessageInfo.hh"
 #include "NodeShared.hh"
@@ -56,9 +58,22 @@
 #include "Uuid.hh"
 
 #include "Discovery.hh"
-#include "NodeSharedPrivate.hh"
 
 using namespace std::chrono_literals;
+
+namespace
+{
+/// \brief Metadata for a publication. This is sent as part of the ZMQ
+/// message for topic statistics.
+class PublicationMetadata
+{
+  /// \brief Publication timestamp.
+  public: uint64_t stamp = 0;
+
+  /// \brief Sequence number, used to detect dropped messages.
+  public: uint64_t seq = 0;
+};
+}  // namespace
 
 const char kGzAuthDomain[] = "gz-auth";
 
@@ -197,8 +212,68 @@ NodeShared *NodeShared::Instance()
 
 //////////////////////////////////////////////////
 NodeShared::NodeShared()
-  : dataPtr(new NodeSharedPrivate)
 {
+  // Determine implementation first, before creating any resources.
+  std::string gzImpl;
+  if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
+  {
+    std::transform(gzImpl.begin(), gzImpl.end(), gzImpl.begin(), ::tolower);
+    if (gzImpl == "zeromq" || gzImpl == "zenoh")
+      this->gzImplementation = gzImpl;
+    else
+    {
+      std::cerr << "Unrecognized value in GZ_TRANSPORT_IMPLEMENTATION. ["
+                << gzImpl << "]. Ignoring this value" << std::endl;
+    }
+  }
+
+  // Create resources based on implementation.
+  if (this->gzImplementation == "zeromq")
+  {
+    this->context.reset(new zmq::context_t(1));
+    this->publisher.reset(new zmq::socket_t(*context, ZMQ_PUB));
+    this->subscriber.reset(new zmq::socket_t(*context, ZMQ_SUB));
+    this->requester.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
+    this->responseReceiver.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
+    this->replier.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
+  }
+#ifdef HAVE_ZENOH
+  else if (this->gzImplementation == "zenoh")
+  {
+    ZenohConfigSource configSource;
+    auto config = ZenohConfig(configSource);
+    if (this->verbose)
+    {
+      if (configSource == ZenohConfigSource::kFromEnvVariable)
+        std::cout << "Zenoh config loaded from ZENOH_CONFIG" << std::endl;
+      else
+        std::cout << "Zenoh default config loaded" << std::endl;
+    }
+
+    // Apply key=value overrides from GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
+    const char *overrideEnv =
+        std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
+    if (overrideEnv)
+      ApplyZenohConfigOverrides(config, overrideEnv, this->verbose);
+
+    try
+    {
+      this->session = std::make_shared<zenoh::Session>(
+        zenoh::Session::open(std::move(config)));
+    }
+    catch (const zenoh::ZException &e)
+    {
+      // Throw rather than continuing with a null session, which
+      // would cause segfaults downstream. This can happen when
+      // using client mode without a reachable router. Users can
+      // configure connect.timeout_ms in the Zenoh config to wait
+      // for the router to become available.
+      throw gz::transport::Exception(
+        std::string("Failed to open Zenoh session: ") + e.what());
+    }
+  }
+#endif
+
   // Set the multicast IP used for discovery.
   std::string envDiscoveryIp;
   if (env("GZ_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
@@ -208,11 +283,11 @@ NodeShared::NodeShared()
   }
 
   // Set the port used for msg discovery.
-  this->msgDiscPort = this->dataPtr->NonNegativeEnvVar(
+  this->msgDiscPort = this->NonNegativeEnvVar(
     "GZ_DISCOVERY_MSG_PORT", this->kDefaultMsgDiscPort);
 
   // Set the port used for srv discovery.
-  this->srvDiscPort = this->dataPtr->NonNegativeEnvVar(
+  this->srvDiscPort = this->NonNegativeEnvVar(
     "GZ_DISCOVERY_SRV_PORT", this->kDefaultSrvDiscPort);
 
   // Sanity check: the discovery ports should be unique.
@@ -232,7 +307,7 @@ NodeShared::NodeShared()
 
   if (env("GZ_TRANSPORT_TOPIC_STATISTICS", gzStats) && !gzStats.empty())
   {
-    this->dataPtr->topicStatsEnabled = (gzStats == "1");
+    this->topicStatsEnabled = (gzStats == "1");
   }
 
   // My process UUID.
@@ -240,31 +315,31 @@ NodeShared::NodeShared()
   this->pUuid = uuid.ToString();
 
   // Initialize my discovery services.
-  this->dataPtr->msgDiscovery.reset(
+  this->msgDiscovery.reset(
       new MsgDiscovery(this->pUuid, this->discoveryIP, this->msgDiscPort));
 
-  this->dataPtr->srvDiscovery.reset(
+  this->srvDiscovery.reset(
       new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
 
   // Set the callback to notify discovery updates (new topics).
-  this->dataPtr->msgDiscovery->ConnectionsCb(
+  this->msgDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewConnection, this, std::placeholders::_1));
 
   // Set the callback to notify discovery updates (invalid topics).
-  this->dataPtr->msgDiscovery->DisconnectionsCb(
+  this->msgDiscovery->DisconnectionsCb(
       std::bind(&NodeShared::OnNewDisconnection, this, std::placeholders::_1));
 
-  this->dataPtr->msgDiscovery->RegistrationsCb(
+  this->msgDiscovery->RegistrationsCb(
       std::bind(&NodeShared::OnNewRegistration, this, std::placeholders::_1));
 
-  this->dataPtr->msgDiscovery->UnregistrationsCb(
+  this->msgDiscovery->UnregistrationsCb(
       std::bind(&NodeShared::OnEndRegistration, this, std::placeholders::_1));
 
-  this->dataPtr->msgDiscovery->SubscribersCb(
+  this->msgDiscovery->SubscribersCb(
       std::bind(&NodeShared::OnSubscribers, this));
 
   // Set the callback to notify svc discovery updates (new services).
-  this->dataPtr->srvDiscovery->ConnectionsCb(
+  this->srvDiscovery->ConnectionsCb(
     std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
 
   // Implementation-specific initialization.
@@ -275,17 +350,17 @@ NodeShared::NodeShared()
     if (!this->InitializeSockets())
       return;
 
-    if (this->dataPtr->verbose)
+    if (this->verbose)
     {
-      std::cout << "Host address: " << this->dataPtr->hostAddr << std::endl;
+      std::cout << "Host address: " << this->hostAddr << std::endl;
       std::cout << "Process UUID: " << this->pUuid << std::endl;
       std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
                 << this->msgDiscPort << "] for msg discovery\n";
       std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
                 << this->srvDiscPort << "] for srv discovery\n";
-      std::cout << "Bind at: [" << this->dataPtr->myAddress
+      std::cout << "Bind at: [" << this->myAddress
                 << "] for pub/sub\n";
-      std::cout << "Bind at: [" << this->dataPtr->myReplierAddress << "]"
+      std::cout << "Bind at: [" << this->myReplierAddress << "]"
                 << " for srv. calls\n";
       std::cout << "Identity for receiving srv. requests: ["
                 << this->replierId.ToString() << "]" << std::endl;
@@ -297,75 +372,74 @@ NodeShared::NodeShared()
     this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
 
     // Set the callback to notify svc discovery updates (invalid services).
-    this->dataPtr->srvDiscovery->DisconnectionsCb(
+    this->srvDiscovery->DisconnectionsCb(
       std::bind(&NodeShared::OnNewSrvDisconnection,
         this, std::placeholders::_1));
 
     // Start the discovery services.
-    this->dataPtr->msgDiscovery->Start();
-    this->dataPtr->srvDiscovery->Start();
+    this->msgDiscovery->Start();
+    this->srvDiscovery->Start();
   }
 #ifdef HAVE_ZENOH
   else if (impl == "zenoh")
   {
-    this->dataPtr->msgDiscovery->Start(this->Session(),
+    this->msgDiscovery->Start(this->Session(),
       std::bind(&MsgDiscovery::LivelinessMsgDataHandler,
-            this->dataPtr->msgDiscovery.get(), std::placeholders::_1));
+            this->msgDiscovery.get(), std::placeholders::_1));
 
-    this->dataPtr->srvDiscovery->Start(this->Session(),
+    this->srvDiscovery->Start(this->Session(),
       std::bind(&SrvDiscovery::LivelinessSrvDataHandler,
-            this->dataPtr->srvDiscovery.get(), std::placeholders::_1));
+            this->srvDiscovery.get(), std::placeholders::_1));
   }
 #endif
 
   // Create the local publish thread.
-  this->dataPtr->pubThread = std::thread(&NodeSharedPrivate::PublishThread,
-      this->dataPtr.get());
+  this->pubThread = std::thread(&NodeShared::PublishThread, this);
 
   // Create the local service thread.
-  this->dataPtr->srvThread = std::thread(&NodeShared::SrvPublishThread, this);
+  this->srvThread = std::thread(&NodeShared::SrvPublishThread, this);
 }
 
 //////////////////////////////////////////////////
 NodeShared::~NodeShared()
 {
   // Tell the service thread to terminate.
-  this->dataPtr->exit = true;
+  this->exit = true;
 
   // Notify the local pubthread and join.
-  this->dataPtr->signalNewPub.notify_all();
-  this->dataPtr->pubThread.join();
+  this->signalNewPub.notify_all();
+  this->pubThread.join();
 
   // Notify the local srvthread and join.
-  this->dataPtr->signalNewSrv.notify_all();
-  if (this->dataPtr->srvThread.joinable())
-    this->dataPtr->srvThread.join();
+  this->signalNewSrv.notify_all();
+  if (this->srvThread.joinable())
+    this->srvThread.join();
 
   // Wait for the service thread before exit.
   if (this->threadReception.joinable())
     this->threadReception.join();
 
   // Wait for the authentication thread before exit.
-  if (this->dataPtr->accessControlThread.joinable())
-    this->dataPtr->accessControlThread.join();
+  if (this->accessControlThread.joinable())
+    this->accessControlThread.join();
 }
 
 //////////////////////////////////////////////////
 void NodeShared::RunReceptionTask()
 {
-  while (!this->dataPtr->exit)
+  while (!this->exit)
   {
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
     {
-      {static_cast<void*>(*this->dataPtr->subscriber), 0, ZMQ_POLLIN, 0},
-      {static_cast<void*>(*this->dataPtr->replier), 0, ZMQ_POLLIN, 0},
-      {static_cast<void*>(*this->dataPtr->responseReceiver), 0, ZMQ_POLLIN, 0}
+      {static_cast<void*>(*this->subscriber), 0, ZMQ_POLLIN, 0},
+      {static_cast<void*>(*this->replier), 0, ZMQ_POLLIN, 0},
+      {static_cast<void*>(*this->responseReceiver), 0, ZMQ_POLLIN, 0}
     };
     try
     {
       zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
-          std::chrono::milliseconds(NodeSharedPrivate::Timeout));
+          std::chrono::milliseconds(NodeShared::Timeout));
     }
     catch(...)
     {
@@ -394,35 +468,35 @@ bool NodeShared::Publish(
     // Create the messages.
     // Note that we use zero copy for passing the message data (msg2).
     zmq::message_t msg0(_topic.data(), _topic.size()),
-                   msg1(this->dataPtr->myAddress.data(),
-                        this->dataPtr->myAddress.size()),
+                   msg1(this->myAddress.data(),
+                        this->myAddress.size()),
                    msg2(_data, _dataSize, _ffn, nullptr),
                    msg3(_msgType.data(), _msgType.size());
 
     // Send the messages
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-    this->dataPtr->publisher->send(msg0, zmq::send_flags::sndmore);
-    this->dataPtr->publisher->send(msg1, zmq::send_flags::sndmore);
-    this->dataPtr->publisher->send(msg2, zmq::send_flags::sndmore);
+    this->publisher->send(msg0, zmq::send_flags::sndmore);
+    this->publisher->send(msg1, zmq::send_flags::sndmore);
+    this->publisher->send(msg2, zmq::send_flags::sndmore);
 
-    if (this->dataPtr->topicStatsEnabled)
+    if (this->topicStatsEnabled)
     {
       // Create publication metadata.
       PublicationMetadata meta;
       // Send the sequence number, which can be used to detect dropped
       // messages.
-      meta.seq = this->dataPtr->topicPubSeq[_topic]++;
+      meta.seq = this->topicPubSeq[_topic]++;
       // Send the publication time.
       meta.stamp = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::steady_clock::now().time_since_epoch()).count();
       zmq::message_t msg4(&meta, sizeof(meta));
-      this->dataPtr->publisher->send(msg3, zmq::send_flags::sndmore);
-      this->dataPtr->publisher->send(msg4, zmq::send_flags::none);
+      this->publisher->send(msg3, zmq::send_flags::sndmore);
+      this->publisher->send(msg4, zmq::send_flags::none);
     }
     else
     {
-      this->dataPtr->publisher->send(msg3, zmq::send_flags::none);
+      this->publisher->send(msg3, zmq::send_flags::none);
     }
   }
   catch(const zmq::error_t& ze)
@@ -449,38 +523,38 @@ void NodeShared::RecvMsgUpdate()
 
     try
     {
-      if (!this->dataPtr->subscriber->recv(msg))
+      if (!this->subscriber->recv(msg))
         return;
       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
       // TODO(caguero): Use this as extra metadata for the subscriber.
-      if (!this->dataPtr->subscriber->recv(msg))
+      if (!this->subscriber->recv(msg))
         return;
       sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->subscriber->recv(msg))
+      if (!this->subscriber->recv(msg))
         return;
       data = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->subscriber->recv(msg))
+      if (!this->subscriber->recv(msg))
         return;
       msgType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (this->dataPtr->topicStatsEnabled)
+      if (this->topicStatsEnabled)
       {
-        if (!this->dataPtr->subscriber->recv(msg))
+        if (!this->subscriber->recv(msg))
           return;
         PublicationMetadata *meta =
           reinterpret_cast<PublicationMetadata *>(msg.data());
 
         // Update topic statistics.
-        if (this->dataPtr->enabledTopicStatistics.find(topic) !=
-            this->dataPtr->enabledTopicStatistics.end())
+        if (this->enabledTopicStatistics.find(topic) !=
+            this->enabledTopicStatistics.end())
         {
-          this->dataPtr->topicStats[topic].Update(sender,
+          this->topicStats[topic].Update(sender,
               meta->stamp, meta->seq);
-          this->dataPtr->enabledTopicStatistics[topic](
-              this->dataPtr->topicStats[topic]);
+          this->enabledTopicStatistics[topic](
+              this->topicStats[topic]);
         }
       }
     }
@@ -616,7 +690,7 @@ void NodeShared::TriggerCallbacks(
 //////////////////////////////////////////////////
 void NodeShared::RecvSrvRequest()
 {
-  if (dataPtr->verbose)
+  if (this->verbose)
     std::cout << "Message received requesting a service call" << std::endl;
 
   zmq::message_t msg(0);
@@ -639,38 +713,38 @@ void NodeShared::RecvSrvRequest()
 
     try
     {
-      if (!this->dataPtr->replier->recv(msg))
+      if (!this->replier->recv(msg))
         return;
 
-      if (!this->dataPtr->replier->recv(msg))
+      if (!this->replier->recv(msg))
         return;
       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->replier->recv(msg))
+      if (!this->replier->recv(msg))
         return;
       sender = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->replier->recv(msg))
+      if (!this->replier->recv(msg))
         return;
       dstId = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->replier->recv(msg))
+      if (!this->replier->recv(msg))
         return;
       nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->replier->recv(msg))
+      if (!this->replier->recv(msg))
         return;
       reqUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->replier->recv(msg))
+      if (!this->replier->recv(msg))
         return;
       req = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->replier->recv(msg))
+      if (!this->replier->recv(msg))
         return;
       reqType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->replier->recv(msg))
+      if (!this->replier->recv(msg))
         return;
       repType = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
     }
@@ -682,7 +756,7 @@ void NodeShared::RecvSrvRequest()
     }
 
     hasHandler =
-      this->dataPtr->repliers.FirstHandler(topic, reqType, repType, repHandler);
+      this->repliers.FirstHandler(topic, reqType, repType, repHandler);
   }
 
   // Get the REP handler.
@@ -709,11 +783,11 @@ void NodeShared::RecvSrvRequest()
       if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
             sender) == this->srvConnections.end())
       {
-        this->dataPtr->replier->connect(sender.c_str());
+        this->replier->connect(sender.c_str());
         this->srvConnections.push_back(sender);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-        if (this->dataPtr->verbose)
+        if (this->verbose)
         {
           std::cout << "\t* Connected to [" << sender
                     << "] for sending a response" << std::endl;
@@ -729,27 +803,27 @@ void NodeShared::RecvSrvRequest()
 
       response.rebuild(dstId.size());
       memcpy(response.data(), dstId.data(), dstId.size());
-      this->dataPtr->replier->send(response, zmq::send_flags::sndmore);
+      this->replier->send(response, zmq::send_flags::sndmore);
 
       response.rebuild(topic.size());
       memcpy(response.data(), topic.data(), topic.size());
-      this->dataPtr->replier->send(response, zmq::send_flags::sndmore);
+      this->replier->send(response, zmq::send_flags::sndmore);
 
       response.rebuild(nodeUuid.size());
       memcpy(response.data(), nodeUuid.data(), nodeUuid.size());
-      this->dataPtr->replier->send(response, zmq::send_flags::sndmore);
+      this->replier->send(response, zmq::send_flags::sndmore);
 
       response.rebuild(reqUuid.size());
       memcpy(response.data(), reqUuid.data(), reqUuid.size());
-      this->dataPtr->replier->send(response, zmq::send_flags::sndmore);
+      this->replier->send(response, zmq::send_flags::sndmore);
 
       response.rebuild(rep.size());
       memcpy(response.data(), rep.data(), rep.size());
-      this->dataPtr->replier->send(response, zmq::send_flags::sndmore);
+      this->replier->send(response, zmq::send_flags::sndmore);
 
       response.rebuild(resultStr.size());
       memcpy(response.data(), resultStr.data(), resultStr.size());
-      this->dataPtr->replier->send(response, zmq::send_flags::none);
+      this->replier->send(response, zmq::send_flags::none);
     }
     catch(const zmq::error_t &_error)
     {
@@ -766,7 +840,7 @@ void NodeShared::RecvSrvRequest()
 //////////////////////////////////////////////////
 void NodeShared::RecvSrvResponse()
 {
-  if (dataPtr->verbose)
+  if (this->verbose)
     std::cout << "Message received containing a service call REP" << std::endl;
 
   zmq::message_t msg(0);
@@ -785,26 +859,26 @@ void NodeShared::RecvSrvResponse()
 
     try
     {
-      if (!this->dataPtr->responseReceiver->recv(msg))
+      if (!this->responseReceiver->recv(msg))
         return;
 
-      if (!this->dataPtr->responseReceiver->recv(msg))
+      if (!this->responseReceiver->recv(msg))
         return;
       topic = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->responseReceiver->recv(msg))
+      if (!this->responseReceiver->recv(msg))
         return;
       nodeUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->responseReceiver->recv(msg))
+      if (!this->responseReceiver->recv(msg))
         return;
       reqUuid = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->responseReceiver->recv(msg))
+      if (!this->responseReceiver->recv(msg))
         return;
       rep = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
 
-      if (!this->dataPtr->responseReceiver->recv(msg))
+      if (!this->responseReceiver->recv(msg))
         return;
       resultStr = std::string(reinterpret_cast<char *>(msg.data()), msg.size());
       result = resultStr == "1";
@@ -817,7 +891,7 @@ void NodeShared::RecvSrvResponse()
     }
 
     hasHandler =
-      this->dataPtr->requests.Handler(topic, nodeUuid, reqUuid, reqHandlerPtr);
+      this->requests.Handler(topic, nodeUuid, reqUuid, reqHandlerPtr);
   }
 
   if (hasHandler)
@@ -828,7 +902,7 @@ void NodeShared::RecvSrvResponse()
     // Remove the handler.
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
     {
-      if (!this->dataPtr->requests.RemoveHandler(topic, nodeUuid, reqUuid))
+      if (!this->requests.RemoveHandler(topic, nodeUuid, reqUuid))
       {
         std::cerr << "NodeShare::RecvSrvResponse(): "
                   << "Error removing request handler" << std::endl;
@@ -849,7 +923,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
   std::string responserAddr;
   std::string responserId;
   SrvAddresses_M addresses;
-  this->dataPtr->srvDiscovery->Publishers(_topic, addresses);
+  this->srvDiscovery->Publishers(_topic, addresses);
   if (addresses.empty())
     return;
 
@@ -876,7 +950,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
   if (!found)
     return;
 
-  if (dataPtr->verbose)
+  if (this->verbose)
   {
     std::cout << "Found a service call responser at ["
               << responserAddr << "]" << std::endl;
@@ -891,10 +965,10 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
     if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
           responserAddr) == this->srvConnections.end())
     {
-      this->dataPtr->requester->connect(responserAddr.c_str());
+      this->requester->connect(responserAddr.c_str());
       this->srvConnections.push_back(responserAddr);
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      if (this->dataPtr->verbose)
+      if (this->verbose)
       {
         std::cout << "\t* Connected to [" << responserAddr
                   << "] for service requests" << std::endl;
@@ -904,7 +978,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
   // Send all the pending REQs.
   IReqHandler_M reqs;
-  if (!this->dataPtr->requests.Handlers(_topic, reqs))
+  if (!this->requests.Handlers(_topic, reqs))
     return;
 
   for (auto &node : reqs)
@@ -940,41 +1014,41 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 
           msg.rebuild(responserId.size());
           memcpy(msg.data(), responserId.data(), responserId.size());
-          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+          this->requester->send(msg, zmq::send_flags::sndmore);
 
           msg.rebuild(_topic.size());
           memcpy(msg.data(), _topic.data(), _topic.size());
-          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+          this->requester->send(msg, zmq::send_flags::sndmore);
 
-          msg.rebuild(this->dataPtr->myRequesterAddress.size());
-          memcpy(msg.data(), this->dataPtr->myRequesterAddress.data(),
-            this->dataPtr->myRequesterAddress.size());
-          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+          msg.rebuild(this->myRequesterAddress.size());
+          memcpy(msg.data(), this->myRequesterAddress.data(),
+            this->myRequesterAddress.size());
+          this->requester->send(msg, zmq::send_flags::sndmore);
 
           std::string myId = this->responseReceiverId.ToString();
           msg.rebuild(myId.size());
           memcpy(msg.data(), myId.data(), myId.size());
-          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+          this->requester->send(msg, zmq::send_flags::sndmore);
 
           msg.rebuild(nodeUuid.size());
           memcpy(msg.data(), nodeUuid.data(), nodeUuid.size());
-          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+          this->requester->send(msg, zmq::send_flags::sndmore);
 
           msg.rebuild(reqUuid.size());
           memcpy(msg.data(), reqUuid.data(), reqUuid.size());
-          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+          this->requester->send(msg, zmq::send_flags::sndmore);
 
           msg.rebuild(data.size());
           memcpy(msg.data(), data.data(), data.size());
-          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+          this->requester->send(msg, zmq::send_flags::sndmore);
 
           msg.rebuild(_reqType.size());
           memcpy(msg.data(), _reqType.data(), _reqType.size());
-          this->dataPtr->requester->send(msg, zmq::send_flags::sndmore);
+          this->requester->send(msg, zmq::send_flags::sndmore);
 
           msg.rebuild(_repType.size());
           memcpy(msg.data(), _repType.data(), _repType.size());
-          this->dataPtr->requester->send(msg, zmq::send_flags::none);
+          this->requester->send(msg, zmq::send_flags::none);
         }
         catch(const zmq::error_t& /*ze*/)
         {
@@ -993,7 +1067,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
       // receive a response because this is a oneway request.
       if (_repType == msgs::Empty().GetTypeName())
       {
-        this->dataPtr->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
+        this->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
       }
     }
   }
@@ -1010,7 +1084,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   std::string addr = _pub.Addr();
   std::string procUuid = _pub.PUuid();
 
-  if (this->dataPtr->verbose)
+  if (this->verbose)
   {
     std::cout << "Connection callback" << std::endl;
     std::cout << _pub;
@@ -1028,19 +1102,19 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
         this->pUuid.compare(procUuid) != 0)
     {
       // Handle security
-      this->dataPtr->SecurityOnNewConnection();
+      this->SecurityOnNewConnection();
 
       // I am not connected to the process.
-      if (!this->connections.HasPublisher(addr) && this->dataPtr->subscriber)
-        this->dataPtr->subscriber->connect(addr.c_str());
+      if (!this->connections.HasPublisher(addr) && this->subscriber)
+        this->subscriber->connect(addr.c_str());
 
       // Add a new filter for the topic.
-      this->dataPtr->subscriber->set(zmq::sockopt::subscribe, topic);
+      this->subscriber->set(zmq::sockopt::subscribe, topic);
 
       // Register the new connection with the publisher.
       this->connections.AddPublisher(_pub);
 
-      if (this->dataPtr->verbose)
+      if (this->verbose)
         std::cout << "\t* Connected to [" << addr << "] for data\n";
 
       MessagePublisher pub(_pub);
@@ -1063,7 +1137,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
   // with Discovery::mutex.
   for (const auto &pub : publishersToRegister)
   {
-    this->dataPtr->msgDiscovery->Register(pub);
+    this->msgDiscovery->Register(pub);
   }
 }
 
@@ -1076,7 +1150,7 @@ void NodeShared::OnNewDisconnection(const MessagePublisher &_pub)
   std::string procUuid = _pub.PUuid();
   std::string nUuid = _pub.NUuid();
 
-  if (this->dataPtr->verbose)
+  if (this->verbose)
   {
     std::cout << "New disconnection detected " << std::endl;
     std::cout << "\tProcess UUID: " << procUuid << std::endl;
@@ -1119,7 +1193,7 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
 
   std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-  if (this->dataPtr->verbose)
+  if (this->verbose)
   {
     std::cout << "Service call connection callback" << std::endl;
     std::cout << _pub;
@@ -1133,10 +1207,10 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
     if (std::find(this->srvConnections.begin(), this->srvConnections.end(),
           addr) == this->srvConnections.end())
     {
-      this->dataPtr->requester->connect(addr.c_str());
+      this->requester->connect(addr.c_str());
       this->srvConnections.push_back(addr);
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      if (this->dataPtr->verbose)
+      if (this->verbose)
       {
         std::cout << "\t* Connected to [" << addr
                   << "] for service requests" << std::endl;
@@ -1147,14 +1221,14 @@ void NodeShared::OnNewSrvConnection(const ServicePublisher &_pub)
   // Check if there's a pending service request with this specific combination
   // of request and response types.
   IReqHandlerPtr handler;
-  if (this->dataPtr->requests.FirstHandler(topic, reqType, repType, handler))
+  if (this->requests.FirstHandler(topic, reqType, repType, handler))
   {
     {
-      std::unique_lock<std::mutex> queueLock(this->dataPtr->srvThreadMutex);
-      this->dataPtr->srvQueue.push_back(std::move(_pub));
+      std::unique_lock<std::mutex> queueLock(this->srvThreadMutex);
+      this->srvQueue.push_back(std::move(_pub));
     }
 
-    this->dataPtr->signalNewSrv.notify_one();
+    this->signalNewSrv.notify_one();
   }
 }
 
@@ -1170,7 +1244,7 @@ void NodeShared::OnNewSrvDisconnection(const ServicePublisher &_pub)
     std::end(this->srvConnections), addr.c_str()),
     std::end(this->srvConnections));
 
-  if (this->dataPtr->verbose)
+  if (this->verbose)
   {
     std::cout << "Service call disconnection callback" << std::endl;
     std::cout << _pub;
@@ -1187,7 +1261,7 @@ void NodeShared::OnNewRegistration(const MessagePublisher &_pub)
   std::string procUuid = _pub.PUuid();
   std::string nodeUuid = _pub.NUuid();
 
-  if (this->dataPtr->verbose)
+  if (this->verbose)
   {
     std::cout << "Registering a new remote connection" << std::endl;
     std::cout << "\tProc UUID: [" << procUuid << "]" << std::endl;
@@ -1210,7 +1284,7 @@ void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
   std::string procUuid = _pub.PUuid();
   std::string nodeUuid = _pub.NUuid();
 
-  if (this->dataPtr->verbose)
+  if (this->verbose)
   {
     std::cout << "Registering the end of a remote connection" << std::endl;
     std::cout << "\tProc UUID: " << procUuid << std::endl;
@@ -1230,13 +1304,13 @@ void NodeShared::OnSubscribers()
   {
     std::lock_guard<std::recursive_mutex> lock(this->mutex);
     pubs = this->localSubscribers.Convert(
-      this->dataPtr->myAddress, this->pUuid);
+      this->myAddress, this->pUuid);
   }
 
   // Reply to the SUBSCRIBERS_REQ with multiple SUBSCRIBERS_REP.
   // Called outside the lock to avoid deadlocks with Discovery::mutex.
   for (auto const &publisher : pubs)
-    this->dataPtr->msgDiscovery->SendSubscribersRep(publisher);
+    this->msgDiscovery->SendSubscribersRep(publisher);
 }
 
 //////////////////////////////////////////////////
@@ -1245,52 +1319,52 @@ bool NodeShared::InitializeSockets()
   try
   {
     // Set the hostname's ip address.
-    this->dataPtr->hostAddr = this->dataPtr->msgDiscovery->HostAddr();
+    this->hostAddr = this->msgDiscovery->HostAddr();
 
     // Publisher socket listening in a random port.
-    std::string anyTcpEp = "tcp://" + this->dataPtr->hostAddr + ":*";
+    std::string anyTcpEp = "tcp://" + this->hostAddr + ":*";
 
     // Initialize security
-    this->dataPtr->SecurityInit();
+    this->SecurityInit();
 
     int lingerVal = 0;
-    this->dataPtr->publisher->set(zmq::sockopt::linger, lingerVal);
+    this->publisher->set(zmq::sockopt::linger, lingerVal);
 
     // Set the capacity of the buffer for receiving messages.
-    int rcvQueueVal = this->dataPtr->NonNegativeEnvVar(
+    int rcvQueueVal = this->NonNegativeEnvVar(
       "GZ_TRANSPORT_RCVHWM", kDefaultRcvHwm);
 
-    this->dataPtr->subscriber->set(zmq::sockopt::rcvhwm, rcvQueueVal);
+    this->subscriber->set(zmq::sockopt::rcvhwm, rcvQueueVal);
 
     // Set the capacity of the buffer for sending messages.
-    int sndQueueVal = this->dataPtr->NonNegativeEnvVar(
+    int sndQueueVal = this->NonNegativeEnvVar(
       "GZ_TRANSPORT_SNDHWM", kDefaultSndHwm);
 
-    this->dataPtr->publisher->set(zmq::sockopt::sndhwm, sndQueueVal);
+    this->publisher->set(zmq::sockopt::sndhwm, sndQueueVal);
 
-    this->dataPtr->publisher->bind(anyTcpEp.c_str());
-    this->dataPtr->myAddress =
-        this->dataPtr->publisher->get(zmq::sockopt::last_endpoint);
+    this->publisher->bind(anyTcpEp.c_str());
+    this->myAddress =
+        this->publisher->get(zmq::sockopt::last_endpoint);
 
     // ResponseReceiver socket listening in a random port.
     std::string id = this->responseReceiverId.ToString();
-    this->dataPtr->responseReceiver->set(zmq::sockopt::routing_id, id);
-    this->dataPtr->responseReceiver->bind(anyTcpEp.c_str());
-    this->dataPtr->myRequesterAddress = this->dataPtr->responseReceiver->get(
+    this->responseReceiver->set(zmq::sockopt::routing_id, id);
+    this->responseReceiver->bind(anyTcpEp.c_str());
+    this->myRequesterAddress = this->responseReceiver->get(
         zmq::sockopt::last_endpoint);
 
     // Replier socket listening in a random port.
     id = this->replierId.ToString();
-    this->dataPtr->replier->set(zmq::sockopt::routing_id, id);
+    this->replier->set(zmq::sockopt::routing_id, id);
     int routeOn = 1;
-    this->dataPtr->replier->set(zmq::sockopt::linger, lingerVal);
-    this->dataPtr->replier->set(zmq::sockopt::router_mandatory, routeOn);
-    this->dataPtr->replier->bind(anyTcpEp.c_str());
-    this->dataPtr->myReplierAddress =
-        this->dataPtr->replier->get(zmq::sockopt::last_endpoint);
+    this->replier->set(zmq::sockopt::linger, lingerVal);
+    this->replier->set(zmq::sockopt::router_mandatory, routeOn);
+    this->replier->bind(anyTcpEp.c_str());
+    this->myReplierAddress =
+        this->replier->get(zmq::sockopt::last_endpoint);
 
-    this->dataPtr->requester->set(zmq::sockopt::linger, lingerVal);
-    this->dataPtr->requester->set(zmq::sockopt::router_mandatory, routeOn);
+    this->requester->set(zmq::sockopt::linger, lingerVal);
+    this->requester->set(zmq::sockopt::router_mandatory, routeOn);
   }
   catch(const zmq::error_t& ze)
   {
@@ -1307,31 +1381,31 @@ bool NodeShared::InitializeSockets()
 bool NodeShared::TopicPublishers(const std::string &_topic,
                                  SrvAddresses_M &_publishers) const
 {
-  return this->dataPtr->srvDiscovery->Publishers(_topic, _publishers);
+  return this->srvDiscovery->Publishers(_topic, _publishers);
 }
 
 /////////////////////////////////////////////////
 bool NodeShared::DiscoverService(const std::string &_topic) const
 {
-  return this->dataPtr->srvDiscovery->Discover(_topic);
+  return this->srvDiscovery->Discover(_topic);
 }
 
 /////////////////////////////////////////////////
 bool NodeShared::AdvertisePublisher(const ServicePublisher &_publisher)
 {
-  return this->dataPtr->srvDiscovery->Advertise(_publisher);
+  return this->srvDiscovery->Advertise(_publisher);
 }
 
 /////////////////////////////////////////////////
 int NodeShared::RcvHwm()
 {
-  if (!this->dataPtr->subscriber)
+  if (!this->subscriber)
     return -1;
 
   int rcvHwm;
   try
   {
-    rcvHwm = this->dataPtr->subscriber->get(zmq::sockopt::rcvhwm);
+    rcvHwm = this->subscriber->get(zmq::sockopt::rcvhwm);
   }
   catch (zmq::error_t &_e)
   {
@@ -1344,13 +1418,13 @@ int NodeShared::RcvHwm()
 /////////////////////////////////////////////////
 int NodeShared::SndHwm()
 {
-  if (!this->dataPtr->publisher)
+  if (!this->publisher)
     return -1;
 
   int sndHwm;
   try
   {
-    sndHwm = this->dataPtr->publisher->get(zmq::sockopt::sndhwm);
+    sndHwm = this->publisher->get(zmq::sockopt::sndhwm);
   }
   catch (zmq::error_t &_e)
   {
@@ -1484,7 +1558,7 @@ std::vector<MessagePublisher> NodeShared::HandlerWrapper::Convert(
 }
 
 //////////////////////////////////////////////////
-void NodeSharedPrivate::SecurityOnNewConnection()
+void NodeShared::SecurityOnNewConnection()
 {
   std::string user, pass;
 
@@ -1502,7 +1576,7 @@ void NodeSharedPrivate::SecurityOnNewConnection()
 }
 
 //////////////////////////////////////////////////
-void NodeSharedPrivate::SecurityInit()
+void NodeShared::SecurityInit()
 {
   // Security is only applicable to zeromq backend.
   if (this->gzImplementation != "zeromq")
@@ -1515,7 +1589,7 @@ void NodeSharedPrivate::SecurityInit()
   {
     // Create the access control thread.
     this->accessControlThread = std::thread(
-        &NodeSharedPrivate::AccessControlHandler, this);
+        &NodeShared::AccessControlHandler, this);
 
     int asPlainSecurityServer = static_cast<int>(
         ZmqPlainSecurityServerOptions::ZMQ_PLAIN_SECURITY_SERVER_ENABLED);
@@ -1528,7 +1602,7 @@ void NodeSharedPrivate::SecurityInit()
 //////////////////////////////////////////////////
 // Access control handler for plain security.
 // This function is designed to be run in a thread.
-void NodeSharedPrivate::AccessControlHandler()
+void NodeShared::AccessControlHandler()
 {
   zmq::socket_t *sock = new zmq::socket_t(*this->context, ZMQ_REP);
 
@@ -1568,7 +1642,7 @@ void NodeSharedPrivate::AccessControlHandler()
       try
       {
         zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
-            std::chrono::milliseconds(NodeSharedPrivate::Timeout));
+            std::chrono::milliseconds(NodeShared::Timeout));
       }
       catch(...)
       {
@@ -1662,7 +1736,7 @@ void NodeSharedPrivate::AccessControlHandler()
 }
 
 /////////////////////////////////////////////////
-void NodeSharedPrivate::PublishThread()
+void NodeShared::PublishThread()
 {
   // Loop until exits
   while (!this->exit)
@@ -1761,33 +1835,33 @@ void NodeSharedPrivate::PublishThread()
 void NodeShared::SrvPublishThread()
 {
   // Loop until exits
-  while (!this->dataPtr->exit)
+  while (!this->exit)
   {
     ServicePublisher nextSrvPublisher;
 
     // Lock the mutex, and acquire the next publisher to be checked.
     {
-      std::unique_lock<std::mutex> queueLock(this->dataPtr->srvThreadMutex);
+      std::unique_lock<std::mutex> queueLock(this->srvThreadMutex);
 
       // Wait for more srv publishers if the queue is empty. Otherwise get the
       // next publisher and continue.
-      if (this->dataPtr->srvQueue.empty())
+      if (this->srvQueue.empty())
       {
         auto now = std::chrono::system_clock::now();
-        this->dataPtr->signalNewSrv.wait_until(queueLock, now + 500ms,
-          [&]{return !this->dataPtr->srvQueue.empty() || this->dataPtr->exit;});
+        this->signalNewSrv.wait_until(queueLock, now + 500ms,
+          [&]{return !this->srvQueue.empty() || this->exit;});
       }
 
-      if (this->dataPtr->srvQueue.empty())
+      if (this->srvQueue.empty())
         continue;
 
       // Stop early on exit.
-      if (this->dataPtr->exit)
+      if (this->exit)
         break;
 
       // Get the message
-      nextSrvPublisher = std::move(this->dataPtr->srvQueue.front());
-      this->dataPtr->srvQueue.pop_front();
+      nextSrvPublisher = std::move(this->srvQueue.front());
+      this->srvQueue.pop_front();
     }
 
     std::string topic = nextSrvPublisher.Topic();
@@ -1802,8 +1876,8 @@ void NodeShared::SrvPublishThread()
 std::optional<transport::TopicStatistics> NodeShared::TopicStats(
     const std::string &_topic) const
 {
-  if (this->dataPtr->topicStats.find(_topic) != this->dataPtr->topicStats.end())
-    return this->dataPtr->topicStats.at(_topic);
+  if (this->topicStats.find(_topic) != this->topicStats.end())
+    return this->topicStats.at(_topic);
   return std::nullopt;
 }
 
@@ -1813,17 +1887,17 @@ void NodeShared::EnableStats(const std::string &_topic, bool _enable,
 {
   if (_enable)
   {
-    this->dataPtr->enabledTopicStatistics.insert({_topic, _statCb});
+    this->enabledTopicStatistics.insert({_topic, _statCb});
   }
   else
   {
-    this->dataPtr->enabledTopicStatistics.erase(_topic);
+    this->enabledTopicStatistics.erase(_topic);
     // \todo Also cleanup topicStats.
   }
 }
 
 /////////////////////////////////////////////////
-int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
+int NodeShared::NonNegativeEnvVar(const std::string &_envVar,
     int _defaultValue) const
 {
   int numVal = _defaultValue;
@@ -1862,8 +1936,8 @@ int NodeSharedPrivate::NonNegativeEnvVar(const std::string &_envVar,
 /////////////////////////////////////////////////
 void NodeShared::AddGlobalRelay(const std::string& _relayAddress)
 {
-  dataPtr->msgDiscovery->AddRelayAddress(_relayAddress);
-  dataPtr->srvDiscovery->AddRelayAddress(_relayAddress);
+  this->msgDiscovery->AddRelayAddress(_relayAddress);
+  this->srvDiscovery->AddRelayAddress(_relayAddress);
 }
 
 /////////////////////////////////////////////////
@@ -1873,9 +1947,9 @@ std::vector<std::string> NodeShared::GlobalRelays() const
   // since they're typically build from the same sources.
   //
   // This is confusing - do we want to add different handling here?
-  auto msgRelays = dataPtr->msgDiscovery->RelayAddresses();
+  auto msgRelays = this->msgDiscovery->RelayAddresses();
   std::set<std::string> msgRelaySet(msgRelays.cbegin(), msgRelays.cend());
-  auto srvRelays = dataPtr->srvDiscovery->RelayAddresses();
+  auto srvRelays = this->srvDiscovery->RelayAddresses();
   std::set<std::string> srvRelaySet(srvRelays.cbegin(), srvRelays.cend());
   srvRelaySet.merge(msgRelaySet);
 
@@ -1885,14 +1959,14 @@ std::vector<std::string> NodeShared::GlobalRelays() const
 /////////////////////////////////////////////////
 std::string NodeShared::GzImplementation() const
 {
-  return this->dataPtr->gzImplementation;
+  return this->gzImplementation;
 }
 
 #ifdef HAVE_ZENOH
 /////////////////////////////////////////////////
 std::shared_ptr<zenoh::Session> NodeShared::Session()
 {
-  return this->dataPtr->session;
+  return this->session;
 }
 #endif
 
@@ -1963,14 +2037,14 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
     {
       if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
       {
-        this->dataPtr->subscriber->set(
+        this->subscriber->set(
           zmq::sockopt::unsubscribe, fullyQualifiedTopic);
       }
     }
 
     // Prepare to notify publishers outside the lock
     shouldNotifyPublishers = true;
-    localAddress = this->dataPtr->myAddress;
+    localAddress = this->myAddress;
     localPUuid = this->pUuid;
   }
 
@@ -1979,7 +2053,7 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
   if (shouldNotifyPublishers)
   {
     MsgAddresses_M addresses;
-    this->dataPtr->msgDiscovery->Publishers(
+    this->msgDiscovery->Publishers(
       fullyQualifiedTopic, addresses);
 
     for (auto &proc : addresses)
@@ -1989,14 +2063,14 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
         dstPUuid, localPUuid, _nUuid,
         kGenericMessageType, AdvertiseMessageOptions());
 
-      this->dataPtr->msgDiscovery->Unregister(pub);
+      this->msgDiscovery->Unregister(pub);
     }
 
     MessagePublisher pub(fullyQualifiedTopic, localAddress,
       "", localPUuid, _nUuid,
       kGenericMessageType, AdvertiseMessageOptions());
 
-    this->dataPtr->msgDiscovery->Unregister(pub);
+    this->msgDiscovery->Unregister(pub);
   }
 
   return true;
@@ -2004,10 +2078,10 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
 
 //////////////////////////////////////////////////
 std::unordered_set<std::string> &NodeShared::TopicsSubscribed(
-    const std::string &_nUuid) const
+    const std::string &_nUuid)
 {
   std::lock_guard<std::recursive_mutex> lk(this->mutex);
-  return this->dataPtr->topicsSubscribed[_nUuid];
+  return this->topicsSubscribed[_nUuid];
 }
 
 //////////////////////////////////////////////////
@@ -2016,12 +2090,12 @@ bool NodeShared::RemoveSubscribedTopic(
     const std::string &_nUuid)
 {
   std::lock_guard<std::recursive_mutex> lk(this->mutex);
-  if (this->dataPtr->topicsSubscribed.find(_nUuid) ==
-      this->dataPtr->topicsSubscribed.end())
+  if (this->topicsSubscribed.find(_nUuid) ==
+      this->topicsSubscribed.end())
   {
     return false;
   }
-  return this->dataPtr->topicsSubscribed.at(_nUuid).erase(_topic) > 0;
+  return this->topicsSubscribed.at(_nUuid).erase(_topic) > 0;
 }
 
 //////////////////////////////////////////////////
@@ -2031,14 +2105,14 @@ bool NodeShared::SubscribeHelper(const std::string &_fullyQualifiedTopic,
   {
     std::lock_guard<std::recursive_mutex> lk(this->mutex);
     // Add the topic to the list of subscribed topics (if it was not before).
-    this->dataPtr->topicsSubscribed[_nUuid].insert(_fullyQualifiedTopic);
+    this->topicsSubscribed[_nUuid].insert(_fullyQualifiedTopic);
   }
 
   // Discover the list of nodes that publish on the topic.
   std::string impl = this->GzImplementation();
   if (impl == "zeromq")
   {
-    return this->dataPtr->msgDiscovery->Discover(_fullyQualifiedTopic);
+    return this->msgDiscovery->Discover(_fullyQualifiedTopic);
   }
   return true;
 }
@@ -2049,8 +2123,8 @@ bool NodeShared::RemoveHandlersFromPubQueue(const std::string &_topic,
 {
   // Remove from pubQueue
   std::unique_lock<std::mutex> queueLock(
-      this->dataPtr->pubThreadMutex);
-  for (auto &msgDetails : this->dataPtr->pubQueue)
+      this->pubThreadMutex);
+  for (auto &msgDetails : this->pubQueue)
   {
     // check if there is a pub queue with message details that has topic
     // which the node unsubscribes to
@@ -2090,8 +2164,8 @@ bool NodeShared::RemoveHandlerFromPubQueue(const std::string &_topic,
 {
   // Remove from pubQueue
   std::unique_lock<std::mutex> queueLock(
-      this->dataPtr->pubThreadMutex);
-  for (auto &msgDetails : this->dataPtr->pubQueue)
+      this->pubThreadMutex);
+  for (auto &msgDetails : this->pubQueue)
   {
     // check if there is a pub queue with message details that has topic
     // which the node unsubscribes to
@@ -2134,24 +2208,24 @@ bool NodeShared::RemoveHandlerFromPubQueue(const std::string &_topic,
 //////////////////////////////////////////////////
 std::string NodeShared::ReplierAddress() const
 {
-  return this->dataPtr->myReplierAddress;
+  return this->myReplierAddress;
 }
 
 //////////////////////////////////////////////////
 std::string NodeShared::MyAddress() const
 {
-  return this->dataPtr->myAddress;
+  return this->myAddress;
 }
 
 //////////////////////////////////////////////////
 HandlerStorage<IReqHandler> &NodeShared::Requests()
 {
-  return this->dataPtr->requests;
+  return this->requests;
 }
 
 //////////////////////////////////////////////////
 HandlerStorage<IRepHandler> &NodeShared::Repliers()
 {
-  return this->dataPtr->repliers;
+  return this->repliers;
 }
 }  // namespace gz::transport

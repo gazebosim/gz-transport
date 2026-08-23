@@ -18,28 +18,43 @@
 #ifndef GZ_TRANSPORT_NODESHARED_HH_
 #define GZ_TRANSPORT_NODESHARED_HH_
 
+#include <atomic>
+#include <condition_variable>
 #include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include <filesystem>
 #include <functional>
+#include <iostream>
+#include <list>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
+#include <zmq.hpp>
+
 #include "gz/transport/config.hh"
 #include "gz/transport/Export.hh"
-#include "HandlerStorage.hh"
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/NodeOptions.hh"
 #include "gz/transport/Publisher.hh"
 #include "gz/transport/SubscriptionHandler.hh"
-#include "TopicStorage.hh"
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TransportTypes.hh"
+#include "Discovery.hh"
+#include "HandlerStorage.hh"
+#include "TopicStorage.hh"
 #include "Uuid.hh"
+
+#ifdef HAVE_ZENOH
+#include <zenoh.hxx>
+#endif
 
 namespace zenoh
 {
@@ -57,9 +72,6 @@ namespace gz::transport
   class IReqHandler;
   class Node;
   class NodePrivate;
-
-  /// \brief Private data pointer
-  class NodeSharedPrivate;
 
   /// \class NodeShared NodeShared.hh gz/transport/NodeShared.hh
   /// \brief Private data for the Node class. This class should not be
@@ -329,7 +341,7 @@ namespace gz::transport
     /// \param[in] _nUuid Node UUID.
     /// \return The set of subscribed topics.
     private: std::unordered_set<std::string> &TopicsSubscribed(
-             const std::string &_nUuid) const;
+             const std::string &_nUuid);
 
     /// \brief Remove a subscribed topic for a node
     /// \param[in] _topic Topic to remove.
@@ -541,32 +553,295 @@ namespace gz::transport
 #pragma warning(push)
 #pragma warning(disable: 4251)
 #endif
+    /// \brief Initialize security
+    private: void SecurityInit();
+
+    /// \brief Handle new secure connections
+    private: void SecurityOnNewConnection();
+
+    /// \brief Access control handler for plain security.
+    /// This function is designed to be run in a thread.
+    private: void AccessControlHandler();
+
+    /// \brief Get and validate a non-negative environment variable.
+    /// \param[in] _envVar The name of the environment variable to get.
+    /// \param[in] _defaultValue The default value returned in case the
+    /// environment variable is invalid (e.g.: invalid number,
+    /// negative number).
+    /// \return The value read from the environment variable or the default
+    /// value if the validation wasn't succeed.
+    private: int NonNegativeEnvVar(const std::string &_envVar,
+                                  int _defaultValue) const;
+
+#ifdef HAVE_ZENOH
+    /// \brief Enumeration for the source of Zenoh configuration.
+    public: enum class ZenohConfigSource
+            {
+              /// \brief Configuration loaded from ZENOH_CONFIG env variable.
+              kFromEnvVariable,
+              /// \brief Default Zenoh configuration.
+              kDefault
+            };
+
+    /// \brief Get the Zenoh configuration.
+    /// If the environment variable ZENOH_CONFIG is set, use that config file.
+    /// Otherwise, use the default Zenoh configuration.
+    /// \param[out] _configSource The source of the configuration.
+    /// \return The Zenoh configuration object.
+    public: static inline zenoh::Config ZenohConfig(
+              ZenohConfigSource &_configSource)
+            {
+              const char *zenohConfigEnv = std::getenv("ZENOH_CONFIG");
+              if (zenohConfigEnv)
+              {
+                std::string configPath(zenohConfigEnv);
+
+                // Check if the file exists and is a regular file.
+                if (std::filesystem::is_regular_file(configPath))
+                {
+                  // Try to load the config file.
+                  zenoh::ZResult result;
+                  zenoh::Config config =
+                    zenoh::Config::from_file(configPath, &result);
+                  if (result == Z_OK)
+                  {
+                    _configSource = ZenohConfigSource::kFromEnvVariable;
+                    return config;
+                  }
+                  std::cerr << "Failed to parse Zenoh config file: "
+                            << configPath << "\n";
+                }
+                else
+                {
+                  std::cerr << "Zenoh config file not found: "
+                            << configPath << "\n";
+                }
+              }
+
+              // Fallback to default configuration.
+              _configSource = ZenohConfigSource::kDefault;
+              return zenoh::Config::create_default();
+            }
+
+    /// \brief Apply key=value config overrides to a Zenoh config.
+    /// Format: "key1=value1;key2=value2;..."
+    /// Values are passed directly to insert_json5(), so they can be any
+    /// valid JSON5 (strings, numbers, objects, arrays).
+    /// \param[in,out] _config The Zenoh config to modify.
+    /// \param[in] _overrides The override string to parse.
+    /// \param[in] _verbose Print applied overrides to stdout.
+    public: static inline void ApplyZenohConfigOverrides(
+              zenoh::Config &_config,
+              const std::string &_overrides,
+              bool _verbose = false)
+            {
+              std::string::size_type pos = 0;
+              while (pos < _overrides.size())
+              {
+                auto semi = _overrides.find(';', pos);
+                if (semi == std::string::npos)
+                  semi = _overrides.size();
+                auto eq = _overrides.find('=', pos);
+                if (eq != std::string::npos && eq < semi)
+                {
+                  std::string key = _overrides.substr(pos, eq - pos);
+                  std::string val = _overrides.substr(eq + 1, semi - eq - 1);
+                  // Trim leading/trailing whitespace.
+                  auto trim = [](std::string &s)
+                  {
+                    auto start = s.find_first_not_of(" \t");
+                    auto end = s.find_last_not_of(" \t");
+                    s = (start == std::string::npos) ? "" :
+                        s.substr(start, end - start + 1);
+                  };
+                  trim(key);
+                  trim(val);
+                  if (!key.empty())
+                  {
+                    zenoh::ZResult result;
+                    _config.insert_json5(key, val, &result);
+                    if (result != Z_OK)
+                    {
+                      std::cerr << "gz-transport: failed to apply Zenoh "
+                                << "config override: " << key << "="
+                                << val << std::endl;
+                    }
+                    else if (_verbose)
+                    {
+                      std::cout << "Zenoh config override: " << key
+                                << "=" << val << std::endl;
+                    }
+                  }
+                }
+                pos = semi + 1;
+              }
+            }
+
+    /// \brief Pointer to the Zenoh session.
+    private: std::shared_ptr<zenoh::Session> session;
+#endif
+
+    //////////////////////////////////////////////////
+    ///////    Declare here the ZMQ Context    ///////
+    //////////////////////////////////////////////////
+
+    /// \brief 0MQ context. Always declare this object before any ZMQ socket
+    /// to make sure that the context is destroyed after all sockets.
+    private: std::unique_ptr<zmq::context_t> context;
+
+    //////////////////////////////////////////////////
+    ///////     Declare here all ZMQ sockets   ///////
+    //////////////////////////////////////////////////
+
+    /// \brief ZMQ socket to send topic updates.
+    private: std::unique_ptr<zmq::socket_t> publisher;
+
+    /// \brief ZMQ socket to receive topic updates.
+    private: std::unique_ptr<zmq::socket_t> subscriber;
+
+    /// \brief ZMQ socket for sending service call requests.
+    private: std::unique_ptr<zmq::socket_t> requester;
+
+    /// \brief ZMQ socket for receiving service call responses.
+    private: std::unique_ptr<zmq::socket_t> responseReceiver;
+
+    /// \brief ZMQ socket to receive service call requests.
+    private: std::unique_ptr<zmq::socket_t> replier;
+
+    /// \brief Thread the handle access control
+    private: std::thread accessControlThread;
+
+    //////////////////////////////////////////////////
+    /////// Declare here the discovery object  ///////
+    //////////////////////////////////////////////////
+
+    /// \brief Discovery service (messages).
+    private: std::unique_ptr<MsgDiscovery> msgDiscovery;
+
+    /// \brief Discovery service (services).
+    private: std::unique_ptr<SrvDiscovery> srvDiscovery;
+
+    //////////////////////////////////////////////////
+    /////// Other private member variables     ///////
+    //////////////////////////////////////////////////
+
+    /// \brief When true, the reception thread will finish.
+    private: std::atomic<bool> exit = false;
+
+    /// \brief Timeout used for receiving messages (ms.).
+    private: inline static const int Timeout = 250;
+
+    ////////////////////////////////////////////////////////////////
+    /////// The following is for asynchronous publication of ///////
+    /////// messages to local subscribers.                    ///////
+    ////////////////////////////////////////////////////////////////
+
+    /// \brief Encapsulates information needed to publish a message. An
+    /// instance of this class is pushed onto a publish queue, pubQueue, when
+    /// a message is published through Node::Publisher::Publish.
+    /// The pubThread processes the pubQueue in the
+    /// NodeShared::PublishThread function.
+    ///
+    /// A producer-consumer mechanism is used to send messages so that
+    /// Node::Publisher::Publish function does not block while executing
+    /// local subscriber callbacks.
+    private: struct PublishMsgDetails
+            {
+              /// \brief All the local subscription handlers.
+              public: std::vector<ISubscriptionHandlerPtr> localHandlers;
+
+              /// \brief All the raw handlers.
+              public: std::vector<RawSubscriptionHandlerPtr> rawHandlers;
+
+              /// \brief Buffer for the raw handlers.
+              public: std::unique_ptr<char[]> sharedBuffer = nullptr;
+
+              /// \brief Msg copy for the local handlers.
+              public: std::unique_ptr<ProtoMsg> msgCopy = nullptr;
+
+              /// \brief Message size.
+              // cppcheck-suppress unusedStructMember
+              public: std::size_t msgSize = 0;
+
+              /// \brief Information about the topic and type.
+              public: MessageInfo info;
+
+              /// \brief Publisher's node UUID.
+              public: std::string publisherNodeUUID;
+            };
+
+    /// \brief Publish thread used to process the pubQueue.
+    private: std::thread pubThread;
+
+    /// \brief Mutex to protect the pubThread and pubQueue.
+    private: std::mutex pubThreadMutex;
+
+    /// \brief List onto which new messages are pushed. The pubThread
+    /// will pop off the messages and send them to local subscribers.
+    private: std::list<std::unique_ptr<PublishMsgDetails>> pubQueue;
+
+    /// \brief used to signal when new work is available
+    private: std::condition_variable signalNewPub;
+
+    /// \brief Service thread used to process the srvQueue.
+    private: std::thread srvThread;
+
+    /// \brief Mutex to protect the srvThread and srvQueue.
+    private: std::mutex srvThreadMutex;
+
+    /// \brief List onto which new srv publishers are pushed.
+    private: std::list<ServicePublisher> srvQueue;
+
+    /// \brief Used to signal when new work is available.
+    private: std::condition_variable signalNewSrv;
+
+    /// \brief Handles local publication of messages on the pubQueue.
+    private: void PublishThread();
+
+    /// \brief Topic publication sequence numbers.
+    private: std::map<std::string, uint64_t> topicPubSeq;
+
+    /// \brief True if topic statistics have been enabled.
+    private: bool topicStatsEnabled = false;
+
+    /// \brief Statistics for a topic. The key in the map is the topic
+    /// name and the value contains the topic statistics.
+    private: std::map<std::string, TopicStatistics> topicStats;
+
+    /// \brief Set of topics that have statistics enabled.
+    private: std::map<std::string,
+            std::function<void(const TopicStatistics &_stats)>>
+              enabledTopicStatistics;
+
+    /// \brief A map of node UUID and its subscribed topics
+    private: std::unordered_map<std::string, std::unordered_set<std::string>>
+            topicsSubscribed;
+
     /// \brief Service call repliers.
-    public: HandlerStorage<IRepHandler> repliers;
+    private: HandlerStorage<IRepHandler> repliers;
 
     /// \brief Pending service call requests.
-    public: HandlerStorage<IReqHandler> requests;
+    private: HandlerStorage<IReqHandler> requests;
 
     /// \brief Print activity to stdout.
-    public: int verbose;
+    private: int verbose = false;
 
     /// \brief My pub/sub address.
-    public: std::string myAddress;
-
-    /// \brief My pub/sub control address.
-    public: std::string myControlAddress;
+    private: std::string myAddress;
 
     /// \brief My requester service call address.
-    public: std::string myRequesterAddress;
+    private: std::string myRequesterAddress;
 
     /// \brief My replier service call address.
-    public: std::string myReplierAddress;
+    private: std::string myReplierAddress;
 
     /// \brief IP address of this host.
-    public: std::string hostAddr;
+    private: std::string hostAddr;
 
-    /// \brief Internal data pointer.
-    private: std::unique_ptr<NodeSharedPrivate> dataPtr;
+    /// \brief Underlying middleware implementation.
+    /// Supported values are: [zenoh, zeromq].
+    private: std::string gzImplementation =
+                std::string(GZ_TRANSPORT_DEFAULT_IMPLEMENTATION);
 #ifdef _WIN32
 #pragma warning(pop)
 #endif

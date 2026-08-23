@@ -55,7 +55,6 @@
 #endif
 
 #include "NodePrivate.hh"
-#include "NodeSharedPrivate.hh"
 
 using namespace gz;
 using namespace transport;
@@ -160,7 +159,7 @@ class Node::PublisherPrivate
   {
     std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
     // Notify the discovery service to unregister and unadvertise my topic.
-    if (!this->shared->dataPtr->msgDiscovery->Unadvertise(
+    if (!this->shared->msgDiscovery->Unadvertise(
            this->publisher.Topic(), this->publisher.NUuid()))
     {
       std::cerr << "~PublisherPrivate() Error unadvertising topic ["
@@ -462,8 +461,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Local and raw subscribers.
   if (subscribers.haveLocal || subscribers.haveRaw)
   {
-    std::unique_ptr<NodeSharedPrivate::PublishMsgDetails> pubMsgDetails(
-      new NodeSharedPrivate::PublishMsgDetails);
+    std::unique_ptr<NodeShared::PublishMsgDetails> pubMsgDetails(
+      new NodeShared::PublishMsgDetails);
 
     // Create and populate the message information object.
     // This must be a shared pointer so that we can pass it to
@@ -539,12 +538,12 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     // will be published asynchronously to the local and raw callbacks.
     {
       std::unique_lock<std::mutex> queueLock(
-          this->dataPtr->shared->dataPtr->pubThreadMutex);
-      this->dataPtr->shared->dataPtr->pubQueue.push_back(
+          this->dataPtr->shared->pubThreadMutex);
+      this->dataPtr->shared->pubQueue.push_back(
           std::move(pubMsgDetails));
     }
 
-    this->dataPtr->shared->dataPtr->signalNewPub.notify_one();
+    this->dataPtr->shared->signalNewPub.notify_one();
   }
 
   // Handle remote subscribers.
@@ -741,7 +740,7 @@ std::vector<std::string> Node::AdvertisedTopics() const
     std::lock_guard<std::recursive_mutex> lk(this->dataPtr->shared->mutex);
 
     auto pUUID = this->dataPtr->shared->pUuid;
-    auto &info = this->dataPtr->shared->dataPtr->msgDiscovery->Info();
+    auto &info = this->dataPtr->shared->msgDiscovery->Info();
     info.PublishersByNode(pUUID, this->NodeUuid(), pubs);
   }
 
@@ -826,7 +825,7 @@ bool Node::UnadvertiseSrv(const std::string &_topic)
     fullyQualifiedTopic, this->dataPtr->nUuid);
 
   // Notify the discovery service to unregister and unadvertise my services.
-  if (!this->dataPtr->shared->dataPtr->srvDiscovery->Unadvertise(
+  if (!this->dataPtr->shared->srvDiscovery->Unadvertise(
         fullyQualifiedTopic, this->dataPtr->nUuid))
   {
     return false;
@@ -841,7 +840,7 @@ void Node::TopicList(std::vector<std::string> &_topics) const
   std::vector<std::string> allTopics;
   _topics.clear();
 
-  this->dataPtr->shared->dataPtr->msgDiscovery->TopicList(allTopics);
+  this->dataPtr->shared->msgDiscovery->TopicList(allTopics);
 
   // Add the topics subscribed within this process. They are not part of the
   // discovery information because a process discards its own discovery
@@ -849,7 +848,7 @@ void Node::TopicList(std::vector<std::string> &_topics) const
   {
     std::lock_guard<std::recursive_mutex> lock(this->dataPtr->shared->mutex);
     for (const auto &pub : this->dataPtr->shared->localSubscribers.Convert(
-        this->dataPtr->shared->dataPtr->myAddress,
+        this->dataPtr->shared->myAddress,
         this->dataPtr->shared->pUuid))
     {
       if (std::find(allTopics.begin(), allTopics.end(), pub.Topic()) ==
@@ -885,7 +884,7 @@ void Node::ServiceList(std::vector<std::string> &_services) const
   std::vector<std::string> allServices;
   _services.clear();
 
-  this->dataPtr->shared->dataPtr->srvDiscovery->TopicList(allServices);
+  this->dataPtr->shared->srvDiscovery->TopicList(allServices);
 
   for (auto &service : allServices)
   {
@@ -1200,7 +1199,7 @@ bool Node::TopicInfo(const std::string &_topic,
 {
   // We trigger a topic list to update the list of remote subscribers.
   std::vector<std::string> allTopics;
-  this->dataPtr->shared->dataPtr->msgDiscovery->TopicList(allTopics);
+  this->dataPtr->shared->msgDiscovery->TopicList(allTopics);
 
   // Construct a topic name with the partition and namespace
   std::string fullyQualifiedTopic;
@@ -1237,7 +1236,7 @@ bool Node::TopicInfo(const std::string &_topic,
 
   // Get all the publishers on the given topics.
   MsgAddresses_M pubs;
-  if (this->dataPtr->shared->dataPtr->msgDiscovery->Publishers(
+  if (this->dataPtr->shared->msgDiscovery->Publishers(
         fullyQualifiedTopic, pubs))
   {
     convert(pubs, _publishers);
@@ -1245,7 +1244,7 @@ bool Node::TopicInfo(const std::string &_topic,
 
   // Get all the remote subscribers on the given topics.
   MsgAddresses_M subs;
-  if (this->dataPtr->shared->dataPtr->msgDiscovery->RemoteSubscribers(
+  if (this->dataPtr->shared->msgDiscovery->RemoteSubscribers(
         fullyQualifiedTopic, subs))
   {
     convert(subs, _subscribers);
@@ -1255,7 +1254,7 @@ bool Node::TopicInfo(const std::string &_topic,
   // discovery information because a process discards its own discovery
   // messages.
   for (const auto &pub : this->dataPtr->shared->localSubscribers.Convert(
-      this->dataPtr->shared->dataPtr->myAddress,
+      this->dataPtr->shared->myAddress,
       this->dataPtr->shared->pUuid))
   {
     if (pub.Topic() == fullyQualifiedTopic &&
@@ -1273,7 +1272,7 @@ bool Node::TopicInfo(const std::string &_topic,
 bool Node::ServiceInfo(const std::string &_service,
                        std::vector<ServicePublisher> &_publishers) const
 {
-  this->dataPtr->shared->dataPtr->srvDiscovery->WaitForInit();
+  this->dataPtr->shared->srvDiscovery->WaitForInit();
 
   // Construct a topic name with the partition and namespace
   std::string fullyQualifiedTopic;
@@ -1287,7 +1286,7 @@ bool Node::ServiceInfo(const std::string &_service,
 
   // Get all the publishers on the given service.
   SrvAddresses_M pubs;
-  if (!this->dataPtr->shared->dataPtr->srvDiscovery->Publishers(
+  if (!this->dataPtr->shared->srvDiscovery->Publishers(
         fullyQualifiedTopic, pubs))
   {
     return false;
@@ -1422,7 +1421,7 @@ Node::Publisher Node::Advertise(const std::string &_topic,
   std::string impl = this->dataPtr->shared->GzImplementation();
   if (impl == "zeromq")
   {
-    if (!this->Shared()->dataPtr->msgDiscovery->Advertise(publisher))
+    if (!this->Shared()->msgDiscovery->Advertise(publisher))
     {
       std::cerr << "Node::Advertise(): Error advertising topic ["
         << topic
@@ -1436,7 +1435,7 @@ Node::Publisher Node::Advertise(const std::string &_topic,
 #ifdef HAVE_ZENOH
   else if (impl == "zenoh")
   {
-    auto zPub = this->Shared()->dataPtr->session->declare_publisher(
+    auto zPub = this->Shared()->session->declare_publisher(
      zenoh::KeyExpr(fullyQualifiedTopic));
 
     std::string token = TopicUtils::CreateLivelinessToken(
@@ -1447,7 +1446,7 @@ Node::Publisher Node::Advertise(const std::string &_topic,
       return Publisher();
 
     auto zToken =
-      this->Shared()->dataPtr->session->liveliness_declare_token(token);
+      this->Shared()->session->liveliness_declare_token(token);
 
     return Publisher(publisher, std::move(zPub), std::move(zToken));
   }

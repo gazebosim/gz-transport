@@ -22,10 +22,10 @@
 #include <gtest/gtest.h>
 #include <gz/utils/Environment.hh>
 
-#include "NodeSharedPrivate.hh"
+#include "NodeShared.hh"
 #include "test_config.hh"
 
-using ZenohConfigSource = gz::transport::NodeSharedPrivate::ZenohConfigSource;
+using ZenohConfigSource = gz::transport::NodeShared::ZenohConfigSource;
 
 //////////////////////////////////////////////////
 /// \brief Test loading config from ZENOH_CONFIG env variable.
@@ -34,9 +34,8 @@ TEST(ZenohConfigTest, LoadFromEnvVariable)
   // Set ZENOH_CONFIG to point to our test config file
   ASSERT_TRUE(gz::utils::setenv("ZENOH_CONFIG", kZenohTestConfig));
 
-  gz::transport::NodeSharedPrivate nodePrivate;
   ZenohConfigSource source;
-  auto config = nodePrivate.ZenohConfig(source);
+  auto config = gz::transport::NodeShared::ZenohConfig(source);
 
   // Verify the config source is from environment variable
   EXPECT_EQ(ZenohConfigSource::kFromEnvVariable, source);
@@ -58,9 +57,8 @@ TEST(ZenohConfigTest, LoadDefaultConfig)
   // Ensure ZENOH_CONFIG is not set
   gz::utils::unsetenv("ZENOH_CONFIG");
 
-  gz::transport::NodeSharedPrivate nodePrivate;
   ZenohConfigSource source;
-  auto config = nodePrivate.ZenohConfig(source);
+  auto config = gz::transport::NodeShared::ZenohConfig(source);
 
   // Verify the config source is default
   EXPECT_EQ(ZenohConfigSource::kDefault, source);
@@ -81,12 +79,11 @@ TEST(ZenohConfigTest, NonexistentConfigPath)
   ASSERT_TRUE(gz::utils::setenv("ZENOH_CONFIG",
     "/nonexistent/path/to/config.json5"));
 
-  gz::transport::NodeSharedPrivate nodePrivate;
   ZenohConfigSource source;
 
   // Capture stderr to verify an error message is printed
   testing::internal::CaptureStderr();
-  auto config = nodePrivate.ZenohConfig(source);
+  auto config = gz::transport::NodeShared::ZenohConfig(source);
   std::string stderrOutput = testing::internal::GetCapturedStderr();
 
   // Should fall back to default config
@@ -110,12 +107,11 @@ TEST(ZenohConfigTest, InvalidConfigContent)
   // Set ZENOH_CONFIG to a file with invalid Zenoh settings
   ASSERT_TRUE(gz::utils::setenv("ZENOH_CONFIG", kZenohInvalidConfig));
 
-  gz::transport::NodeSharedPrivate nodePrivate;
   ZenohConfigSource source;
 
   // Capture stderr to verify an error message is printed
   testing::internal::CaptureStderr();
-  auto config = nodePrivate.ZenohConfig(source);
+  auto config = gz::transport::NodeShared::ZenohConfig(source);
   std::string stderrOutput = testing::internal::GetCapturedStderr();
 
   // Should fall back to default config
@@ -137,7 +133,7 @@ TEST(ZenohConfigTest, ConfigOverrideSingle)
 {
   auto config = zenoh::Config::create_default();
 
-  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+  gz::transport::NodeShared::ApplyZenohConfigOverrides(
     config, "scouting/multicast/enabled=false");
 
   EXPECT_EQ("false", config.get("scouting/multicast/enabled"));
@@ -149,7 +145,7 @@ TEST(ZenohConfigTest, ConfigOverrideMultiple)
 {
   auto config = zenoh::Config::create_default();
 
-  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+  gz::transport::NodeShared::ApplyZenohConfigOverrides(
     config,
     "scouting/multicast/enabled=false;"
     "listen/endpoints=[\"tcp/127.0.0.1:0\"]");
@@ -164,7 +160,7 @@ TEST(ZenohConfigTest, ConfigOverrideWhitespace)
 {
   auto config = zenoh::Config::create_default();
 
-  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+  gz::transport::NodeShared::ApplyZenohConfigOverrides(
     config, "  scouting/multicast/enabled  =  false  ");
 
   EXPECT_EQ("false", config.get("scouting/multicast/enabled"));
@@ -176,7 +172,7 @@ TEST(ZenohConfigTest, ConfigOverrideTrailingSemicolon)
 {
   auto config = zenoh::Config::create_default();
 
-  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+  gz::transport::NodeShared::ApplyZenohConfigOverrides(
     config, "scouting/multicast/enabled=false;");
 
   EXPECT_EQ("false", config.get("scouting/multicast/enabled"));
@@ -189,7 +185,7 @@ TEST(ZenohConfigTest, ConfigOverrideEmpty)
   auto config = zenoh::Config::create_default();
   auto valBefore = config.get("scouting/multicast/enabled");
 
-  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(config, "");
+  gz::transport::NodeShared::ApplyZenohConfigOverrides(config, "");
 
   EXPECT_EQ(valBefore, config.get("scouting/multicast/enabled"));
 }
@@ -201,7 +197,7 @@ TEST(ZenohConfigTest, ConfigOverrideInvalidKey)
   auto config = zenoh::Config::create_default();
 
   testing::internal::CaptureStderr();
-  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+  gz::transport::NodeShared::ApplyZenohConfigOverrides(
     config, "nonexistent/key/path=42");
   std::string stderrOutput = testing::internal::GetCapturedStderr();
 
@@ -218,7 +214,7 @@ TEST(ZenohConfigTest, ConfigOverrideMalformedPair)
   auto config = zenoh::Config::create_default();
 
   // "noequals" has no '=', should be skipped; second pair should apply
-  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+  gz::transport::NodeShared::ApplyZenohConfigOverrides(
     config, "noequals;scouting/multicast/enabled=false");
 
   EXPECT_EQ("false", config.get("scouting/multicast/enabled"));
@@ -231,7 +227,7 @@ TEST(ZenohConfigTest, ConfigOverrideEqualsInValue)
 {
   auto config = zenoh::Config::create_default();
 
-  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+  gz::transport::NodeShared::ApplyZenohConfigOverrides(
     config, "connect/endpoints=[\"tcp/127.0.0.1:7447\"]");
 
   EXPECT_EQ("[\"tcp/127.0.0.1:7447\"]", config.get("connect/endpoints"));
@@ -245,14 +241,13 @@ TEST(ZenohConfigTest, ConfigOverrideViaEnvVar)
     "GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE",
     "scouting/multicast/enabled=false"));
 
-  gz::transport::NodeSharedPrivate nodePrivate;
   ZenohConfigSource source;
-  auto config = nodePrivate.ZenohConfig(source);
+  auto config = gz::transport::NodeShared::ZenohConfig(source);
 
   const char *overrideEnv =
       std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
   ASSERT_NE(nullptr, overrideEnv);
-  gz::transport::NodeSharedPrivate::ApplyZenohConfigOverrides(
+  gz::transport::NodeShared::ApplyZenohConfigOverrides(
     config, overrideEnv);
 
   EXPECT_EQ("false", config.get("scouting/multicast/enabled"));
