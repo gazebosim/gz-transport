@@ -11,8 +11,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-default:
-    name: Test (enable_zenoh=false)
+  test:
+    name: Test (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: default
+            bazel_test_command: "bazel test -c opt --test_output=errors //..."
+          - name: zenoh
+            bazel_test_command: "bazel test -c opt --test_env=GZ_TRANSPORT_IMPLEMENTATION=zenoh --test_output=errors //..."
     uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.7.0
     with:
       folders: |
@@ -24,23 +32,4 @@ jobs:
           {"folder": ".", "bzlmodEnabled": false}
         ]
       exclude_windows: true
-      # Use opt compilation mode to prevent perf-related test flakiness.
-      # This only adds a couple minutes of build time overhead.
-      bazel_test_command: "bazel test -c opt --//:enable_zenoh=false --test_output=errors //..."
-
-  test-zenoh:
-    name: Test (enable_zenoh=true)
-    uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.7.0
-    with:
-      folders: |
-        [
-          "."
-        ]
-      exclude: |
-        [
-          {"folder": ".", "bzlmodEnabled": false}
-        ]
-      exclude_windows: true
-      # Use opt compilation mode to prevent perf-related test flakiness.
-      # This only adds a couple minutes of build time overhead.
-      bazel_test_command: "bazel test -c opt --//:enable_zenoh=true --test_output=errors //..."
+      bazel_test_command: ${{ matrix.bazel_test_command }}
