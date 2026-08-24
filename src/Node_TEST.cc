@@ -1932,6 +1932,159 @@ TEST(NodeTest, ServiceCallWithoutInputSyncTimeout)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check that service request and response types can be resolved
+/// from the advertised providers.
+TEST(NodeTest, ResolveServiceTypes)
+{
+  using Resolution = transport::Node::ServiceTypeResolution;
+
+  reset();
+
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
+
+  // Resolve both types.
+  std::string reqType;
+  std::string repType;
+  EXPECT_EQ(Resolution::kResolved,
+    node.ResolveServiceTypes(g_topic, reqType, repType));
+  EXPECT_EQ("gz.msgs.Int32", reqType);
+  EXPECT_EQ("gz.msgs.Int32", repType);
+
+  // A non-empty type is left untouched, and selects the providers that the
+  // empty type is resolved from.
+  reqType = "gz.msgs.Int32";
+  repType.clear();
+  EXPECT_EQ(Resolution::kResolved,
+    node.ResolveServiceTypes(g_topic, reqType, repType));
+  EXPECT_EQ("gz.msgs.Int32", reqType);
+  EXPECT_EQ("gz.msgs.Int32", repType);
+
+  // A non-empty type that no provider offers is reported, instead of
+  // resolving the other type from a provider that could never serve the
+  // request.
+  reqType = "custom.msgs.Type";
+  repType.clear();
+  EXPECT_EQ(Resolution::kIncompatibleTypes,
+    node.ResolveServiceTypes(g_topic, reqType, repType));
+  EXPECT_EQ("custom.msgs.Type", reqType);
+  EXPECT_TRUE(repType.empty());
+
+  // Nothing to resolve: no discovery involved, even without providers.
+  reqType = "custom.msgs.Type";
+  repType = "custom.msgs.Type";
+  EXPECT_EQ(Resolution::kResolved,
+    node.ResolveServiceTypes("/unadvertised", reqType, repType));
+
+  // An invalid service name.
+  reqType.clear();
+  repType.clear();
+  EXPECT_EQ(Resolution::kInvalidService,
+    node.ResolveServiceTypes("invalid service", reqType, repType));
+
+  // No providers: expect to wait for approximately the timeout.
+  auto t1 = std::chrono::steady_clock::now();
+  EXPECT_EQ(Resolution::kNoProviders,
+    node.ResolveServiceTypes("/unadvertised", reqType, repType, 300));
+  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+    std::chrono::steady_clock::now() - t1).count();
+  EXPECT_GE(elapsed, 300);
+  EXPECT_TRUE(reqType.empty());
+  EXPECT_TRUE(repType.empty());
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that type resolution keeps waiting for a provider that
+/// appears after the call started but before the timeout expires.
+TEST(NodeTest, ResolveServiceTypesWaitsForProvider)
+{
+  using Resolution = transport::Node::ServiceTypeResolution;
+
+  reset();
+
+  std::atomic<bool> testDone{false};
+  std::thread advertiser([&testDone]
+  {
+    // Advertise the service while the main thread is already waiting.
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    transport::Node providerNode;
+    EXPECT_TRUE(providerNode.Advertise(g_topic, srvEcho));
+
+    // Keep the provider alive until the main thread is done resolving.
+    while (!testDone)
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  });
+
+  transport::Node node;
+  std::string reqType;
+  std::string repType;
+  auto t1 = std::chrono::steady_clock::now();
+  EXPECT_EQ(Resolution::kResolved,
+    node.ResolveServiceTypes(g_topic, reqType, repType, 5000));
+  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+    std::chrono::steady_clock::now() - t1).count();
+
+  // The call must have waited for the provider, not exhausted the timeout.
+  EXPECT_LT(elapsed, 5000);
+  EXPECT_EQ("gz.msgs.Int32", reqType);
+  EXPECT_EQ("gz.msgs.Int32", repType);
+
+  testDone = true;
+  advertiser.join();
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that type resolution detects providers that disagree on the
+/// types being resolved and ignores disagreements on explicit types.
+TEST(NodeTest, ResolveServiceTypesAmbiguous)
+{
+  using Resolution = transport::Node::ServiceTypeResolution;
+
+  reset();
+
+  transport::Node node1;
+  transport::Node node2;
+
+  // Same request type as srvEcho, different response type.
+  std::function<bool(const msgs::Int32 &, msgs::StringMsg &)> mixedCb =
+    [](const msgs::Int32 &, msgs::StringMsg &)
+    {
+      return true;
+    };
+
+  EXPECT_TRUE(node1.Advertise(g_topic, srvEcho));
+  EXPECT_TRUE(node2.Advertise(g_topic, mixedCb));
+
+  // The response type is ambiguous.
+  std::string reqType;
+  std::string repType;
+  EXPECT_EQ(Resolution::kAmbiguousTypes,
+    node1.ResolveServiceTypes(g_topic, reqType, repType));
+
+  // An explicit response type selects one of the two providers, so the
+  // request type is no longer ambiguous.
+  reqType.clear();
+  repType = "gz.msgs.StringMsg";
+  EXPECT_EQ(Resolution::kResolved,
+    node1.ResolveServiceTypes(g_topic, reqType, repType));
+  EXPECT_EQ("gz.msgs.Int32", reqType);
+
+  // An explicit response type that neither provider offers is reported as
+  // incompatible rather than resolved from the wrong provider.
+  reqType.clear();
+  repType = "gz.msgs.Vector3d";
+  EXPECT_EQ(Resolution::kIncompatibleTypes,
+    node1.ResolveServiceTypes(g_topic, reqType, repType));
+  EXPECT_TRUE(reqType.empty());
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief Create a publisher that sends messages "forever". This function will
 /// be used emitting a SIGINT or SIGTERM signal, to make sure that the transport
 /// library captures the signals, stop all the tasks and signal the event with
