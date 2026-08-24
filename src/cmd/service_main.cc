@@ -51,6 +51,12 @@ struct ServiceOptions
   /// \brief Response type to use when requesting
   std::string repType;
 
+  /// \brief Send the request without waiting for a response
+  bool oneway{false};
+
+  /// \brief Show extra information
+  bool verbose{false};
+
   /// \brief Timeout to use when requesting (in milliseconds)
   int timeout{5000};
 };
@@ -68,28 +74,29 @@ void runServiceCommand(const ServiceOptions &_opt)
       cmdServiceInfo(_opt.service.c_str());
       break;
     case ServiceCommand::kServiceReq:
-      if (_opt.repType.empty())
-      {
-        // One-way service request.
-        cmdServiceReq(_opt.service.c_str(),
-            _opt.reqType.c_str(), "gz.msgs.Empty",
-            0, _opt.reqData.c_str());
-      }
-      else if (_opt.reqType.empty())
-      {
-        // No input service request.
-        cmdServiceReq(_opt.service.c_str(),
-            "gz.msgs.Empty", _opt.repType.c_str(),
-            _opt.timeout, "unused:true");
-      }
-      else
-      {
-        // Two-way service request.
-        cmdServiceReq(_opt.service.c_str(),
-            _opt.reqType.c_str(), _opt.repType.c_str(),
-            _opt.timeout, _opt.reqData.c_str());
-      }
+    {
+      // A one-way request is expressed as a "gz.msgs.Empty" response type,
+      // which never needs to be resolved from discovery.
+      std::string reqType = _opt.reqType;
+      std::string repType = _opt.oneway ? "gz.msgs.Empty" : _opt.repType;
+
+      // Gazebo Transport 15 keeps the legacy meaning of a single omitted
+      // type, so that existing scripts behave the same: --reqtype alone is
+      // a one-way request and --reptype alone is a request without input.
+      // Types are only inferred from the service provider when both are
+      // omitted, which used to be an error, or with the new --oneway flag.
+      // Gazebo Transport 16 infers either type.
+      if (!reqType.empty() && repType.empty())
+        repType = "gz.msgs.Empty";
+      else if (reqType.empty() && !_opt.repType.empty())
+        reqType = "gz.msgs.Empty";
+
+      cmdServiceReq(_opt.service.c_str(),
+          reqType.empty() ? nullptr : reqType.c_str(),
+          repType.empty() ? nullptr : repType.c_str(),
+          _opt.timeout, _opt.reqData.c_str(), _opt.verbose ? 1 : 0);
       break;
+    }
     case ServiceCommand::kNone:
     default:
       // In the event that there is no command, display help
@@ -105,9 +112,24 @@ void addServiceFlags(CLI::App &_app)
 
   auto serviceOpt = _app.add_option("-s,--service",
                                     opt->service, "Name of a service.");
-  _app.add_option("--reqtype", opt->reqType, "Type of a request.");
-  _app.add_option("--reptype", opt->repType, "Type of a response.");
-  _app.add_option("--timeout", opt->timeout, "Timeout in milliseconds.");
+  _app.add_option("--reqtype", opt->reqType,
+      "Type of a request. gz.msgs.Empty if only --reptype is given.\n"
+      "Inferred from the service provider if both types are omitted.");
+  auto repTypeOpt = _app.add_option("--reptype", opt->repType,
+      "Type of a response. gz.msgs.Empty (one-way) if only --reqtype\n"
+      "is given. Inferred from the service provider if both types are\n"
+      "omitted.");
+  _app.add_option("--timeout", opt->timeout,
+      "Timeout in milliseconds (default 5000). Also bounds the wait for\n"
+      "a service provider when inferring types.");
+
+  _app.add_flag("--oneway", opt->oneway,
+      "Send the request without waiting for a response\n"
+      "(the response type is gz.msgs.Empty).")
+    ->excludes(repTypeOpt);
+
+  _app.add_flag("--verbose", opt->verbose,
+      "Show extra information, e.g. the types resolved from discovery.");
 
   auto command = _app.add_option_group("command", "Command to be executed.");
 
@@ -128,9 +150,13 @@ void addServiceFlags(CLI::App &_app)
         opt->reqData = _reqData;
       },
 R"(Request a service.
-TEXT is the input data.
-The format expected is
-the same used by google::protobuf::TextFormat::PrintToString(). E.g.:
+TEXT is the input data. The format expected is the same used by
+google::protobuf::TextFormat::PrintToString().
+If both --reqtype and --reptype are omitted, the types are resolved
+from the advertised service provider, waiting up to --timeout ms for
+one to appear. Use --oneway to send the request without waiting for
+a response. E.g.:
+  gz service -s /echo --req 'data: "Hello"'
   gz service -s /echo \
     --reqtype gz.msgs.StringMsg \
     --reptype gz.msgs.StringMsg \
@@ -151,7 +177,7 @@ int main(int argc, char** argv)
   app.add_flag_callback("-v,--version", [](){
       std::cout << GZ_TRANSPORT_VERSION_FULL << std::endl;
       throw CLI::Success();
-  });
+  }, "Print the version.");
 
   addServiceFlags(app);
   app.formatter(std::make_shared<GzFormatter>(&app));
