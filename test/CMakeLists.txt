@@ -36,5 +36,6 @@ target_compile_definitions(test_config INTERFACE
 
 if (HAVE_ZENOH)
   target_compile_definitions(test_config INTERFACE
-    "ZENOH_SHUTDOWN_AUX_EXE=\"$<TARGET_FILE:zenohShutdown_aux>\"")
+    "ZENOH_SHUTDOWN_AUX_EXE=\"$<TARGET_FILE:zenohShutdown_aux>\""
+    "ZENOH_TEARDOWN_FROM_CALLBACK_AUX_EXE=\"$<TARGET_FILE:zenohTeardownFromCallback_aux>\"")
 endif()
