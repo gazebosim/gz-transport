@@ -57,21 +57,7 @@ namespace gz::transport
     }
 
     /// \brief Destructor.
-    public: virtual ~SubscriptionHandlerBasePrivate()
-    {
-      this->ZenohShutdown();
-    }
-
-    /// \brief Zenoh teardown. Safe to call multiple times.
-    /// See ZenohTeardownEntity in NodeSharedPrivate.hh for the
-    /// shared pattern (atomic guard + detached undeclare).
-    public: void ZenohShutdown()
-    {
-#ifdef HAVE_ZENOH
-      ZenohTeardownEntity(this->zenohIsShutdown,
-                          this->zSub, this->zToken);
-#endif
-    }
+    public: virtual ~SubscriptionHandlerBasePrivate() = default;
 
     /// \brief Subscribe options.
     public: SubscribeOptions opts;
@@ -101,9 +87,6 @@ namespace gz::transport
 
     /// \brief The liveliness token.
     public: std::unique_ptr<zenoh::LivelinessToken> zToken;
-
-    /// \brief Atomic guard for ZenohShutdown idempotence.
-    public: std::atomic<bool> zenohIsShutdown{false};
 #endif
   };
 

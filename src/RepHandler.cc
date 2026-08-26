@@ -50,25 +50,7 @@ namespace gz::transport
     }
 
     /// \brief Destructor.
-    public: virtual ~IRepHandlerPrivate()
-    {
-      this->Shutdown();
-    }
-
-    /// \brief Zenoh teardown. Safe to call multiple times.
-    /// See ZenohTeardownEntity in NodeSharedPrivate.hh for the
-    /// shared pattern (atomic guard + detached undeclare). Running
-    /// undeclare() inline would self-deadlock if a service callback
-    /// itself triggers UnadvertiseSrv (which calls this teardown):
-    /// the callback would wait for teardown to finish, and teardown
-    /// would wait for the callback to return.
-    public: void Shutdown()
-    {
-#ifdef HAVE_ZENOH
-      ZenohTeardownEntity(this->isShutdown,
-                          this->zQueryable, this->zToken);
-#endif
-    }
+    public: virtual ~IRepHandlerPrivate() = default;
 
     /// \brief Process UUID.
     public: std::string pUuid;
@@ -87,9 +69,6 @@ namespace gz::transport
 
     /// \brief The liveliness token.
     public: std::unique_ptr<zenoh::LivelinessToken> zToken;
-
-    /// \brief Atomic guard for Shutdown idempotence.
-    public: std::atomic<bool> isShutdown{false};
 #endif
   };
 

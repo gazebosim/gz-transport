@@ -145,9 +145,6 @@ class Node::PublisherPrivate
   /// \brief Destructor.
   public: virtual ~PublisherPrivate()
   {
-    // Zenoh teardown before NodeShared::mutex is acquired below.
-    this->ZenohShutdown();
-
     std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
     // Notify the discovery service to unregister and unadvertise my topic.
     if (!this->shared->dataPtr->msgDiscovery->Unadvertise(
@@ -156,17 +153,6 @@ class Node::PublisherPrivate
       std::cerr << "~PublisherPrivate() Error unadvertising topic ["
                 << this->publisher.Topic() << "]" << std::endl;
     }
-  }
-
-  /// \brief Zenoh teardown. Safe to call multiple times.
-  /// See ZenohTeardownEntity in NodeSharedPrivate.hh for the
-  /// shared pattern (atomic guard + detached undeclare).
-  public: void ZenohShutdown()
-  {
-#ifdef HAVE_ZENOH
-    ZenohTeardownEntity(this->zenohIsShutdown,
-                        this->zPub, this->zToken);
-#endif
   }
 
   /// \brief Create a MessageInfo object for this Publisher
@@ -196,9 +182,6 @@ class Node::PublisherPrivate
 
   /// \brief The liveliness token.
   public: std::unique_ptr<zenoh::LivelinessToken> zToken;
-
-  /// \brief Atomic guard for ZenohShutdown idempotence.
-  public: std::atomic<bool> zenohIsShutdown{false};
 #endif
 
   /// \brief Timestamp of the last callback executed.
