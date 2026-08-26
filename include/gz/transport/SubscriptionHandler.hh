@@ -104,18 +104,6 @@ namespace gz::transport
     /// \return true if the callback should be executed or false otherwise.
     protected: bool UpdateThrottling();
 
-#ifdef HAVE_ZENOH
-    /// \brief Temporarily store the dispatch closure. Must be called by the
-    /// most derived subscriber subclass before CreateGenericZenohSubscriber.
-    /// The dispatch closure should capture a weak_ptr to the handler to safely
-    /// abort if invoked during handler destruction.
-    protected: void SetZenohSubscriberDispatch(
-      const std::string &_topic,
-      const std::string &_expectedType,
-      std::function<void(const std::string &payload,
-                         const std::string &msgType)> _dispatch);
-#endif
-
     /// \brief Subscribe options.
     protected: SubscribeOptions opts;
 
@@ -145,7 +133,8 @@ namespace gz::transport
   /// messages. Those functions are not needed by the RawSubscriptionHandler
   /// class.
   class GZ_TRANSPORT_VISIBLE ISubscriptionHandler
-      : public SubscriptionHandlerBase
+      : public SubscriptionHandlerBase,
+        public std::enable_shared_from_this<ISubscriptionHandler>
   {
     /// \brief Constructor.
     /// \param[in] _pUuid UUID of the process registering the handler.
@@ -242,25 +231,6 @@ namespace gz::transport
                              const FullyQualifiedTopic &_fullyQualifiedTopic)
     {
       this->SetCallback(std::move(_cb));
-      const std::string topic = _fullyQualifiedTopic.Topic();
-      std::weak_ptr<SubscriptionHandler<T>> weakSelf = this->weak_from_this();
-      this->SetZenohSubscriberDispatch(
-        topic, this->TypeName(),
-        [weakSelf, topic](const std::string &payload,
-                           const std::string &msgType)
-        {
-          auto self = weakSelf.lock();
-          if (!self)
-            return;
-          auto msg = self->CreateMsg(payload, msgType);
-          if (!msg)
-            return;
-          MessageInfo info;
-          info.SetTopic(topic);
-          info.SetType(msgType);
-          info.SetIntraProcess(false);
-          self->RunLocalCallback(*msg, info);
-        });
       this->CreateGenericZenohSubscriber(_session, _fullyQualifiedTopic);
     }
 #endif
@@ -322,8 +292,7 @@ namespace gz::transport
   /// \brief Specialized template when the user prefers a callbacks that
   /// accepts a generic google::protobuf::message instead of a specific type.
   template <> class SubscriptionHandler<ProtoMsg>
-    : public ISubscriptionHandler,
-      public std::enable_shared_from_this<SubscriptionHandler<ProtoMsg>>
+    : public ISubscriptionHandler
   {
     // Documentation inherited.
     public: explicit SubscriptionHandler(const std::string &_pUuid,
@@ -393,26 +362,6 @@ namespace gz::transport
                              const FullyQualifiedTopic &_fullyQualifiedTopic)
     {
       this->SetCallback(std::move(_cb));
-      const std::string topic = _fullyQualifiedTopic.Topic();
-      std::weak_ptr<SubscriptionHandler<ProtoMsg>> weakSelf =
-        this->weak_from_this();
-      this->SetZenohSubscriberDispatch(
-        topic, this->TypeName(),
-        [weakSelf, topic](const std::string &payload,
-                           const std::string &msgType)
-        {
-          auto self = weakSelf.lock();
-          if (!self)
-            return;
-          auto msg = self->CreateMsg(payload, msgType);
-          if (!msg)
-            return;
-          MessageInfo info;
-          info.SetTopic(topic);
-          info.SetType(msgType);
-          info.SetIntraProcess(false);
-          self->RunLocalCallback(*msg, info);
-        });
       this->CreateGenericZenohSubscriber(_session, _fullyQualifiedTopic);
     }
 #endif

@@ -159,38 +159,13 @@ class Node::PublisherPrivate
   }
 
   /// \brief Zenoh teardown. Safe to call multiple times.
-  ///
-  /// Drops the Zenoh wrappers without calling undeclare() on them.
-  /// undeclare() blocks until any in-flight callback for that
-  /// entity returns, and that blocking wait is harmful here for two
-  /// reasons:
-  ///   (a) At process exit, the Zenoh background runtime has
-  ///       already been torn down, so the wait crashes the process.
-  ///   (b) Mid-process, this destructor runs while NodeShared's
-  ///       mutex is held by the caller, and an in-flight callback
-  ///       may be waiting on the same mutex. Both threads then
-  ///       deadlock.
-  /// Publishers do not run a user callback, so leaking the wrapper
-  /// is harmless. The leftover Zenoh liveliness entry clears when
-  /// the process exits and the kernel closes the socket.
+  /// See ZenohTeardownEntity in NodeSharedPrivate.hh for the
+  /// shared pattern (atomic guard + detached undeclare).
   public: void ZenohShutdown()
   {
 #ifdef HAVE_ZENOH
-    // Atomically claim the right to run shutdown. The first caller
-    // flips the flag from false to true and proceeds. Any concurrent
-    // or later caller finds the flag already true and bails out, so
-    // the body below runs exactly once.
-    bool expected = false;
-    if (!this->zenohIsShutdown.compare_exchange_strong(expected, true,
-          std::memory_order_acq_rel, std::memory_order_relaxed))
-      return;
-
-    // Deliberately leak the Zenoh wrappers. release() hands the raw
-    // pointer over to nobody and skips the wrapper's destructor,
-    // which would otherwise call undeclare() and crash or deadlock
-    // (see the doc comment above).
-    (void) this->zToken.release();
-    (void) this->zPub.release();
+    ZenohTeardownEntity(this->zenohIsShutdown,
+                        this->zPub, this->zToken);
 #endif
   }
 
