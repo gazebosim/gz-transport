@@ -179,8 +179,7 @@ namespace gz::transport
   /// message. 'T' is the Protobuf message type that will be used for this
   /// particular handler.
   template <typename T> class SubscriptionHandler
-    : public ISubscriptionHandler,
-      public std::enable_shared_from_this<SubscriptionHandler<T>>
+    : public ISubscriptionHandler
   {
     // Documentation inherited.
     public: explicit SubscriptionHandler(const std::string &_pUuid,
