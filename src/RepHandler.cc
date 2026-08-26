@@ -15,12 +15,8 @@
  *
 */
 
-#include <atomic>
-#include <functional>
-#include <iostream>
 #include <memory>
 #include <string>
-#include <utility>
 #include "gz/transport/config.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/TopicUtils.hh"
@@ -28,7 +24,6 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
-#include "NodeSharedPrivate.hh"
 #endif
 
 namespace gz::transport

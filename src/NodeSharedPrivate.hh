@@ -20,15 +20,12 @@
 
 #include <algorithm>
 #include <atomic>
-#include <chrono>
 #include <cstdlib>
 #include <filesystem>
-#include <functional>
 #include <list>
 #include <map>
 #include <memory>
 #include <string>
-#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -48,8 +45,6 @@ namespace gz::transport
 {
   // Inline bracket to help doxygen filtering.
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-
-
   //
   /// \brief Metadata for a publication. This is sent as part of the ZMQ
   /// message for topic statistics.

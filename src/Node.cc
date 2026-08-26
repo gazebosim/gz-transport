@@ -18,7 +18,6 @@
 #include <gz/msgs/statistic.pb.h>
 
 #include <algorithm>
-#include <atomic>
 #include <cassert>
 #include <chrono>
 #include <iostream>
@@ -28,7 +27,6 @@
 #include <mutex>
 #include <string>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "gz/transport/Helpers.hh"

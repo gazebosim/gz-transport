@@ -15,11 +15,8 @@
  *
 */
 
-#include <atomic>
-#include <functional>
 #include <memory>
 #include <string>
-#include <utility>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/SubscriptionHandler.hh"
@@ -27,15 +24,12 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
-#include "NodeSharedPrivate.hh"
 #endif
 
 namespace gz::transport
 {
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
-
-
   /// \internal
   /// \brief Private data for SubscriptionHandlerBase class.
   class SubscriptionHandlerBasePrivate
