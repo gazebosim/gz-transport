@@ -8,6 +8,28 @@ release will remove the deprecated code.
 
 ## Gazebo Transport 15.X to 16.X
 
+### Modifications
+
+1. `gz service --req` no longer interprets an omitted `--reptype` as a
+   one-way request, nor an omitted `--reqtype` as a `gz.msgs.Empty` request.
+   Omitted types are now resolved from the advertised service provider,
+   waiting up to `--timeout` ms for a provider to appear. In particular:
+    * `gz service -s /foo --reqtype T --req '...'` used to fire a one-way
+      request; it now performs a two-way request and prints the response.
+      Use the new `--oneway` flag (or `--reptype gz.msgs.Empty`) to keep the
+      old behavior.
+    * Type inference needs a live provider to learn the types from: the
+      request is only sent once a provider appears (waiting up to `--timeout`
+      ms). In particular, a one-way request with inferred types now fails if
+      nobody advertises the service, whereas explicit `--reqtype`/`--reptype`
+      (or `--oneway --reqtype T`) still send without waiting for discovery.
+    * A type given explicitly also selects which providers the other,
+      inferred type is read from, so `--oneway` (or `--reptype`) can now
+      disambiguate a service offered with more than one signature. If the
+      service is advertised but no provider offers the given type, the
+      command reports it (while resolving the other type) instead of
+      sending a request that nobody can answer.
+
 ### Moved
 
 1. Wait helper functions consolidated into `WaitHelpers.hh` / `WaitHelpers.cc`:
