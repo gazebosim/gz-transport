@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <string>
+#include <thread>
 #include "gz/transport/config.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/TopicUtils.hh"
@@ -45,7 +46,24 @@ namespace gz::transport
     }
 
     /// \brief Destructor.
-    public: virtual ~IRepHandlerPrivate() = default;
+    public: virtual ~IRepHandlerPrivate()
+    {
+#ifdef HAVE_ZENOH
+      // When unregistering from within a Zenoh callback, destroying the
+      // Queryable synchronously causes a deadlock in Zenoh's wait_callbacks()
+      // because it waits for the current thread (callback worker) to finish.
+      // Move them to a detached thread so the callback can return cleanly.
+      if (this->zQueryable || this->zToken)
+      {
+        std::thread([queryable = std::move(this->zQueryable),
+                     token = std::move(this->zToken)]() mutable
+        {
+          queryable.reset();
+          token.reset();
+        }).detach();
+      }
+#endif
+    }
 
     /// \brief Process UUID.
     public: std::string pUuid;

@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <string>
+#include <thread>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/SubscriptionHandler.hh"
@@ -51,7 +52,24 @@ namespace gz::transport
     }
 
     /// \brief Destructor.
-    public: virtual ~SubscriptionHandlerBasePrivate() = default;
+    public: virtual ~SubscriptionHandlerBasePrivate()
+    {
+#ifdef HAVE_ZENOH
+      // When unregistering from within a Zenoh callback, destroying the
+      // Subscriber synchronously causes a deadlock in Zenoh's wait_callbacks()
+      // because it waits for the current thread (callback worker) to finish.
+      // Move them to a detached thread so the callback can return cleanly.
+      if (this->zSub || this->zToken)
+      {
+        std::thread([sub = std::move(this->zSub),
+                     token = std::move(this->zToken)]() mutable
+        {
+          sub.reset();
+          token.reset();
+        }).detach();
+      }
+#endif
+    }
 
     /// \brief Subscribe options.
     public: SubscribeOptions opts;
