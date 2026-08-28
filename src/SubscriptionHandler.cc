@@ -15,11 +15,9 @@
  *
 */
 
-#include <atomic>
-#include <functional>
 #include <memory>
 #include <string>
-#include <utility>
+#include <thread>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/SubscriptionHandler.hh"
@@ -27,15 +25,12 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
-#include "NodeSharedPrivate.hh"
 #endif
 
 namespace gz::transport
 {
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
-
-
   /// \internal
   /// \brief Private data for SubscriptionHandlerBase class.
   class SubscriptionHandlerBasePrivate
@@ -59,17 +54,20 @@ namespace gz::transport
     /// \brief Destructor.
     public: virtual ~SubscriptionHandlerBasePrivate()
     {
-      this->ZenohShutdown();
-    }
-
-    /// \brief Zenoh teardown. Safe to call multiple times.
-    /// See ZenohTeardownEntity in NodeSharedPrivate.hh for the
-    /// shared pattern (atomic guard + detached undeclare).
-    public: void ZenohShutdown()
-    {
 #ifdef HAVE_ZENOH
-      ZenohTeardownEntity(this->zenohIsShutdown,
-                          this->zSub, this->zToken);
+      // When unregistering from within a Zenoh callback, destroying the
+      // Subscriber synchronously causes a deadlock in Zenoh's wait_callbacks()
+      // because it waits for the current thread (callback worker) to finish.
+      // Move them to a detached thread so the callback can return cleanly.
+      if (this->zSub || this->zToken)
+      {
+        std::thread([sub = std::move(this->zSub),
+                     token = std::move(this->zToken)]() mutable
+        {
+          sub.reset();
+          token.reset();
+        }).detach();
+      }
 #endif
     }
 
@@ -101,13 +99,6 @@ namespace gz::transport
 
     /// \brief The liveliness token.
     public: std::unique_ptr<zenoh::LivelinessToken> zToken;
-
-    /// \brief Atomic guard for ZenohShutdown idempotence.
-    public: std::atomic<bool> zenohIsShutdown{false};
-
-    /// \brief Temporarily store the dispatch closure passed from the header.
-    public: std::function<void(const std::string&, const std::string&)>
-              zenohDispatch;
 #endif
   };
 
@@ -149,18 +140,6 @@ namespace gz::transport
     return this->dataPtr->opts.IgnoreLocalMessages();
   }
 
-#ifdef HAVE_ZENOH
-  /////////////////////////////////////////////////
-  void SubscriptionHandlerBase::SetZenohSubscriberDispatch(
-      const std::string &/*_topic*/,
-      const std::string &/*_expectedType*/,
-      std::function<void(const std::string &payload,
-                         const std::string &msgType)> _dispatch)
-  {
-    this->dataPtr->zenohDispatch = std::move(_dispatch);
-  }
-#endif
-
   /////////////////////////////////////////////////
   bool SubscriptionHandlerBase::UpdateThrottling()
   {
@@ -199,19 +178,17 @@ namespace gz::transport
     std::shared_ptr<zenoh::Session> _session,
     const FullyQualifiedTopic &_fullyQualifiedTopic)
   {
-    if (!this->dataPtr->zenohDispatch)
-    {
-      std::cerr << "ISubscriptionHandler::CreateGenericZenohSubscriber: "
-                << "no dispatch set. Call SetZenohSubscriberDispatch first.\n";
-      return;
-    }
-    // Capture the expected type by value (never `this`) so the lambda
-    // stays lifetime-safe after the handler is destroyed.
+    std::weak_ptr<ISubscriptionHandler> weakSelf = this->weak_from_this();
     const std::string expectedType = this->TypeName();
+    const std::string topic = _fullyQualifiedTopic.Topic();
+
     auto onSample =
-      [_dispatch = std::move(this->dataPtr->zenohDispatch), expectedType](
-        const zenoh::Sample &_sample)
+      [weakSelf, expectedType, topic](const zenoh::Sample &_sample)
     {
+      auto self = weakSelf.lock();
+      if (!self)
+        return;
+
       auto attachment = _sample.get_attachment();
       if (!attachment.has_value())
       {
@@ -225,7 +202,14 @@ namespace gz::transport
         // Same topic but different type, not interested.
         return;
       }
-      _dispatch(_sample.get_payload().as_string(), msgType);
+      auto msg = self->CreateMsg(_sample.get_payload().as_string(), msgType);
+      if (!msg)
+        return;
+      MessageInfo info;
+      info.SetTopic(topic);
+      info.SetType(msgType);
+      info.SetIntraProcess(false);
+      self->RunLocalCallback(*msg, info);
     };
 
     this->dataPtr->zSub = std::make_unique<zenoh::Subscriber<void>>(

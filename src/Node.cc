@@ -17,15 +17,16 @@
 #include <gz/msgs/discovery.pb.h>
 #include <gz/msgs/statistic.pb.h>
 
-#include <atomic>
+#include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "gz/transport/Helpers.hh"
@@ -36,6 +37,7 @@
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "NodePrivate.hh"
 #include "NodeSharedPrivate.hh"
@@ -141,9 +143,6 @@ class Node::PublisherPrivate
   /// \brief Destructor.
   public: virtual ~PublisherPrivate()
   {
-    // Zenoh teardown before NodeShared::mutex is acquired below.
-    this->ZenohShutdown();
-
     std::lock_guard<std::recursive_mutex> lk(this->shared->mutex);
     // Notify the discovery service to unregister and unadvertise my topic.
     if (!this->shared->dataPtr->msgDiscovery->Unadvertise(
@@ -152,38 +151,6 @@ class Node::PublisherPrivate
       std::cerr << "~PublisherPrivate() Error unadvertising topic ["
                 << this->publisher.Topic() << "]" << std::endl;
     }
-  }
-
-  /// \brief Zenoh teardown. Safe to call multiple times.
-  ///
-  /// Destroys the Zenoh wrappers, which undeclares the publisher
-  /// and its liveliness token. Publishers run no user callbacks, so
-  /// undeclare has nothing to wait on: it is a quick protocol
-  /// message and cannot deadlock. Remote sessions receive the
-  /// liveliness DELETE and forget this publisher immediately,
-  /// instead of keeping a phantom entry (and this process leaking
-  /// the wrappers) until exit.
-  ///
-  /// This is also safe at process exit: NodeShared::Shutdown()
-  /// closes the session deterministically, and dropping an entity
-  /// of an already-closed session takes a fast error path instead
-  /// of touching the torn-down Zenoh runtime, which is why these
-  /// wrappers used to be leaked with release().
-  public: void ZenohShutdown()
-  {
-#ifdef HAVE_ZENOH
-    // Atomically claim the right to run shutdown. The first caller
-    // flips the flag from false to true and proceeds. Any concurrent
-    // or later caller finds the flag already true and bails out, so
-    // the body below runs exactly once.
-    bool expected = false;
-    if (!this->zenohIsShutdown.compare_exchange_strong(expected, true,
-          std::memory_order_acq_rel, std::memory_order_relaxed))
-      return;
-
-    this->zToken.reset();
-    this->zPub.reset();
-#endif
   }
 
   /// \brief Create a MessageInfo object for this Publisher
@@ -208,14 +175,16 @@ class Node::PublisherPrivate
   public: MessagePublisher publisher;
 
 #ifdef HAVE_ZENOH
-  /// \brief The zenoh publisher.
+  /// \brief The zenoh publisher. Destroyed (undeclared) with this
+  /// object: publishers run no user callbacks, so the undeclare has
+  /// nothing to wait on, and NodeShared::Shutdown() closes the
+  /// session deterministically so at-exit drops take the fast path.
+  /// The undeclare also emits the liveliness DELETE that lets remote
+  /// sessions forget this publisher immediately.
   public: std::unique_ptr<zenoh::Publisher> zPub;
 
   /// \brief The liveliness token.
   public: std::unique_ptr<zenoh::LivelinessToken> zToken;
-
-  /// \brief Atomic guard for ZenohShutdown idempotence.
-  public: std::atomic<bool> zenohIsShutdown{false};
 #endif
 
   /// \brief Timestamp of the last callback executed.
@@ -1021,7 +990,7 @@ bool Node::EnableStats(const std::string &_topic, bool _enable,
   // Callback used to publish a statistics message.
   // cppcheck-suppress unreadVariable
   std::function<void(const TopicStatistics &_stats)> statCb =
-    [=](const TopicStatistics &_stats) mutable
+    [this](const TopicStatistics &_stats) mutable
     {
       if (this->dataPtr->statPub.ThrottledUpdateReady())
       {
@@ -1179,6 +1148,75 @@ bool Node::ServiceInfo(const std::string &_service,
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+Node::ServiceTypeResolution Node::ResolveServiceTypes(
+    const std::string &_service, std::string &_reqType,
+    std::string &_repType, const unsigned int _timeoutMs) const
+{
+  const bool resolveReq = _reqType.empty();
+  const bool resolveRep = _repType.empty();
+  if (!resolveReq && !resolveRep)
+    return ServiceTypeResolution::kResolved;
+
+  std::string fullyQualifiedTopic;
+  if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
+        this->Options().NameSpace(), _service, fullyQualifiedTopic))
+  {
+    return ServiceTypeResolution::kInvalidService;
+  }
+
+  // A type that the caller pinned down selects which providers the
+  // remaining type is resolved from, so that an explicit type can
+  // disambiguate a service offered with more than one signature.
+  auto compatible = [&](const ServicePublisher &_pub)
+  {
+    return (resolveReq || _pub.ReqTypeName() == _reqType) &&
+           (resolveRep || _pub.RepTypeName() == _repType);
+  };
+
+  // Poll discovery until a compatible provider appears or the timeout
+  // expires.
+  std::vector<ServicePublisher> publishers;
+  bool anyProvider = false;
+  if (!waitUntil([&]{
+        std::vector<ServicePublisher> allPublishers;
+        this->ServiceInfo(_service, allPublishers);
+        anyProvider = !allPublishers.empty();
+
+        publishers.clear();
+        std::copy_if(allPublishers.begin(), allPublishers.end(),
+            std::back_inserter(publishers), compatible);
+        return !publishers.empty();
+      },
+      std::chrono::milliseconds(_timeoutMs), std::chrono::milliseconds(100)))
+  {
+    // Distinguish "nobody is there" from "somebody is there, but not with
+    // the types you asked for": only the latter is worth telling the user
+    // to fix their types over.
+    return anyProvider ? ServiceTypeResolution::kIncompatibleTypes
+                       : ServiceTypeResolution::kNoProviders;
+  }
+
+  const std::string reqType = publishers.front().ReqTypeName();
+  const std::string repType = publishers.front().RepTypeName();
+
+  for (const ServicePublisher &pub : publishers)
+  {
+    if ((resolveReq && pub.ReqTypeName() != reqType) ||
+        (resolveRep && pub.RepTypeName() != repType))
+    {
+      return ServiceTypeResolution::kAmbiguousTypes;
+    }
+  }
+
+  if (resolveReq)
+    _reqType = reqType;
+  if (resolveRep)
+    _repType = repType;
+
+  return ServiceTypeResolution::kResolved;
 }
 
 /////////////////////////////////////////////////

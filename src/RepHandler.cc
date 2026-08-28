@@ -15,12 +15,9 @@
  *
 */
 
-#include <atomic>
-#include <functional>
-#include <iostream>
 #include <memory>
 #include <string>
-#include <utility>
+#include <thread>
 #include "gz/transport/config.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/TopicUtils.hh"
@@ -28,7 +25,6 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
-#include "NodeSharedPrivate.hh"
 #endif
 
 namespace gz::transport
@@ -52,21 +48,20 @@ namespace gz::transport
     /// \brief Destructor.
     public: virtual ~IRepHandlerPrivate()
     {
-      this->Shutdown();
-    }
-
-    /// \brief Zenoh teardown. Safe to call multiple times.
-    /// See ZenohTeardownEntity in NodeSharedPrivate.hh for the
-    /// shared pattern (atomic guard + detached undeclare). Running
-    /// undeclare() inline would self-deadlock if a service callback
-    /// itself triggers UnadvertiseSrv (which calls this teardown):
-    /// the callback would wait for teardown to finish, and teardown
-    /// would wait for the callback to return.
-    public: void Shutdown()
-    {
 #ifdef HAVE_ZENOH
-      ZenohTeardownEntity(this->isShutdown,
-                          this->zQueryable, this->zToken);
+      // When unregistering from within a Zenoh callback, destroying the
+      // Queryable synchronously causes a deadlock in Zenoh's wait_callbacks()
+      // because it waits for the current thread (callback worker) to finish.
+      // Move them to a detached thread so the callback can return cleanly.
+      if (this->zQueryable || this->zToken)
+      {
+        std::thread([queryable = std::move(this->zQueryable),
+                     token = std::move(this->zToken)]() mutable
+        {
+          queryable.reset();
+          token.reset();
+        }).detach();
+      }
 #endif
     }
 
@@ -87,12 +82,6 @@ namespace gz::transport
 
     /// \brief The liveliness token.
     public: std::unique_ptr<zenoh::LivelinessToken> zToken;
-
-    /// \brief Atomic guard for Shutdown idempotence.
-    public: std::atomic<bool> isShutdown{false};
-
-    /// \brief Temporarily store the dispatch closure passed from the header.
-    public: std::function<bool(const std::string&, std::string&)> zenohDispatch;
 #endif
   };
 
@@ -116,34 +105,22 @@ namespace gz::transport
 
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
-  void IRepHandler::SetZenohQueryableDispatch(
-      const std::string &/*_service*/,
-      std::function<bool(const std::string &request,
-                         std::string &response)> _dispatch)
-  {
-    this->dataPtr->zenohDispatch = std::move(_dispatch);
-  }
-
-  /////////////////////////////////////////////////
   void IRepHandler::CreateZenohQueriable(
     std::shared_ptr<zenoh::Session> _session,
     const std::string &_service)
   {
-    if (!this->dataPtr->zenohDispatch)
-    {
-      std::cerr << "IRepHandler::CreateZenohQueriable: no dispatch set. "
-                << "Call SetZenohQueryableDispatch first.\n";
-      return;
-    }
+    std::weak_ptr<IRepHandler> weakSelf = this->weak_from_this();
     auto onQuery =
-      [_dispatch = std::move(this->dataPtr->zenohDispatch), _service](
-        const zenoh::Query &_query)
+      [weakSelf, _service](const zenoh::Query &_query)
     {
+      auto self = weakSelf.lock();
+      if (!self)
+        return;
       std::string input = "";
       if (_query.get_payload())
         input = _query.get_payload()->get().as_string();
       std::string output;
-      if (_dispatch(input, output))
+      if (self->RunCallback(input, output))
         _query.reply(_service, output);
     };
 
@@ -152,7 +129,7 @@ namespace gz::transport
     zenoh::Session::QueryableOptions opts;
     this->dataPtr->zQueryable = std::make_unique<zenoh::Queryable<void>>(
       _session->declare_queryable(
-        _service, onQuery, onDropQueryable, std::move(opts)));
+        _service, std::move(onQuery), onDropQueryable, std::move(opts)));
 
     std::string token = TopicUtils::CreateLivelinessToken(
       _service, this->dataPtr->pUuid, this->dataPtr->nUuid, "SS",

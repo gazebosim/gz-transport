@@ -51,6 +51,12 @@ struct ServiceOptions
   /// \brief Response type to use when requesting
   std::string repType;
 
+  /// \brief Send the request without waiting for a response
+  bool oneway{false};
+
+  /// \brief Show extra information
+  bool verbose{false};
+
   /// \brief Timeout to use when requesting (in milliseconds)
   int timeout{5000};
 };
@@ -69,13 +75,15 @@ void runServiceCommand(const ServiceOptions &_opt)
       break;
     case ServiceCommand::kServiceReq:
     {
-      const char *repType =
-        _opt.repType.empty() ? nullptr : _opt.repType.c_str();
+      // A one-way request is expressed as a "gz.msgs.Empty" response type,
+      // which never needs to be resolved from discovery.
+      const char *repType = _opt.oneway ? "gz.msgs.Empty" :
+        (_opt.repType.empty() ? nullptr : _opt.repType.c_str());
       const char *reqType =
         _opt.reqType.empty() ? nullptr : _opt.reqType.c_str();
 
       cmdServiceReq(_opt.service.c_str(), reqType, repType,
-          _opt.timeout, _opt.reqData.c_str());
+          _opt.timeout, _opt.reqData.c_str(), _opt.verbose ? 1 : 0);
       break;
     }
     case ServiceCommand::kNone:
@@ -93,9 +101,21 @@ void addServiceFlags(CLI::App &_app)
 
   auto serviceOpt = _app.add_option("-s,--service",
                                     opt->service, "Name of a service.");
-  _app.add_option("--reqtype", opt->reqType, "Type of a request.");
-  _app.add_option("--reptype", opt->repType, "Type of a response.");
-  _app.add_option("--timeout", opt->timeout, "Timeout in milliseconds.");
+  _app.add_option("--reqtype", opt->reqType,
+      "Type of a request. Inferred from the service provider if omitted.");
+  auto repTypeOpt = _app.add_option("--reptype", opt->repType,
+      "Type of a response. Inferred from the service provider if omitted.");
+  _app.add_option("--timeout", opt->timeout,
+      "Timeout in milliseconds (default 5000). Also bounds the wait for\n"
+      "a service provider when inferring types.");
+
+  _app.add_flag("--oneway", opt->oneway,
+      "Send the request without waiting for a response\n"
+      "(the response type is gz.msgs.Empty).")
+    ->excludes(repTypeOpt);
+
+  _app.add_flag("--verbose", opt->verbose,
+      "Show extra information, e.g. the types resolved from discovery.");
 
   auto command = _app.add_option_group("command", "Command to be executed.");
 
@@ -116,9 +136,12 @@ void addServiceFlags(CLI::App &_app)
         opt->reqData = _reqData;
       },
 R"(Request a service.
-TEXT is the input data.
-Types are auto-discovered if --reqtype/--reptype are omitted.
-E.g.:
+TEXT is the input data. The format expected is the same used by
+google::protobuf::TextFormat::PrintToString().
+If --reqtype/--reptype are omitted, the types are resolved from the
+advertised service provider, waiting up to --timeout ms for one to
+appear. Use --oneway to send the request without waiting for a
+response. E.g.:
   gz service -s /echo --req 'data: "Hello"'
   gz service -s /echo \
     --reqtype gz.msgs.StringMsg \
@@ -140,7 +163,7 @@ int main(int argc, char** argv)
   app.add_flag_callback("-v,--version", [](){
       std::cout << GZ_TRANSPORT_VERSION_FULL << std::endl;
       throw CLI::Success();
-  });
+  }, "Print the version.");
 
   addServiceFlags(app);
   app.formatter(std::make_shared<GzFormatter>(&app));

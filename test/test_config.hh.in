@@ -110,6 +110,10 @@ constexpr const char * kZenohPublisherLeakAux = ZENOH_PUBLISHER_LEAK_AUX_EXE;
 #ifdef ZENOH_SHUTDOWN_AUX_EXE
 constexpr const char * kZenohShutdownAux = ZENOH_SHUTDOWN_AUX_EXE;
 #endif  // ZENOH_SHUTDOWN_AUX_EXE
+
+#ifdef ZENOH_TEARDOWN_FROM_CALLBACK_AUX_EXE
+constexpr const char * kZenohTeardownFromCallbackAux = ZENOH_TEARDOWN_FROM_CALLBACK_AUX_EXE;
+#endif  // ZENOH_TEARDOWN_FROM_CALLBACK_AUX_EXE
 }  // namespace test_executables
 
 #endif  // GZ_TRANSPORT_TEST_CONFIG_HH_
