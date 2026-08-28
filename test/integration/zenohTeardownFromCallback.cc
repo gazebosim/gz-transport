@@ -104,7 +104,9 @@ TEST(zenohTeardownFromCallback, UnadvertiseSrvFromOwnCallback)
     << "second request timed out: the Zenoh callback thread likely "
     << "parked in an inline undeclare during the in-callback teardown";
   if (executed2)
+  {
     EXPECT_EQ(rep2.data(), req.data() + 1);
+  }
 
   const int rc = aux.Join();
   EXPECT_EQ(0, rc) << "aux rc=" << rc
