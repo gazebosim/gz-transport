@@ -32,6 +32,7 @@
 #endif
 
 #include <chrono>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -132,7 +133,8 @@ namespace gz::transport
   /// messages. Those functions are not needed by the RawSubscriptionHandler
   /// class.
   class GZ_TRANSPORT_VISIBLE ISubscriptionHandler
-      : public SubscriptionHandlerBase
+      : public SubscriptionHandlerBase,
+        public std::enable_shared_from_this<ISubscriptionHandler>
   {
     /// \brief Constructor.
     /// \param[in] _pUuid UUID of the process registering the handler.
@@ -390,7 +392,9 @@ namespace gz::transport
   //////////////////////////////////////////////////
   /// RawSubscriptionHandler is used to manage the callback of a raw
   /// subscription.
-  class RawSubscriptionHandler : public SubscriptionHandlerBase
+  class RawSubscriptionHandler
+    : public SubscriptionHandlerBase,
+      public std::enable_shared_from_this<RawSubscriptionHandler>
   {
     /// \brief Constructor
     /// \param[in] _pUuid UUID of the process registering the handler
