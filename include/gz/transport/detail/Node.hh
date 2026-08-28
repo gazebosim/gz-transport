@@ -608,9 +608,6 @@ namespace gz::transport
     // Insert the request's parameters.
     reqHandlerPtr->SetMessage(&_request);
     reqHandlerPtr->SetResponse(&_reply);
-    // Give the handler access to NodeShared so the Zenoh path can
-    // reach the per-process Querier cache.
-    reqHandlerPtr->SetNodeShared(this->Shared());
 
     bool localResponserFound;
     IRepHandlerPtr repHandler;

@@ -48,30 +48,6 @@ namespace gz::transport
 {
   // Inline bracket to help doxygen filtering.
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-#ifdef HAVE_ZENOH
-  /// \internal
-  /// \brief Persistent Querier for one service keyexpr. Stored in
-  /// NodeShared's querier cache. The Querier carries an explicit
-  /// interest declaration so the responser's queryable announcement
-  /// is routed to this session and stays available across
-  /// subsequent calls, closing the post-1.6 Zenoh cold-start race
-  /// for cross-process service calls. The session shared_ptr is
-  /// held here so it cannot be dropped before the Querier.
-  ///
-  /// No custom teardown: entries live in NodeShared's cache, which
-  /// NodeShared::Shutdown() clears while the session is still open,
-  /// so the Querier destructor undeclares through a live session
-  /// (no leak, no at-exit race).
-  struct ZenohQuerierEntry
-  {
-    /// \brief Session reference held to survive NodeShared teardown
-    /// ordering.
-    std::shared_ptr<zenoh::Session> session;
-
-    /// \brief The persistent Querier.
-    std::unique_ptr<zenoh::Querier> querier;
-  };
-#endif
   //
   /// \brief Metadata for a publication. This is sent as part of the ZMQ
   /// message for topic statistics.
@@ -283,18 +259,26 @@ namespace gz::transport
 
     /// \internal
     /// \brief Cache of declared Queriers keyed by service keyexpr.
-    /// Entries are added on first request and torn down in
-    /// NodeShared::Shutdown, before the session shared_ptr is
-    /// dropped.
+    /// Each Querier keeps an interest declaration alive so the
+    /// responser's queryable announcement has a routing path back,
+    /// closing the post-1.6 Zenoh cold-start race for cross-process
+    /// service calls. Added on first request; cleared in ~NodeShared
+    /// while the session is still open. Declared after `session` on
+    /// purpose: member destruction order then guarantees every
+    /// Querier is destroyed (undeclared) before the session.
     public: std::unordered_map<std::string,
-        std::shared_ptr<ZenohQuerierEntry>> querierCache;
+        std::shared_ptr<zenoh::Querier>> querierCache;
 
     /// \internal
     /// \brief Mutex guarding querierCache.
     public: std::mutex querierCacheMutex;
 
     /// \internal
-    /// \brief One-shot guard for NodeShared::Shutdown.
+    /// \brief Set at the start of ~NodeShared. The constructor's
+    /// liveliness drain callback can still fire on a Zenoh thread
+    /// for up to its Zenoh-side timeout and checks this flag before
+    /// dispatching into the discovery objects, whose reset it would
+    /// otherwise race.
     public: std::atomic<bool> isShutdown{false};
 #endif
 

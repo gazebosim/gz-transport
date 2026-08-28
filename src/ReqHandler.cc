@@ -19,15 +19,11 @@
 #include <memory>
 #include <string>
 #include "gz/transport/config.hh"
-#include "gz/transport/NodeShared.hh"
 #include "gz/transport/ReqHandler.hh"
 #include "gz/transport/Uuid.hh"
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
-// NodeSharedPrivate.hh defines ZenohQuerierEntry; the public header
-// only forward-declares it.
-#include "NodeSharedPrivate.hh"
 #endif
 
 namespace gz::transport
@@ -42,8 +38,7 @@ namespace gz::transport
     public: IReqHandlerPrivate(const std::string &_nUuid)
     : hUuid(Uuid().ToString()),
       nUuid(_nUuid),
-      requested(false),
-      nodeShared(nullptr)
+      requested(false)
     {
     }
 
@@ -59,13 +54,6 @@ namespace gz::transport
     /// \brief When true, the REQ was already sent and the REP should be on
     /// its way. Used to not resend the same REQ more than one time.
     public: bool requested;
-
-    /// \internal
-    /// \brief Owning NodeShared. Non-owning pointer; NodeShared
-    /// outlives all IReqHandlers because they're held in its
-    /// storage. Set by SetNodeShared before CreateZenohGet so the
-    /// latter can reach the per-process Querier cache.
-    public: class NodeShared *nodeShared;
   };
 
   /////////////////////////////////////////////////
@@ -106,28 +94,16 @@ namespace gz::transport
     this->dataPtr->requested = _value;
   }
 
-  /////////////////////////////////////////////////
-  void IReqHandler::SetNodeShared(class NodeShared *_shared)
-  {
-    this->dataPtr->nodeShared = _shared;
-  }
-
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
   void IReqHandler::CreateZenohGet(
-    std::shared_ptr<zenoh::Session> _session,
+    std::shared_ptr<zenoh::Querier> _querier,
     const std::string &_service)
   {
-    // Look up (or declare) a persistent Querier via NodeShared.
-    // NodeShared owns the cache and clears it during Shutdown(),
-    // which runs before the session is dropped at process exit.
-    auto *shared = this->dataPtr->nodeShared;
-    if (!shared)
+    if (!_querier)
     {
-      std::cerr << "gz-transport zenoh: NodeShared not provided to "
-                << "IReqHandler before CreateZenohGet (call "
-                << "SetNodeShared first); aborting request for ["
-                << _service << "].\n";
+      std::cerr << "gz-transport zenoh: no Querier for [" << _service
+                << "]; aborting request.\n";
       return;
     }
 
@@ -142,16 +118,6 @@ namespace gz::transport
                 << "] is not owned by a shared_ptr; aborting request.\n";
       return;
     }
-
-    auto entry = shared->GetOrDeclareZenohQuerier(_service);
-    if (!entry || !entry->querier)
-    {
-      std::cerr << "gz-transport zenoh: no Querier for [" << _service
-                << "]; aborting request.\n";
-      return;
-    }
-    // _session unused: the Querier holds its own session reference.
-    (void)_session;
 
     // The persistent Querier carries an always-on interest
     // declaration on _service, so the responser's queryable
@@ -196,7 +162,7 @@ namespace gz::transport
     // (and would wait the user timeout twice).
     try
     {
-      entry->querier->get("", onReply, []() {}, std::move(getOpts));
+      _querier->get("", onReply, []() {}, std::move(getOpts));
     }
     catch (const zenoh::ZException &e)
     {

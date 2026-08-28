@@ -428,9 +428,48 @@ NodeShared::~NodeShared()
     this->dataPtr->accessControlThread.join();
 
 #ifdef HAVE_ZENOH
-  // Backstop: ensure the Zenoh teardown order is correct even if the
-  // user did not call Shutdown() explicitly.  Idempotent.
-  this->Shutdown();
+  // Tell the constructor's liveliness drain callback (which may
+  // still fire briefly on a Zenoh thread) to stop dispatching into
+  // the discovery objects reset below.
+  this->dataPtr->isShutdown = true;
+
+  // Deterministic Zenoh teardown order:
+  // 1. Clear the Querier cache. The session is still open, so each
+  //    Querier destructor undeclares cleanly instead of leaking.
+  //    A concurrent CreateZenohGet holding a shared_ptr copy keeps
+  //    its Querier alive until its stack frame ends; late replies
+  //    are dropped through the weak handler capture.
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->querierCacheMutex);
+    this->dataPtr->querierCache.clear();
+  }
+
+  // 2. Drop the session-level liveliness subscribers held by the
+  //    Discovery objects so their undeclare runs while the session
+  //    is still alive.
+  this->dataPtr->msgDiscovery.reset();
+  this->dataPtr->srvDiscovery.reset();
+
+  // 3. Per-handle entities (publishers, subscribers, service
+  //    queryables) are owned by user-held handles and tear
+  //    themselves down through their own destructors.
+
+  // 4. Close the session explicitly. After steps 1-2 there are no
+  //    in-flight callbacks left for this NodeShared, so close()
+  //    returns quickly. Later drops of the session shared_ptr take
+  //    the fast path in ~Session.
+  if (this->dataPtr->session)
+  {
+    try
+    {
+      this->dataPtr->session->close();
+    }
+    catch (const zenoh::ZException &e)
+    {
+      std::cerr << "gz-transport zenoh: session close failed: "
+                << e.what() << "\n";
+    }
+  }
 #endif
 }
 
@@ -1069,11 +1108,8 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 #ifdef HAVE_ZENOH
       else if (impl == "zenoh")
       {
-        // Hand the handler a non-owning pointer to NodeShared so it
-        // can reach the per-process Querier cache (with matching
-        // listener) maintained by NodeShared itself.
-        req.second->SetNodeShared(this);
-        req.second->CreateZenohGet(this->Session(), _topic);
+        req.second->CreateZenohGet(
+          this->GetOrDeclareZenohQuerier(_topic), _topic);
       }
 #endif
 
@@ -1984,55 +2020,7 @@ std::shared_ptr<zenoh::Session> NodeShared::Session()
 }
 
 /////////////////////////////////////////////////
-void NodeShared::Shutdown()
-{
-  // Thread-safe one-shot guard.
-  bool expected = false;
-  if (!this->dataPtr->isShutdown.compare_exchange_strong(expected, true,
-        std::memory_order_acq_rel, std::memory_order_relaxed))
-    return;
-
-  // 1. Tear down per-NodeShared Zenoh entities (the cached
-  //    Queriers). The session is still open here, so each Querier
-  //    destructor undeclares cleanly instead of leaking. Any
-  //    concurrent CreateZenohGet holding a shared_ptr copy keeps
-  //    its entry alive until its stack frame ends; late replies
-  //    are dropped through the weak handler capture.
-  {
-    std::lock_guard<std::mutex> lock(this->dataPtr->querierCacheMutex);
-    this->dataPtr->querierCache.clear();
-  }
-
-  // 2. Drop the session-level liveliness subscribers held by the
-  //    Discovery objects so their undeclare runs while the session
-  //    is still alive.
-  this->dataPtr->msgDiscovery.reset();
-  this->dataPtr->srvDiscovery.reset();
-
-  // 3. Per-handle entities (publishers, subscribers, service
-  //    queryables) are owned by user-held handles and tear
-  //    themselves down through their own destructors.
-
-  // 4. Close the session explicitly. After steps 1-2 there are no
-  //    in-flight callbacks left for this NodeShared, so close()
-  //    returns quickly. Later drops of the session shared_ptr take
-  //    the fast path in ~Session.
-  if (this->dataPtr->session)
-  {
-    try
-    {
-      this->dataPtr->session->close();
-    }
-    catch (const zenoh::ZException &e)
-    {
-      std::cerr << "gz-transport zenoh: session close failed: "
-                << e.what() << "\n";
-    }
-  }
-}
-
-/////////////////////////////////////////////////
-std::shared_ptr<ZenohQuerierEntry>
+std::shared_ptr<zenoh::Querier>
 NodeShared::GetOrDeclareZenohQuerier(const std::string &_service)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->querierCacheMutex);
@@ -2041,9 +2029,7 @@ NodeShared::GetOrDeclareZenohQuerier(const std::string &_service)
   if (it != cache.end())
     return it->second;
 
-  auto entry = std::make_shared<ZenohQuerierEntry>();
-  entry->session = this->Session();
-
+  std::shared_ptr<zenoh::Querier> querier;
   try
   {
     zenoh::Session::QuerierOptions opts =
@@ -2055,9 +2041,9 @@ NodeShared::GetOrDeclareZenohQuerier(const std::string &_service)
     // a stale or slow peer is in the network.
     opts.target = zenoh::QueryTarget::Z_QUERY_TARGET_BEST_MATCHING;
 
-    entry->querier = std::make_unique<zenoh::Querier>(
-      entry->session->declare_querier(zenoh::KeyExpr(_service),
-                                      std::move(opts)));
+    querier = std::make_shared<zenoh::Querier>(
+      this->Session()->declare_querier(zenoh::KeyExpr(_service),
+                                       std::move(opts)));
   }
   catch (const zenoh::ZException &e)
   {
@@ -2066,8 +2052,8 @@ NodeShared::GetOrDeclareZenohQuerier(const std::string &_service)
     return nullptr;
   }
 
-  cache[_service] = entry;
-  return entry;
+  cache[_service] = querier;
+  return querier;
 }
 #endif
 

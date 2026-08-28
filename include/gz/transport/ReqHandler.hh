@@ -41,7 +41,7 @@
 namespace zenoh
 {
   // Forward declaration.
-  class Session;
+  class Querier;
 }
 
 namespace gz::transport
@@ -120,12 +120,6 @@ namespace gz::transport
     /// \param[in] _value true when you want to flag this REQ as requested.
     public: void Requested(const bool _value);
 
-    /// \internal
-    /// \brief Provide the owning NodeShared so CreateZenohGet can
-    /// reach the per-process Querier cache.
-    /// \param[in] _shared NodeShared owning the Zenoh session.
-    public: void SetNodeShared(class NodeShared *_shared);
-
     /// \brief Block the current thread until the response to the
     /// service request is available or until the timeout expires.
     /// This method uses a condition variable to notify when the response is
@@ -146,10 +140,13 @@ namespace gz::transport
     }
 
 #ifdef HAVE_ZENOH
-    /// \brief Create a Zenoh get.
-    /// \param[in] _session Zenoh session.
+    /// \brief Fire the service request through a Zenoh Querier.
+    /// Asynchronous: the reply closure holds a weak reference to
+    /// this handler and notifies it, mirroring the ZeroMQ flow.
+    /// \param[in] _querier Persistent Querier for the service, from
+    /// NodeShared::GetOrDeclareZenohQuerier.
     /// \param[in] _service The service.
-    public: void CreateZenohGet(std::shared_ptr<zenoh::Session> _session,
+    public: void CreateZenohGet(std::shared_ptr<zenoh::Querier> _querier,
                                 const std::string &_service);
 #endif
 
