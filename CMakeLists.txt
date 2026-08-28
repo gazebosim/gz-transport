@@ -105,10 +105,12 @@ if (GZ_TRANSPORT_ENABLE_ZENOH)
   # tags); the teardown/cold-start fixes are version-agnostic. CI
   # validates 1.8.0.
   set(GZ_TRANSPORT_ZENOH_MIN_VERSION 1.7.2)
-  gz_find_package(zenohc VERSION ${GZ_TRANSPORT_ZENOH_MIN_VERSION}
-    PRIVATE QUIET)
-  gz_find_package(zenohcxx VERSION ${GZ_TRANSPORT_ZENOH_MIN_VERSION}
-    PRIVATE QUIET)
+  # Deliberately no VERSION argument: an older zenoh must still be
+  # FOUND so the explicit version check below can warn loudly before
+  # disabling the transport, instead of find_package rejecting it
+  # quietly.
+  gz_find_package(zenohc PRIVATE QUIET)
+  gz_find_package(zenohcxx PRIVATE QUIET)
 
   # If both zenohc and zenohcpp packages are not found then
   # look for these pacakages installed by ROS 2 zenoh_cpp_vendor package
@@ -118,10 +120,8 @@ if (GZ_TRANSPORT_ENABLE_ZENOH)
     set(ros2_zenoh_cmake_path "/opt/ros/$ENV{ROS_DISTRO}/opt/zenoh_cpp_vendor/lib/cmake")
     if (EXISTS ${ros2_zenoh_cmake_path})
       list(PREPEND CMAKE_PREFIX_PATH ${ros2_zenoh_cmake_path})
-      gz_find_package(zenohc VERSION ${GZ_TRANSPORT_ZENOH_MIN_VERSION}
-        PRIVATE QUIET)
-      gz_find_package(zenohcxx VERSION ${GZ_TRANSPORT_ZENOH_MIN_VERSION}
-        PRIVATE QUIET)
+      gz_find_package(zenohc PRIVATE QUIET)
+      gz_find_package(zenohcxx PRIVATE QUIET)
     endif()
   endif ()
 
