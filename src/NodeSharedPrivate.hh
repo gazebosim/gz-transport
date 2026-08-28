@@ -20,15 +20,12 @@
 
 #include <algorithm>
 #include <atomic>
-#include <chrono>
 #include <cstdlib>
 #include <filesystem>
-#include <functional>
 #include <list>
 #include <map>
 #include <memory>
 #include <string>
-#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -48,47 +45,6 @@ namespace gz::transport
 {
   // Inline bracket to help doxygen filtering.
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
-#ifdef HAVE_ZENOH
-  /// \internal
-  /// \brief Teardown a per-handler Zenoh entity. Safe to call
-  /// multiple times.
-  ///
-  /// Implements the shared shutdown pattern used by subscribers
-  /// and queryables:
-  ///   1. Thread-safe one-shot guard so the body runs exactly once,
-  ///      even if multiple threads call it at the same time.
-  ///   2. Move the entity and token into a detached thread that
-  ///      calls undeclare() on each. Detached because undeclare()
-  ///      blocks until in-flight callbacks return, which would
-  ///      deadlock if run inline: the caller may be holding a
-  ///      mutex the callback is waiting on, or the callback may
-  ///      itself be what triggered the teardown.
-  template <typename EntityT>
-  inline void ZenohTeardownEntity(
-      std::atomic<bool> &_isShutdown,
-      std::unique_ptr<EntityT> &_entity,
-      std::unique_ptr<zenoh::LivelinessToken> &_token)
-  {
-    bool expected = false;
-    if (!_isShutdown.compare_exchange_strong(expected, true,
-          std::memory_order_acq_rel, std::memory_order_relaxed))
-      return;
-
-    auto entityWrap = std::move(_entity);
-    auto tokenWrap = std::move(_token);
-    if (entityWrap || tokenWrap)
-    {
-      std::thread([e = std::move(entityWrap),
-                   t = std::move(tokenWrap)]() mutable
-      {
-        zenoh::ZResult result = Z_OK;
-        if (t) std::move(*t).undeclare(&result);
-        if (e) std::move(*e).undeclare(&result);
-      }).detach();
-    }
-  }
-#endif
-
   //
   /// \brief Metadata for a publication. This is sent as part of the ZMQ
   /// message for topic statistics.
