@@ -1047,14 +1047,14 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
         continue;
       }
 
-      // Mark the handler as requested.
-      req.second->Requested(true);
-
       auto nodeUuid = req.second->NodeUuid();
       auto reqUuid = req.second->HandlerUuid();
 
       if (impl == "zeromq")
       {
+        // Mark the handler as requested.
+        req.second->Requested(true);
+
         std::string data;
         if (!req.second->Serialize(data))
           continue;
@@ -1110,8 +1110,14 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 #ifdef HAVE_ZENOH
       else if (impl == "zenoh")
       {
-        req.second->CreateZenohGet(
-          this->GetOrDeclareZenohQuerier(_topic), _topic);
+        // Mark the handler as requested only when the query was
+        // actually fired: a failed declaration or send leaves it
+        // pending so the next responder announcement retries it.
+        if (req.second->CreateZenohGet(
+              this->GetOrDeclareZenohQuerier(_topic), _topic))
+        {
+          req.second->Requested(true);
+        }
       }
 #endif
 

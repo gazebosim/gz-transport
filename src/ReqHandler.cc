@@ -96,7 +96,7 @@ namespace gz::transport
 
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
-  void IReqHandler::CreateZenohGet(
+  bool IReqHandler::CreateZenohGet(
     std::shared_ptr<zenoh::Querier> _querier,
     const std::string &_service)
   {
@@ -104,7 +104,7 @@ namespace gz::transport
     {
       std::cerr << "gz-transport zenoh: no Querier for [" << _service
                 << "]; aborting request.\n";
-      return;
+      return false;
     }
 
     // The reply closure holds a weak reference to this handler, so a
@@ -116,7 +116,7 @@ namespace gz::transport
     {
       std::cerr << "gz-transport zenoh: IReqHandler for [" << _service
                 << "] is not owned by a shared_ptr; aborting request.\n";
-      return;
+      return false;
     }
 
     // The persistent Querier carries an always-on interest
@@ -168,7 +168,9 @@ namespace gz::transport
     {
       std::cerr << "gz-transport zenoh: querier.get failed for ["
                 << _service << "]: " << e.what() << "\n";
+      return false;
     }
+    return true;
   }
 #endif
   }

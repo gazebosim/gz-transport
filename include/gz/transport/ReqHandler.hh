@@ -146,7 +146,9 @@ namespace gz::transport
     /// \param[in] _querier Persistent Querier for the service, from
     /// NodeShared::GetOrDeclareZenohQuerier.
     /// \param[in] _service The service.
-    public: void CreateZenohGet(std::shared_ptr<zenoh::Querier> _querier,
+    /// \return True if the query was fired, false otherwise (the
+    /// caller should leave the handler pending so it is retried).
+    public: bool CreateZenohGet(std::shared_ptr<zenoh::Querier> _querier,
                                 const std::string &_service);
 #endif
 
