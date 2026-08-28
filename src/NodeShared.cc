@@ -348,12 +348,14 @@ NodeShared::NodeShared()
         zenoh::KeyExpr("@gz/**"),
         [this](zenoh::Reply &_reply)
         {
-          // Defense in depth: the Zenoh side timeout bounds the callback
-          // window well before Shutdown() can run, but never dispatch
-          // into the discovery objects while shutting down.
-          if (this->dataPtr->isShutdown)
-            return;
           if (!_reply.is_ok())
+            return;
+          // The lock pairs with ~NodeShared: once the destructor has
+          // set isShutdown under this mutex, no dispatch can be in
+          // flight and none can start, so resetting the discovery
+          // objects below is safe.
+          std::lock_guard<std::mutex> drainLock(this->dataPtr->drainMutex);
+          if (this->dataPtr->isShutdown)
             return;
           const auto &sample = _reply.get_ok();
           // Both handlers filter by entityType internally, so it is
@@ -424,10 +426,14 @@ NodeShared::~NodeShared()
     this->dataPtr->accessControlThread.join();
 
 #ifdef HAVE_ZENOH
-  // Tell the constructor's liveliness drain callback (which may
-  // still fire briefly on a Zenoh thread) to stop dispatching into
-  // the discovery objects reset below.
-  this->dataPtr->isShutdown = true;
+  // Stop the constructor's liveliness drain callback (which may
+  // still fire briefly on a Zenoh thread) from dispatching into the
+  // discovery objects reset below. Taking the mutex waits out any
+  // dispatch already in flight.
+  {
+    std::lock_guard<std::mutex> drainLock(this->dataPtr->drainMutex);
+    this->dataPtr->isShutdown = true;
+  }
 
   // Deterministic Zenoh teardown order:
   // 1. Clear the Querier cache. The session is still open, so each

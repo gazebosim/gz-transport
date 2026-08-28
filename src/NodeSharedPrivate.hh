@@ -274,12 +274,19 @@ namespace gz::transport
     public: std::mutex querierCacheMutex;
 
     /// \internal
-    /// \brief Set at the start of ~NodeShared. The constructor's
-    /// liveliness drain callback can still fire on a Zenoh thread
-    /// for up to its Zenoh-side timeout and checks this flag before
-    /// dispatching into the discovery objects, whose reset it would
-    /// otherwise race.
-    public: std::atomic<bool> isShutdown{false};
+    /// \brief Set at the start of ~NodeShared under drainMutex. The
+    /// constructor's liveliness drain callback can still fire on a
+    /// Zenoh thread for up to its Zenoh-side timeout; it checks this
+    /// flag before dispatching into the discovery objects, whose
+    /// reset it would otherwise race.
+    public: bool isShutdown{false};
+
+    /// \internal
+    /// \brief Serializes the drain callback's check-then-dispatch
+    /// against the destructor's flag-set-then-reset, closing the
+    /// window where the flag alone would still allow a dispatch into
+    /// a Discovery object mid destruction.
+    public: std::mutex drainMutex;
 #endif
 
     //////////////////////////////////////////////////
