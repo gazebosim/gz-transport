@@ -43,6 +43,7 @@
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
@@ -318,19 +319,14 @@ NodeShared::NodeShared()
     // not on the hot path. The Zenoh-side timeout that actually
     // governs convergence is interests.timeout, which can be
     // overridden via GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
-    constexpr int kZenohPeerWaitMs = 250;
+    constexpr std::chrono::milliseconds kZenohPeerWait{250};
     constexpr int kZenohLivelinessGetTimeoutMs = 1000;
 
-    {
-      const auto peerDeadline = std::chrono::steady_clock::now() +
-        std::chrono::milliseconds(kZenohPeerWaitMs);
-      while (std::chrono::steady_clock::now() < peerDeadline)
-      {
-        if (!this->Session()->get_peers_z_id().empty())
-          break;
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
-      }
-    }
+    // Give scouting a short window to establish the first transport
+    // so the liveliness query below can reach remote peers. Times
+    // out harmlessly when this process is alone.
+    waitUntil([this] { return !this->Session()->get_peers_z_id().empty(); },
+              kZenohPeerWait, std::chrono::milliseconds(5));
 
     try
     {
