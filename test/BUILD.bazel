@@ -47,6 +47,8 @@ test_executables = [
     "twoProcsSrvCallWithoutInputReplierInc_aux",
     "twoProcsSrvCallWithoutOutputReplier_aux",
     "twoProcsSrvCallWithoutOutputReplierInc_aux",
+    "zenohShutdown_aux",
+    "zenohTeardownFromCallback_aux",
 ]
 
 [cc_binary(
@@ -77,6 +79,8 @@ integration_test_sources = [
     "twoProcsSrvCallWithoutInputSync1.cc",
     "twoProcsSrvCallWithoutOutput.cc",
     "twoProcsSrvCallWithoutOutputStress.cc",
+    "zenohShutdownStress.cc",
+    "zenohTeardownFromCallback.cc",
 ]
 
 # Found with
@@ -109,6 +113,8 @@ flaky_test_srcs = [
         'TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_INC_EXE=\\"./test/twoProcsSrvCallWithoutInputReplierInc_aux\\"',
         'TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_EXE=\\"./test/twoProcsSrvCallWithoutOutputReplier_aux\\"',
         'TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE=\\"./test/twoProcsSrvCallWithoutOutputReplierInc_aux\\"',
+        'ZENOH_SHUTDOWN_AUX_EXE=\\"./test/zenohShutdown_aux\\"',
+        'ZENOH_TEARDOWN_FROM_CALLBACK_AUX_EXE=\\"./test/zenohTeardownFromCallback_aux\\"',
     ],
     env = {
         "GZ_BAZEL": "1",

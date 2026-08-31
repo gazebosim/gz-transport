@@ -52,23 +52,35 @@ extern "C" void cmdTopicPub(const char *_topic,
 /// \brief External hook to execute 'gz service -r' from the command line.
 /// \param[in] _service Service name.
 /// \param[in] _reqType Message type used in the request. May be null, in which
-///                     case the type will be auto-discovered.
-/// \param[in] _repType Message type used in the response. May be null, in which
-///                     case the type will be auto-discovered.
-///                     If "gz.msgs.Empty" is used, the request will be one-way
-///                     and _repType and _timeout will be ignored.
-/// \param[in] _timeout The request will timeout after '_timeout' ms.
+///                     case the type is resolved from the advertised service
+///                     provider (see Node::ResolveServiceTypes()). When given,
+///                     it also selects which providers the other type is
+///                     resolved from. Both the canonical ("gz.msgs.Empty")
+///                     and the underscore ("gz_msgs.Empty") spellings are
+///                     accepted.
+/// \param[in] _repType Message type used in the response. May be null, in
+///                     which case the type is resolved from the advertised
+///                     service provider. When given, it also selects which
+///                     providers the other type is resolved from. If
+///                     "gz.msgs.Empty" is used or resolved, the request will
+///                     be one-way and _timeout will be ignored.
+/// \param[in] _timeout The request will timeout after '_timeout' ms. When
+///                     types are being resolved, this value also bounds how
+///                     long to wait for a service provider to appear.
 /// \param[in] _reqData Input data sent in the request.
 /// The format expected is the same used by
 /// google::protobuf::TextFormat::PrintToString().
 /// E.g.: cmdServiceReq("/bar", "gz.msgs.StringMsg",
 ///                     "gz.msgs.StringMsg", 1000,
 ///                     "'data:\"Custom data\"');
+/// \param[in] _verbose When not zero, show extra information, e.g. the
+///                     types resolved from discovery.
 extern "C" void cmdServiceReq(const char *_service,
                               const char *_reqType,
                               const char *_repType,
                               const int _timeout,
-                              const char *_reqData);
+                              const char *_reqData,
+                              const int _verbose = 0);
 
 extern "C" {
   /// \brief Enum used for specifying the message output format for functions
