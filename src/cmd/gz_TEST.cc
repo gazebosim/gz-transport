@@ -29,6 +29,7 @@
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "test_config.hh"
 #include "test_utils.hh"
@@ -411,7 +412,7 @@ TEST(gzTest, ServiceOnewayRequest)
     {"service", "-s", service, "--reqtype", "gz.msgs.StringMsg",
      "--req", "data: \"good_value\""});
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  transport::waitUntil([]{ return g_topicCBStr == "good_value"; });
   EXPECT_EQ("good_value", g_topicCBStr);
 }
 
@@ -447,6 +448,7 @@ TEST(gzTest, ServiceRequestAutoTypes)
     {"service",
      "-s", service,
      "--timeout", "1000",
+     "--verbose",
      "--req", "data: " + value},
     [value](const auto &_out)
     {
@@ -455,7 +457,8 @@ TEST(gzTest, ServiceRequestAutoTypes)
 
   ASSERT_TRUE(output);
   EXPECT_EQ(output->cout, "data: " + value + "\n\n");
-  EXPECT_EQ(output->cerr, "");
+  EXPECT_EQ(output->cerr,
+    "Inferred types: request=gz.msgs.Int32, response=gz.msgs.Int32\n");
 }
 
 //////////////////////////////////////////////////
@@ -479,6 +482,76 @@ TEST(gzTest, ServiceOnewayRequestAutoTypes)
 
   ASSERT_TRUE(output);
   EXPECT_EQ("good_value", g_topicCBStr);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r --oneway' with an explicit request type. No
+/// discovery is involved, so this works even before the provider is visible.
+TEST(gzTest, ServiceOnewayFlag)
+{
+  g_topicCBStr = "bad_value";
+  transport::Node node;
+
+  // Advertise a one-way service.
+  std::string service = "/oneway";
+  EXPECT_TRUE(node.Advertise(service, srvOneway));
+
+  auto output = exec_with_retry(
+    {"service",
+     "-s", service,
+     "--oneway",
+     "--reqtype", "gz.msgs.StringMsg",
+     "--req", "data: \"good_value\""},
+    [](const auto &/*_out*/)
+    {
+      return g_topicCBStr == "good_value";
+    });
+
+  ASSERT_TRUE(output);
+  EXPECT_EQ("good_value", g_topicCBStr);
+  EXPECT_EQ("", output->cerr);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r --oneway' with an inferred request type.
+TEST(gzTest, ServiceOnewayFlagAutoReqType)
+{
+  g_topicCBStr = "bad_value";
+  transport::Node node;
+
+  // Advertise a one-way service.
+  std::string service = "/oneway";
+  EXPECT_TRUE(node.Advertise(service, srvOneway));
+
+  auto output = exec_with_retry(
+    {"service",
+     "-s", service,
+     "--oneway",
+     "--req", "data: \"good_value\""},
+    [](const auto &/*_out*/)
+    {
+      return g_topicCBStr == "good_value";
+    });
+
+  ASSERT_TRUE(output);
+  EXPECT_EQ("good_value", g_topicCBStr);
+  EXPECT_EQ("", output->cerr);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that 'gz service -r' rejects --oneway with --reptype.
+TEST(gzTest, ServiceOnewayFlagExcludesRepType)
+{
+  auto output = custom_exec_str(
+    {"service",
+     "-s", "/oneway",
+     "--oneway",
+     "--reptype", "gz.msgs.Empty",
+     "--req", "data: \"good_value\""});
+
+  EXPECT_EQ("", output.cout);
+  EXPECT_NE(std::string::npos, output.cerr.find("--oneway"));
+  EXPECT_NE(std::string::npos, output.cerr.find("--reptype"));
 }
 
 //////////////////////////////////////////////////
