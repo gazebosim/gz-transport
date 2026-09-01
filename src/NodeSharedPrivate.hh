@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdlib>
+#include <deque>
 #include <filesystem>
 #include <list>
 #include <map>
@@ -342,7 +343,15 @@ namespace gz::transport
 
               /// \brief Publisher's node UUID.
               public: std::string publisherNodeUUID;
+
+              /// \brief Fully qualified topic name. Used to enforce the
+              /// per topic capacity of the pubQueue.
+              public: std::string fullyQualifiedTopic;
             };
+
+    /// \brief Type of the queue that stores messages pending delivery to
+    /// local subscribers.
+    public: using PubQueue = std::list<std::unique_ptr<PublishMsgDetails>>;
 
     /// \brief Publish thread used to process the pubQueue.
     public: std::thread pubThread;
@@ -352,7 +361,36 @@ namespace gz::transport
 
     /// \brief List onto which new messages are pushed. The pubThread
     /// will pop off the messages and send them to local subscribers.
-    public: std::list<std::unique_ptr<PublishMsgDetails>> pubQueue;
+    /// Use EnqueuePubMsg to push messages so that the localHwm capacity
+    /// is enforced.
+    public: PubQueue pubQueue;
+
+    /// \brief Iterators to the pubQueue entries of each topic, in queue
+    /// order. Used to track the number of queued messages per topic and to
+    /// drop the oldest message of a topic in constant time when the
+    /// localHwm capacity is reached. Protected by pubThreadMutex.
+    public: std::unordered_map<std::string, std::deque<PubQueue::iterator>>
+              pubQueueIters;
+
+    /// \brief Topics that have already dropped messages from the pubQueue.
+    /// Used to warn only once per overload episode: a topic is removed from
+    /// this set when its backlog fully drains from the pubQueue. Protected
+    /// by pubThreadMutex.
+    public: std::unordered_set<std::string> pubQueueDropWarned;
+
+    /// \brief Maximum number of messages that can be stored in the pubQueue
+    /// per topic. A value of 0 means no limit. Initialized from the
+    /// GZ_TRANSPORT_LOCAL_HWM environment variable before the pubThread
+    /// starts and never modified afterwards.
+    public: std::size_t localHwm = kDefaultLocalHwm;
+
+    /// \brief Add a message to the pubQueue so that it is asynchronously
+    /// delivered to local subscribers. If the topic already has localHwm
+    /// messages stored in the pubQueue, its oldest queued message is
+    /// dropped to make room for the new one.
+    /// \param[in] _msgDetails Details of the message to be published.
+    public: void EnqueuePubMsg(
+              std::unique_ptr<PublishMsgDetails> _msgDetails);
 
     /// \brief used to signal when new work is available
     public: std::condition_variable signalNewPub;
