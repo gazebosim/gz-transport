@@ -148,6 +148,18 @@ test_sources = glob(
     include = ["src/*_TEST.cc"],
 )
 
+# Found with
+# bazel test test:all --runs_per_test 10
+flaky_test_srcs = [
+    "src/Clock_TEST.cc",
+    "src/Node_TEST.cc",
+]
+
+# Tests that should not be executed in parallel
+exclusive_test_srcs = [
+    "src/Clock_TEST.cc",
+]
+
 [cc_test(
     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
     srcs = [src],
@@ -156,6 +168,8 @@ test_sources = glob(
         "GZ_BAZEL": "1",
         "GZ_IP": "127.0.0.1",
     },
+    flaky = src in flaky_test_srcs,
+    tags = ["exclusive"] if src in exclusive_test_srcs else [],
     deps = [
         ":gz-transport",
         ":gz-transport-discovery-header",
