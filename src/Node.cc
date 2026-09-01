@@ -1230,10 +1230,22 @@ Node::Publisher Node::Advertise(const std::string &_topic,
     return Publisher();
   }
 
+  std::string partition;
+  std::string topicWithoutPartition;
+  if (!TopicUtils::DecomposeFullyQualifiedTopic(fullyQualifiedTopic,
+        partition, topicWithoutPartition))
+  {
+    std::cerr << "Topic [" << fullyQualifiedTopic << "] is not valid."
+              << std::endl;
+    return Publisher();
+  }
+
+  std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+
   auto currentTopics = this->AdvertisedTopics();
 
   if (std::find(currentTopics.begin(), currentTopics.end(),
-        _topic) != currentTopics.end())
+        topicWithoutPartition) != currentTopics.end())
   {
     std::cerr << "Topic [" << topic << "] already advertised. You cannot"
       << " advertise the same topic twice on the same node."
@@ -1241,8 +1253,6 @@ Node::Publisher Node::Advertise(const std::string &_topic,
       << " types, use separate nodes" << std::endl;
     return Publisher();
   }
-
-  std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
 
   // Notify the discovery service to register and advertise my topic.
   MessagePublisher publisher(fullyQualifiedTopic,
