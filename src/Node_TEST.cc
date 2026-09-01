@@ -950,6 +950,67 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
 }
 
 //////////////////////////////////////////////////
+/// \brief Subscribe with explicit MessageT using capturing lambdas.
+TEST(NodeTest, PubSubExplicitMessageTypeLambda)
+{
+  reset();
+
+  msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  bool capturingExecuted = false;
+  EXPECT_TRUE(node.Subscribe<msgs::Int32>(g_topic,
+    [&capturingExecuted](const msgs::Int32 &_msg)
+    {
+      EXPECT_EQ(_msg.data(), data);
+      std::lock_guard<std::mutex> lk(cbMutex);
+      capturingExecuted = true;
+      cbCondition.notify_all();
+    }));
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  {
+    std::unique_lock<std::mutex> lk(cbMutex);
+    EXPECT_TRUE(pub.Publish(msg));
+    cbCondition.wait(lk, [&capturingExecuted] { return capturingExecuted; });
+  }
+
+  EXPECT_TRUE(capturingExecuted);
+
+  reset();
+
+  bool createSubscriberExecuted = false;
+  auto sub = node.CreateSubscriber<msgs::Int32>(
+      g_topic,
+      [&createSubscriberExecuted](const msgs::Int32 &_msg)
+      {
+        EXPECT_EQ(_msg.data(), data);
+        std::lock_guard<std::mutex> lk(cbMutex);
+        createSubscriberExecuted = true;
+        cbCondition.notify_all();
+      });
+  EXPECT_TRUE(sub);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  {
+    std::unique_lock<std::mutex> lk(cbMutex);
+    EXPECT_TRUE(pub.Publish(msg));
+    cbCondition.wait(lk, [&createSubscriberExecuted]
+                     { return createSubscriberExecuted; });
+  }
+
+  EXPECT_TRUE(createSubscriberExecuted);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief Test the bool operator of the Node::Subscriber class
 TEST(NodeSubTest, BoolOperatorTest)
 {
