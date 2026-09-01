@@ -18,9 +18,9 @@ jobs:
       matrix:
         include:
           - name: default
-            bazel_test_command: "bazel test -c opt --test_output=errors //..."
+            bazel_test_command: "bazel test -c opt --repo_env=CC=clang --repo_env=CXX=clang++ --test_output=errors //..."
           - name: zenoh
-            bazel_test_command: "bazel test -c opt --test_env=GZ_TRANSPORT_IMPLEMENTATION=zenoh --test_output=errors //..."
+            bazel_test_command: "bazel test -c opt --repo_env=CC=clang --repo_env=CXX=clang++ --test_env=GZ_TRANSPORT_IMPLEMENTATION=zenoh --test_output=errors //..."
     uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.7.0
     with:
       folders: |
