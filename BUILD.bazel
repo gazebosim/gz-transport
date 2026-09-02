@@ -161,6 +161,7 @@ test_sources = glob(
     deps = [
         ":gz-transport",
         ":gz-transport-discovery-header",
+        "//test:Config",
         "//test:test_config_lib",
         "//test:utils",
         "@com_google_protobuf//:protobuf",
