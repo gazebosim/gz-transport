@@ -71,6 +71,7 @@ test_executables = [
     name = name,
     srcs = ["integration/test_executables/" + name + ".cc"],
     deps = [
+        ":Config",
         ":test_config_lib",
         "//:gz-transport",
         "@googletest//:gtest",
