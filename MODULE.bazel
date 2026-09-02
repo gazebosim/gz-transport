@@ -48,3 +48,12 @@ archive_override(
     strip_prefix = "gz-msgs-main",
     urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/main.tar.gz"],
 )
+
+# TODO(anyone) Remove when bumping to zenoh-cpp 1.8.0 that has the fix merged in
+single_version_override(
+    module_name = "zenoh-cpp",
+    patch_strip = 0,
+    patches = [
+        "//patches:zenoh_cpp_cancellation.patch",
+    ],
+)
