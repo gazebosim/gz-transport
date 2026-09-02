@@ -71,6 +71,7 @@ test_executables = [
     name = name,
     srcs = ["integration/test_executables/" + name + ".cc"],
     deps = [
+        ":Config",
         ":test_config_lib",
         "//:gz-transport",
         "@googletest//:gtest",
@@ -137,6 +138,7 @@ flaky_test_srcs = [
     },
     flaky = src in flaky_test_srcs,
     deps = [
+        ":Config",
         ":test_config_lib",
         ":utils",
         "//:gz-transport",
