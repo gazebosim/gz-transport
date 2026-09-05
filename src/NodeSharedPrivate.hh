@@ -260,10 +260,9 @@ namespace gz::transport
     /// Each Querier keeps an interest declaration alive so the
     /// responser's queryable announcement has a routing path back,
     /// closing the post-1.6 Zenoh cold-start race for cross-process
-    /// service calls. Added on first request; cleared in ~NodeShared
-    /// while the session is still open. Declared after `session` on
-    /// purpose: member destruction order then guarantees every
-    /// Querier is destroyed (undeclared) before the session.
+    /// service calls. Added on first request and kept for the rest of
+    /// the process lifetime, like NodeShared itself (see
+    /// NodeShared::Instance()).
     public: std::unordered_map<std::string,
         std::shared_ptr<zenoh::Querier>> querierCache;
 

@@ -146,6 +146,13 @@ NodeShared *NodeShared::Instance()
 {
   // Create an instance of NodeShared per process so the ZMQ context
   // is not shared between different processes.
+  //
+  // The instance is intentionally never destroyed (see issues #101 and
+  // #954). Reference counting it against the live Nodes was tried in
+  // #484 and reverted in #490, so ~NodeShared does not run in practice
+  // and everything owned here, including the Zenoh session, discovery
+  // objects and Querier cache, is released by process exit. Do not add
+  // teardown logic that depends on the destructor running.
 
   static std::shared_mutex mutex;
   static std::unordered_map<unsigned int, NodeShared*> nodeSharedMap;
@@ -381,36 +388,6 @@ NodeShared::~NodeShared()
   // Wait for the authentication thread before exit.
   if (this->dataPtr->accessControlThread.joinable())
     this->dataPtr->accessControlThread.join();
-
-#ifdef HAVE_ZENOH
-  // Deterministic Zenoh teardown order:
-  // 1. Clear the Querier cache while the session is still open,
-  //    so each Querier destructor undeclares cleanly.
-  {
-    std::lock_guard<std::mutex> lock(this->dataPtr->querierCacheMutex);
-    this->dataPtr->querierCache.clear();
-  }
-
-  // 2. Drop the session-level liveliness subscribers held by the
-  //    Discovery objects so their undeclare runs while the session
-  //    is still alive.
-  this->dataPtr->msgDiscovery.reset();
-  this->dataPtr->srvDiscovery.reset();
-
-  // 3. Close the session explicitly.
-  if (this->dataPtr->session)
-  {
-    try
-    {
-      this->dataPtr->session->close();
-    }
-    catch (const zenoh::ZException &e)
-    {
-      std::cerr << "gz-transport zenoh: session close failed: "
-                << e.what() << "\n";
-    }
-  }
-#endif
 }
 
 //////////////////////////////////////////////////

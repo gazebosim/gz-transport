@@ -29,8 +29,8 @@
 // return: the process still looks healthy, replies already sent
 // are delivered and exit is clean, but the thread never dispatches
 // again. gz-transport therefore defers the undeclare to a separate
-// thread (see ZenohTeardownEntity in NodeSharedPrivate.hh); these
-// tests fail if that deferral is ever removed.
+// thread (see the handler private destructors in SubscriptionHandler.cc
+// and RepHandler.cc); these tests fail if that deferral is ever removed.
 
 #include <gz/msgs/int32.pb.h>
 
