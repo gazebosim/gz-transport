@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <cstring>
+#include <future>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -42,6 +43,7 @@
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
@@ -144,6 +146,13 @@ NodeShared *NodeShared::Instance()
 {
   // Create an instance of NodeShared per process so the ZMQ context
   // is not shared between different processes.
+  //
+  // The instance is intentionally never destroyed (see issues #101 and
+  // #954). Reference counting it against the live Nodes was tried in
+  // #484 and reverted in #490, so ~NodeShared does not run in practice
+  // and everything owned here, including the Zenoh session, discovery
+  // objects and Querier cache, is released by process exit. Do not add
+  // teardown logic that depends on the destructor running.
 
   static std::shared_mutex mutex;
   static std::unordered_map<unsigned int, NodeShared*> nodeSharedMap;
@@ -296,6 +305,49 @@ NodeShared::NodeShared()
 #ifdef HAVE_ZENOH
   else if (impl == "zenoh")
   {
+    // Cold-start readiness: synchronously drain the currently-alive
+    // liveliness tokens before subscribing to updates.
+    // Every reachable publisher and service token is fed into the
+    // discovery info structures so the first user request finds
+    // the queryable already known.
+    constexpr int kZenohLivelinessGetTimeoutMs = 1000;
+
+    try
+    {
+      zenoh::Session::LivelinessGetOptions opts =
+        zenoh::Session::LivelinessGetOptions::create_default();
+      opts.timeout_ms = kZenohLivelinessGetTimeoutMs;
+
+      zenoh::ZResult result = Z_OK;
+      auto replies = this->Session()->liveliness_get(
+        zenoh::KeyExpr("@gz/**"),
+        zenoh::channels::FifoChannel(SIZE_MAX - 1),
+        std::move(opts),
+        &result);
+
+      if (result == Z_OK)
+      {
+        for (auto res = replies.recv();
+             std::holds_alternative<zenoh::Reply>(res);
+             res = replies.recv())
+        {
+          const auto &reply = std::get<zenoh::Reply>(res);
+          if (reply.is_ok())
+          {
+            const auto &sample = reply.get_ok();
+            this->dataPtr->msgDiscovery->LivelinessMsgDataHandler(sample);
+            this->dataPtr->srvDiscovery->LivelinessSrvDataHandler(sample);
+          }
+        }
+      }
+    }
+    catch (const zenoh::ZException &e)
+    {
+      std::cerr << "gz-transport: synchronous liveliness_get failed ("
+                << e.what() << "); falling back to async history replay.\n";
+    }
+
+    // Now start continuous discovery subscribers to receive future updates.
     this->dataPtr->msgDiscovery->Start(this->Session(),
       std::bind(&MsgDiscovery::LivelinessMsgDataHandler,
             this->dataPtr->msgDiscovery.get(), std::placeholders::_1));
@@ -910,14 +962,14 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
         continue;
       }
 
-      // Mark the handler as requested.
-      req.second->Requested(true);
-
       auto nodeUuid = req.second->NodeUuid();
       auto reqUuid = req.second->HandlerUuid();
 
       if (impl == "zeromq")
       {
+        // Mark the handler as requested.
+        req.second->Requested(true);
+
         std::string data;
         if (!req.second->Serialize(data))
           continue;
@@ -973,7 +1025,14 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 #ifdef HAVE_ZENOH
       else if (impl == "zenoh")
       {
-        req.second->CreateZenohGet(this->Session(), _topic);
+        // Mark the handler as requested only when the query was
+        // actually fired: a failed declaration or send leaves it
+        // pending so the next responder announcement retries it.
+        if (req.second->CreateZenohGet(
+              this->GetOrDeclareZenohQuerier(_topic), _topic))
+        {
+          req.second->Requested(true);
+        }
       }
 #endif
 
@@ -1881,6 +1940,43 @@ std::string NodeShared::GzImplementation() const
 std::shared_ptr<zenoh::Session> NodeShared::Session()
 {
   return this->dataPtr->session;
+}
+
+/////////////////////////////////////////////////
+std::shared_ptr<zenoh::Querier>
+NodeShared::GetOrDeclareZenohQuerier(const std::string &_service)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->querierCacheMutex);
+  auto &cache = this->dataPtr->querierCache;
+  auto it = cache.find(_service);
+  if (it != cache.end())
+    return it->second;
+
+  std::shared_ptr<zenoh::Querier> querier;
+  try
+  {
+    zenoh::Session::QuerierOptions opts =
+      zenoh::Session::QuerierOptions::create_default();
+    // BEST_MATCHING (Zenoh's default) routes the query to the closest
+    // matching queryable. For gz-transport's request/reply semantics
+    // (single response expected per service call), this avoids the
+    // "wait for ALL queryables" problem that target=ALL exposes when
+    // a stale or slow peer is in the network.
+    opts.target = zenoh::QueryTarget::Z_QUERY_TARGET_BEST_MATCHING;
+
+    querier = std::make_shared<zenoh::Querier>(
+      this->Session()->declare_querier(zenoh::KeyExpr(_service),
+                                       std::move(opts)));
+  }
+  catch (const zenoh::ZException &e)
+  {
+    std::cerr << "gz-transport zenoh: declare_querier failed for ["
+              << _service << "]: " << e.what() << "\n";
+    return nullptr;
+  }
+
+  cache[_service] = querier;
+  return querier;
 }
 #endif
 

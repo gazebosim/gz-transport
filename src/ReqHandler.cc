@@ -15,9 +15,8 @@
  *
 */
 
-#include <condition_variable>
+#include <iostream>
 #include <memory>
-#include <mutex>
 #include <string>
 #include "gz/transport/config.hh"
 #include "gz/transport/ReqHandler.hh"
@@ -97,45 +96,81 @@ namespace gz::transport
 
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
-  void IReqHandler::CreateZenohGet(
-    std::shared_ptr<zenoh::Session> _session,
+  bool IReqHandler::CreateZenohGet(
+    std::shared_ptr<zenoh::Querier> _querier,
     const std::string &_service)
   {
-    std::mutex m;
-    std::condition_variable doneSignal;
-    bool done = false;
-    auto onReply = [this](const zenoh::Reply &_reply)
+    if (!_querier)
     {
+      std::cerr << "gz-transport zenoh: no Querier for [" << _service
+                << "]; aborting request.\n";
+      return false;
+    }
+
+    // The reply closure holds a weak reference to this handler, so a
+    // reply arriving after the handler was removed from the requests
+    // storage (e.g. after Node::Request timed out) is dropped instead
+    // of dereferencing a dead object.
+    std::weak_ptr<IReqHandler> weakSelf = this->weak_from_this();
+    if (weakSelf.expired())
+    {
+      std::cerr << "gz-transport zenoh: IReqHandler for [" << _service
+                << "] is not owned by a shared_ptr; aborting request.\n";
+      return false;
+    }
+
+    // The persistent Querier carries an always-on interest
+    // declaration on _service, so the responser's queryable
+    // announcement has a routing path back to this session even if
+    // the responser starts after us. The query below then stays in
+    // flight (bounded by the Zenoh query timeout) and reaches a
+    // queryable that appears late. This is what closes the
+    // cold-start race.
+
+    // Capture _service BY VALUE: the closure can fire on a Zenoh
+    // worker thread long after this stack frame has returned.
+    auto onReply = [weakSelf, _service](const zenoh::Reply &_reply)
+    {
+      auto self = weakSelf.lock();
+      if (!self)
+        return;
       if (_reply.is_ok())
       {
         const auto &sample = _reply.get_ok();
-        this->NotifyResult(sample.get_payload().as_string(), true);
+        self->NotifyResult(sample.get_payload().as_string(), true);
       }
       else
       {
-        std::cerr << "Received an error :"
+        std::cerr << "gz-transport zenoh: error reply on [" << _service
+                  << "]: "
                   << _reply.get_err().get_payload().as_string() << "\n";
       }
     };
 
-    auto onDone = [&m, &done, &doneSignal]()
-    {
-      std::lock_guard lock(m);
-      done = true;
-      doneSignal.notify_all();
-    };
-
-    zenoh::Session::GetOptions options;
+    zenoh::Querier::GetOptions getOpts =
+      zenoh::Querier::GetOptions::create_default();
     std::string payload;
     this->Serialize(payload);
-
     if (!payload.empty())
-      options.payload = payload;
+      getOpts.payload = zenoh::Bytes(payload);
 
-    _session->get(_service, "", onReply, onDone, std::move(options));
-
-    std::unique_lock lock(m);
-    doneSignal.wait(lock, [&done] { return done; });
+    // Fire and forget: the caller (Node::Request) waits on the
+    // handler's condition variable via WaitUntil, mirroring the
+    // ZeroMQ flow. Blocking here instead would stall the calling
+    // thread while it holds NodeShared::mutex, serializing every
+    // other request, subscription, and teardown in the process
+    // (and would wait the user timeout twice).
+    try
+    {
+      _querier->get("", onReply, []() {}, std::move(getOpts));
+    }
+    catch (const zenoh::ZException &e)
+    {
+      std::cerr << "gz-transport zenoh: querier.get failed for ["
+                << _service << "]: " << e.what() << "\n";
+      return false;
+    }
+    return true;
   }
 #endif
   }

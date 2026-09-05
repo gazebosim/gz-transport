@@ -25,6 +25,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -253,6 +254,21 @@ namespace gz::transport
 
     /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
+
+    /// \internal
+    /// \brief Cache of declared Queriers keyed by service keyexpr.
+    /// Each Querier keeps an interest declaration alive so the
+    /// responser's queryable announcement has a routing path back,
+    /// closing the post-1.6 Zenoh cold-start race for cross-process
+    /// service calls. Added on first request and kept for the rest of
+    /// the process lifetime, like NodeShared itself (see
+    /// NodeShared::Instance()).
+    public: std::unordered_map<std::string,
+        std::shared_ptr<zenoh::Querier>> querierCache;
+
+    /// \internal
+    /// \brief Mutex guarding querierCache.
+    public: std::mutex querierCacheMutex;
 #endif
 
     //////////////////////////////////////////////////
