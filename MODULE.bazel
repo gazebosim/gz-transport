@@ -60,3 +60,13 @@ archive_override(
     strip_prefix = "gz-msgs-main",
     urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/main.tar.gz"],
 )
+
+# rules_rs >= 0.0.108 uses rust_cdylib_library for rust_shared_library.
+# Patch zenoh-c's cbindgen aspect to recognize rust_cdylib_library.
+single_version_override(
+    module_name = "zenoh-c",
+    patch_strip = 0,
+    patches = [
+        "//patches:zenoh_c_cbindgen.patch",
+    ],
+)
