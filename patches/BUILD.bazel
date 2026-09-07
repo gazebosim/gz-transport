@@ -1,1 +1,0 @@
-exports_files(["zenoh_cpp_cancellation.patch"])
