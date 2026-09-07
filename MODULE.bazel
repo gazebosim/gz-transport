@@ -16,7 +16,19 @@ bazel_dep(name = "rules_cc", version = "0.1.2")
 
 # Minimum version (bzlmod may resolve higher). Keep in sync with
 # GZ_TRANSPORT_ZENOH_MIN_VERSION in CMakeLists.txt (see #868).
-bazel_dep(name = "zenoh-cpp", version = "1.7.2.bcr.1")
+bazel_dep(name = "zenoh-cpp", version = "1.8.0")
+bazel_dep(name = "rules_rs", version = "0.0.93")
+
+rust_toolchains = use_extension("@rules_rs//rs/toolchains:module_extension.bzl", "toolchains")
+rust_toolchains.toolchain(
+    edition = "2021",
+    version = "1.93.0",
+)
+use_repo(rust_toolchains, "default_rust_toolchains")
+
+register_toolchains(
+    "@default_rust_toolchains//:all",
+)
 
 # Gazebo Dependencies
 bazel_dep(name = "rules_gazebo", version = "0.0.6")
@@ -47,13 +59,4 @@ archive_override(
     module_name = "gz-msgs",
     strip_prefix = "gz-msgs-main",
     urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/main.tar.gz"],
-)
-
-# TODO(anyone) Remove when bumping to zenoh-cpp 1.8.0 that has the fix merged in
-single_version_override(
-    module_name = "zenoh-cpp",
-    patch_strip = 0,
-    patches = [
-        "//patches:zenoh_cpp_cancellation.patch",
-    ],
 )
