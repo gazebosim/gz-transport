@@ -146,10 +146,15 @@ namespace gz::transport
     /// \param[in] _querier Persistent Querier for the service, from
     /// NodeShared::GetOrDeclareZenohQuerier.
     /// \param[in] _service The service.
+    /// \param[in] _onDone Called once from a Zenoh thread when the query
+    /// is over, after the reply (if any) was delivered or the Zenoh
+    /// timeout expired. NodeShared uses it to drop the handler from the
+    /// requests storage, mirroring what RecvSrvResponse does for ZeroMQ.
     /// \return True if the query was fired, false otherwise (the
     /// caller should leave the handler pending so it is retried).
     public: bool CreateZenohGet(std::shared_ptr<zenoh::Querier> _querier,
-                                const std::string &_service);
+                                const std::string &_service,
+        std::function<void()> _onDone);
 #endif
 
 #ifdef _WIN32

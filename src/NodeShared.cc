@@ -1028,8 +1028,18 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
         // Mark the handler as requested only when the query was
         // actually fired: a failed declaration or send leaves it
         // pending so the next responder announcement retries it.
+        // Once the query is over the handler leaves the storage, whether
+        // it was answered or timed out. A synchronous Node::Request
+        // removes its own handler as well; the second removal is a no
+        // op. NodeShared outlives every query: it is never destroyed
+        // (see Instance()) and the Zenoh timeout bounds the callback.
+        auto onDone = [this, _topic, nodeUuid, reqUuid]()
+        {
+          std::lock_guard<std::recursive_mutex> requestsLock(this->mutex);
+          this->dataPtr->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
+        };
         if (req.second->CreateZenohGet(
-              this->GetOrDeclareZenohQuerier(_topic), _topic))
+              this->GetOrDeclareZenohQuerier(_topic), _topic, onDone))
         {
           req.second->Requested(true);
         }

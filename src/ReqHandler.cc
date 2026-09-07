@@ -98,7 +98,8 @@ namespace gz::transport
   /////////////////////////////////////////////////
   bool IReqHandler::CreateZenohGet(
     std::shared_ptr<zenoh::Querier> _querier,
-    const std::string &_service)
+    const std::string &_service,
+    std::function<void()> _onDone)
   {
     if (!_querier)
     {
@@ -160,9 +161,18 @@ namespace gz::transport
     // thread while it holds NodeShared::mutex, serializing every
     // other request, subscription, and teardown in the process
     // (and would wait the user timeout twice).
+    // The drop closure runs once the query is over (reply delivered,
+    // error, or Zenoh timeout), which is when the handler can leave the
+    // requests storage.
+    auto onDone = [_onDone]()
+    {
+      if (_onDone)
+        _onDone();
+    };
+
     try
     {
-      _querier->get("", onReply, []() {}, std::move(getOpts));
+      _querier->get("", onReply, std::move(onDone), std::move(getOpts));
     }
     catch (const zenoh::ZException &e)
     {

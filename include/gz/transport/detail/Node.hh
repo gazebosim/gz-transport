@@ -656,12 +656,11 @@ namespace gz::transport
     bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
 
     // This request is finished (answered or timed out): remove the
-    // handler from the requests storage. On the Zenoh path nothing
-    // else removes it (replies notify the handler directly through a
-    // weak_ptr, which a late reply then finds expired). On the
-    // ZeroMQ path this is a no-op after a reply (RecvSrvResponse
-    // already removed it) and fixes the storage leak of timed-out
-    // handlers; a late ZeroMQ reply is simply dropped.
+    // handler from the requests storage. After a reply this is a no
+    // op on both paths (RecvSrvResponse and the Zenoh query completion
+    // already removed it); it matters when the user timeout expires
+    // first. A late reply is simply dropped: on Zenoh the weak_ptr in
+    // the reply closure is expired by then.
     this->Shared()->Requests().RemoveHandler(
       fullyQualifiedTopic, this->NodeUuid(),
       reqHandlerPtr->HandlerUuid());
