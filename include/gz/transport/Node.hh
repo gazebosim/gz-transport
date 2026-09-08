@@ -77,6 +77,20 @@ namespace gz::transport
   /// \brief A class that allows a client to communicate with other peers.
   /// There are two main communication modes: pub/sub messages and service
   /// calls.
+
+  /// \brief Information about a topic, including its name, publishers and subscribers. 
+  struct GZ_TRANSPORT_VISIBLE TopicInfo
+  {
+    /// \brief Topic name.
+    public: std::string topicName;
+
+    /// \brief Publishers advertising this topic.
+    public: std::vector<MessagePublisher> publishers;
+
+    /// \brief Subscribers subscribed to this topic.
+    public: std::vector<MessagePublisher> subscribers;
+  };
+
   class GZ_TRANSPORT_VISIBLE Node
   {
     class PublisherPrivate;
@@ -778,6 +792,11 @@ namespace gz::transport
                            std::vector<MessagePublisher> &_publishers,
                            std::vector<MessagePublisher> &_subscribers) const;
 
+    /// \brief Get the information about all topics.
+    /// \param[out] _topics List of advertised topics.
+    /// \return False if unable to get topic info.
+    public: bool AllTopicInfo(std::vector<gz::transport::TopicInfo> &_topics) const;
+
     /// \brief Get the list of topics currently advertised in the network.
     /// Note that this function can block for some time if the
     /// discovery is in its initialization phase.
@@ -920,6 +939,15 @@ namespace gz::transport
     /// \param[in] _fullyQualifiedTopic Fully qualified topic name
     /// \return True on success.
     private: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
+
+    /// \brief Helper function for TopicInfo and AllTopicInfo.
+    /// \param[in] _topic Topic name to get information about.
+    /// \param[out] _publishers List of publishers on the topic.
+    /// \param[out] _subscribers List of subscribers on the topic.
+    /// \return False if unable to get topic info.
+    private: bool TopicInfoHelper(const std::string &_topic,
+                                  std::vector<MessagePublisher> &_publishers,
+                                  std::vector<MessagePublisher> &_subscribers) const;
 
     /// \brief Subscribe to a topic registering a callback.
     /// Note that this callback does not include any message information.
