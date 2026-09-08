@@ -78,7 +78,8 @@ namespace gz::transport
   /// There are two main communication modes: pub/sub messages and service
   /// calls.
 
-  /// \brief Information about a topic, including its name, publishers and subscribers. 
+  /// \brief Information about a topic, including its name, publishers and
+  /// subscribers.
   struct GZ_TRANSPORT_VISIBLE TopicInfo
   {
     /// \brief Topic name.
@@ -795,7 +796,8 @@ namespace gz::transport
     /// \brief Get the information about all topics.
     /// \param[out] _topics List of advertised topics.
     /// \return False if unable to get topic info.
-    public: bool AllTopicInfo(std::vector<gz::transport::TopicInfo> &_topics) const;
+    public: bool AllTopicInfo(
+                std::vector<gz::transport::TopicInfo> &_topics) const;
 
     /// \brief Get the list of topics currently advertised in the network.
     /// Note that this function can block for some time if the
@@ -946,8 +948,8 @@ namespace gz::transport
     /// \param[out] _subscribers List of subscribers on the topic.
     /// \return False if unable to get topic info.
     private: bool TopicInfoHelper(const std::string &_topic,
-                                  std::vector<MessagePublisher> &_publishers,
-                                  std::vector<MessagePublisher> &_subscribers) const;
+                std::vector<MessagePublisher> &_publishers,
+                std::vector<MessagePublisher> &_subscribers) const;
 
     /// \brief Subscribe to a topic registering a callback.
     /// Note that this callback does not include any message information.
