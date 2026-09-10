@@ -6,6 +6,18 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Gazebo Transport 15.X
+
+### Modifications
+
+1. On the Zenoh implementation, the asynchronous `Node::Request`
+   overload (callback based) now sends the query asynchronously, like
+   the ZeroMQ implementation always did. Earlier Zenoh versions of
+   gz-transport blocked inside the request call until the reply
+   arrived, so code that relied on the callback having run by the
+   time `Request` returned must now wait for the callback (as the API
+   always documented).
+
 ## Gazebo Transport 14.X to 15.X
 
 ### Deprecations
