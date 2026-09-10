@@ -22,6 +22,7 @@ target_compile_definitions(test_config INTERFACE
   "PUB_EXE=\"$<TARGET_FILE:pub_aux>\""
   "PUB_THROTTLED_EXE=\"$<TARGET_FILE:pub_aux_throttled>\""
   "SCOPED_TOPIC_SUBSCRIBER_EXE=\"$<TARGET_FILE:scopedTopicSubscriber_aux>\""
+  "SUBSCRIBER_ONLY_EXE=\"$<TARGET_FILE:subscriberOnly_aux>\""
   "TWO_PROCS_PUBLISHER_EXE=\"$<TARGET_FILE:twoProcsPublisher_aux>\""
   "TWO_PROCS_PUB_SUB_MIXED_SUBSCRIBERS_EXE=\"$<TARGET_FILE:twoProcsPubSubMixedSubscribers_aux>\""
   "TWO_PROCS_PUB_SUB_SINGLE_SUBSCRIBER_EXE=\"$<TARGET_FILE:twoProcsPubSubSingleSubscriber_aux>\""
@@ -36,5 +37,6 @@ target_compile_definitions(test_config INTERFACE
 if (HAVE_ZENOH)
   target_compile_definitions(test_config INTERFACE
     "ZENOH_PUBLISHER_LEAK_AUX_EXE=\"$<TARGET_FILE:zenohPublisherLeak_aux>\""
-    "ZENOH_SHUTDOWN_AUX_EXE=\"$<TARGET_FILE:zenohShutdown_aux>\"")
+    "ZENOH_SHUTDOWN_AUX_EXE=\"$<TARGET_FILE:zenohShutdown_aux>\""
+    "ZENOH_TEARDOWN_FROM_CALLBACK_AUX_EXE=\"$<TARGET_FILE:zenohTeardownFromCallback_aux>\"")
 endif()

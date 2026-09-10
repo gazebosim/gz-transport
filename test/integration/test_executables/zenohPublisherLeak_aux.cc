@@ -46,6 +46,8 @@ int main(int argc, char **argv)
 
   // Set the partition name for this process.
   gz::utils::setenv("GZ_PARTITION", argv[1]);
+  // Belt and braces: the driving test also exports this.
+  gz::utils::setenv("GZ_TRANSPORT_IMPLEMENTATION", "zenoh");
 
   gz::transport::Node node;
 
@@ -55,14 +57,14 @@ int main(int argc, char **argv)
       return -1;
 
     // Give the test process time to observe the topic.
-    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(6000));
   }
   // The publisher handle is destroyed here, but the process and its
   // Zenoh session stay alive. A correct teardown undeclares the
   // liveliness token now; a leak keeps the phantom entry until this
   // process exits.
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(8000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(12000));
 
   return 0;
 }

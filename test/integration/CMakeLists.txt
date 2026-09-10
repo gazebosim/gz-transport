@@ -21,7 +21,8 @@ set(tests
 if (HAVE_ZENOH)
   list(APPEND tests
     zenohPublisherLeak.cc
-    zenohShutdownStress.cc)
+    zenohShutdownStress.cc
+    zenohTeardownFromCallback.cc)
 endif()
 
 # Test symbols having the right name on linux only.
@@ -51,6 +52,7 @@ set(auxiliary_files
   pub_aux
   pub_aux_throttled
   scopedTopicSubscriber_aux
+  subscriberOnly_aux
   twoProcsPublisher_aux
   twoProcsPubSubMixedSubscribers_aux
   twoProcsPubSubSingleSubscriber_aux
@@ -66,7 +68,8 @@ set(auxiliary_files
 if (HAVE_ZENOH)
   list(APPEND auxiliary_files
     zenohPublisherLeak_aux
-    zenohShutdown_aux)
+    zenohShutdown_aux
+    zenohTeardownFromCallback_aux)
 endif()
 
 # Build the auxiliary files.

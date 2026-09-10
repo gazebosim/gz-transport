@@ -26,6 +26,7 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "gz/transport/Node.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "gtest/gtest.h"
 #include "test_config.hh"
@@ -34,30 +35,6 @@
 using namespace gz;
 
 static constexpr const char *g_topic = "/zenoh_pub_leak";
-
-//////////////////////////////////////////////////
-/// \brief Poll TopicList until _present matches, or timeout.
-/// \param[in] _node Node used to query the topic list.
-/// \param[in] _present Whether the topic is expected to be listed.
-/// \param[in] _timeoutMs How long to keep polling.
-/// \return True if the expected state was observed in time.
-bool WaitForTopic(transport::Node &_node, bool _present,
-                  int _timeoutMs)
-{
-  const auto deadline = std::chrono::steady_clock::now() +
-    std::chrono::milliseconds(_timeoutMs);
-  while (std::chrono::steady_clock::now() < deadline)
-  {
-    std::vector<std::string> topics;
-    _node.TopicList(topics);
-    const bool found =
-      std::find(topics.begin(), topics.end(), g_topic) != topics.end();
-    if (found == _present)
-      return true;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  return false;
-}
 
 //////////////////////////////////////////////////
 /// \brief A remote process advertises a topic and then destroys the
@@ -73,25 +50,41 @@ TEST(zenohPublisherLeak, DiscoveryForgetsDestroyedPublisher)
   const std::string partition = testing::getRandomNumber();
   gz::utils::setenv("GZ_PARTITION", partition);
 
+  // This test validates the Zenoh liveliness teardown specifically;
+  // force the implementation so a zeromq default build cannot make
+  // it pass vacuously. The aux subprocess inherits the environment.
+  std::string prevImpl;
+  gz::utils::env("GZ_TRANSPORT_IMPLEMENTATION", prevImpl);
+  gz::utils::setenv("GZ_TRANSPORT_IMPLEMENTATION", "zenoh");
+
   transport::Node node;
 
-  // The aux process advertises for ~3 s, destroys the publisher,
-  // then lingers for ~8 s before exiting.
+  // The aux process advertises for ~6 s, destroys the publisher,
+  // then lingers for ~12 s before exiting.
   gz::utils::Subprocess aux(
     std::vector<std::string>(
       {test_executables::kZenohPublisherLeakAux, partition}));
 
   // Phase 1: the topic must appear while the publisher is alive.
-  EXPECT_TRUE(WaitForTopic(node, true, 3000))
-    << "Topic was never discovered";
+  // The budget covers subprocess spawn plus the aux Node
+  // constructor's bounded cold-start waits.
+  EXPECT_TRUE(transport::waitForTopic(node, g_topic,
+    std::chrono::milliseconds(8000))) << "Topic was never discovered";
 
   // Phase 2: the topic must disappear once the remote publisher is
   // destroyed, well before the aux process exits.
-  EXPECT_TRUE(WaitForTopic(node, false, 6000))
+  EXPECT_TRUE(transport::waitUntil([&node]
+    {
+      std::vector<std::string> topics;
+      node.TopicList(topics);
+      return std::find(topics.begin(), topics.end(), g_topic) ==
+        topics.end();
+    }, std::chrono::milliseconds(10000)))
     << "Topic is still listed after the remote publisher was "
     << "destroyed: its liveliness token leaked";
 
   aux.Terminate();
   aux.Join();
+  gz::utils::setenv("GZ_TRANSPORT_IMPLEMENTATION", prevImpl);
   gz::utils::setenv("GZ_PARTITION", prevPartition);
 }

@@ -148,9 +148,10 @@ namespace gz::transport
     std::string topic = _topic;
     this->Options().TopicRemap(_topic, topic);
 
-    std::string fullyQualifiedTopic;
-    if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
-      this->Options().NameSpace(), topic, fullyQualifiedTopic))
+    FullyQualifiedTopic fullyQualifiedTopic(
+      this->Options().Partition(), this->Options().NameSpace(), topic);
+
+    if (!fullyQualifiedTopic.FullTopic())
     {
       std::cerr << "Topic [" << topic << "] is not valid." << std::endl;
       return nullptr;
@@ -187,7 +188,7 @@ namespace gz::transport
     // it will recover the subscription handler associated to the topic and
     // will invoke the callback.
     this->Shared()->localSubscribers.normal.AddHandler(
-      fullyQualifiedTopic, this->NodeUuid(), subscrHandlerPtr);
+      *fullyQualifiedTopic.FullTopic(), this->NodeUuid(), subscrHandlerPtr);
 
 #ifdef HAVE_ZENOH
     // Must be called under lock (acquired above) to prevent a race where
@@ -195,10 +196,13 @@ namespace gz::transport
     // duplicate centralized subscribers. Called after AddHandler so a
     // message arriving right away already finds its handler registered.
     if (impl == "zenoh")
-      this->Shared()->EnsureZenohSubscription(fullyQualifiedTopic);
+    {
+      this->Shared()->EnsureZenohSubscription(
+        *fullyQualifiedTopic.FullTopic());
+    }
 #endif
 
-    if (!this->SubscribeHelper(fullyQualifiedTopic))
+    if (!this->SubscribeHelper(*fullyQualifiedTopic.FullTopic()))
       return nullptr;
 
     return subscrHandlerPtr;
@@ -619,9 +623,6 @@ namespace gz::transport
     // Insert the request's parameters.
     reqHandlerPtr->SetMessage(&_request);
     reqHandlerPtr->SetResponse(&_reply);
-    // Give the handler access to NodeShared so the Zenoh path can
-    // reach the per-process Querier cache.
-    reqHandlerPtr->SetNodeShared(this->Shared());
 
     bool localResponserFound;
     IRepHandlerPtr repHandler;
@@ -669,19 +670,15 @@ namespace gz::transport
     // Wait until the REP is available.
     bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
 
-#ifdef HAVE_ZENOH
-    if (this->Shared()->GzImplementation() == "zenoh")
-    {
-      // The Zenoh reply path notifies this handler directly instead
-      // of going through RecvSrvResponse, so nothing else removes it
-      // from the requests storage. Remove it here (we still hold the
-      // mutex); a reply arriving later finds an expired weak_ptr in
-      // the Zenoh closure and is dropped.
-      this->Shared()->Requests().RemoveHandler(
-        fullyQualifiedTopic, this->NodeUuid(),
-        reqHandlerPtr->HandlerUuid());
-    }
-#endif
+    // This request is finished (answered or timed out): remove the
+    // handler from the requests storage. After a reply this is a no
+    // op on both paths (RecvSrvResponse and the Zenoh query completion
+    // already removed it); it matters when the user timeout expires
+    // first. A late reply is simply dropped: on Zenoh the weak_ptr in
+    // the reply closure is expired by then.
+    this->Shared()->Requests().RemoveHandler(
+      fullyQualifiedTopic, this->NodeUuid(),
+      reqHandlerPtr->HandlerUuid());
 
     // The request was not executed.
     if (!executed)

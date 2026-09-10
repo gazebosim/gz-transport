@@ -17,8 +17,10 @@
 #include <google/protobuf/text_format.h>
 #include <gz/msgs/empty.pb.h>
 
+#include <atomic>
 #include <chrono>
 #include <cstring>
+#include <future>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -42,6 +44,7 @@
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
@@ -144,6 +147,13 @@ NodeShared *NodeShared::Instance()
 {
   // Create an instance of NodeShared per process so the ZMQ context
   // is not shared between different processes.
+  //
+  // The instance is intentionally never destroyed (see issues #101 and
+  // #954). Reference counting it against the live Nodes was tried in
+  // #484 and reverted in #490, so ~NodeShared does not run in practice
+  // and everything owned here, including the Zenoh session, discovery
+  // objects and Querier cache, is released by process exit. Do not add
+  // teardown logic that depends on the destructor running.
 
   static std::shared_mutex mutex;
   static std::unordered_map<unsigned int, NodeShared*> nodeSharedMap;
@@ -296,40 +306,12 @@ NodeShared::NodeShared()
 #ifdef HAVE_ZENOH
   else if (impl == "zenoh")
   {
-    this->dataPtr->msgDiscovery->Start(this->Session(),
-      std::bind(&MsgDiscovery::LivelinessMsgDataHandler,
-            this->dataPtr->msgDiscovery.get(), std::placeholders::_1));
-
-    this->dataPtr->srvDiscovery->Start(this->Session(),
-      std::bind(&SrvDiscovery::LivelinessSrvDataHandler,
-            this->dataPtr->srvDiscovery.get(), std::placeholders::_1));
-
-    // Cold-start readiness: wait briefly for peers, then
-    // synchronously drain the currently-alive liveliness tokens
-    // before returning from this constructor. This closes the race
-    // between the first Node::Request and the async history replay
-    // of the liveliness subscribers declared above. Every reachable
-    // publisher and service token is fed into the discovery info
-    // structures so the first user request finds the queryable
-    // already known.
-    //
-    // The constants below are one-shot at NodeShared construction,
-    // not on the hot path. The Zenoh-side timeout that actually
-    // governs convergence is interests.timeout, which can be
-    // overridden via GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
-    constexpr int kZenohPeerWaitMs = 250;
+    // Cold-start readiness: synchronously drain the currently-alive
+    // liveliness tokens before subscribing to updates.
+    // Every reachable publisher and service token is fed into the
+    // discovery info structures so the first user request finds
+    // the queryable already known.
     constexpr int kZenohLivelinessGetTimeoutMs = 1000;
-
-    {
-      const auto peerDeadline = std::chrono::steady_clock::now() +
-        std::chrono::milliseconds(kZenohPeerWaitMs);
-      while (std::chrono::steady_clock::now() < peerDeadline)
-      {
-        if (!this->Session()->get_peers_z_id().empty())
-          break;
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
-      }
-    }
 
     try
     {
@@ -351,13 +333,12 @@ NodeShared::NodeShared()
              res = replies.recv())
         {
           const auto &reply = std::get<zenoh::Reply>(res);
-          if (!reply.is_ok())
-            continue;
-          const auto &sample = reply.get_ok();
-          // Both handlers filter by entityType internally, so it is
-          // safe to dispatch every sample to both.
-          this->dataPtr->msgDiscovery->LivelinessMsgDataHandler(sample);
-          this->dataPtr->srvDiscovery->LivelinessSrvDataHandler(sample);
+          if (reply.is_ok())
+          {
+            const auto &sample = reply.get_ok();
+            this->dataPtr->msgDiscovery->LivelinessMsgDataHandler(sample);
+            this->dataPtr->srvDiscovery->LivelinessSrvDataHandler(sample);
+          }
         }
       }
     }
@@ -366,6 +347,15 @@ NodeShared::NodeShared()
       std::cerr << "gz-transport: synchronous liveliness_get failed ("
                 << e.what() << "); falling back to async history replay.\n";
     }
+
+    // Now start continuous discovery subscribers to receive future updates.
+    this->dataPtr->msgDiscovery->Start(this->Session(),
+      std::bind(&MsgDiscovery::LivelinessMsgDataHandler,
+            this->dataPtr->msgDiscovery.get(), std::placeholders::_1));
+
+    this->dataPtr->srvDiscovery->Start(this->Session(),
+      std::bind(&SrvDiscovery::LivelinessSrvDataHandler,
+            this->dataPtr->srvDiscovery.get(), std::placeholders::_1));
   }
 #endif
 
@@ -399,12 +389,6 @@ NodeShared::~NodeShared()
   // Wait for the authentication thread before exit.
   if (this->dataPtr->accessControlThread.joinable())
     this->dataPtr->accessControlThread.join();
-
-#ifdef HAVE_ZENOH
-  // Backstop: ensure the Zenoh teardown order is correct even if the
-  // user did not call Shutdown() explicitly.  Idempotent.
-  this->Shutdown();
-#endif
 }
 
 //////////////////////////////////////////////////
@@ -989,14 +973,14 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
         continue;
       }
 
-      // Mark the handler as requested.
-      req.second->Requested(true);
-
       auto nodeUuid = req.second->NodeUuid();
       auto reqUuid = req.second->HandlerUuid();
 
       if (impl == "zeromq")
       {
+        // Mark the handler as requested.
+        req.second->Requested(true);
+
         std::string data;
         if (!req.second->Serialize(data))
           continue;
@@ -1052,11 +1036,24 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 #ifdef HAVE_ZENOH
       else if (impl == "zenoh")
       {
-        // Hand the handler a non-owning pointer to NodeShared so it
-        // can reach the per-process Querier cache (with matching
-        // listener) maintained by NodeShared itself.
-        req.second->SetNodeShared(this);
-        req.second->CreateZenohGet(this->Session(), _topic);
+        // Mark the handler as requested only when the query was
+        // actually fired: a failed declaration or send leaves it
+        // pending so the next responder announcement retries it.
+        // Once the query is over the handler leaves the storage, whether
+        // it was answered or timed out. A synchronous Node::Request
+        // removes its own handler as well; the second removal is a no
+        // op. NodeShared outlives every query: it is never destroyed
+        // (see Instance()) and the Zenoh timeout bounds the callback.
+        auto onDone = [this, _topic, nodeUuid, reqUuid]()
+        {
+          std::lock_guard<std::recursive_mutex> requestsLock(this->mutex);
+          this->dataPtr->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
+        };
+        if (req.second->CreateZenohGet(
+              this->GetOrDeclareZenohQuerier(_topic), _topic, onDone))
+        {
+          req.second->Requested(true);
+        }
       }
 #endif
 
@@ -1970,12 +1967,19 @@ std::shared_ptr<zenoh::Session> NodeShared::Session()
 void NodeShared::EnsureZenohSubscription(const std::string &_topic)
 {
   // Precondition: caller holds this->mutex.
-  // Already have a centralized subscriber for this topic?
-  if (this->dataPtr->zenohSubscribers.count(_topic))
+  auto &subscriptions = this->dataPtr->zenohSubscribers;
+  if (subscriptions.count(_topic))
     return;
 
-  auto dataHandler = [this, _topic](const zenoh::Sample &_sample)
+  // The flag lets MaybeRemoveZenohSubscription retire this subscriber
+  // before its (deferred) undeclare completes. Capturing 'this' is safe:
+  // NodeShared is never destroyed (see Instance()).
+  auto active = std::make_shared<std::atomic<bool>>(true);
+  auto dataHandler = [this, _topic, active](const zenoh::Sample &_sample)
   {
+    if (!active->load(std::memory_order_acquire))
+      return;
+
     auto attachment = _sample.get_attachment();
     if (!attachment.has_value())
     {
@@ -2001,84 +2005,47 @@ void NodeShared::EnsureZenohSubscription(const std::string &_topic)
       });
   };
 
-  this->dataPtr->zenohSubscribers[_topic] =
-    std::make_unique<zenoh::Subscriber<void>>(
-      this->dataPtr->session->declare_subscriber(_topic, dataHandler,
-        zenoh::closures::none));
+  ZenohTopicSubscription subscription;
+  subscription.active = active;
+  subscription.subscriber = std::make_unique<zenoh::Subscriber<void>>(
+    this->dataPtr->session->declare_subscriber(_topic, dataHandler,
+      zenoh::closures::none));
+  subscriptions[_topic] = std::move(subscription);
 }
 
 /////////////////////////////////////////////////
 void NodeShared::MaybeRemoveZenohSubscription(const std::string &_topic)
 {
   // Precondition: caller holds this->mutex.
-  // If no handlers remain for this topic, remove the centralized
-  // subscriber. Erasing it here (under the mutex) cannot deadlock: Zenoh's
-  // undeclare does not wait for an in-flight data callback to finish, so a
-  // callback blocked on this->mutex in CheckHandlerInfo simply completes
-  // afterwards and finds no handlers.
-  if (!this->localSubscribers.HasSubscriber(_topic))
-    this->dataPtr->zenohSubscribers.erase(_topic);
-}
-
-/////////////////////////////////////////////////
-void NodeShared::Shutdown()
-{
-  // Thread-safe one-shot guard.
-  bool expected = false;
-  if (!this->dataPtr->isShutdown.compare_exchange_strong(expected, true,
-        std::memory_order_acq_rel, std::memory_order_relaxed))
+  if (this->localSubscribers.HasSubscriber(_topic))
     return;
 
-  // 1. Tear down per-NodeShared Zenoh entities (the cached
-  //    Queriers). The session is still open here, so each Querier
-  //    destructor undeclares cleanly instead of leaking. Any
-  //    concurrent CreateZenohGet holding a shared_ptr copy keeps
-  //    its entry alive until its stack frame ends; late replies
-  //    are dropped through the weak handler capture.
+  auto &subscriptions = this->dataPtr->zenohSubscribers;
+  auto it = subscriptions.find(_topic);
+  if (it == subscriptions.end())
+    return;
+
+  ZenohTopicSubscription subscription = std::move(it->second);
+  subscriptions.erase(it);
+
+  // Retire the callback first so a sample racing with the undeclare is
+  // not dispatched to handlers registered by a later Subscribe() on the
+  // same topic.
+  subscription.active->store(false, std::memory_order_release);
+
+  // Undeclaring a Zenoh subscriber waits for its in-flight callbacks.
+  // Such a callback may be blocked on this->mutex (held by the caller)
+  // or may be the very callback that triggered this unsubscribe, so run
+  // the undeclare on a detached thread (same pattern as the handler
+  // destructors in SubscriptionHandler.cc and RepHandler.cc).
+  std::thread([sub = std::move(subscription.subscriber)]() mutable
   {
-    std::lock_guard<std::mutex> lock(this->dataPtr->querierCacheMutex);
-    this->dataPtr->querierCache.clear();
-  }
-
-  // 2. Tear down the centralized per-topic Zenoh subscribers. Their
-  //    callbacks capture 'this'; undeclaring them here (and closing
-  //    the session in step 5) guarantees no callback can touch
-  //    NodeShared members after Shutdown() returns.
-  {
-    std::lock_guard<std::recursive_mutex> lock(this->mutex);
-    this->dataPtr->zenohSubscribers.clear();
-  }
-
-  // 3. Drop the session-level liveliness subscribers held by the
-  //    Discovery objects so their undeclare runs while the session
-  //    is still alive.
-  this->dataPtr->msgDiscovery.reset();
-  this->dataPtr->srvDiscovery.reset();
-
-  // 4. Per-handle entities (publishers, subscribers, service
-  //    queryables) are owned by user-held handles and tear
-  //    themselves down through their own destructors.
-
-  // 5. Close the session explicitly. After steps 1-3 there are no
-  //    in-flight callbacks left for this NodeShared, so close()
-  //    returns quickly. Later drops of the session shared_ptr take
-  //    the fast path in ~Session.
-  if (this->dataPtr->session)
-  {
-    try
-    {
-      this->dataPtr->session->close();
-    }
-    catch (const zenoh::ZException &e)
-    {
-      std::cerr << "gz-transport zenoh: session close failed: "
-                << e.what() << "\n";
-    }
-  }
+    sub.reset();
+  }).detach();
 }
 
 /////////////////////////////////////////////////
-std::shared_ptr<ZenohQuerierEntry>
+std::shared_ptr<zenoh::Querier>
 NodeShared::GetOrDeclareZenohQuerier(const std::string &_service)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->querierCacheMutex);
@@ -2087,9 +2054,7 @@ NodeShared::GetOrDeclareZenohQuerier(const std::string &_service)
   if (it != cache.end())
     return it->second;
 
-  auto entry = std::make_shared<ZenohQuerierEntry>();
-  entry->session = this->Session();
-
+  std::shared_ptr<zenoh::Querier> querier;
   try
   {
     zenoh::Session::QuerierOptions opts =
@@ -2101,9 +2066,9 @@ NodeShared::GetOrDeclareZenohQuerier(const std::string &_service)
     // a stale or slow peer is in the network.
     opts.target = zenoh::QueryTarget::Z_QUERY_TARGET_BEST_MATCHING;
 
-    entry->querier = std::make_unique<zenoh::Querier>(
-      entry->session->declare_querier(zenoh::KeyExpr(_service),
-                                      std::move(opts)));
+    querier = std::make_shared<zenoh::Querier>(
+      this->Session()->declare_querier(zenoh::KeyExpr(_service),
+                                       std::move(opts)));
   }
   catch (const zenoh::ZException &e)
   {
@@ -2112,8 +2077,8 @@ NodeShared::GetOrDeclareZenohQuerier(const std::string &_service)
     return nullptr;
   }
 
-  cache[_service] = entry;
-  return entry;
+  cache[_service] = querier;
+  return querier;
 }
 #endif
 

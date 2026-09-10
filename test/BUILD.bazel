@@ -9,12 +9,28 @@ package(
     ],
 )
 
+filegroup(
+    name = "test_configs",
+    srcs = glob(["config/*.json5"]),
+    visibility = ["//:__subpackages__"],
+)
+
 gz_configure_header(
     name = "Config",
     src = "test_config.hh.in",
     out = "include/test_config.hh",
     package_xml = "//:package.xml",
     visibility = ["//:__subpackages__"],
+)
+
+cc_library(
+    name = "test_config_lib",
+    defines = [
+        'GZ_ZENOH_TEST_CONFIG=\\"test/config/gz_zenoh_test_config.json5\\"',
+        'GZ_ZENOH_INVALID_CONFIG=\\"test/config/gz_zenoh_invalid_config.json5\\"',
+    ],
+    visibility = ["//visibility:public"],
+    deps = [":Config"],
 )
 
 cc_library(
@@ -36,6 +52,7 @@ test_executables = [
     "pub_aux",
     "pub_aux_throttled",
     "scopedTopicSubscriber_aux",
+    "subscriberOnly_aux",
     "twoProcsPublisher_aux",
     "twoProcsPubSubMixedSubscribers_aux",
     "twoProcsPubSubSingleSubscriber_aux",
@@ -46,13 +63,16 @@ test_executables = [
     "twoProcsSrvCallWithoutInputReplierInc_aux",
     "twoProcsSrvCallWithoutOutputReplier_aux",
     "twoProcsSrvCallWithoutOutputReplierInc_aux",
+    "zenohPublisherLeak_aux",
+    "zenohShutdown_aux",
+    "zenohTeardownFromCallback_aux",
 ]
 
 [cc_binary(
     name = name,
     srcs = ["integration/test_executables/" + name + ".cc"],
     deps = [
-        ":Config",
+        ":test_config_lib",
         "//:gz-transport",
         "@googletest//:gtest",
         "@gz-msgs//:gzmsgs_cc_proto",
@@ -68,6 +88,7 @@ integration_test_sources = [
     "twoProcsPubSub.cc",
     "twoProcsPubSubStats.cc",
     "twoProcsSrvCall.cc",
+    "twoProcsSrvCallLateResponder.cc",
     "twoProcsSrvCallStress.cc",
     "twoProcsSrvCallSync1.cc",
     "twoProcsSrvCallWithoutInput.cc",
@@ -75,6 +96,9 @@ integration_test_sources = [
     "twoProcsSrvCallWithoutInputSync1.cc",
     "twoProcsSrvCallWithoutOutput.cc",
     "twoProcsSrvCallWithoutOutputStress.cc",
+    "zenohPublisherLeak.cc",
+    "zenohShutdownStress.cc",
+    "zenohTeardownFromCallback.cc",
 ]
 
 # Found with
@@ -96,6 +120,7 @@ flaky_test_srcs = [
         'PUB_EXE=\\"./test/pub_aux\\"',
         'PUB_THROTTLED_EXE=\\"./test/pub_aux_throttled\\"',
         'SCOPED_TOPIC_SUBSCRIBER_EXE=\\"./test/scopedTopicSubscriber_aux\\"',
+        'SUBSCRIBER_ONLY_EXE=\\"./test/subscriberOnly_aux\\"',
         'TWO_PROCS_PUBLISHER_EXE=\\"./test/twoProcsPublisher_aux\\"',
         'TWO_PROCS_PUB_SUB_MIXED_SUBSCRIBERS_EXE=\\"./test/twoProcsPubSubMixedSubscribers_aux\\"',
         'TWO_PROCS_PUB_SUB_SINGLE_SUBSCRIBER_EXE=\\"./test/twoProcsPubSubSingleSubscriber_aux\\"',
@@ -106,6 +131,9 @@ flaky_test_srcs = [
         'TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_INC_EXE=\\"./test/twoProcsSrvCallWithoutInputReplierInc_aux\\"',
         'TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_EXE=\\"./test/twoProcsSrvCallWithoutOutputReplier_aux\\"',
         'TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE=\\"./test/twoProcsSrvCallWithoutOutputReplierInc_aux\\"',
+        'ZENOH_PUBLISHER_LEAK_AUX_EXE=\\"./test/zenohPublisherLeak_aux\\"',
+        'ZENOH_SHUTDOWN_AUX_EXE=\\"./test/zenohShutdown_aux\\"',
+        'ZENOH_TEARDOWN_FROM_CALLBACK_AUX_EXE=\\"./test/zenohTeardownFromCallback_aux\\"',
     ],
     env = {
         "GZ_BAZEL": "1",
@@ -113,7 +141,7 @@ flaky_test_srcs = [
     },
     flaky = src in flaky_test_srcs,
     deps = [
-        ":Config",
+        ":test_config_lib",
         ":utils",
         "//:gz-transport",
         "@googletest//:gtest",

@@ -15,11 +15,8 @@
  *
 */
 
-#include <atomic>
-#include <functional>
 #include <memory>
 #include <string>
-#include <utility>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/SubscriptionHandler.hh"
@@ -27,15 +24,12 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
-#include "NodeSharedPrivate.hh"
 #endif
 
 namespace gz::transport
 {
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   {
-
-
   /// \internal
   /// \brief Private data for SubscriptionHandlerBase class.
   class SubscriptionHandlerBasePrivate
@@ -59,17 +53,14 @@ namespace gz::transport
     /// \brief Destructor.
     public: virtual ~SubscriptionHandlerBasePrivate()
     {
-      this->ZenohShutdown();
-    }
-
-    /// \brief Zenoh teardown. Safe to call multiple times.
-    /// See ZenohTeardownEntity in NodeSharedPrivate.hh for the
-    /// shared pattern (atomic guard + detached undeclare).
-    public: void ZenohShutdown()
-    {
 #ifdef HAVE_ZENOH
-      ZenohTeardownEntity(this->zenohIsShutdown,
-                          this->zSub, this->zToken);
+      // The last reference to a handler routinely dies inside a Zenoh
+      // callback (the centralized subscriber in NodeShared dispatches to
+      // handlers it holds by shared_ptr). That is safe here: unlike a
+      // Subscriber, a LivelinessToken has no callback, so its undeclare
+      // never waits on the calling thread. The Zenoh subscriber itself is
+      // owned by NodeShared (see MaybeRemoveZenohSubscription).
+      this->zToken.reset();
 #endif
     }
 
@@ -102,14 +93,9 @@ namespace gz::transport
     public: ISubscriptionHandler::MsgFactory msgFactory;
 
 #ifdef HAVE_ZENOH
-    /// \brief The zenoh subscriber handler.
-    public: std::unique_ptr<zenoh::Subscriber<void>> zSub;
-
-    /// \brief The liveliness token.
+    /// \brief The liveliness token. The Zenoh subscriber itself is
+    /// managed centrally by NodeShared (one per topic).
     public: std::unique_ptr<zenoh::LivelinessToken> zToken;
-
-    /// \brief Atomic guard for ZenohShutdown idempotence.
-    public: std::atomic<bool> zenohIsShutdown{false};
 #endif
   };
 
@@ -209,10 +195,11 @@ namespace gz::transport
   /////////////////////////////////////////////////
   void ISubscriptionHandler::CreateLivelinessToken(
     std::shared_ptr<zenoh::Session> _session,
-    const std::string &_topic)
+    const FullyQualifiedTopic &_fullyQualifiedTopic)
   {
     std::string token = TopicUtils::CreateLivelinessToken(
-      _topic, this->ProcUuid(), this->NodeUuid(), "MS", this->TypeName());
+      *_fullyQualifiedTopic.FullTopic(), this->ProcUuid(), this->NodeUuid(),
+      "MS", this->TypeName());
 
     if (token.empty())
       return;
@@ -224,9 +211,9 @@ namespace gz::transport
   /////////////////////////////////////////////////
   void ISubscriptionHandler::CreateGenericZenohSubscriber(
     std::shared_ptr<zenoh::Session> _session,
-    const std::string &_topic)
+    const FullyQualifiedTopic &_fullyQualifiedTopic)
   {
-    this->CreateLivelinessToken(std::move(_session), _topic);
+    this->CreateLivelinessToken(std::move(_session), _fullyQualifiedTopic);
   }
 #endif
 

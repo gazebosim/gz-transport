@@ -134,7 +134,8 @@ namespace gz::transport
   /// messages. Those functions are not needed by the RawSubscriptionHandler
   /// class.
   class GZ_TRANSPORT_VISIBLE ISubscriptionHandler
-      : public SubscriptionHandlerBase
+      : public SubscriptionHandlerBase,
+        public std::enable_shared_from_this<ISubscriptionHandler>
   {
     /// \brief Constructor.
     /// \param[in] _pUuid UUID of the process registering the handler.
@@ -199,15 +200,15 @@ namespace gz::transport
     /// \brief Create a Zenoh liveliness token for discovery.
     /// The actual Zenoh subscriber is managed centrally by NodeShared.
     /// \param[in] _session Zenoh session.
-    /// \param[in] _topic The topic.
+    /// \param[in] _fullyQualifiedTopic The fully qualified topic.
     public: void CreateLivelinessToken(
       std::shared_ptr<zenoh::Session> _session,
-      const std::string &_topic);
+      const FullyQualifiedTopic &_fullyQualifiedTopic);
 
     /// \brief Deprecated. Use CreateLivelinessToken instead.
     public: GZ_DEPRECATED(16) void CreateGenericZenohSubscriber(
       std::shared_ptr<zenoh::Session> _session,
-      const std::string &_topic);
+      const FullyQualifiedTopic &_fullyQualifiedTopic);
 #endif
   };
 
@@ -216,8 +217,7 @@ namespace gz::transport
   /// message. 'T' is the Protobuf message type that will be used for this
   /// particular handler.
   template <typename T> class SubscriptionHandler
-    : public ISubscriptionHandler,
-      public std::enable_shared_from_this<SubscriptionHandler<T>>
+    : public ISubscriptionHandler
   {
     // Documentation inherited.
     public: explicit SubscriptionHandler(const std::string &_pUuid,
@@ -269,10 +269,10 @@ namespace gz::transport
     /// \param[in] _topic The topic associated to this callback.
     public: void SetCallback(const MsgCallback<T> &_cb,
                              std::shared_ptr<zenoh::Session> _session,
-                             const std::string &_topic)
+                             const FullyQualifiedTopic &_fullyQualifiedTopic)
     {
       this->SetCallback(std::move(_cb));
-      this->CreateLivelinessToken(_session, _topic);
+      this->CreateLivelinessToken(_session, _fullyQualifiedTopic);
     }
 #endif
 
@@ -333,8 +333,7 @@ namespace gz::transport
   /// \brief Specialized template when the user prefers a callbacks that
   /// accepts a generic google::protobuf::message instead of a specific type.
   template <> class SubscriptionHandler<ProtoMsg>
-    : public ISubscriptionHandler,
-      public std::enable_shared_from_this<SubscriptionHandler<ProtoMsg>>
+    : public ISubscriptionHandler
   {
     // Documentation inherited.
     public: explicit SubscriptionHandler(const std::string &_pUuid,
@@ -411,10 +410,10 @@ namespace gz::transport
     /// \param[in] _topic The topic associated to this callback.
     public: void SetCallback(const MsgCallback<ProtoMsg> &_cb,
                              std::shared_ptr<zenoh::Session> _session,
-                             const std::string &_topic)
+                             const FullyQualifiedTopic &_fullyQualifiedTopic)
     {
       this->SetCallback(std::move(_cb));
-      this->CreateLivelinessToken(_session, _topic);
+      this->CreateLivelinessToken(_session, _fullyQualifiedTopic);
     }
 #endif
 
