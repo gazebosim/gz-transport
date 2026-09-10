@@ -66,14 +66,19 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     return _func(data.data(), data.size());
   }
 
-// SHM requires POSIX shared memory and Zenoh's unstable API. Zenoh defines
-// Z_FEATURE_SHARED_MEMORY when the feature is compiled in (Linux, macOS)
-// and Z_FEATURE_UNSTABLE_API when the unstable API is exposed. When either
-// is missing, the #else branch below provides no-op stand-ins with the same
-// interface so call sites compile unchanged and transparently fall back to
-// heap-based transfer. Zenoh SHM types never leak out of this block: the
-// public surface is ShmProviderPtr, ShmChunk, and zenoh::Bytes (which
-// exists in every Zenoh build).
+// SHM requires a zenoh-c built with shared memory and the unstable API
+// (ZENOHC_BUILD_WITH_SHARED_MEMORY and ZENOHC_BUILD_WITH_UNSTABLE_API).
+// zenoh_configure.h then defines Z_FEATURE_SHARED_MEMORY and
+// Z_FEATURE_UNSTABLE_API, and the zenoh-cpp headers expose the SHM API
+// only when both are defined. The backend is platform independent since
+// Zenoh 1.4 (POSIX shared memory on Linux, macOS and BSD, file mappings on
+// Windows); only the orphaned-segment cleanup helper is Linux-specific and
+// gz-transport does not use it. When either macro is missing, the #else
+// branch below provides no-op stand-ins with the same interface so call
+// sites compile unchanged and transparently fall back to heap-based
+// transfer. Zenoh SHM types never leak out of this block: the public
+// surface is ShmChunk, allocShmChunk, makeShmBytes, and zenoh::Bytes
+// (which exists in every Zenoh build).
 #if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
 
   /// \brief Default SHM pool size (48 MB, matches rmw_zenoh default).
