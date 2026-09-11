@@ -71,6 +71,23 @@ Below are descriptions of the available environment variables:
     values are JSON5 literals. Applied after `ZENOH_CONFIG` is loaded, so
     overrides take priority. Example:
     `GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE="transport/link/tx/queue/size/data=8;transport/shared_memory/enabled=true"`
+    * *Shared memory*: Zenoh moves payloads between processes on the same
+    host through shared memory when the library was built with SHM support.
+    It is governed entirely by Zenoh configuration keys, so it is tuned
+    through `ZENOH_CONFIG` or this variable:
+      * `transport/shared_memory/enabled` (default `true`): set to `false` to
+      disable shared memory altogether.
+      * `transport/shared_memory/transport_optimization/pool_size` (bytes,
+      gz-transport default `50331648`, 48 MiB): size of the per-process SHM
+      pool. Zenoh's own default is 16 MiB; gz-transport raises it in its
+      built-in configuration so a few multi-megabyte messages can be in
+      flight at once. A `ZENOH_CONFIG` file keeps its own value.
+      * `transport/shared_memory/transport_optimization/message_size_threshold`
+      (bytes, default `3072`): payloads at or above this size go through
+      shared memory, smaller ones through the regular transport. gz-transport
+      serializes messages at or above the threshold directly into the pool.
+    When the pool is exhausted or shared memory is unavailable, delivery
+    falls back to the network path automatically.
     * *Available in backend:*: zenoh
 * **GZ_TRANSPORT_LOG_SQL_PATH**
     * *Value allowed*: Any path
