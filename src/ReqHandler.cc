@@ -139,15 +139,9 @@ namespace gz::transport
       if (_reply.is_ok())
       {
         const auto &sample = _reply.get_ok();
-        // SHM-optimized receive: read through a direct pointer into the
-        // SHM buffer when available, avoiding a fragmented copy in Zenoh.
-        self->NotifyResult(
-          withPayloadView(sample.get_payload(),
-            [](const char *_data, std::size_t _size)
-            {
-              return std::string(_data, _size);
-            }),
-          true);
+        // Reads through a direct pointer into the (SHM) buffer when the
+        // payload is contiguous.
+        self->NotifyResult(payloadToString(sample.get_payload()), true);
       }
       else
       {

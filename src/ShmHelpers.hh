@@ -26,16 +26,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <stdexcept>
 #include <string>
 #include <utility>
 #include <variant>
-
-#include "gz/transport/Helpers.hh"
 
 #include <zenoh.hxx>
 
@@ -43,6 +39,30 @@ namespace gz::transport
 {
 inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 {
+  /// \brief Zenoh config key holding the size in bytes of the SHM pool the
+  /// session creates for its transport optimization. gz-transport draws
+  /// its explicit SHM buffers from that same pool (see ZenohShm).
+  constexpr const char kZenohShmPoolSizeKey[] =
+      "transport/shared_memory/transport_optimization/pool_size";
+
+  /// \brief Zenoh config key holding the minimum payload size in bytes
+  /// that travels through SHM. gz-transport uses the same threshold for
+  /// its explicit SHM buffers, so there is a single knob.
+  constexpr const char kZenohShmThresholdKey[] =
+      "transport/shared_memory/transport_optimization/message_size_threshold";
+
+  /// \brief SHM pool size gz-transport writes into its built-in default
+  /// Zenoh configuration (48 MiB, the same value rmw_zenoh ships). Zenoh's
+  /// own default of 16 MiB is exhausted by a couple of multi-megabyte
+  /// messages in flight, after which payloads silently fall back to the
+  /// network path. A ZENOH_CONFIG file or GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE
+  /// still wins over this value.
+  constexpr std::size_t kDefaultZenohShmPoolSize = 48u * 1024u * 1024u;
+
+  /// \brief Threshold assumed when kZenohShmThresholdKey cannot be read
+  /// from the configuration (Zenoh's default).
+  constexpr std::size_t kDefaultZenohShmThreshold = 3072u;
+
   /// \brief Invoke _func with a view of the payload data.
   /// When the payload is contiguous (e.g. a SHM buffer) _func receives a
   /// zero-copy pointer into it; otherwise the payload is copied into a
@@ -66,271 +86,167 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     return _func(data.data(), data.size());
   }
 
-// SHM requires a zenoh-c built with shared memory and the unstable API
-// (ZENOHC_BUILD_WITH_SHARED_MEMORY and ZENOHC_BUILD_WITH_UNSTABLE_API).
-// zenoh_configure.h then defines Z_FEATURE_SHARED_MEMORY and
-// Z_FEATURE_UNSTABLE_API, and the zenoh-cpp headers expose the SHM API
-// only when both are defined. The backend is platform independent since
-// Zenoh 1.4 (POSIX shared memory on Linux, macOS and BSD, file mappings on
-// Windows); only the orphaned-segment cleanup helper is Linux-specific and
-// gz-transport does not use it. When either macro is missing, the #else
-// branch below provides no-op stand-ins with the same interface so call
-// sites compile unchanged and transparently fall back to heap-based
-// transfer. Zenoh SHM types never leak out of this block: the public
-// surface is ShmChunk, allocShmChunk, makeShmBytes, and zenoh::Bytes
-// (which exists in every Zenoh build).
+  /// \brief Copy a payload into a std::string, reading through a direct
+  /// pointer into the buffer when the payload is contiguous.
+  /// \param[in] _payload The payload to copy.
+  /// \return The payload bytes.
+  inline std::string payloadToString(const zenoh::Bytes &_payload)
+  {
+    return withPayloadView(_payload,
+      [](const char *_data, std::size_t _size)
+      {
+        return std::string(_data, _size);
+      });
+  }
+
+// The explicit SHM path requires a zenoh-c built with shared memory and the
+// unstable API (ZENOHC_BUILD_WITH_SHARED_MEMORY and
+// ZENOHC_BUILD_WITH_UNSTABLE_API). zenoh_configure.h then defines
+// Z_FEATURE_SHARED_MEMORY and Z_FEATURE_UNSTABLE_API, and the zenoh-cpp
+// headers expose the SHM API only when both are defined. The backend is
+// platform independent since Zenoh 1.4 (POSIX shared memory on Linux, macOS
+// and BSD, file mappings on Windows). When either macro is missing, the
+// #else branch below provides no-op stand-ins with the same interface so
+// call sites compile unchanged and transparently fall back to heap-based
+// transfer (Zenoh's own transport optimization still applies at the
+// transport level when the library supports it). Zenoh SHM types never leak
+// out of this block: the public surface is ZenohShm, ShmChunk,
+// allocShmChunk, makeShmBytes, and zenoh::Bytes (which exists in every
+// Zenoh build).
 #if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
 
-  /// \brief Default SHM pool size (48 MB, matches rmw_zenoh default).
-  /// A single pool is shared by all publishers and service handlers in
-  /// the process.
-  constexpr std::size_t kDefaultShmPoolSize = 48 * 1024 * 1024;
-
-  /// \brief Default SHM threshold (128 KB).
-  /// Messages below this size use heap-based transfer, which is safer for
-  /// short-lived publishers: zenoh copies heap data internally, so the
-  /// subscriber still receives it after the publisher exits. SHM buffers
-  /// are reclaimed when the process's pool is destroyed.
-  constexpr std::size_t kDefaultShmThreshold = 128 * 1024;
-
-  /// \brief Pool size above which a warning is emitted (1 GB).
-  constexpr std::size_t kShmPoolSizeWarningThreshold =
-      1UL * 1024 * 1024 * 1024;
-
-  /// \brief Whether SHM is enabled, process-wide.
-  /// Set by NodeSharedPrivate (via setShmEnabled) after resolving the
-  /// Zenoh config's transport/shared_memory/enabled value (which may come
-  /// from ZENOH_CONFIG file, defaults, or
-  /// GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE). Default: enabled.
-  /// \return Reference to the flag.
-  inline std::atomic<bool> &shmEnabled()
+  /// \brief Process-wide access to the SHM provider of the Zenoh session.
+  ///
+  /// The session's runtime owns one SHM pool, sized by kZenohShmPoolSizeKey,
+  /// that Zenoh already uses to move payloads above kZenohShmThresholdKey
+  /// through shared memory (transport optimization). Instead of creating a
+  /// second pool, gz-transport borrows that provider through
+  /// zenoh::Session::obtain_shm_provider(), like rmw_zenoh does, and
+  /// serializes directly into it. This keeps a single pool per process,
+  /// a single set of configuration keys, and no SHM resources owned by
+  /// gz-transport that could outlive the session at exit.
+  ///
+  /// Zenoh initializes the provider lazily (transport/shared_memory/mode
+  /// "lazy", the default) and concurrently; until it is ready, or when SHM
+  /// is disabled in the configuration, Provider() returns nullptr and the
+  /// caller falls back to the heap path.
+  class ZenohShm
   {
-    static std::atomic<bool> enabled{true};
-    return enabled;
-  }
+    /// \brief Get the process-wide instance.
+    /// \return The instance.
+    public: static ZenohShm &Instance()
+    {
+      static ZenohShm instance;
+      return instance;
+    }
 
-  /// \brief Cached SHM configuration.
-  /// Pool size and threshold are read from environment variables once on
-  /// first access (thread-safe via static initialization).
-  struct ShmEnvConfig
-  {
-    /// \brief SHM pool size in bytes.
-    /// Read from GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE (default: 48 MB).
-    std::size_t poolSize = kDefaultShmPoolSize;
+    /// \brief Attach the session whose provider is used. Called by
+    /// NodeSharedPrivate right after opening the session.
+    /// \param[in] _session The Zenoh session. Kept alive here so the
+    /// provider handle never outlives it.
+    /// \param[in] _threshold Minimum payload size, in bytes, that uses SHM.
+    public: void Init(std::shared_ptr<zenoh::Session> _session,
+                      std::size_t _threshold)
+    {
+      std::lock_guard<std::mutex> lock(this->mutex);
+      this->provider.reset();
+      this->session = std::move(_session);
+      this->threshold.store(_threshold, std::memory_order_relaxed);
+      this->state.store(this->session ? State::kUnknown : State::kDisabled,
+                        std::memory_order_release);
+    }
 
-    /// \brief Minimum message size to use SHM, in bytes.
-    /// Read from GZ_TRANSPORT_ZENOH_SHM_THRESHOLD (default: 128 KB).
-    std::size_t threshold = kDefaultShmThreshold;
+    /// \brief Minimum payload size, in bytes, that uses SHM.
+    /// \return The threshold.
+    public: std::size_t Threshold() const
+    {
+      return this->threshold.load(std::memory_order_relaxed);
+    }
 
-    /// \brief True when the user explicitly configured SHM through the
-    /// GZ_TRANSPORT_ZENOH_SHM_* environment variables. Controls whether
-    /// a failure to create a SHM provider is reported on stderr: with
-    /// SHM enabled by default, environments without SHM support (e.g.
-    /// containers with a small /dev/shm) fall back to heap silently.
-    bool explicitlyConfigured = false;
+    /// \brief Get the session's SHM provider.
+    /// \return The provider, or nullptr when no session is attached, SHM
+    /// is disabled in the configuration, or the provider is still
+    /// initializing (callers fall back to the heap path and retry on the
+    /// next allocation).
+    public: const zenoh::ShmProvider *Provider()
+    {
+      State current = this->state.load(std::memory_order_acquire);
+      if (current == State::kReady)
+        return &this->provider->shm_provider();
+      if (current == State::kDisabled)
+        return nullptr;
+
+      std::lock_guard<std::mutex> lock(this->mutex);
+      // Another thread may have resolved the state while we waited.
+      current = this->state.load(std::memory_order_relaxed);
+      if (current == State::kReady)
+        return &this->provider->shm_provider();
+      if (current == State::kDisabled)
+        return nullptr;
+
+      auto result = this->session->obtain_shm_provider();
+      if (auto *ready = std::get_if<zenoh::SharedShmProvider>(&result))
+      {
+        this->provider.emplace(std::move(*ready));
+        this->state.store(State::kReady, std::memory_order_release);
+        return &this->provider->shm_provider();
+      }
+
+      if (std::get<zenoh::ShmProviderNotReadyState>(result) ==
+          zenoh::ShmProviderNotReadyState::SHM_PROVIDER_DISABLED)
+      {
+        this->state.store(State::kDisabled, std::memory_order_release);
+      }
+      // SHM_PROVIDER_INITIALIZING: the call above triggered or joined the
+      // initialization; try again on the next allocation.
+      return nullptr;
+    }
+
+    /// \brief Resolution state of the provider.
+    private: enum class State
+    {
+      /// \brief Not resolved yet (no session, or still initializing).
+      kUnknown,
+      /// \brief The provider is available.
+      kReady,
+      /// \brief SHM is disabled in the configuration.
+      kDisabled
+    };
+
+    /// \brief Serializes provider resolution.
+    private: std::mutex mutex;
+
+    /// \brief Current state. Written under mutex, read lock-free.
+    private: std::atomic<State> state{State::kDisabled};
+
+    /// \brief Minimum payload size that uses SHM.
+    private: std::atomic<std::size_t> threshold{kDefaultZenohShmThreshold};
+
+    /// \brief The session owning the provider.
+    private: std::shared_ptr<zenoh::Session> session;
+
+    /// \brief Handle to the session's provider once resolved.
+    private: std::optional<zenoh::SharedShmProvider> provider;
   };
-
-  /// \brief Parse and validate a size_t environment variable value.
-  /// Uses signed parsing (std::stoll) so that negative values are detected
-  /// rather than silently wrapping to huge unsigned values.
-  /// \param[in] _val The string value to parse.
-  /// \param[in] _envVarName Name of the env var (for error messages).
-  /// \param[in] _defaultValue Value returned when parsing fails.
-  /// \param[in] _minValue Minimum accepted value (inclusive).
-  /// \return The parsed value, or _defaultValue on any error.
-  inline std::size_t parseShmSizeEnvVar(
-      const std::string &_val,
-      const std::string &_envVarName,
-      std::size_t _defaultValue,
-      std::size_t _minValue)
-  {
-    int64_t numVal;
-    try
-    {
-      numVal = static_cast<int64_t>(std::stoll(_val));
-    }
-    catch (std::invalid_argument &)
-    {
-      std::cerr << "Unable to convert " << _envVarName << " value ["
-                << _val << "] to an integer number. Using ["
-                << _defaultValue << "] instead." << std::endl;
-      return _defaultValue;
-    }
-    catch (std::out_of_range &)
-    {
-      std::cerr << "Unable to convert " << _envVarName << " value ["
-                << _val << "] to an integer number. This number is "
-                << "out of range. Using [" << _defaultValue
-                << "] instead." << std::endl;
-      return _defaultValue;
-    }
-
-    if (numVal < 0)
-    {
-      std::cerr << "Unable to convert " << _envVarName << " value ["
-                << _val << "] to a non-negative number. This number is "
-                << "negative. Using [" << _defaultValue
-                << "] instead." << std::endl;
-      return _defaultValue;
-    }
-
-    auto result = static_cast<std::size_t>(numVal);
-    if (result < _minValue)
-    {
-      std::cerr << _envVarName << " value [" << _val
-                << "] is below the minimum (" << _minValue
-                << "). Using [" << _defaultValue
-                << "] instead." << std::endl;
-      return _defaultValue;
-    }
-
-    return result;
-  }
-
-  /// \brief Emit warnings for suspicious SHM configuration combinations.
-  /// \param[in] _config The configuration to check.
-  inline void warnShmConfig(const ShmEnvConfig &_config)
-  {
-    if (_config.poolSize > kShmPoolSizeWarningThreshold)
-    {
-      std::cerr << "gz-transport: GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE is "
-                << _config.poolSize << " bytes (>"
-                << kShmPoolSizeWarningThreshold
-                << "). The entire pool is backed by /dev/shm."
-                << std::endl;
-    }
-
-    if (_config.poolSize < _config.threshold)
-    {
-      std::cerr << "gz-transport: GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE ("
-                << _config.poolSize
-                << ") is smaller than GZ_TRANSPORT_ZENOH_SHM_THRESHOLD ("
-                << _config.threshold
-                << "). SHM will effectively never be used."
-                << std::endl;
-    }
-  }
-
-  /// \brief Get the cached SHM configuration.
-  /// Environment variables are read once on first call.
-  /// \return Const reference to the process-wide SHM configuration.
-  inline const ShmEnvConfig &shmEnvConfig()
-  {
-    static ShmEnvConfig config = []()
-    {
-      ShmEnvConfig c;
-      std::string val;
-
-      if (env("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE", val))
-      {
-        c.poolSize = parseShmSizeEnvVar(
-            val, "GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE",
-            kDefaultShmPoolSize, 1);
-        c.explicitlyConfigured = true;
-      }
-
-      if (env("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD", val))
-      {
-        c.threshold = parseShmSizeEnvVar(
-            val, "GZ_TRANSPORT_ZENOH_SHM_THRESHOLD",
-            kDefaultShmThreshold, 0);
-        c.explicitlyConfigured = true;
-      }
-
-      warnShmConfig(c);
-      return c;
-    }();
-    return config;
-  }
-
-  /// \brief Set the process-wide SHM enabled flag.
-  /// Called during NodeSharedPrivate initialization after resolving the
-  /// Zenoh config. Must run before the first SHM allocation: the shared
-  /// pool is created lazily on first use and caches the flag's value.
-  /// \param[in] _enabled Whether SHM should be enabled.
-  inline void setShmEnabled(bool _enabled)
-  {
-    shmEnabled().store(_enabled, std::memory_order_relaxed);
-  }
-
-  /// \brief Create a PosixShmProvider using the cached SHM configuration.
-  /// When creation fails (e.g. containers whose /dev/shm cannot hold the
-  /// pool) the caller transparently falls back to heap-based transfer. A
-  /// warning is emitted only once per process, and only when the user
-  /// explicitly configured SHM via the GZ_TRANSPORT_ZENOH_SHM_* variables,
-  /// so default setups degrade silently without polluting stderr (which
-  /// tools like `gz topic` expect to stay clean).
-  /// \return A new provider, or nullptr if SHM is disabled or creation fails.
-  inline std::unique_ptr<zenoh::PosixShmProvider> createShmProvider()
-  {
-    const auto &config = shmEnvConfig();
-    if (!shmEnabled().load(std::memory_order_relaxed))
-      return nullptr;
-
-    try
-    {
-      // AllocAlignment({0}) = 2^0 = 1-byte alignment.
-      // Serialized protobuf data has no alignment requirements.
-      return std::make_unique<zenoh::PosixShmProvider>(
-        zenoh::MemoryLayout(config.poolSize, zenoh::AllocAlignment({0})));
-    }
-    catch (const std::exception &e)
-    {
-      if (config.explicitlyConfigured)
-      {
-        static std::once_flag warnFlag;
-        std::call_once(warnFlag, [&e]()
-        {
-          std::cerr << "gz-transport: SHM provider creation failed ("
-                    << e.what() << "), falling back to heap.\n";
-        });
-      }
-      return nullptr;
-    }
-  }
 
   /// \brief Attempt to allocate a SHM buffer for a message.
   /// Uses non-blocking allocation with GC and defragmentation.
   /// \param[in] _provider The SHM provider to allocate from.
   /// \param[in] _size Number of bytes to allocate.
-  /// \return The SHM buffer, or std::nullopt if SHM is disabled, the message
-  /// is below threshold, or allocation fails.
+  /// \return The SHM buffer, or std::nullopt if _provider is null or the
+  /// allocation fails (e.g. pool exhausted).
   inline std::optional<zenoh::ZShmMut> allocShmBuf(
-      zenoh::PosixShmProvider *_provider, std::size_t _size)
+      const zenoh::ShmProvider *_provider, std::size_t _size)
   {
-    if (!_provider || _size < shmEnvConfig().threshold)
+    if (!_provider)
       return std::nullopt;
 
-    // Non-blocking alloc with garbage collection and defragmentation.
-    // AllocAlignment({0}) = 2^0 = 1-byte alignment for serialized data.
-    auto result = _provider->alloc_gc_defrag(
-      _size, zenoh::AllocAlignment({0}));
-
+    // Serialized protobuf data has no alignment requirements.
+    auto result = _provider->alloc_gc_defrag(_size);
     if (!std::holds_alternative<zenoh::ZShmMut>(result))
       return std::nullopt;
 
     return std::get<zenoh::ZShmMut>(std::move(result));
-  }
-
-  /// \brief Get the single SHM provider shared by the whole process:
-  /// all publishers plus all service request and reply handlers draw
-  /// from this one pool, so memory use stays bounded regardless of how
-  /// many publishers or service handlers exist. Created lazily on first
-  /// use (a process that never sends a message at or above the SHM
-  /// threshold never creates the pool). Thread-safe: creation uses
-  /// std::call_once, and concurrent allocations are synchronized inside
-  /// zenoh (rmw_zenoh shares one provider per context the same way).
-  /// \return The shared provider, or nullptr if SHM is disabled or
-  /// unavailable.
-  inline zenoh::PosixShmProvider* processShmProvider()
-  {
-    static std::unique_ptr<zenoh::PosixShmProvider> provider;
-    static std::once_flag initFlag;
-    std::call_once(initFlag, []()
-    {
-      provider = createShmProvider();
-    });
-    return provider.get();
   }
 
   /// \brief A writable SHM buffer that can be serialized into directly and
@@ -375,39 +291,37 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     private: std::optional<zenoh::ZShmMut> buf;
   };
 
-  /// \brief Attempt to allocate a writable SHM chunk from the shared
-  /// process pool.
-  /// The threshold is checked before touching the pool so that processes
-  /// that never reach it never create the pool.
+  /// \brief Attempt to allocate a writable SHM chunk from the session's
+  /// pool. The threshold is checked before touching the provider.
   /// \param[in] _size Number of bytes to allocate.
-  /// \return The chunk, empty if SHM is disabled, the message is below
-  /// threshold, or allocation fails.
+  /// \return The chunk, empty if SHM is disabled or not ready, the message
+  /// is below threshold, or allocation fails.
   inline ShmChunk allocShmChunk(std::size_t _size)
   {
-    if (_size < shmEnvConfig().threshold)
+    auto &shm = ZenohShm::Instance();
+    if (_size < shm.Threshold())
       return ShmChunk();
 
-    if (auto shmBuf = allocShmBuf(processShmProvider(), _size))
+    if (auto shmBuf = allocShmBuf(shm.Provider(), _size))
       return ShmChunk(std::move(*shmBuf));
     return ShmChunk();
   }
 
-  /// \brief Attempt to copy data into a fresh SHM buffer from the shared
-  /// process pool, wrapped in zenoh::Bytes ready for zero-copy
-  /// publication.
-  /// The threshold is checked before touching the pool so that processes
-  /// that never reach it never create the pool.
+  /// \brief Attempt to copy data into a fresh SHM buffer from the session's
+  /// pool, wrapped in zenoh::Bytes ready for zero-copy publication.
+  /// The threshold is checked before touching the provider.
   /// \param[in] _data Pointer to the data to copy.
   /// \param[in] _size Number of bytes in _data.
-  /// \return The bytes, or std::nullopt if SHM is disabled, the message is
-  /// below threshold, or allocation fails.
+  /// \return The bytes, or std::nullopt if SHM is disabled or not ready,
+  /// the message is below threshold, or allocation fails.
   inline std::optional<zenoh::Bytes> makeShmBytes(
       const void *_data, std::size_t _size)
   {
-    if (_size < shmEnvConfig().threshold)
+    auto &shm = ZenohShm::Instance();
+    if (_size < shm.Threshold())
       return std::nullopt;
 
-    auto shmBuf = allocShmBuf(processShmProvider(), _size);
+    auto shmBuf = allocShmBuf(shm.Provider(), _size);
     if (!shmBuf)
       return std::nullopt;
 
@@ -415,7 +329,16 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     return zenoh::Bytes(std::move(*shmBuf));
   }
 
-#else  // No SHM support — no-op stand-ins with the same interface so call
+  /// \brief Attach the session to the process-wide SHM state.
+  /// \param[in] _session The Zenoh session.
+  /// \param[in] _threshold Minimum payload size, in bytes, that uses SHM.
+  inline void initZenohShm(std::shared_ptr<zenoh::Session> _session,
+                           std::size_t _threshold)
+  {
+    ZenohShm::Instance().Init(std::move(_session), _threshold);
+  }
+
+#else  // No SHM support: no-op stand-ins with the same interface so call
        // sites compile without extra #ifdefs. Allocation always fails,
        // causing transparent fallback to heap-based transfer. The branches
        // that would consume a SHM buffer still type-check (ShmChunk::Data()
@@ -423,7 +346,8 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
        // are never taken at runtime.
 
   /// \brief No-op: SHM not available in this build.
-  inline void setShmEnabled([[maybe_unused]] bool _enabled)
+  inline void initZenohShm([[maybe_unused]] std::shared_ptr<zenoh::Session>,
+                           [[maybe_unused]] std::size_t)
   {
   }
 

@@ -17,10 +17,13 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <cstring>
+#include <memory>
 #include <string>
+#include <thread>
 
 #include <gz/msgs/int32.pb.h>
-#include <gz/utils/Environment.hh>
 
 #include "gz/transport/config.hh"
 #include "gz/transport/SubscriptionHandler.hh"
@@ -118,8 +121,8 @@ TEST(ShmHelpersTest, CreateMsgFromBufferGenericUnknownType)
 #ifdef HAVE_ZENOH
 
 //////////////////////////////////////////////////
-// withPayloadView: sees the payload of heap-backed bytes.
-// Requires Zenoh but not SHM.
+// withPayloadView / payloadToString: see the payload of heap-backed
+// bytes. Requires Zenoh but not SHM.
 TEST(ShmHelpersTest, WithPayloadViewHeap)
 {
   const std::string data = "hello payload";
@@ -131,349 +134,190 @@ TEST(ShmHelpersTest, WithPayloadViewHeap)
       return std::string(_data, _size);
     });
   EXPECT_EQ(data, copied);
+  EXPECT_EQ(data, payloadToString(bytes));
 }
 
 // The remaining tests exercise the real SHM helpers, which need both the
 // SHM feature and the unstable API (same guard as ShmHelpers.hh).
 #if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
 
+/// \brief Threshold used by the SHM tests.
+static constexpr std::size_t kTestThreshold = 4096;
+
+/// \brief Pool size used by the SHM tests.
+static constexpr std::size_t kTestPoolSize = 4u * 1024u * 1024u;
+
 //////////////////////////////////////////////////
-// shmEnvConfig: defaults
-TEST(ShmHelpersTest, ShmEnvConfigDefaults)
+/// \brief Open a Zenoh session with the SHM subsystem initialized eagerly
+/// so the provider is available right after open.
+/// \param[in] _shmEnabled Whether to enable shared memory at all.
+/// \return The session, or nullptr if it could not be opened (e.g. the
+/// host cannot provide shared memory).
+static std::shared_ptr<zenoh::Session> OpenTestSession(bool _shmEnabled)
 {
-  // Note: shmEnvConfig() caches on first call, so these tests verify
-  // the compile-time defaults (main() clears the environment variables
-  // before any test runs). Environment variable overrides are tested in
-  // a separate process by the Node_TEST suite.
-  const auto &config = shmEnvConfig();
+  zenoh::Config config = zenoh::Config::create_default();
+  config.insert_json5("transport/shared_memory/enabled",
+      _shmEnabled ? "true" : "false");
+  config.insert_json5("transport/shared_memory/mode", "\"init\"");
+  config.insert_json5(kZenohShmPoolSizeKey, std::to_string(kTestPoolSize));
+  config.insert_json5(kZenohShmThresholdKey,
+      std::to_string(kTestThreshold));
 
-  // Default: enabled (true unless Zenoh config disables it).
-  EXPECT_TRUE(shmEnabled().load());
-
-  // Default pool size: 48 MB.
-  EXPECT_EQ(48u * 1024u * 1024u, config.poolSize);
-
-  // Default threshold: 128 KB.
-  EXPECT_EQ(128u * 1024u, config.threshold);
+  try
+  {
+    return std::make_shared<zenoh::Session>(
+      zenoh::Session::open(std::move(config)));
+  }
+  catch (const zenoh::ZException &)
+  {
+    return nullptr;
+  }
 }
 
 //////////////////////////////////////////////////
-// parseShmSizeEnvVar: valid positive value
-TEST(ShmHelpersTest, ParseShmSizeEnvVarValid)
+/// \brief Wait until the session's provider is ready.
+/// \return The provider, or nullptr after the timeout.
+static const zenoh::ShmProvider *WaitForProvider()
 {
-  auto result = parseShmSizeEnvVar("1048576", "TEST_VAR", 999, 0);
-  EXPECT_EQ(1048576u, result);
+  const auto deadline =
+    std::chrono::steady_clock::now() + std::chrono::seconds(10);
+  while (std::chrono::steady_clock::now() < deadline)
+  {
+    if (auto *provider = ZenohShm::Instance().Provider())
+      return provider;
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  }
+  return nullptr;
 }
 
 //////////////////////////////////////////////////
-// parseShmSizeEnvVar: zero is accepted when minValue is 0
-TEST(ShmHelpersTest, ParseShmSizeEnvVarZeroAllowed)
+/// \brief Fixture attaching a SHM-enabled session to the process-wide
+/// state and detaching it afterwards.
+class ZenohShmTest : public ::testing::Test
 {
-  auto result = parseShmSizeEnvVar("0", "TEST_VAR", 999, 0);
-  EXPECT_EQ(0u, result);
+  protected: void SetUp() override
+  {
+    this->session = OpenTestSession(true);
+    if (!this->session)
+      GTEST_SKIP() << "Shared memory unavailable in this environment";
+
+    initZenohShm(this->session, kTestThreshold);
+    this->provider = WaitForProvider();
+    if (!this->provider)
+      GTEST_SKIP() << "Session SHM provider never became ready";
+  }
+
+  protected: void TearDown() override
+  {
+    // Drop the provider handle before the session goes away.
+    initZenohShm(nullptr, kDefaultZenohShmThreshold);
+    this->session.reset();
+  }
+
+  protected: std::shared_ptr<zenoh::Session> session;
+  protected: const zenoh::ShmProvider *provider{nullptr};
+};
+
+//////////////////////////////////////////////////
+// Without a session everything falls back to the heap path.
+TEST(ShmHelpersTest, NoSession)
+{
+  initZenohShm(nullptr, 100);
+  auto &shm = ZenohShm::Instance();
+  EXPECT_EQ(100u, shm.Threshold());
+  EXPECT_EQ(nullptr, shm.Provider());
+  EXPECT_FALSE(static_cast<bool>(allocShmChunk(1000)));
+  EXPECT_FALSE(makeShmBytes("x", 1000).has_value());
+  EXPECT_FALSE(allocShmBuf(nullptr, 1000).has_value());
 }
 
 //////////////////////////////////////////////////
-// parseShmSizeEnvVar: zero is rejected when minValue is 1
-TEST(ShmHelpersTest, ParseShmSizeEnvVarZeroRejected)
+// SHM disabled in the session configuration: the provider stays null.
+TEST(ShmHelpersTest, DisabledInConfig)
 {
-  testing::internal::CaptureStderr();
-  auto result = parseShmSizeEnvVar("0", "TEST_VAR", 999, 1);
-  std::string err = testing::internal::GetCapturedStderr();
-  EXPECT_EQ(999u, result);
-  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
-  EXPECT_NE(std::string::npos, err.find("below the minimum"));
+  auto session = OpenTestSession(false);
+  if (!session)
+    GTEST_SKIP() << "Unable to open a Zenoh session";
+
+  initZenohShm(session, kTestThreshold);
+  auto &shm = ZenohShm::Instance();
+  EXPECT_EQ(nullptr, shm.Provider());
+  // A second call must not flip the answer.
+  EXPECT_EQ(nullptr, shm.Provider());
+  EXPECT_FALSE(static_cast<bool>(allocShmChunk(kTestThreshold)));
+
+  initZenohShm(nullptr, kDefaultZenohShmThreshold);
 }
 
 //////////////////////////////////////////////////
-// parseShmSizeEnvVar: negative value is rejected
-TEST(ShmHelpersTest, ParseShmSizeEnvVarNegative)
+// The provider is the session's and stable across calls.
+TEST_F(ZenohShmTest, ProviderIsStable)
 {
-  testing::internal::CaptureStderr();
-  auto result = parseShmSizeEnvVar("-1", "TEST_VAR", 999, 0);
-  std::string err = testing::internal::GetCapturedStderr();
-  EXPECT_EQ(999u, result);
-  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
-  EXPECT_NE(std::string::npos, err.find("negative"));
+  EXPECT_EQ(kTestThreshold, ZenohShm::Instance().Threshold());
+  EXPECT_EQ(this->provider, ZenohShm::Instance().Provider());
 }
 
 //////////////////////////////////////////////////
-// parseShmSizeEnvVar: non-numeric string is rejected
-TEST(ShmHelpersTest, ParseShmSizeEnvVarNonNumeric)
+// allocShmBuf: pool exhaustion fails instead of blocking.
+TEST_F(ZenohShmTest, AllocShmBufPoolExhausted)
 {
-  testing::internal::CaptureStderr();
-  auto result = parseShmSizeEnvVar("abc", "TEST_VAR", 999, 0);
-  std::string err = testing::internal::GetCapturedStderr();
-  EXPECT_EQ(999u, result);
-  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
-}
-
-//////////////////////////////////////////////////
-// parseShmSizeEnvVar: empty string is rejected
-TEST(ShmHelpersTest, ParseShmSizeEnvVarEmpty)
-{
-  testing::internal::CaptureStderr();
-  auto result = parseShmSizeEnvVar("", "TEST_VAR", 999, 0);
-  std::string err = testing::internal::GetCapturedStderr();
-  EXPECT_EQ(999u, result);
-  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
-}
-
-//////////////////////////////////////////////////
-// parseShmSizeEnvVar: overflow is rejected
-TEST(ShmHelpersTest, ParseShmSizeEnvVarOverflow)
-{
-  testing::internal::CaptureStderr();
-  auto result = parseShmSizeEnvVar(
-      "99999999999999999999", "TEST_VAR", 999, 0);
-  std::string err = testing::internal::GetCapturedStderr();
-  EXPECT_EQ(999u, result);
-  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
-  EXPECT_NE(std::string::npos, err.find("out of range"));
-}
-
-//////////////////////////////////////////////////
-// parseShmSizeEnvVar: value below custom minimum is rejected
-TEST(ShmHelpersTest, ParseShmSizeEnvVarBelowMinimum)
-{
-  testing::internal::CaptureStderr();
-  auto result = parseShmSizeEnvVar("5", "TEST_VAR", 999, 10);
-  std::string err = testing::internal::GetCapturedStderr();
-  EXPECT_EQ(999u, result);
-  EXPECT_NE(std::string::npos, err.find("TEST_VAR"));
-  EXPECT_NE(std::string::npos, err.find("below the minimum"));
-}
-
-//////////////////////////////////////////////////
-// warnShmConfig: warns when pool size exceeds 1 GB
-TEST(ShmHelpersTest, WarnShmConfigLargePool)
-{
-  ShmEnvConfig config;
-  config.poolSize = 2UL * 1024 * 1024 * 1024;  // 2 GB
-  config.threshold = kDefaultShmThreshold;
-
-  testing::internal::CaptureStderr();
-  warnShmConfig(config);
-  std::string err = testing::internal::GetCapturedStderr();
-  EXPECT_NE(std::string::npos, err.find("SHM_POOL_SIZE"));
-}
-
-//////////////////////////////////////////////////
-// warnShmConfig: warns when pool is smaller than threshold
-TEST(ShmHelpersTest, WarnShmConfigPoolLessThanThreshold)
-{
-  ShmEnvConfig config;
-  config.poolSize = 100;
-  config.threshold = 1000;
-
-  testing::internal::CaptureStderr();
-  warnShmConfig(config);
-  std::string err = testing::internal::GetCapturedStderr();
-  EXPECT_NE(std::string::npos, err.find("never be used"));
-}
-
-//////////////////////////////////////////////////
-// warnShmConfig: no warning for normal defaults
-TEST(ShmHelpersTest, WarnShmConfigNormal)
-{
-  ShmEnvConfig config;  // uses defaults
-
-  testing::internal::CaptureStderr();
-  warnShmConfig(config);
-  std::string err = testing::internal::GetCapturedStderr();
-  EXPECT_TRUE(err.empty());
-}
-
-//////////////////////////////////////////////////
-// createShmProvider: returns a valid provider when enabled
-TEST(ShmHelpersTest, CreateShmProvider)
-{
-  auto provider = createShmProvider();
-  if (!provider)
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-}
-
-//////////////////////////////////////////////////
-// createShmProvider: returns nullptr when SHM is disabled
-TEST(ShmHelpersTest, CreateShmProviderDisabled)
-{
-  // Temporarily disable SHM.
-  setShmEnabled(false);
-  auto provider = createShmProvider();
-  EXPECT_EQ(nullptr, provider);
-
-  // Restore.
-  setShmEnabled(true);
-}
-
-//////////////////////////////////////////////////
-// allocShmBuf: returns nullopt for null provider
-TEST(ShmHelpersTest, AllocShmBufNullProvider)
-{
-  auto result = allocShmBuf(nullptr, 1024);
+  auto result = allocShmBuf(this->provider, kTestPoolSize + 1);
   EXPECT_FALSE(result.has_value());
 }
 
 //////////////////////////////////////////////////
-// allocShmBuf: returns nullopt for size below threshold
-TEST(ShmHelpersTest, AllocShmBufBelowThreshold)
+// allocShmBuf: buffers are distinct and writable.
+TEST_F(ZenohShmTest, AllocShmBufMultiple)
 {
-  auto provider = createShmProvider();
-  if (!provider)
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  // Threshold is 128 KB by default, so 1 byte should be below it.
-  auto result = allocShmBuf(provider.get(), 1);
-  EXPECT_FALSE(result.has_value());
-}
-
-//////////////////////////////////////////////////
-// allocShmBuf: returns nullopt when pool is exhausted
-TEST(ShmHelpersTest, AllocShmBufPoolExhausted)
-{
-  auto provider = createShmProvider();
-  if (!provider)
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  // Request more than the entire pool (48 MB + 1).
-  const std::size_t tooLarge = shmEnvConfig().poolSize + 1;
-  auto result = allocShmBuf(provider.get(), tooLarge);
-  EXPECT_FALSE(result.has_value());
-}
-
-//////////////////////////////////////////////////
-// allocShmBuf: returns nullopt when SHM is disabled
-TEST(ShmHelpersTest, AllocShmBufDisabled)
-{
-  auto provider = createShmProvider();
-  if (!provider)
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  // Temporarily disable SHM.
-  setShmEnabled(false);
-  auto disabledProvider = createShmProvider();
-  EXPECT_EQ(nullptr, disabledProvider);
-
-  // allocShmBuf with a null provider should return nullopt.
-  auto result = allocShmBuf(disabledProvider.get(),
-                             shmEnvConfig().threshold);
-  EXPECT_FALSE(result.has_value());
-
-  // Restore.
-  setShmEnabled(true);
-}
-
-//////////////////////////////////////////////////
-// allocShmBuf: succeeds for size at or above threshold
-TEST(ShmHelpersTest, AllocShmBufAboveThreshold)
-{
-  auto provider = createShmProvider();
-  if (!provider)
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  const std::size_t threshold = shmEnvConfig().threshold;
-  auto result = allocShmBuf(provider.get(), threshold);
-  ASSERT_TRUE(result.has_value());
-  EXPECT_GE(result->len(), threshold);
-}
-
-//////////////////////////////////////////////////
-// allocShmBuf: data written to buffer is readable
-TEST(ShmHelpersTest, AllocShmBufWriteRead)
-{
-  auto provider = createShmProvider();
-  if (!provider)
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  const std::size_t threshold = shmEnvConfig().threshold;
-  auto result = allocShmBuf(provider.get(), threshold);
-  ASSERT_TRUE(result.has_value());
-
-  // Write a pattern and verify it reads back.
-  const char pattern = 0x42;
-  memset(result->data(), pattern, threshold);
-  EXPECT_EQ(pattern, static_cast<char>(result->data()[0]));
-  EXPECT_EQ(pattern, static_cast<char>(result->data()[threshold - 1]));
-}
-
-//////////////////////////////////////////////////
-// allocShmBuf: multiple allocations from the same provider
-TEST(ShmHelpersTest, AllocShmBufMultiple)
-{
-  auto provider = createShmProvider();
-  if (!provider)
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  const std::size_t threshold = shmEnvConfig().threshold;
-  auto buf1 = allocShmBuf(provider.get(), threshold);
-  auto buf2 = allocShmBuf(provider.get(), threshold);
+  auto buf1 = allocShmBuf(this->provider, kTestThreshold);
+  auto buf2 = allocShmBuf(this->provider, kTestThreshold);
   ASSERT_TRUE(buf1.has_value());
   ASSERT_TRUE(buf2.has_value());
-
-  // Buffers should be at different addresses.
+  EXPECT_GE(buf1->len(), kTestThreshold);
   EXPECT_NE(buf1->data(), buf2->data());
+
+  memset(buf1->data(), 0x42, kTestThreshold);
+  EXPECT_EQ(0x42, buf1->data()[0]);
+  EXPECT_EQ(0x42, buf1->data()[kTestThreshold - 1]);
 }
 
 //////////////////////////////////////////////////
-// processShmProvider: returns same pointer on repeated calls.
-// This is the single pool shared by all publishers and service handlers.
-TEST(ShmHelpersTest, ProcessShmProviderSingleton)
+// allocShmChunk: empty below threshold, usable at or above it.
+TEST_F(ZenohShmTest, AllocShmChunk)
 {
-  auto *p1 = processShmProvider();
-  if (!p1)
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  auto *p2 = processShmProvider();
-  EXPECT_EQ(p2, p1);
-}
-
-//////////////////////////////////////////////////
-// allocShmChunk: empty below threshold, usable above it
-TEST(ShmHelpersTest, AllocShmChunk)
-{
-  if (!processShmProvider())
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  auto emptyChunk = allocShmChunk(1);
+  auto emptyChunk = allocShmChunk(kTestThreshold - 1);
   EXPECT_FALSE(static_cast<bool>(emptyChunk));
   EXPECT_EQ(nullptr, emptyChunk.Data());
 
-  const std::size_t threshold = shmEnvConfig().threshold;
-  auto chunk = allocShmChunk(threshold);
+  auto chunk = allocShmChunk(kTestThreshold);
   ASSERT_TRUE(static_cast<bool>(chunk));
   ASSERT_NE(nullptr, chunk.Data());
 
   // Write through Data(), then convert to Bytes and read it back.
-  memset(chunk.Data(), 0x5A, threshold);
+  memset(chunk.Data(), 0x5A, kTestThreshold);
   zenoh::Bytes bytes = chunk.TakeBytes();
   EXPECT_FALSE(static_cast<bool>(chunk));
-  EXPECT_EQ(threshold, bytes.size());
-  EXPECT_EQ(std::string(threshold, 0x5A), bytes.as_string());
+  EXPECT_EQ(kTestThreshold, bytes.size());
+  EXPECT_EQ(std::string(kTestThreshold, 0x5A), bytes.as_string());
 }
 
 //////////////////////////////////////////////////
-// makeShmBytes: nullopt below threshold, round-trips data above it
-TEST(ShmHelpersTest, MakeShmBytes)
+// makeShmBytes: nullopt below threshold, round-trips data above it.
+TEST_F(ZenohShmTest, MakeShmBytes)
 {
-  if (!processShmProvider())
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
   EXPECT_FALSE(makeShmBytes("x", 1).has_value());
 
-  const std::string data(shmEnvConfig().threshold, 'B');
+  const std::string data(kTestThreshold, 'B');
   auto bytes = makeShmBytes(data.data(), data.size());
   ASSERT_TRUE(bytes.has_value());
   EXPECT_EQ(data, bytes->as_string());
 }
 
 //////////////////////////////////////////////////
-// withPayloadView: sees the payload of SHM-backed bytes
-TEST(ShmHelpersTest, WithPayloadViewShm)
+// withPayloadView / payloadToString: see the payload of SHM-backed bytes.
+TEST_F(ZenohShmTest, WithPayloadViewShm)
 {
-  if (!processShmProvider())
-    GTEST_SKIP() << "POSIX SHM unavailable in this environment";
-
-  const std::string data(shmEnvConfig().threshold, 'D');
+  const std::string data(kTestThreshold, 'D');
   auto bytes = makeShmBytes(data.data(), data.size());
   ASSERT_TRUE(bytes.has_value());
 
@@ -483,6 +327,7 @@ TEST(ShmHelpersTest, WithPayloadViewShm)
       return std::string(_data, _size);
     });
   EXPECT_EQ(data, copied);
+  EXPECT_EQ(data, payloadToString(*bytes));
 }
 
 #endif  // Z_FEATURE_SHARED_MEMORY && Z_FEATURE_UNSTABLE_API
@@ -492,12 +337,5 @@ TEST(ShmHelpersTest, WithPayloadViewShm)
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-
-  // Make results independent of ambient SHM tuning: shmEnvConfig()
-  // caches the environment on first read, so clear these before any
-  // test can trigger that read.
-  gz::utils::unsetenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
-  gz::utils::unsetenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
-
   return RUN_ALL_TESTS();
 }

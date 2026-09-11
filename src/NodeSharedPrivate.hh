@@ -119,26 +119,48 @@ namespace gz::transport
             std::cout << "Zenoh default config loaded" << std::endl;
         }
 
+        // gz-transport's built-in defaults differ from Zenoh's only in
+        // the SHM pool size (see kDefaultZenohShmPoolSize). A user
+        // supplied ZENOH_CONFIG file is left untouched.
+        if (configSource == ZenohConfigSource::kDefault)
+        {
+          zenoh::ZResult result;
+          config.insert_json5(kZenohShmPoolSizeKey,
+              std::to_string(kDefaultZenohShmPoolSize), &result);
+          if (result != Z_OK)
+          {
+            std::cerr << "Unable to set [" << kZenohShmPoolSizeKey
+                      << "] in the default Zenoh config" << std::endl;
+          }
+        }
+
         // Apply key=value overrides from GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
         const char *overrideEnv =
             std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
         if (overrideEnv)
           ApplyZenohConfigOverrides(config, overrideEnv, this->verbose);
 
-        // Read the resolved SHM enabled flag from the Zenoh config
-        // (after ZENOH_CONFIG file + overrides). This is the single
-        // source of truth — users control SHM via Zenoh's native
-        // transport/shared_memory/enabled setting.
-        try
+        // The SHM threshold is Zenoh's own transport optimization
+        // threshold, read after the file and the overrides so there is a
+        // single knob for both the implicit and the explicit SHM paths.
+        std::size_t shmThreshold = kDefaultZenohShmThreshold;
         {
-          auto shmVal = config.get(
-            "transport/shared_memory/enabled");
-          setShmEnabled(shmVal != "false" && shmVal != "0");
-        }
-        catch (const zenoh::ZException &)
-        {
-          // Key missing from a user-supplied ZENOH_CONFIG file:
-          // keep the default (enabled).
+          zenoh::ZResult result;
+          const std::string value = config.get(kZenohShmThresholdKey,
+                                               &result);
+          if (result == Z_OK)
+          {
+            try
+            {
+              shmThreshold = static_cast<std::size_t>(std::stoull(value));
+            }
+            catch (const std::exception &)
+            {
+              std::cerr << "Invalid value [" << value << "] for ["
+                        << kZenohShmThresholdKey << "], using "
+                        << shmThreshold << std::endl;
+            }
+          }
         }
 
         try
@@ -156,6 +178,9 @@ namespace gz::transport
           throw gz::transport::Exception(
             std::string("Failed to open Zenoh session: ") + e.what());
         }
+
+        // Let the explicit SHM path borrow the session's provider.
+        initZenohShm(this->session, shmThreshold);
       }
 #endif
     }

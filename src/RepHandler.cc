@@ -121,13 +121,9 @@ namespace gz::transport
       std::string input;
       if (_query.get_payload())
       {
-        // SHM-optimized receive: read through a direct pointer into the
-        // SHM buffer when available, avoiding a fragmented copy in Zenoh.
-        input = withPayloadView(_query.get_payload()->get(),
-          [](const char *_data, std::size_t _size)
-          {
-            return std::string(_data, _size);
-          });
+        // Reads through a direct pointer into the (SHM) buffer when the
+        // payload is contiguous.
+        input = payloadToString(_query.get_payload()->get());
       }
 
       std::string output;
