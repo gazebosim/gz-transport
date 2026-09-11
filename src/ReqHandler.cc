@@ -24,6 +24,8 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
+#include "gz/transport/NodeShared.hh"
+#include "NodeSharedPrivate.hh"
 #include "ShmHelpers.hh"
 #endif
 
@@ -159,7 +161,9 @@ namespace gz::transport
     {
       // Use SHM for large request payloads to avoid a serialization copy,
       // using the shared process pool.
-      if (auto shmBytes = makeShmBytes(payload.data(), payload.size()))
+      if (auto shmBytes = makeShmBytes(
+            NodeShared::Instance()->dataPtr->zenohShm,
+            payload.data(), payload.size()))
         getOpts.payload = std::move(*shmBytes);
       else
         getOpts.payload = zenoh::Bytes(payload);

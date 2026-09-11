@@ -115,7 +115,8 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 // Zenoh build).
 #if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
 
-  /// \brief Process-wide access to the SHM provider of the Zenoh session.
+  /// \brief Access to the SHM provider of the Zenoh session. Owned by
+  /// NodeSharedPrivate next to the session it belongs to.
   ///
   /// The session's runtime owns one SHM pool, sized by kZenohShmPoolSizeKey,
   /// that Zenoh already uses to move payloads above kZenohShmThresholdKey
@@ -132,14 +133,6 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// caller falls back to the heap path.
   class ZenohShm
   {
-    /// \brief Get the process-wide instance.
-    /// \return The instance.
-    public: static ZenohShm &Instance()
-    {
-      static ZenohShm instance;
-      return instance;
-    }
-
     /// \brief Attach the session whose provider is used. Called by
     /// NodeSharedPrivate right after opening the session.
     /// \param[in] _session The Zenoh session. Kept alive here so the
@@ -296,16 +289,16 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 
   /// \brief Attempt to allocate a writable SHM chunk from the session's
   /// pool. The threshold is checked before touching the provider.
+  /// \param[in] _shm The SHM state of the session.
   /// \param[in] _size Number of bytes to allocate.
   /// \return The chunk, empty if SHM is disabled or not ready, the message
   /// is below threshold, or allocation fails.
-  inline ShmChunk allocShmChunk(std::size_t _size)
+  inline ShmChunk allocShmChunk(ZenohShm &_shm, std::size_t _size)
   {
-    auto &shm = ZenohShm::Instance();
-    if (_size < shm.Threshold())
+    if (_size < _shm.Threshold())
       return ShmChunk();
 
-    if (auto shmBuf = allocShmBuf(shm.Provider(), _size))
+    if (auto shmBuf = allocShmBuf(_shm.Provider(), _size))
       return ShmChunk(std::move(*shmBuf));
     return ShmChunk();
   }
@@ -313,32 +306,23 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// \brief Attempt to copy data into a fresh SHM buffer from the session's
   /// pool, wrapped in zenoh::Bytes ready for zero-copy publication.
   /// The threshold is checked before touching the provider.
+  /// \param[in] _shm The SHM state of the session.
   /// \param[in] _data Pointer to the data to copy.
   /// \param[in] _size Number of bytes in _data.
   /// \return The bytes, or std::nullopt if SHM is disabled or not ready,
   /// the message is below threshold, or allocation fails.
   inline std::optional<zenoh::Bytes> makeShmBytes(
-      const void *_data, std::size_t _size)
+      ZenohShm &_shm, const void *_data, std::size_t _size)
   {
-    auto &shm = ZenohShm::Instance();
-    if (_size < shm.Threshold())
+    if (_size < _shm.Threshold())
       return std::nullopt;
 
-    auto shmBuf = allocShmBuf(shm.Provider(), _size);
+    auto shmBuf = allocShmBuf(_shm.Provider(), _size);
     if (!shmBuf)
       return std::nullopt;
 
     memcpy(shmBuf->data(), _data, _size);
     return zenoh::Bytes(std::move(*shmBuf));
-  }
-
-  /// \brief Attach the session to the process-wide SHM state.
-  /// \param[in] _session The Zenoh session.
-  /// \param[in] _threshold Minimum payload size, in bytes, that uses SHM.
-  inline void initZenohShm(std::shared_ptr<zenoh::Session> _session,
-                           std::size_t _threshold)
-  {
-    ZenohShm::Instance().Init(std::move(_session), _threshold);
   }
 
 #else  // No SHM support: no-op stand-ins with the same interface so call
@@ -348,11 +332,15 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
        // returns nullptr and TakeBytes() returns empty zenoh::Bytes) but
        // are never taken at runtime.
 
-  /// \brief No-op: SHM not available in this build.
-  inline void initZenohShm([[maybe_unused]] std::shared_ptr<zenoh::Session>,
-                           [[maybe_unused]] std::size_t)
+  /// \brief Stand-in SHM state: nothing to attach to.
+  class ZenohShm
   {
-  }
+    /// \brief No-op: SHM not available in this build.
+    public: void Init([[maybe_unused]] std::shared_ptr<zenoh::Session>,
+                      [[maybe_unused]] std::size_t)
+    {
+    }
+  };
 
   /// \brief Stand-in chunk: always empty.
   class ShmChunk
@@ -379,7 +367,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 
   /// \brief No-op: SHM not available in this build.
   /// \return Always returns an empty chunk.
-  inline ShmChunk allocShmChunk(std::size_t)
+  inline ShmChunk allocShmChunk(ZenohShm &, std::size_t)
   {
     return ShmChunk();
   }
@@ -387,7 +375,7 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   /// \brief No-op: SHM not available in this build.
   /// \return Always returns std::nullopt.
   inline std::optional<zenoh::Bytes> makeShmBytes(
-      const void *, std::size_t)
+      ZenohShm &, const void *, std::size_t)
   {
     return std::nullopt;
   }

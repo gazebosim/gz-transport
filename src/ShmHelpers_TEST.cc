@@ -176,14 +176,15 @@ static std::shared_ptr<zenoh::Session> OpenTestSession(bool _shmEnabled)
 
 //////////////////////////////////////////////////
 /// \brief Wait until the session's provider is ready.
+/// \param[in] _shm The SHM state attached to the session.
 /// \return The provider, or nullptr after the timeout.
-static const zenoh::ShmProvider *WaitForProvider()
+static const zenoh::ShmProvider *WaitForProvider(ZenohShm &_shm)
 {
   const auto deadline =
     std::chrono::steady_clock::now() + std::chrono::seconds(10);
   while (std::chrono::steady_clock::now() < deadline)
   {
-    if (auto *provider = ZenohShm::Instance().Provider())
+    if (auto *provider = _shm.Provider())
       return provider;
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
@@ -191,8 +192,8 @@ static const zenoh::ShmProvider *WaitForProvider()
 }
 
 //////////////////////////////////////////////////
-/// \brief Fixture attaching a SHM-enabled session to the process-wide
-/// state and detaching it afterwards.
+/// \brief Fixture owning a SHM-enabled session and the SHM state attached
+/// to it, like NodeSharedPrivate does.
 class ZenohShmTest : public ::testing::Test
 {
   protected: void SetUp() override
@@ -201,33 +202,32 @@ class ZenohShmTest : public ::testing::Test
     if (!this->session)
       GTEST_SKIP() << "Shared memory unavailable in this environment";
 
-    initZenohShm(this->session, kTestThreshold);
-    this->provider = WaitForProvider();
+    this->shm.Init(this->session, kTestThreshold);
+    this->provider = WaitForProvider(this->shm);
     if (!this->provider)
       GTEST_SKIP() << "Session SHM provider never became ready";
   }
 
-  protected: void TearDown() override
-  {
-    // Drop the provider handle before the session goes away.
-    initZenohShm(nullptr, kDefaultZenohShmThreshold);
-    this->session.reset();
-  }
-
   protected: std::shared_ptr<zenoh::Session> session;
+  protected: ZenohShm shm;
   protected: const zenoh::ShmProvider *provider{nullptr};
 };
 
 //////////////////////////////////////////////////
-// Without a session everything falls back to the heap path.
+// Without a session everything falls back to the heap path, whether the
+// state was never initialized or initialized with no session.
 TEST(ShmHelpersTest, NoSession)
 {
-  initZenohShm(nullptr, 100);
-  auto &shm = ZenohShm::Instance();
+  ZenohShm fresh;
+  EXPECT_EQ(nullptr, fresh.Provider());
+  EXPECT_FALSE(static_cast<bool>(allocShmChunk(fresh, 1000000)));
+
+  ZenohShm shm;
+  shm.Init(nullptr, 100);
   EXPECT_EQ(100u, shm.Threshold());
   EXPECT_EQ(nullptr, shm.Provider());
-  EXPECT_FALSE(static_cast<bool>(allocShmChunk(1000)));
-  EXPECT_FALSE(makeShmBytes("x", 1000).has_value());
+  EXPECT_FALSE(static_cast<bool>(allocShmChunk(shm, 1000)));
+  EXPECT_FALSE(makeShmBytes(shm, "x", 1000).has_value());
   EXPECT_FALSE(allocShmBuf(nullptr, 1000).has_value());
 }
 
@@ -239,22 +239,20 @@ TEST(ShmHelpersTest, DisabledInConfig)
   if (!session)
     GTEST_SKIP() << "Unable to open a Zenoh session";
 
-  initZenohShm(session, kTestThreshold);
-  auto &shm = ZenohShm::Instance();
+  ZenohShm shm;
+  shm.Init(session, kTestThreshold);
   EXPECT_EQ(nullptr, shm.Provider());
   // A second call must not flip the answer.
   EXPECT_EQ(nullptr, shm.Provider());
-  EXPECT_FALSE(static_cast<bool>(allocShmChunk(kTestThreshold)));
-
-  initZenohShm(nullptr, kDefaultZenohShmThreshold);
+  EXPECT_FALSE(static_cast<bool>(allocShmChunk(shm, kTestThreshold)));
 }
 
 //////////////////////////////////////////////////
 // The provider is the session's and stable across calls.
 TEST_F(ZenohShmTest, ProviderIsStable)
 {
-  EXPECT_EQ(kTestThreshold, ZenohShm::Instance().Threshold());
-  EXPECT_EQ(this->provider, ZenohShm::Instance().Provider());
+  EXPECT_EQ(kTestThreshold, this->shm.Threshold());
+  EXPECT_EQ(this->provider, this->shm.Provider());
 }
 
 //////////////////////////////////////////////////
@@ -285,11 +283,11 @@ TEST_F(ZenohShmTest, AllocShmBufMultiple)
 // allocShmChunk: empty below threshold, usable at or above it.
 TEST_F(ZenohShmTest, AllocShmChunk)
 {
-  auto emptyChunk = allocShmChunk(kTestThreshold - 1);
+  auto emptyChunk = allocShmChunk(this->shm, kTestThreshold - 1);
   EXPECT_FALSE(static_cast<bool>(emptyChunk));
   EXPECT_EQ(nullptr, emptyChunk.Data());
 
-  auto chunk = allocShmChunk(kTestThreshold);
+  auto chunk = allocShmChunk(this->shm, kTestThreshold);
   ASSERT_TRUE(static_cast<bool>(chunk));
   ASSERT_NE(nullptr, chunk.Data());
 
@@ -305,10 +303,10 @@ TEST_F(ZenohShmTest, AllocShmChunk)
 // makeShmBytes: nullopt below threshold, round-trips data above it.
 TEST_F(ZenohShmTest, MakeShmBytes)
 {
-  EXPECT_FALSE(makeShmBytes("x", 1).has_value());
+  EXPECT_FALSE(makeShmBytes(this->shm, "x", 1).has_value());
 
   const std::string data(kTestThreshold, 'B');
-  auto bytes = makeShmBytes(data.data(), data.size());
+  auto bytes = makeShmBytes(this->shm, data.data(), data.size());
   ASSERT_TRUE(bytes.has_value());
   EXPECT_EQ(data, bytes->as_string());
 }
@@ -318,7 +316,7 @@ TEST_F(ZenohShmTest, MakeShmBytes)
 TEST_F(ZenohShmTest, WithPayloadViewShm)
 {
   const std::string data(kTestThreshold, 'D');
-  auto bytes = makeShmBytes(data.data(), data.size());
+  auto bytes = makeShmBytes(this->shm, data.data(), data.size());
   ASSERT_TRUE(bytes.has_value());
 
   auto copied = withPayloadView(*bytes,

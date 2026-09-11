@@ -102,7 +102,8 @@ class Node::PublisherPrivate
   public: void PublishViaShmOrHeap(const std::string &_data,
                                    zenoh::Publisher::PutOptions _options)
   {
-    if (auto shmBytes = makeShmBytes(_data.data(), _data.size()))
+    if (auto shmBytes = makeShmBytes(this->shared->dataPtr->zenohShm,
+                                     _data.data(), _data.size()))
     {
       this->zPub->put(std::move(*shmBytes), std::move(_options));
       return;
@@ -462,7 +463,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   ShmChunk shmChunk;
   if (impl == "zenoh" && subscribers.haveRemote)
   {
-    shmChunk = allocShmChunk(msgSize);
+    shmChunk = allocShmChunk(
+      this->dataPtr->shared->dataPtr->zenohShm, msgSize);
     if (shmChunk && _msg.SerializeToArray(shmChunk.Data(), msgSize))
       serializedData = reinterpret_cast<const char *>(shmChunk.Data());
     else

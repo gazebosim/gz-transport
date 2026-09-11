@@ -180,7 +180,7 @@ namespace gz::transport
         }
 
         // Let the explicit SHM path borrow the session's provider.
-        initZenohShm(this->session, shmThreshold);
+        this->zenohShm.Init(this->session, shmThreshold);
       }
 #endif
     }
@@ -310,6 +310,10 @@ namespace gz::transport
 
     /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
+
+    /// \brief Shared memory state of the session (provider handle and
+    /// threshold), used by publishers and service handlers.
+    public: ZenohShm zenohShm;
 
     /// \brief Centralized Zenoh subscribers, one per topic. The callback
     /// dispatches to all registered handlers via TriggerCallbacks, so

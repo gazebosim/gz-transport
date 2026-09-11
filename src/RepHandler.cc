@@ -25,6 +25,8 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
+#include "gz/transport/NodeShared.hh"
+#include "NodeSharedPrivate.hh"
 #include "ShmHelpers.hh"
 #endif
 
@@ -131,7 +133,9 @@ namespace gz::transport
       {
         // SHM-optimized reply (one copy: heap -> SHM), using the shared
         // process pool.
-        if (auto shmBytes = makeShmBytes(output.data(), output.size()))
+        if (auto shmBytes = makeShmBytes(
+              NodeShared::Instance()->dataPtr->zenohShm,
+              output.data(), output.size()))
           _query.reply(_service, std::move(*shmBytes));
         else
           _query.reply(_service, output);
