@@ -16,6 +16,9 @@ bazel_dep(name = "rules_cc", version = "0.1.2")
 
 # Minimum version (bzlmod may resolve higher). Keep in sync with
 # GZ_TRANSPORT_ZENOH_MIN_VERSION in CMakeLists.txt (see #868).
+# Patch release required for zenoh-c to build even though gz-transport
+# doesn't explicitly depend on it
+bazel_dep(name = "zenoh-c", version = "1.8.0.bcr.1")
 bazel_dep(name = "zenoh-cpp", version = "1.8.0")
 bazel_dep(name = "rules_rs", version = "0.0.109")
 
@@ -59,14 +62,4 @@ archive_override(
     module_name = "gz-msgs",
     strip_prefix = "gz-msgs-main",
     urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/main.tar.gz"],
-)
-
-# rules_rs >= 0.0.108 uses rust_cdylib_library for rust_shared_library.
-# Patch zenoh-c's cbindgen aspect to recognize rust_cdylib_library.
-single_version_override(
-    module_name = "zenoh-c",
-    patch_strip = 0,
-    patches = [
-        "//patches:zenoh_c_cbindgen.patch",
-    ],
 )
