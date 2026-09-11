@@ -165,9 +165,9 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 
     /// \brief Get the session's SHM provider.
     /// \return The provider, or nullptr when no session is attached, SHM
-    /// is disabled in the configuration, or the provider is still
-    /// initializing (callers fall back to the heap path and retry on the
-    /// next allocation).
+    /// is disabled in the configuration, its initialization failed, or
+    /// the provider is still initializing (callers fall back to the heap
+    /// path and retry on the next allocation).
     public: const zenoh::ShmProvider *Provider()
     {
       State current = this->state.load(std::memory_order_acquire);
@@ -192,13 +192,15 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
         return &this->provider->shm_provider();
       }
 
-      if (std::get<zenoh::ShmProviderNotReadyState>(result) ==
-          zenoh::ShmProviderNotReadyState::SHM_PROVIDER_DISABLED)
+      // Disabled by configuration, or initialization failed for good
+      // (e.g. /dev/shm cannot hold the pool): stop asking. Only
+      // SHM_PROVIDER_INITIALIZING is transient; the call above triggered
+      // or joined the initialization, so try again on the next allocation.
+      if (std::get<zenoh::ShmProviderNotReadyState>(result) !=
+          zenoh::ShmProviderNotReadyState::SHM_PROVIDER_INITIALIZING)
       {
         this->state.store(State::kDisabled, std::memory_order_release);
       }
-      // SHM_PROVIDER_INITIALIZING: the call above triggered or joined the
-      // initialization; try again on the next allocation.
       return nullptr;
     }
 
@@ -209,7 +211,8 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
       kUnknown,
       /// \brief The provider is available.
       kReady,
-      /// \brief SHM is disabled in the configuration.
+      /// \brief SHM is disabled in the configuration or failed to
+      /// initialize; never retried.
       kDisabled
     };
 
