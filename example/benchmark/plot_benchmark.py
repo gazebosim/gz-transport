@@ -72,9 +72,9 @@ STYLES: 'OrderedDict[str, dict]' = OrderedDict([
     ('zeromq',
      {'label': 'ZeroMQ',          'color': '#0072B2'}),
     ('zenoh_no_shm',
-     {'label': 'Zenoh (no SHM)',  'color': '#D55E00'}),
+     {'label': 'Zenoh (SHM off)',  'color': '#D55E00'}),
     ('zenoh_shm',
-     {'label': 'Zenoh + SHM',    'color': '#009E73'}),
+     {'label': 'Zenoh (SHM)',      'color': '#009E73'}),
 ])
 
 

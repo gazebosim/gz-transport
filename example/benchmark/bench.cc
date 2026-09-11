@@ -361,24 +361,18 @@ class NoInputResponder
 void LogTransportConfig(std::ostream *_stream)
 {
   const char *impl = std::getenv("GZ_TRANSPORT_IMPLEMENTATION");
-  const char *shmPool = std::getenv("GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE");
-  const char *shmThresh = std::getenv("GZ_TRANSPORT_ZENOH_SHM_THRESHOLD");
+  const char *zenohConfig = std::getenv("ZENOH_CONFIG");
   const char *configOverride =
     std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
 
   (*_stream) << "# Backend: " << (impl ? impl : "zeromq (default)")
              << std::endl;
-  (*_stream) << "# SHM pool (process-wide): "
-             << (shmPool ? shmPool : "50331648 (default)")
-             << std::endl;
-  (*_stream) << "# SHM threshold: "
-             << (shmThresh ? shmThresh : "131072 (default)")
-             << std::endl;
-  if (configOverride)
-  {
-    (*_stream) << "# Config override: " << configOverride
-               << std::endl;
-  }
+  // Shared memory is governed by the Zenoh config
+  // (transport/shared_memory/*); record what may have changed it.
+  (*_stream) << "# Zenoh config: "
+             << (zenohConfig ? zenohConfig : "default") << std::endl;
+  (*_stream) << "# Config override: "
+             << (configOverride ? configOverride : "none") << std::endl;
 }
 
 /// \brief The PubTester is used to collect data on latency or throughput.

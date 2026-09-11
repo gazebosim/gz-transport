@@ -81,30 +81,27 @@ CONFIGS = [
             'GZ_TRANSPORT_IMPLEMENTATION': 'zeromq',
         },
         'clear': [
-            'GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE',
-            'GZ_TRANSPORT_ZENOH_SHM_THRESHOLD',
             'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE',
         ],
     },
     {
+        # Disables Zenoh's shared memory subsystem entirely, including its
+        # own transport optimization, so this is a pure network baseline
+        # rather than what a default gz-transport build does.
         'name': 'zenoh_no_shm',
-        'description': 'Zenoh without SHM (heap only)',
+        'description': 'Zenoh with shared memory disabled (network only)',
         'env': {
             'GZ_TRANSPORT_IMPLEMENTATION': 'zenoh',
             'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE':
                 'transport/shared_memory/enabled=false',
         },
-        'clear': [
-            'GZ_TRANSPORT_ZENOH_SHM_POOL_SIZE',
-            'GZ_TRANSPORT_ZENOH_SHM_THRESHOLD',
-        ],
+        'clear': [],
     },
     {
         'name': 'zenoh_shm',
-        'description': 'Zenoh + SHM (threshold=0, SHM for all sizes)',
+        'description': 'Zenoh with shared memory (gz-transport defaults)',
         'env': {
             'GZ_TRANSPORT_IMPLEMENTATION': 'zenoh',
-            'GZ_TRANSPORT_ZENOH_SHM_THRESHOLD': '0',
         },
         'clear': [
             'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE',
