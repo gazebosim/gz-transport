@@ -20,10 +20,14 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <functional>
+#include <set>
+#include <thread>
 #include <string>
 #include <vector>
 
 #include "gz/transport/Node.hh"
+#include "gz/transport/WaitHelpers.hh"
 #include "gz/transport/TransportTypes.hh"
 
 #include <gz/utils/Environment.hh>
@@ -539,6 +543,152 @@ TEST(twoProcPubSub, PubSubTwoProcsMixedSubscribers)
     EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
+}
+
+//////////////////////////////////////////////////
+/// \brief Wait until _topic has subscribers in at least two processes:
+/// this one and the auxiliary one.
+/// \return True if that happened before the timeout.
+bool waitForRemoteSubscriber(const transport::Node &_node,
+                             const std::string &_topic)
+{
+  return transport::waitUntil([&]
+    {
+      std::vector<transport::MessagePublisher> publishers;
+      std::vector<transport::MessagePublisher> subscribers;
+      _node.TopicInfo(_topic, publishers, subscribers);
+      std::set<std::string> processes;
+      for (const auto &subscriber : subscribers)
+        processes.insert(subscriber.PUuid());
+      return processes.size() >= 2;
+    }, std::chrono::seconds(10), std::chrono::milliseconds(50));
+}
+
+//////////////////////////////////////////////////
+/// \brief Wait until _counter has not changed for _quiet and return its
+/// value. Used for negative checks ("nothing else arrives"): it returns
+/// as soon as the counter is quiet instead of after a fixed delay, and
+/// keeps waiting while late messages are still trickling in.
+/// \param[in] _counter The counter to watch.
+/// \param[in] _quiet How long the counter has to stay unchanged.
+/// \param[in] _timeout Upper bound for the whole wait.
+/// \return The last value observed.
+int settledValue(const std::atomic<int> &_counter,
+                 std::chrono::milliseconds _quiet =
+                   std::chrono::milliseconds(300),
+                 std::chrono::seconds _timeout = std::chrono::seconds(5))
+{
+  const auto deadline = std::chrono::steady_clock::now() + _timeout;
+  int last = _counter.load();
+  auto lastChange = std::chrono::steady_clock::now();
+  while (std::chrono::steady_clock::now() < deadline)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    const int current = _counter.load();
+    const auto now = std::chrono::steady_clock::now();
+    if (current != last)
+    {
+      last = current;
+      lastChange = now;
+    }
+    else if (now - lastChange >= _quiet)
+    {
+      break;
+    }
+  }
+  return last;
+}
+
+//////////////////////////////////////////////////
+/// \brief A process that publishes a topic and also subscribes to it must
+/// see each message exactly once while a subscriber in another process is
+/// connected. Local delivery happens directly inside Publish(); the copy
+/// sent to the remote subscriber must not be delivered back to this
+/// process by the transport.
+TEST(twoProcPubSub, LocalSubscriberReceivesOnceWithRemoteSubscriber)
+{
+  const std::string topic = "/local_and_remote";
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kSubscriberOnly, partition, topic, "10"});
+
+  transport::Node node;
+  std::atomic<int> received{0};
+  std::function<void(const msgs::Vector3d &)> cb =
+    [&received](const msgs::Vector3d &)
+    {
+      ++received;
+    };
+  EXPECT_TRUE(node.Subscribe(topic, cb));
+  auto pub = node.Advertise<msgs::Vector3d>(topic);
+  ASSERT_TRUE(pub);
+  ASSERT_TRUE(waitForRemoteSubscriber(node, topic));
+
+  constexpr int kMessages = 10;
+  msgs::Vector3d msg;
+  for (int i = 0; i < kMessages; ++i)
+  {
+    msg.set_x(i);
+    EXPECT_TRUE(pub.Publish(msg));
+  }
+
+  // Direct local delivery brings every message.
+  ASSERT_TRUE(transport::waitUntil([&]
+    {
+      return received.load() >= kMessages;
+    }, std::chrono::seconds(5), std::chrono::milliseconds(10)));
+
+  // Nothing else may arrive afterwards, in particular no copy looped back
+  // by the transport.
+  EXPECT_EQ(kMessages, settledValue(received));
+}
+
+//////////////////////////////////////////////////
+/// \brief SubscribeOptions::IgnoreLocalMessages() must hold when the
+/// message also travels to a subscriber in another process: the node that
+/// published it must not get it back through the transport. A second node
+/// in this process subscribes normally and witnesses the deliveries.
+TEST(twoProcPubSub, IgnoreLocalMessagesWithRemoteSubscriber)
+{
+  const std::string topic = "/ignore_local_remote";
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kSubscriberOnly, partition, topic, "10"});
+
+  transport::Node node;
+  std::atomic<int> ignoring{0};
+  std::function<void(const msgs::Vector3d &)> ignoringCb =
+    [&ignoring](const msgs::Vector3d &)
+    {
+      ++ignoring;
+    };
+  transport::SubscribeOptions opts;
+  opts.SetIgnoreLocalMessages(true);
+  EXPECT_TRUE(node.Subscribe(topic, ignoringCb, opts));
+
+  transport::Node witnessNode;
+  std::atomic<int> witnessed{0};
+  std::function<void(const msgs::Vector3d &)> witnessCb =
+    [&witnessed](const msgs::Vector3d &)
+    {
+      ++witnessed;
+    };
+  EXPECT_TRUE(witnessNode.Subscribe(topic, witnessCb));
+
+  auto pub = node.Advertise<msgs::Vector3d>(topic);
+  ASSERT_TRUE(pub);
+  ASSERT_TRUE(waitForRemoteSubscriber(node, topic));
+
+  constexpr int kMessages = 10;
+  msgs::Vector3d msg;
+  for (int i = 0; i < kMessages; ++i)
+    EXPECT_TRUE(pub.Publish(msg));
+
+  ASSERT_TRUE(transport::waitUntil([&]
+    {
+      return witnessed.load() >= kMessages;
+    }, std::chrono::seconds(5), std::chrono::milliseconds(10)));
+
+  EXPECT_EQ(kMessages, settledValue(witnessed));
+  EXPECT_EQ(0, ignoring.load());
 }
 
 //////////////////////////////////////////////////
