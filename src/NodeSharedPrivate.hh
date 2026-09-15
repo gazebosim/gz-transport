@@ -41,11 +41,26 @@
 #include "gz/transport/Exception.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
+#include "ShmHelpers.hh"
 
 namespace gz::transport
 {
   // Inline bracket to help doxygen filtering.
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+#ifdef HAVE_ZENOH
+  /// \internal
+  /// \brief A centralized per-topic Zenoh subscriber (see
+  /// NodeShared::EnsureZenohSubscription).
+  struct ZenohTopicSubscription
+  {
+    /// \brief Cleared by NodeShared::MaybeRemoveZenohSubscription so the
+    /// callback stops dispatching before the deferred undeclare completes.
+    std::shared_ptr<std::atomic<bool>> active;
+
+    /// \brief The Zenoh subscriber.
+    std::unique_ptr<zenoh::Subscriber<void>> subscriber;
+  };
+#endif
   //
   /// \brief Metadata for a publication. This is sent as part of the ZMQ
   /// message for topic statistics.
@@ -104,11 +119,49 @@ namespace gz::transport
             std::cout << "Zenoh default config loaded" << std::endl;
         }
 
+        // gz-transport's built-in defaults differ from Zenoh's only in
+        // the SHM pool size (see kDefaultZenohShmPoolSize). A user
+        // supplied ZENOH_CONFIG file is left untouched.
+        if (configSource == ZenohConfigSource::kDefault)
+        {
+          zenoh::ZResult result;
+          config.insert_json5(kZenohShmPoolSizeKey,
+              std::to_string(kDefaultZenohShmPoolSize), &result);
+          if (result != Z_OK)
+          {
+            std::cerr << "Unable to set [" << kZenohShmPoolSizeKey
+                      << "] in the default Zenoh config" << std::endl;
+          }
+        }
+
         // Apply key=value overrides from GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
         const char *overrideEnv =
             std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
         if (overrideEnv)
           ApplyZenohConfigOverrides(config, overrideEnv, this->verbose);
+
+        // The SHM threshold is Zenoh's own transport optimization
+        // threshold, read after the file and the overrides so there is a
+        // single knob for both the implicit and the explicit SHM paths.
+        std::size_t shmThreshold = kDefaultZenohShmThreshold;
+        {
+          zenoh::ZResult result;
+          const std::string value = config.get(kZenohShmThresholdKey,
+                                               &result);
+          if (result == Z_OK)
+          {
+            try
+            {
+              shmThreshold = static_cast<std::size_t>(std::stoull(value));
+            }
+            catch (const std::exception &)
+            {
+              std::cerr << "Invalid value [" << value << "] for ["
+                        << kZenohShmThresholdKey << "], using "
+                        << shmThreshold << std::endl;
+            }
+          }
+        }
 
         try
         {
@@ -125,6 +178,9 @@ namespace gz::transport
           throw gz::transport::Exception(
             std::string("Failed to open Zenoh session: ") + e.what());
         }
+
+        // Let the explicit SHM path borrow the session's provider.
+        this->zenohShm.Init(this->session, shmThreshold);
       }
 #endif
     }
@@ -254,6 +310,19 @@ namespace gz::transport
 
     /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
+
+    /// \brief Shared memory state of the session (provider handle and
+    /// threshold), used by publishers and service handlers.
+    public: ZenohShm zenohShm;
+
+    /// \brief Centralized Zenoh subscribers, one per topic. The callback
+    /// dispatches to all registered handlers via TriggerCallbacks, so
+    /// each sample is copied and deserialized once regardless of how
+    /// many handlers are registered. Guarded by NodeShared::mutex.
+    /// Entries are removed by NodeShared::MaybeRemoveZenohSubscription
+    /// when the last handler for the topic goes away; whatever remains
+    /// lives for the rest of the process, like NodeShared itself.
+    public: std::map<std::string, ZenohTopicSubscription> zenohSubscribers;
 
     /// \internal
     /// \brief Cache of declared Queriers keyed by service keyexpr.
