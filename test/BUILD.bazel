@@ -63,6 +63,7 @@ test_executables = [
     "twoProcsSrvCallWithoutInputReplierInc_aux",
     "twoProcsSrvCallWithoutOutputReplier_aux",
     "twoProcsSrvCallWithoutOutputReplierInc_aux",
+    "zenohPublisherLeak_aux",
     "zenohShutdown_aux",
     "zenohTeardownFromCallback_aux",
 ]
@@ -71,6 +72,7 @@ test_executables = [
     name = name,
     srcs = ["integration/test_executables/" + name + ".cc"],
     deps = [
+        ":Config",
         ":test_config_lib",
         "//:gz-transport",
         "@googletest//:gtest",
@@ -87,6 +89,7 @@ integration_test_sources = [
     "twoProcsPubSub.cc",
     "twoProcsPubSubStats.cc",
     "twoProcsSrvCall.cc",
+    "twoProcsSrvCallLateResponder.cc",
     "twoProcsSrvCallStress.cc",
     "twoProcsSrvCallSync1.cc",
     "twoProcsSrvCallWithoutInput.cc",
@@ -94,6 +97,7 @@ integration_test_sources = [
     "twoProcsSrvCallWithoutInputSync1.cc",
     "twoProcsSrvCallWithoutOutput.cc",
     "twoProcsSrvCallWithoutOutputStress.cc",
+    "zenohPublisherLeak.cc",
     "zenohShutdownStress.cc",
     "zenohTeardownFromCallback.cc",
 ]
@@ -128,6 +132,7 @@ flaky_test_srcs = [
         'TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_INC_EXE=\\"./test/twoProcsSrvCallWithoutInputReplierInc_aux\\"',
         'TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_EXE=\\"./test/twoProcsSrvCallWithoutOutputReplier_aux\\"',
         'TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE=\\"./test/twoProcsSrvCallWithoutOutputReplierInc_aux\\"',
+        'ZENOH_PUBLISHER_LEAK_AUX_EXE=\\"./test/zenohPublisherLeak_aux\\"',
         'ZENOH_SHUTDOWN_AUX_EXE=\\"./test/zenohShutdown_aux\\"',
         'ZENOH_TEARDOWN_FROM_CALLBACK_AUX_EXE=\\"./test/zenohTeardownFromCallback_aux\\"',
     ],
@@ -137,6 +142,7 @@ flaky_test_srcs = [
     },
     flaky = src in flaky_test_srcs,
     deps = [
+        ":Config",
         ":test_config_lib",
         ":utils",
         "//:gz-transport",

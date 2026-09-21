@@ -655,6 +655,16 @@ namespace gz::transport
     // Wait until the REP is available.
     bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
 
+    // This request is finished (answered or timed out): remove the
+    // handler from the requests storage. After a reply this is a no
+    // op on both paths (RecvSrvResponse and the Zenoh query completion
+    // already removed it); it matters when the user timeout expires
+    // first. A late reply is simply dropped: on Zenoh the weak_ptr in
+    // the reply closure is expired by then.
+    this->Shared()->Requests().RemoveHandler(
+      fullyQualifiedTopic, this->NodeUuid(),
+      reqHandlerPtr->HandlerUuid());
+
     // The request was not executed.
     if (!executed)
       return false;

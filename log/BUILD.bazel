@@ -79,9 +79,11 @@ test_sources = glob(
     },
     deps = [
         ":log",
+        "//:gz-transport",
         "//test:utils",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
         "@gz-common//testing",
+        "@gz-msgs//:gzmsgs_cc_proto",
     ],
 ) for src in test_sources]

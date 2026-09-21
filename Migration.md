@@ -10,6 +10,14 @@ release will remove the deprecated code.
 
 ### Modifications
 
+1. On the Zenoh implementation, the asynchronous `Node::Request`
+   overload (callback based) now sends the query asynchronously, like
+   the ZeroMQ implementation always did. Earlier Zenoh versions of
+   gz-transport blocked inside the request call until the reply
+   arrived, so code that relied on the callback having run by the
+   time `Request` returned must now wait for the callback (as the API
+   always documented).
+
 1. `gz service --req` no longer interprets an omitted `--reptype` as a
    one-way request, nor an omitted `--reqtype` as a `gz.msgs.Empty` request.
    Omitted types are now resolved from the advertised service provider,

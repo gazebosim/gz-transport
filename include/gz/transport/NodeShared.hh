@@ -27,6 +27,7 @@
 #pragma warning(pop)
 #endif
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -49,7 +50,8 @@
 
 namespace zenoh
 {
-  // Forward declaration.
+  // Forward declarations.
+  class Querier;
   class Session;
 }
 
@@ -316,6 +318,19 @@ namespace gz::transport
     /// \brief Get the current Zenoh session.
     /// \return The Zenoh session.
     public: std::shared_ptr<zenoh::Session> Session();
+
+    /// \internal
+    /// \brief Get or declare a persistent Zenoh Querier for the
+    /// given service keyexpr. The Querier carries an explicit
+    /// interest declaration that gives the responser's queryable
+    /// announcement a routing path back, closing the cold-start race
+    /// for cross-process service calls. Cached so subsequent calls
+    /// reuse the already-converged interest.
+    /// \param[in] _service Fully-qualified service keyexpr.
+    /// \return Shared pointer to the cached Querier, or nullptr if
+    /// it could not be declared.
+    public: std::shared_ptr<zenoh::Querier>
+        GetOrDeclareZenohQuerier(const std::string &_service);
 #endif
 
     /// \brief Unsubscribe a node from a topic.

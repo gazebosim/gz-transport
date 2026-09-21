@@ -175,7 +175,11 @@ class Node::PublisherPrivate
   public: MessagePublisher publisher;
 
 #ifdef HAVE_ZENOH
-  /// \brief The zenoh publisher.
+  /// \brief The zenoh publisher. Destroyed (undeclared) with this
+  /// object: publishers run no user callbacks, so the undeclare has
+  /// nothing to wait on. The undeclare also emits the liveliness
+  /// DELETE that lets remote sessions forget this publisher
+  /// immediately.
   public: std::unique_ptr<zenoh::Publisher> zPub;
 
   /// \brief The liveliness token.
@@ -1308,8 +1312,16 @@ Node::Publisher Node::Advertise(const std::string &_topic,
 #ifdef HAVE_ZENOH
   else if (impl == "zenoh")
   {
+    // Subscribers in this process are served directly by Publish(): the
+    // transport must only deliver to other sessions, otherwise every
+    // local subscriber would get each message twice (once from Publish()
+    // and once looped back by Zenoh) and SubscribeOptions::
+    // IgnoreLocalMessages() could not be honored.
+    zenoh::Session::PublisherOptions pubOpts =
+      zenoh::Session::PublisherOptions::create_default();
+    pubOpts.allowed_destination = zenoh::Locality::Z_LOCALITY_REMOTE;
     auto zPub = this->Shared()->dataPtr->session->declare_publisher(
-     zenoh::KeyExpr(fullyQualifiedTopic));
+      zenoh::KeyExpr(fullyQualifiedTopic), std::move(pubOpts));
 
     std::string token = TopicUtils::CreateLivelinessToken(
       fullyQualifiedTopic, this->Shared()->pUuid, this->NodeUuid(), "MP",
