@@ -19,6 +19,7 @@
 #include <string>
 #include <thread>
 #include "gz/transport/config.hh"
+#include "gz/transport/NodeShared.hh"
 #include "gz/transport/RepHandler.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "gz/transport/Uuid.hh"
@@ -110,13 +111,28 @@ namespace gz::transport
     std::shared_ptr<zenoh::Session> _session,
     const std::string &_service)
   {
-    std::weak_ptr<IRepHandler> weakSelf = this->weak_from_this();
+    // The closure never keeps a reference to this handler. It resolves
+    // it through the repliers storage, which owns every handler
+    // registered by Node::Advertise, keyed by the same service, node
+    // UUID and handler UUID. A query arriving after
+    // Node::UnadvertiseSrv removed the handler finds nothing and is
+    // dropped, and a query arriving while the handler is alive keeps it
+    // alive for the duration of the callback, including when the
+    // callback itself unadvertises the service. NodeShared is never
+    // destroyed (see NodeShared::Instance()), so capturing the pointer
+    // is safe even for queries delivered during process exit.
+    NodeShared *shared = NodeShared::Instance();
+    const std::string nUuid = this->dataPtr->nUuid;
+    const std::string hUuid = this->dataPtr->hUuid;
     auto onQuery =
-      [weakSelf, _service](const zenoh::Query &_query)
+      [shared, nUuid, hUuid, _service](const zenoh::Query &_query)
     {
-      auto self = weakSelf.lock();
-      if (!self)
-        return;
+      IRepHandlerPtr self;
+      {
+        std::lock_guard<std::recursive_mutex> lk(shared->mutex);
+        if (!shared->Repliers().Handler(_service, nUuid, hUuid, self))
+          return;
+      }
 
       std::string input;
       if (_query.get_payload())

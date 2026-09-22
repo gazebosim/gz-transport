@@ -20,6 +20,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstring>
+#include <functional>
 #include <future>
 #include <iostream>
 #include <map>
@@ -48,6 +49,9 @@
 
 #include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
+#ifdef HAVE_ZENOH
+#include "ShmHelpers.hh"
+#endif
 
 using namespace std::chrono_literals;
 
@@ -159,6 +163,106 @@ void sendAuthErrorHelper(zmq::socket_t &_socket, const std::string &_err)
 
 namespace gz::transport
 {
+#ifdef HAVE_ZENOH
+namespace
+{
+//////////////////////////////////////////////////
+/// \brief Fire a service request through a Zenoh Querier.
+/// Asynchronous: the reply closure notifies the handler, mirroring the
+/// ZeroMQ flow. Like the queryable in IRepHandler::CreateZenohQueriable,
+/// the closure never keeps a reference to the handler. It resolves it
+/// through the requests storage, keyed by the same service, node UUID and
+/// handler UUID. A reply arriving after the handler was removed from the
+/// storage (e.g. after Node::Request timed out) finds nothing and is
+/// dropped, and a reply arriving while the handler is alive keeps it alive
+/// while it is notified.
+/// \param[in] _shared NodeShared instance owning the requests storage.
+/// NodeShared is never destroyed (see NodeShared::Instance()), so the
+/// closure can capture it.
+/// \param[in] _handler The request handler, as stored in the requests
+/// storage. No reference to it is kept.
+/// \param[in] _querier Persistent Querier for the service, from
+/// NodeShared::GetOrDeclareZenohQuerier.
+/// \param[in] _service The service.
+/// \param[in] _onDone Called once from a Zenoh thread when the query
+/// is over, after the reply (if any) was delivered or the Zenoh timeout
+/// expired.
+/// \return True if the query was fired, false otherwise (the caller
+/// should leave the handler pending so it is retried).
+bool zenohGet(NodeShared *_shared,
+              const std::shared_ptr<IReqHandler> &_handler,
+              const std::shared_ptr<zenoh::Querier> &_querier,
+              const std::string &_service,
+              std::function<void()> _onDone)
+{
+  if (!_querier)
+  {
+    std::cerr << "gz-transport zenoh: no Querier for [" << _service
+              << "]; aborting request.\n";
+    return false;
+  }
+
+  // Capture everything BY VALUE: the closure can fire on a Zenoh worker
+  // thread long after this stack frame has returned.
+  const std::string nUuid = _handler->NodeUuid();
+  const std::string hUuid = _handler->HandlerUuid();
+  auto onReply =
+    [_shared, nUuid, hUuid, _service](const zenoh::Reply &_reply)
+  {
+    std::shared_ptr<IReqHandler> handler;
+    {
+      std::lock_guard<std::recursive_mutex> lk(_shared->mutex);
+      if (!_shared->Requests().Handler(_service, nUuid, hUuid, handler))
+        return;
+    }
+
+    if (_reply.is_ok())
+    {
+      const auto &sample = _reply.get_ok();
+      // Reads through a direct pointer into the (SHM) buffer when the
+      // payload is contiguous.
+      handler->NotifyResult(payloadToString(sample.get_payload()), true);
+    }
+    else
+    {
+      std::cerr << "gz-transport zenoh: error reply on [" << _service
+                << "]: "
+                << _reply.get_err().get_payload().as_string() << "\n";
+    }
+  };
+
+  zenoh::Querier::GetOptions getOpts =
+    zenoh::Querier::GetOptions::create_default();
+  std::string payload;
+  _handler->Serialize(payload);
+  if (!payload.empty())
+    getOpts.payload = zenoh::Bytes(payload);
+
+  // Fire and forget: the caller (Node::Request) waits on the handler's
+  // condition variable via WaitUntil, mirroring the ZeroMQ flow.
+  // Blocking here instead would stall the calling thread while it holds
+  // NodeShared::mutex.
+  auto onDone = [_onDone = std::move(_onDone)]()
+  {
+    if (_onDone)
+      _onDone();
+  };
+
+  try
+  {
+    _querier->get("", onReply, std::move(onDone), std::move(getOpts));
+  }
+  catch (const zenoh::ZException &e)
+  {
+    std::cerr << "gz-transport zenoh: querier.get failed for ["
+              << _service << "]: " << e.what() << "\n";
+    return false;
+  }
+  return true;
+}
+}  // namespace
+#endif
+
 //////////////////////////////////////////////////
 NodeShared *NodeShared::Instance()
 {
@@ -1221,7 +1325,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
           std::lock_guard<std::recursive_mutex> requestsLock(this->mutex);
           this->dataPtr->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
         };
-        if (req.second->CreateZenohGet(
+        if (zenohGet(this, req.second,
               this->GetOrDeclareZenohQuerier(_topic), _topic, onDone))
         {
           req.second->Requested(true);
