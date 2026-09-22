@@ -98,6 +98,7 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
   bool IReqHandler::CreateZenohGet(
+    const std::shared_ptr<IReqHandler> &_self,
     std::shared_ptr<zenoh::Querier> _querier,
     const std::string &_service,
     std::function<void()> _onDone)
@@ -112,14 +113,16 @@ namespace gz::transport
     // The reply closure holds a weak reference to this handler, so a
     // reply arriving after the handler was removed from the requests
     // storage (e.g. after Node::Request timed out) is dropped instead
-    // of dereferencing a dead object.
-    std::weak_ptr<IReqHandler> weakSelf = this->weak_from_this();
-    if (weakSelf.expired())
+    // of dereferencing a dead object. The caller passes the owning
+    // shared_ptr from the requests storage.
+    if (_self.get() != this)
     {
       std::cerr << "gz-transport zenoh: IReqHandler for [" << _service
-                << "] is not owned by a shared_ptr; aborting request.\n";
+                << "] is not owned by the given shared_ptr; aborting "
+                << "request.\n";
       return false;
     }
+    std::weak_ptr<IReqHandler> weakSelf = _self;
 
     // The persistent Querier carries an always-on interest
     // declaration on _service, so the responser's queryable
