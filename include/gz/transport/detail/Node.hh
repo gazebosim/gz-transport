@@ -171,10 +171,7 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
     else if (impl == "zenoh")
     {
-      // Just store the callback - no per-handler Zenoh subscriber.
-      // The centralized subscriber in NodeShared handles data dispatch.
-      subscrHandlerPtr->SetCallback(std::move(_cb));
-      subscrHandlerPtr->CreateLivelinessToken(
+      subscrHandlerPtr->SetCallback(std::move(_cb),
         this->Shared()->Session(), fullyQualifiedTopic);
     }
 #endif

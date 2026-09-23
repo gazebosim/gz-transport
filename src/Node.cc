@@ -965,10 +965,7 @@ bool Node::SubscribeRaw(
 #ifdef HAVE_ZENOH
   else if (impl == "zenoh")
   {
-    // Just store the callback - no per-handler Zenoh subscriber.
-    // The centralized subscriber in NodeShared handles data dispatch.
-    handlerPtr->SetCallback(_callback);
-    handlerPtr->CreateLivelinessToken(
+    handlerPtr->SetCallback(std::move(_callback),
       this->Shared()->Session(), fullyQualifiedTopic);
   }
 #endif
