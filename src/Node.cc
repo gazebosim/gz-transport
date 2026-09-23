@@ -675,17 +675,7 @@ bool Node::Publisher::PublishRaw(
     {
       zenoh::Publisher::PutOptions options;
       options.attachment = this->dataPtr->publisher.MsgTypeName();
-      // Copy into SHM if available, otherwise publish from the heap.
-      if (auto shmBytes = makeShmBytes(
-            this->dataPtr->shared->dataPtr->zenohShm,
-            _msgData.data(), _msgData.size()))
-      {
-        this->dataPtr->zPub->put(std::move(*shmBytes), std::move(options));
-      }
-      else
-      {
-        this->dataPtr->zPub->put(_msgData, std::move(options));
-      }
+      this->dataPtr->zPub->put(_msgData, std::move(options));
     }
 #endif
     else

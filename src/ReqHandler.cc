@@ -24,8 +24,6 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
-#include "gz/transport/NodeShared.hh"
-#include "NodeSharedPrivate.hh"
 #include "ShmHelpers.hh"
 #endif
 
@@ -158,16 +156,7 @@ namespace gz::transport
     std::string payload;
     this->Serialize(payload);
     if (!payload.empty())
-    {
-      // Use SHM for large request payloads to avoid a serialization copy,
-      // using the shared process pool.
-      if (auto shmBytes = makeShmBytes(
-            NodeShared::Instance()->dataPtr->zenohShm,
-            payload.data(), payload.size()))
-        getOpts.payload = std::move(*shmBytes);
-      else
-        getOpts.payload = zenoh::Bytes(payload);
-    }
+      getOpts.payload = zenoh::Bytes(payload);
 
     // Fire and forget: the caller (Node::Request) waits on the
     // handler's condition variable via WaitUntil, mirroring the

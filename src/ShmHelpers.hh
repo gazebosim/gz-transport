@@ -25,7 +25,6 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -111,8 +110,10 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 // transfer (Zenoh's own transport optimization still applies at the
 // transport level when the library supports it). Zenoh SHM types never leak
 // out of this block: the public surface is ZenohShm, ShmChunk,
-// allocShmChunk, makeShmBytes, and zenoh::Bytes (which exists in every
-// Zenoh build).
+// allocShmChunk, and zenoh::Bytes (which exists in every Zenoh build).
+// Payloads that are already serialized on the heap (services, PublishRaw)
+// are handed to Zenoh as plain bytes: its transport optimization moves them
+// through the same pool when they exceed kZenohShmThresholdKey.
 #if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
 
   /// \brief Access to the SHM provider of the Zenoh session. Owned by
@@ -303,28 +304,6 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     return ShmChunk();
   }
 
-  /// \brief Attempt to copy data into a fresh SHM buffer from the session's
-  /// pool, wrapped in zenoh::Bytes ready for zero-copy publication.
-  /// The threshold is checked before touching the provider.
-  /// \param[in] _shm The SHM state of the session.
-  /// \param[in] _data Pointer to the data to copy.
-  /// \param[in] _size Number of bytes in _data.
-  /// \return The bytes, or std::nullopt if SHM is disabled or not ready,
-  /// the message is below threshold, or allocation fails.
-  inline std::optional<zenoh::Bytes> makeShmBytes(
-      ZenohShm &_shm, const void *_data, std::size_t _size)
-  {
-    if (_size < _shm.Threshold())
-      return std::nullopt;
-
-    auto shmBuf = allocShmBuf(_shm.Provider(), _size);
-    if (!shmBuf)
-      return std::nullopt;
-
-    memcpy(shmBuf->data(), _data, _size);
-    return zenoh::Bytes(std::move(*shmBuf));
-  }
-
 #else  // No SHM support: no-op stand-ins with the same interface so call
        // sites compile without extra #ifdefs. Allocation always fails,
        // causing transparent fallback to heap-based transfer. The branches
@@ -370,14 +349,6 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
   inline ShmChunk allocShmChunk(ZenohShm &, std::size_t)
   {
     return ShmChunk();
-  }
-
-  /// \brief No-op: SHM not available in this build.
-  /// \return Always returns std::nullopt.
-  inline std::optional<zenoh::Bytes> makeShmBytes(
-      ZenohShm &, const void *, std::size_t)
-  {
-    return std::nullopt;
   }
 
 #endif  // Z_FEATURE_SHARED_MEMORY && Z_FEATURE_UNSTABLE_API

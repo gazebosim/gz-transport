@@ -227,7 +227,6 @@ TEST(ShmHelpersTest, NoSession)
   EXPECT_EQ(100u, shm.Threshold());
   EXPECT_EQ(nullptr, shm.Provider());
   EXPECT_FALSE(static_cast<bool>(allocShmChunk(shm, 1000)));
-  EXPECT_FALSE(makeShmBytes(shm, "x", 1000).has_value());
   EXPECT_FALSE(allocShmBuf(nullptr, 1000).has_value());
 }
 
@@ -300,32 +299,22 @@ TEST_F(ZenohShmTest, AllocShmChunk)
 }
 
 //////////////////////////////////////////////////
-// makeShmBytes: nullopt below threshold, round-trips data above it.
-TEST_F(ZenohShmTest, MakeShmBytes)
-{
-  EXPECT_FALSE(makeShmBytes(this->shm, "x", 1).has_value());
-
-  const std::string data(kTestThreshold, 'B');
-  auto bytes = makeShmBytes(this->shm, data.data(), data.size());
-  ASSERT_TRUE(bytes.has_value());
-  EXPECT_EQ(data, bytes->as_string());
-}
-
-//////////////////////////////////////////////////
 // withPayloadView / payloadToString: see the payload of SHM-backed bytes.
 TEST_F(ZenohShmTest, WithPayloadViewShm)
 {
   const std::string data(kTestThreshold, 'D');
-  auto bytes = makeShmBytes(this->shm, data.data(), data.size());
-  ASSERT_TRUE(bytes.has_value());
+  auto chunk = allocShmChunk(this->shm, data.size());
+  ASSERT_TRUE(static_cast<bool>(chunk));
+  memcpy(chunk.Data(), data.data(), data.size());
+  zenoh::Bytes bytes = chunk.TakeBytes();
 
-  auto copied = withPayloadView(*bytes,
+  auto copied = withPayloadView(bytes,
     [](const char *_data, std::size_t _size)
     {
       return std::string(_data, _size);
     });
   EXPECT_EQ(data, copied);
-  EXPECT_EQ(data, payloadToString(*bytes));
+  EXPECT_EQ(data, payloadToString(bytes));
 }
 
 #endif  // Z_FEATURE_SHARED_MEMORY && Z_FEATURE_UNSTABLE_API
