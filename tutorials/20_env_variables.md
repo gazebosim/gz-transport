@@ -142,6 +142,13 @@ Below are descriptions of the available environment variables:
     * *Value allowed*: 1/0
     * *Description*: Show debug information.
     * *Available in backend:*: zeromq, zenoh
+* **RUST_LOG**
+    * *Value allowed*: A Rust `env_logger` filter, e.g. `info`, `debug`
+    or `zenoh_shm=trace`
+    * *Description*: Enables Zenoh's internal logging on stderr. Not set by
+    default, so Zenoh stays silent. `RUST_LOG=zenoh_shm=trace` shows when a
+    payload travels through shared memory.
+    * *Available in backend:*: zenoh
 * **ZENOH_CONFIG**
     * *Value allowed*: Path to a Zenoh configuration file (JSON5 format)
     * *Description*: Specifies a custom Zenoh configuration file. This allows

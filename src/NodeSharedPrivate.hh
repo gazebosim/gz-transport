@@ -163,6 +163,11 @@ namespace gz::transport
           }
         }
 
+        // Route Zenoh's internal logs to stderr when RUST_LOG is set
+        // (e.g. RUST_LOG=zenoh_shm=trace to watch shared memory traffic).
+        // No-op otherwise.
+        zenoh::try_init_log_from_env();
+
         try
         {
           this->session = std::make_shared<zenoh::Session>(
