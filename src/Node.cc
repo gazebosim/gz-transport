@@ -95,21 +95,6 @@ class Node::PublisherPrivate
       zToken(std::make_unique<zenoh::LivelinessToken>(std::move(_zToken)))
   {
   }
-
-  /// \brief Publish string data via SHM if available, falling back to heap.
-  /// Does not take ownership — avoids an intermediate heap allocation when
-  /// the caller already has the data in a std::string (e.g. PublishRaw).
-  public: void PublishViaShmOrHeap(const std::string &_data,
-                                   zenoh::Publisher::PutOptions _options)
-  {
-    if (auto shmBytes = makeShmBytes(this->shared->dataPtr->zenohShm,
-                                     _data.data(), _data.size()))
-    {
-      this->zPub->put(std::move(*shmBytes), std::move(_options));
-      return;
-    }
-    this->zPub->put(_data, std::move(_options));
-  }
 #endif
 
   /// \brief Check if this Publisher is ready to send an update based on
@@ -690,7 +675,17 @@ bool Node::Publisher::PublishRaw(
     {
       zenoh::Publisher::PutOptions options;
       options.attachment = this->dataPtr->publisher.MsgTypeName();
-      this->dataPtr->PublishViaShmOrHeap(_msgData, std::move(options));
+      // Copy into SHM if available, otherwise publish from the heap.
+      if (auto shmBytes = makeShmBytes(
+            this->dataPtr->shared->dataPtr->zenohShm,
+            _msgData.data(), _msgData.size()))
+      {
+        this->dataPtr->zPub->put(std::move(*shmBytes), std::move(options));
+      }
+      else
+      {
+        this->dataPtr->zPub->put(_msgData, std::move(options));
+      }
     }
 #endif
     else
