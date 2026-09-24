@@ -188,6 +188,17 @@ namespace gz::transport
     this->Shared()->localSubscribers.normal.AddHandler(
       fullTopic, this->NodeUuid(), subscrHandlerPtr);
 
+#ifdef HAVE_ZENOH
+    // Must be called under lock (acquired above) to prevent a race where
+    // concurrent Subscribe() calls for the same topic could create
+    // duplicate centralized subscribers. Called after AddHandler so a
+    // message arriving right away already finds its handler registered.
+    if (impl == "zenoh")
+    {
+      this->Shared()->EnsureZenohSubscription(fullTopic);
+    }
+#endif
+
     if (!this->SubscribeHelper(fullTopic))
       return nullptr;
 

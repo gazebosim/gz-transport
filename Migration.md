@@ -18,6 +18,12 @@ release will remove the deprecated code.
    time `Request` returned must now wait for the callback (as the API
    always documented).
 
+### Deprecations
+
+1. `ISubscriptionHandler::CreateGenericZenohSubscriber()` has been renamed to
+   `CreateLivelinessToken()`. The old name is kept as a deprecated forwarding
+   function and will be removed in a future release.
+
 ## Gazebo Transport 14.X to 15.X
 
 ### Deprecations
