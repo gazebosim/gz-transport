@@ -24,6 +24,7 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
+#include "ShmHelpers.hh"
 #endif
 
 namespace gz::transport
@@ -138,7 +139,9 @@ namespace gz::transport
       if (_reply.is_ok())
       {
         const auto &sample = _reply.get_ok();
-        self->NotifyResult(sample.get_payload().as_string(), true);
+        // Reads through a direct pointer into the (SHM) buffer when the
+        // payload is contiguous.
+        self->NotifyResult(payloadToString(sample.get_payload()), true);
       }
       else
       {
