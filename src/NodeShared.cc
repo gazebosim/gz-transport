@@ -17,6 +17,7 @@
 #include <google/protobuf/text_format.h>
 #include <gz/msgs/empty.pb.h>
 
+#include <atomic>
 #include <chrono>
 #include <cstring>
 #include <future>
@@ -583,6 +584,17 @@ void NodeShared::TriggerCallbacks(
     const std::string &_msgData,
     const HandlerInfo &_handlerInfo)
 {
+  this->TriggerCallbacks(_info, _msgData.data(), _msgData.size(),
+    _handlerInfo);
+}
+
+//////////////////////////////////////////////////
+void NodeShared::TriggerCallbacks(
+    const MessageInfo &_info,
+    const char *_msgData,
+    std::size_t _msgSize,
+    const HandlerInfo &_handlerInfo)
+{
   if (!_handlerInfo.haveLocal && !_handlerInfo.haveRaw)
     return;
 
@@ -598,8 +610,7 @@ void NodeShared::TriggerCallbacks(
           if (rawHandler->TypeName() == _info.Type() ||
               rawHandler->TypeName() == kGenericMessageType)
           {
-            rawHandler->RunRawCallback(_msgData.c_str(), _msgData.size(),
-                _info);
+            rawHandler->RunRawCallback(_msgData, _msgSize, _info);
           }
         }
         else
@@ -630,19 +641,19 @@ void NodeShared::TriggerCallbacks(
               // If the message has not been deserialized yet, do it now since
               // we have allegedly found a subscriber which should be able to
               // do it.
-              msg = localHandler->CreateMsg(_msgData, _info.Type());
+              msg = localHandler->CreateMsgFromBuffer(
+                _msgData, _msgSize, _info.Type());
 
               if (!msg)
               {
                 // If the message could not be created, then none of the
                 // handlers in this process will be able to create it, because
                 // protobuf has access to all message types that the current
-                // process is linked to. If CreateMsg(~,~) fails, then we may
-                // as well quit.
+                // process is linked to. If CreateMsgFromBuffer fails, then we
+                // may as well quit.
                 return;
               }
             }
-
             localHandler->RunLocalCallback(*msg, _info);
           }
         }
@@ -1953,6 +1964,87 @@ std::shared_ptr<zenoh::Session> NodeShared::Session()
 }
 
 /////////////////////////////////////////////////
+void NodeShared::EnsureZenohSubscription(const std::string &_topic)
+{
+  // Precondition: caller holds this->mutex.
+  auto &subscriptions = this->dataPtr->zenohSubscribers;
+  if (subscriptions.count(_topic))
+    return;
+
+  // The flag lets MaybeRemoveZenohSubscription retire this subscriber
+  // before its (deferred) undeclare completes. Capturing 'this' is safe:
+  // NodeShared is never destroyed (see Instance()).
+  auto active = std::make_shared<std::atomic<bool>>(true);
+  auto dataHandler = [this, _topic, active](const zenoh::Sample &_sample)
+  {
+    if (!active->load(std::memory_order_acquire))
+      return;
+
+    auto attachment = _sample.get_attachment();
+    if (!attachment.has_value())
+    {
+      std::cerr << "NodeShared::EnsureZenohSubscription(): "
+                << "Unable to find attachment. Ignoring message..."
+                << std::endl;
+      return;
+    }
+    auto msgType = attachment->get().as_string();
+
+    MessageInfo info;
+    info.SetTopicAndPartition(_topic);
+    info.SetType(msgType);
+
+    HandlerInfo handlerInfo = this->CheckHandlerInfo(_topic);
+
+    // SHM-optimized receive: dispatch from a contiguous view into the SHM
+    // buffer when available, falling back to a copied string otherwise.
+    withPayloadView(_sample.get_payload(),
+      [&](const char *_data, std::size_t _size)
+      {
+        this->TriggerCallbacks(info, _data, _size, handlerInfo);
+      });
+  };
+
+  ZenohTopicSubscription subscription;
+  subscription.active = active;
+  subscription.subscriber = std::make_unique<zenoh::Subscriber<void>>(
+    this->dataPtr->session->declare_subscriber(_topic, dataHandler,
+      zenoh::closures::none));
+  subscriptions[_topic] = std::move(subscription);
+}
+
+/////////////////////////////////////////////////
+void NodeShared::MaybeRemoveZenohSubscription(const std::string &_topic)
+{
+  // Precondition: caller holds this->mutex.
+  if (this->localSubscribers.HasSubscriber(_topic))
+    return;
+
+  auto &subscriptions = this->dataPtr->zenohSubscribers;
+  auto it = subscriptions.find(_topic);
+  if (it == subscriptions.end())
+    return;
+
+  ZenohTopicSubscription subscription = std::move(it->second);
+  subscriptions.erase(it);
+
+  // Retire the callback first so a sample racing with the undeclare is
+  // not dispatched to handlers registered by a later Subscribe() on the
+  // same topic.
+  subscription.active->store(false, std::memory_order_release);
+
+  // Undeclaring a Zenoh subscriber waits for its in-flight callbacks.
+  // Such a callback may be blocked on this->mutex (held by the caller)
+  // or may be the very callback that triggered this unsubscribe, so run
+  // the undeclare on a detached thread (same pattern as the handler
+  // destructors in SubscriptionHandler.cc and RepHandler.cc).
+  std::thread([sub = std::move(subscription.subscriber)]() mutable
+  {
+    sub.reset();
+  }).detach();
+}
+
+/////////////////////////////////////////////////
 std::shared_ptr<zenoh::Querier>
 NodeShared::GetOrDeclareZenohQuerier(const std::string &_service)
 {
@@ -2061,6 +2153,10 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
           zmq::sockopt::unsubscribe, fullyQualifiedTopic);
       }
     }
+#ifdef HAVE_ZENOH
+    else if (this->GzImplementation() == "zenoh")
+      this->MaybeRemoveZenohSubscription(fullyQualifiedTopic);
+#endif
 
     // Prepare to notify publishers outside the lock
     shouldNotifyPublishers = true;
