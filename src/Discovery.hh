@@ -1069,7 +1069,13 @@ namespace gz
 
           if (pollSockets(this->sockets, timeout))
           {
-            this->RecvDiscoveryUpdate();
+            // A failed socket stays readable (e.g. one that macOS has
+            // defunct), so wait before polling it again.
+            if (!this->RecvDiscoveryUpdate())
+            {
+              std::this_thread::sleep_for(
+                std::chrono::milliseconds(this->kTimeout));
+            }
 
             if (this->verbose)
               this->PrintCurrentState();
@@ -1088,7 +1094,8 @@ namespace gz
       }
 
       /// \brief Method in charge of receiving the discovery updates.
-      private: void RecvDiscoveryUpdate()
+      /// \return False if receiving from the socket failed.
+      private: bool RecvDiscoveryUpdate()
       {
         char rcvStr[Discovery::kMaxRcvStr];
         sockaddr_in clntAddr;
@@ -1144,7 +1151,9 @@ namespace gz
         {
           std::cerr << "Discovery::RecvDiscoveryUpdate() recvfrom error"
             << std::endl;
+          return false;
         }
+        return true;
       }
 
       /// \brief Parse a discovery message received via the UDP socket
@@ -1631,6 +1640,18 @@ namespace gz
           std::cerr << "Socket creation failed." << std::endl;
           return false;
         }
+
+#ifdef SO_NOSIGPIPE
+        // Fail sends with EPIPE instead of raising SIGPIPE when the OS shuts
+        // this socket down, as macOS does when it runs out of network buffers.
+        int noSigPipe = 1;
+        if (setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, &noSigPipe,
+          sizeof(noSigPipe)) != 0)
+        {
+          std::cerr << "Error setting socket option (SO_NOSIGPIPE)."
+                    << std::endl;
+        }
+#endif
 
         // Socket option: IP_MULTICAST_IF.
         // This socket option needs to be applied to each socket used to send
