@@ -962,14 +962,6 @@ bool Node::SubscribeRaw(
   this->dataPtr->shared->localSubscribers.raw.AddHandler(
         *fullyQualifiedTopic.FullTopic(), this->dataPtr->nUuid, handlerPtr);
 
-#ifdef HAVE_ZENOH
-  // Precondition: caller holds this->mutex (acquired above).
-  // Must be called under lock to prevent TOCTOU race where concurrent
-  // Subscribe() calls for the same topic could create duplicate subscribers.
-  if (impl == "zenoh")
-    this->Shared()->EnsureZenohSubscription(*fullyQualifiedTopic.FullTopic());
-#endif
-
   return this->SubscribeHelper(*fullyQualifiedTopic.FullTopic());
 }
 
@@ -1343,6 +1335,20 @@ Node::Publisher Node::Advertise(const std::string &_topic,
 /////////////////////////////////////////////////
 bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
 {
+#ifdef HAVE_ZENOH
+  // Create the centralized Zenoh subscriber here and not in the inline
+  // Subscribe templates, so applications compiled against older headers
+  // (which call SubscribeHelper but not EnsureZenohSubscription) still
+  // receive data. Every caller added its handler already; the lock
+  // prevents concurrent Subscribe() calls for the same topic from
+  // creating duplicate subscribers.
+  if (this->Shared()->GzImplementation() == "zenoh")
+  {
+    std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+    this->Shared()->EnsureZenohSubscription(_fullyQualifiedTopic);
+  }
+#endif
+
   if (!this->dataPtr->shared->SubscribeHelper(_fullyQualifiedTopic,
                                               this->dataPtr->nUuid))
   {
