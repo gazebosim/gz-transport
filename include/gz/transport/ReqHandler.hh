@@ -54,12 +54,7 @@ namespace gz::transport
 
   /// \class IReqHandler ReqHandler.hh gz/transport/ReqHandler.hh
   /// \brief Interface class used to manage a request handler.
-  /// Inherits std::enable_shared_from_this so the Zenoh reply
-  /// closures can hold a weak reference and drop late replies
-  /// harmlessly after the handler is removed from the requests
-  /// storage (handlers are always owned by shared_ptr there).
   class GZ_TRANSPORT_VISIBLE IReqHandler
-    : public std::enable_shared_from_this<IReqHandler>
   {
     /// \brief Constructor.
     /// \param[in] _nUuid UUID of the node registering the request handler.
@@ -142,7 +137,12 @@ namespace gz::transport
 #ifdef HAVE_ZENOH
     /// \brief Fire the service request through a Zenoh Querier.
     /// Asynchronous: the reply closure holds a weak reference to
-    /// this handler and notifies it, mirroring the ZeroMQ flow.
+    /// this handler and notifies it, mirroring the ZeroMQ flow. A
+    /// reply arriving after the handler was removed from the requests
+    /// storage (e.g. after Node::Request timed out) is dropped instead
+    /// of dereferencing a dead object.
+    /// \param[in] _self The shared_ptr owning this handler, as stored
+    /// in NodeShared::Requests(). Only a weak reference is kept.
     /// \param[in] _querier Persistent Querier for the service, from
     /// NodeShared::GetOrDeclareZenohQuerier.
     /// \param[in] _service The service.
@@ -152,9 +152,10 @@ namespace gz::transport
     /// requests storage, mirroring what RecvSrvResponse does for ZeroMQ.
     /// \return True if the query was fired, false otherwise (the
     /// caller should leave the handler pending so it is retried).
-    public: bool CreateZenohGet(std::shared_ptr<zenoh::Querier> _querier,
+    public: bool CreateZenohGet(const std::shared_ptr<IReqHandler> &_self,
+                                std::shared_ptr<zenoh::Querier> _querier,
                                 const std::string &_service,
-        std::function<void()> _onDone);
+                                std::function<void()> _onDone);
 #endif
 
 #ifdef _WIN32
