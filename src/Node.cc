@@ -1155,7 +1155,7 @@ bool Node::AllTopicInfo(std::vector<gz::transport::TopicInfo> &_topicInfo) const
     if (this->TopicInfoHelper(topic, info.publishers, info.subscribers))
     {
       info.topicName = topic;
-      _topicInfo.push_back(info);
+      _topicInfo.push_back(std::move(info));
     }
     else
     {
