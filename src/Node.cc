@@ -916,11 +916,18 @@ std::unordered_set<std::string> &Node::SrvsAdvertised() const
 }
 
 //////////////////////////////////////////////////
+<<<<<<< HEAD
 bool Node::TopicInfo(const std::string &_topic,
                      std::vector<MessagePublisher> &_publishers) const
 {
   this->dataPtr->shared->dataPtr->msgDiscovery->WaitForInit();
 
+=======
+bool Node::TopicInfoHelper(const std::string &_topic,
+                           std::vector<MessagePublisher> &_publishers,
+                           std::vector<MessagePublisher> &_subscribers) const
+{
+>>>>>>> 10d387f (Add Node::AllTopicInfo (#967))
   // Construct a topic name with the partition and namespace
   std::string fullyQualifiedTopic;
   if (!TopicUtils::FullyQualifiedName(this->Options().Partition(),
@@ -956,6 +963,40 @@ bool Node::TopicInfo(const std::string &_topic,
     }
   }
 
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::TopicInfo(const std::string &_topic,
+                     std::vector<MessagePublisher> &_publishers,
+                     std::vector<MessagePublisher> &_subscribers) const
+{
+  // We trigger a topic list to update the list of remote subscribers.
+  std::vector<std::string> allTopics;
+  this->dataPtr->shared->dataPtr->msgDiscovery->TopicList(allTopics);
+
+  return this->TopicInfoHelper(_topic, _publishers, _subscribers);
+}
+
+//////////////////////////////////////////////////
+bool Node::AllTopicInfo(std::vector<gz::transport::TopicInfo> &_topicInfo) const
+{
+  std::vector<std::string> allTopics;
+  this->TopicList(allTopics);
+
+  for (const auto &topic : allTopics)
+  {
+    gz::transport::TopicInfo info;
+    if (this->TopicInfoHelper(topic, info.publishers, info.subscribers))
+    {
+      info.topicName = topic;
+      _topicInfo.push_back(std::move(info));
+    }
+    else
+    {
+      return false;
+    }
+  }
   return true;
 }
 

@@ -16,6 +16,15 @@
 */
 #include <google/protobuf/text_format.h>
 
+<<<<<<< HEAD
+=======
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/vector3d.pb.h>
+
+#include <algorithm>
+#include <atomic>
+>>>>>>> 10d387f (Add Node::AllTopicInfo (#967))
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
@@ -2203,6 +2212,94 @@ TEST(NodeTest, TopicListRemap)
 }
 
 //////////////////////////////////////////////////
+<<<<<<< HEAD
+=======
+/// \brief This test creates a node that subscribes to a topic without any
+/// publisher. The test verifies that TopicList() includes topics that are
+/// only subscribed within this process.
+TEST(NodeTest, TopicListSubscriberOnly)
+{
+  std::vector<std::string> topics;
+  transport::Node node;
+
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+
+  node.TopicList(topics);
+  ASSERT_EQ(1u, topics.size());
+  EXPECT_EQ(g_topic, topics.at(0));
+
+  // After unsubscribing, the topic should not be listed anymore.
+  EXPECT_TRUE(node.Unsubscribe(g_topic));
+  topics.clear();
+  node.TopicList(topics);
+  EXPECT_TRUE(topics.empty());
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates a node that subscribes to a topic without any
+/// publisher. The test verifies that TopicInfo() includes the subscribers
+/// from this process.
+TEST(NodeTest, TopicInfoSubscriberOnly)
+{
+  transport::Node node;
+
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+
+  std::vector<transport::MessagePublisher> publishers;
+  std::vector<transport::MessagePublisher> subscribers;
+  EXPECT_TRUE(node.TopicInfo(g_topic, publishers, subscribers));
+  EXPECT_EQ(publishers.size(), 0u);
+  ASSERT_EQ(subscribers.size(), 1u);
+  EXPECT_EQ(subscribers.front().MsgTypeName(), "gz.msgs.Int32");
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates multiple nodes that publish and subscribe to
+/// different topics. The test verifies that AllTopicInfo() returns publisher
+/// and subscriber information for all the topics.
+TEST(NodeTest, AllTopicInfo)
+{
+  transport::Node node1;
+  transport::Node node2;
+  transport::Node node3;
+  transport::Node node4;
+
+  auto pub1 = node1.Advertise<msgs::Int32>("/topic1");
+  auto pub2 = node2.Advertise<msgs::Int32>("/topic2");
+  EXPECT_TRUE(node2.Subscribe("/topic1", cb));
+  EXPECT_TRUE(node3.Subscribe("/topic3", cb2));
+
+  std::vector<transport::TopicInfo> topicInfo;
+  EXPECT_TRUE(node4.AllTopicInfo(topicInfo));
+  ASSERT_EQ(topicInfo.size(), 3u);
+
+  auto findTopic = [&topicInfo](const std::string &_topicname)
+  {
+    return std::find_if(topicInfo.begin(), topicInfo.end(),
+        [&_topicname](const transport::TopicInfo &_info)
+        {
+          return _info.topicName == _topicname;
+        });
+  };
+
+  auto topic1 = findTopic("/topic1");
+  ASSERT_NE(topic1, topicInfo.end());
+  EXPECT_EQ(topic1->publishers.size(), 1u);
+  EXPECT_EQ(topic1->subscribers.size(), 1u);
+
+  auto topic2 = findTopic("/topic2");
+  ASSERT_NE(topic2, topicInfo.end());
+  EXPECT_EQ(topic2->publishers.size(), 1u);
+  EXPECT_EQ(topic2->subscribers.size(), 0u);
+
+  auto topic3 = findTopic("/topic3");
+  ASSERT_NE(topic3, topicInfo.end());
+  EXPECT_EQ(topic3->publishers.size(), 0u);
+  EXPECT_EQ(topic3->subscribers.size(), 1u);
+}
+
+//////////////////////////////////////////////////
+>>>>>>> 10d387f (Add Node::AllTopicInfo (#967))
 /// \brief This test creates two nodes and advertises some services. The test
 /// verifies that ServiceList() returns the list of all the services advertised.
 TEST(NodeTest, ServiceList)
