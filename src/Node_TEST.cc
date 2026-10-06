@@ -21,6 +21,7 @@
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <csignal>

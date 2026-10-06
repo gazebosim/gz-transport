@@ -497,7 +497,8 @@ TEST(twoProcPubSub, AllTopicInfo)
   transport::Node node;
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
-  ASSERT_TRUE(transport::waitForTopic(node, g_topic));
+  ASSERT_TRUE(transport::waitForTopic(node, g_topic,
+    std::chrono::milliseconds(5000)));
   ASSERT_TRUE(transport::waitForTopic(node, "/subscriber_only",
     std::chrono::milliseconds(5000)));
 
