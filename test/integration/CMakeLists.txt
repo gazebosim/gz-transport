@@ -3,6 +3,11 @@ set(TEST_TYPE "INTEGRATION")
 set(tests
   authPubSub.cc
   scopedTopic.cc
+<<<<<<< HEAD
+=======
+  callback_scope_TEST.cc
+  defunctSockets.cc
+>>>>>>> 41913b9 (Don't die of SIGPIPE when discovery sockets fail (#972))
   statistics.cc
   twoProcsPubSub.cc
   twoProcsSrvCall.cc
