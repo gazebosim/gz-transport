@@ -1094,7 +1094,7 @@ namespace gz
       }
 
       /// \brief Method in charge of receiving the discovery updates.
-      /// \return False if receiving from the socket failed.
+      /// \return False if receiving from the socket failed or read nothing.
       private: bool RecvDiscoveryUpdate()
       {
         char rcvStr[Discovery::kMaxRcvStr];
@@ -1147,12 +1147,23 @@ namespace gz
             this->DispatchDiscoveryMsg(srcAddr, rcvStr + sizeof(len), len);
           }
         }
-        else if (received < 0)
+        else
         {
-          std::cerr << "Discovery::RecvDiscoveryUpdate() recvfrom error"
-            << std::endl;
+          // An empty read carries no discovery frame. A socket that the OS
+          // has shut down keeps returning errors or empty reads.
+          if (!this->recvFailing)
+          {
+            std::cerr << "Discovery::RecvDiscoveryUpdate() failed ("
+                      << (received < 0 ? strerror(errno) : "empty read")
+                      << "). If the OS shut down this process's sockets "
+                      << "(macOS does this under network memory pressure), "
+                      << "discovery won't recover until the process restarts."
+                      << std::endl;
+          }
+          this->recvFailing = true;
           return false;
         }
+        this->recvFailing = false;
         return true;
       }
 
@@ -1706,6 +1717,10 @@ namespace gz
 
       /// \brief Timeout used for receiving messages (ms.).
       private: const int kTimeout = 250;
+
+      /// \brief Whether the last receive failed, so a failure streak prints
+      /// once. Only the reception thread reads and writes it.
+      private: bool recvFailing = false;
 
       /// \brief Longest string to receive.
       private: static const uint16_t kMaxRcvStr =
