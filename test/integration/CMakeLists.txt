@@ -15,6 +15,11 @@ set(tests
   twoProcsSrvCallWithoutOutputStress.cc
 )
 
+# Defunct sockets are a macOS kernel feature.
+if (APPLE)
+  list(APPEND tests defunctSockets.cc)
+endif()
+
 # Test symbols having the right name on linux only.
 if (UNIX AND NOT APPLE)
   configure_file(all_symbols_have_version.bash.in
