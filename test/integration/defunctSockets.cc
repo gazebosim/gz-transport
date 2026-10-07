@@ -15,27 +15,24 @@
  *
 */
 
-#include <gz/msgs/int32.pb.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include <chrono>
+#include <cstdlib>
 #include <ctime>
 #include <iostream>
 #include <string>
 #include <thread>
 
-#ifdef __APPLE__
-#include <sys/wait.h>
-#include <unistd.h>
-
-// Private in xnu, but exported by libsystem_kernel.
-extern "C" int pid_shutdown_sockets(int _pid, int _level);
-#endif
-
-#include <gz/utils/Environment.hh>
+#include <ignition/msgs.hh>
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
-#include "test_utils.hh"
+#include "gz/transport/test_config.h"
+
+// Private in xnu, but exported by libsystem_kernel.
+extern "C" int pid_shutdown_sockets(int _pid, int _level);
 
 using namespace gz;
 using namespace std::chrono_literals;
@@ -46,11 +43,6 @@ using namespace std::chrono_literals;
 /// spin on its dead discovery sockets.
 TEST(DefunctSockets, NodeSurvives)
 {
-  CHECK_UNSUPPORTED_IMPLEMENTATION("zenoh");
-
-#ifndef __APPLE__
-  GTEST_SKIP() << "Defunct sockets are a macOS kernel feature";
-#else
   const std::string partition = testing::getRandomNumber();
   const pid_t pid = fork();
   ASSERT_NE(-1, pid);
@@ -58,7 +50,7 @@ TEST(DefunctSockets, NodeSurvives)
   {
     // Discovery reports each failed receive; keep that out of the test log.
     std::cerr.rdbuf(nullptr);
-    gz::utils::setenv("GZ_PARTITION", partition);
+    setenv("IGN_PARTITION", partition.c_str(), 1);
     transport::Node node;
     auto pub = node.Advertise<msgs::Int32>("/defunct_sockets");
     std::this_thread::sleep_for(1s);
@@ -78,7 +70,11 @@ TEST(DefunctSockets, NodeSurvives)
   ASSERT_EQ(pid, waitpid(pid, &status, 0));
   ASSERT_FALSE(WIFSIGNALED(status)) << "Died of signal " << WTERMSIG(status);
   if (WEXITSTATUS(status) == 2)
-    GTEST_SKIP() << "pid_shutdown_sockets isn't permitted here";
+  {
+    // This googletest version predates GTEST_SKIP.
+    std::cout << "pid_shutdown_sockets isn't permitted here, skipping"
+              << std::endl;
+    return;
+  }
   EXPECT_EQ(0, WEXITSTATUS(status)) << "Used more than 0.5 s of CPU in 3 s";
-#endif
 }
