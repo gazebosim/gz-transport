@@ -83,6 +83,7 @@ integration_test_sources = [
     "authPubSub.cc",
     "scopedTopic.cc",
     "callback_scope_TEST.cc",
+    "defunctSockets.cc",
     "statistics.cc",
     "twoProcsPubSub.cc",
     "twoProcsPubSubStats.cc",
