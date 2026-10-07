@@ -1062,6 +1062,7 @@ namespace gz
       private: void RecvMessages()
       {
         bool timeToExit = false;
+        bool recvFailing = false;
         while (!timeToExit)
         {
           // Calculate the timeout.
@@ -1071,7 +1072,7 @@ namespace gz
           {
             // A failed socket stays readable (e.g. one that macOS has
             // defunct), so wait before polling it again.
-            if (!this->RecvDiscoveryUpdate())
+            if (!this->RecvDiscoveryUpdate(recvFailing))
             {
               std::this_thread::sleep_for(
                 std::chrono::milliseconds(this->kTimeout));
@@ -1094,8 +1095,10 @@ namespace gz
       }
 
       /// \brief Method in charge of receiving the discovery updates.
+      /// \param[in,out] _failing Whether the last receive failed, so that a
+      /// failure streak prints once.
       /// \return False if receiving from the socket failed or read nothing.
-      private: bool RecvDiscoveryUpdate()
+      private: bool RecvDiscoveryUpdate(bool &_failing)
       {
         char rcvStr[Discovery::kMaxRcvStr];
         sockaddr_in clntAddr;
@@ -1151,7 +1154,7 @@ namespace gz
         {
           // An empty read carries no discovery frame. A socket that the OS
           // has shut down keeps returning errors or empty reads.
-          if (!this->recvFailing)
+          if (!_failing)
           {
             std::cerr << "Discovery::RecvDiscoveryUpdate() failed ("
                       << (received < 0 ? strerror(errno) : "empty read")
@@ -1160,10 +1163,10 @@ namespace gz
                       << "discovery won't recover until the process restarts."
                       << std::endl;
           }
-          this->recvFailing = true;
+          _failing = true;
           return false;
         }
-        this->recvFailing = false;
+        _failing = false;
         return true;
       }
 
@@ -1717,10 +1720,6 @@ namespace gz
 
       /// \brief Timeout used for receiving messages (ms.).
       private: const int kTimeout = 250;
-
-      /// \brief Whether the last receive failed, so a failure streak prints
-      /// once. Only the reception thread reads and writes it.
-      private: bool recvFailing = false;
 
       /// \brief Longest string to receive.
       private: static const uint16_t kMaxRcvStr =
