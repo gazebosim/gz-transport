@@ -3,11 +3,6 @@ set(TEST_TYPE "INTEGRATION")
 set(tests
   authPubSub.cc
   scopedTopic.cc
-<<<<<<< HEAD
-=======
-  callback_scope_TEST.cc
-  defunctSockets.cc
->>>>>>> 41913b9 (Don't die of SIGPIPE when discovery sockets fail (#972))
   statistics.cc
   twoProcsPubSub.cc
   twoProcsSrvCall.cc
@@ -19,6 +14,11 @@ set(tests
   twoProcsSrvCallWithoutOutput.cc
   twoProcsSrvCallWithoutOutputStress.cc
 )
+
+# Defunct sockets are a macOS kernel feature.
+if (APPLE)
+  list(APPEND tests defunctSockets.cc)
+endif()
 
 # Test symbols having the right name on linux only.
 if (UNIX AND NOT APPLE)
