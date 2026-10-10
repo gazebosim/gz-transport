@@ -41,6 +41,7 @@
 
 #include "NodePrivate.hh"
 #include "NodeSharedPrivate.hh"
+#include "ShmHelpers.hh"
 
 using namespace gz;
 using namespace transport;
@@ -175,7 +176,11 @@ class Node::PublisherPrivate
   public: MessagePublisher publisher;
 
 #ifdef HAVE_ZENOH
-  /// \brief The zenoh publisher.
+  /// \brief The zenoh publisher. Destroyed (undeclared) with this
+  /// object: publishers run no user callbacks, so the undeclare has
+  /// nothing to wait on. The undeclare also emits the liveliness
+  /// DELETE that lets remote sessions forget this publisher
+  /// immediately.
   public: std::unique_ptr<zenoh::Publisher> zPub;
 
   /// \brief The liveliness token.
@@ -424,24 +429,47 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
 #else
   const std::size_t msgSize = static_cast<std::size_t>(_msg.ByteSize());
 #endif
-  char *msgBuffer = nullptr;
 
-  // Only serialize the message if we have a raw subscriber or a remote
-  // subscriber.
-  if (subscribers.haveRaw || subscribers.haveRemote)
+  // Get the transport implementation once for use throughout.
+  std::string impl = this->dataPtr->shared->GzImplementation();
+
+  // Serialized data source — points into either the SHM buffer (zero-copy)
+  // or a heap buffer (fallback). Both paths below set this so that local/raw
+  // subscriber handling can use a single code path.
+  std::unique_ptr<char[]> msgBuffer;
+  const char *serializedData = nullptr;
+
+#ifdef HAVE_ZENOH
+  // Direct-to-SHM serialization: allocate a SHM buffer and serialize into
+  // it, skipping the intermediate heap buffer entirely. This eliminates
+  // one malloc + one memcpy compared to the heap path. Only attempted when
+  // the message actually leaves through Zenoh (remote subscribers);
+  // local/raw-only publications serialize to heap.
+  ShmChunk shmChunk;
+  if (impl == "zenoh" && subscribers.haveRemote)
   {
-    // Allocate the buffer to store the serialized data.
-    msgBuffer = static_cast<char *>(new char[msgSize]);
+    shmChunk = allocShmChunk(
+      this->dataPtr->shared->dataPtr->zenohShm, msgSize);
+    if (shmChunk && _msg.SerializeToArray(shmChunk.Data(), msgSize))
+      serializedData = reinterpret_cast<const char *>(shmChunk.Data());
+    else
+      shmChunk = ShmChunk();
+  }
+#endif
 
-    // Fail out early if we are unable to serialize the message. We do not
-    // want to send a corrupt/bad message to some subscribers and not others.
-    if (!_msg.SerializeToArray(msgBuffer, msgSize))
+  // Heap fallback: SHM not available, disabled, or not using zenoh.
+  if (!serializedData && (subscribers.haveRaw || subscribers.haveRemote))
+  {
+    // Note: default-initialized on purpose; make_unique would zero the
+    // buffer before it is overwritten by the serializer.
+    msgBuffer.reset(new char[msgSize]);
+    if (!_msg.SerializeToArray(msgBuffer.get(), msgSize))
     {
-      delete[] msgBuffer;
       std::cerr << "Node::Publisher::Publish(): Error serializing data"
                 << std::endl;
       return false;
     }
+    serializedData = msgBuffer.get();
   }
 
   // Local and raw subscribers.
@@ -511,9 +539,8 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
           if (!pubMsgDetails->sharedBuffer)
           {
             pubMsgDetails->msgSize = msgSize;
-            // If the sharedBuffer has not been created, do so now.
             pubMsgDetails->sharedBuffer.reset(new char[msgSize]);
-            memcpy(pubMsgDetails->sharedBuffer.get(), msgBuffer, msgSize);
+            memcpy(pubMsgDetails->sharedBuffer.get(), serializedData, msgSize);
           }
           pubMsgDetails->rawHandlers.push_back(rawHandler);
         }
@@ -533,7 +560,6 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   }
 
   // Handle remote subscribers.
-  std::string impl = this->dataPtr->shared->GzImplementation();
   if (impl == "zeromq")
   {
     if (subscribers.haveRemote)
@@ -545,15 +571,13 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
         delete[] reinterpret_cast<char*>(_buffer);
       };
 
+      // Ownership of the buffer passes to ZeroMQ via the deallocator.
       if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
-            msgBuffer, msgSize, myDeallocator, std::string(_msg.GetTypeName())))
+            msgBuffer.release(), msgSize, myDeallocator,
+            std::string(_msg.GetTypeName())))
       {
         return false;
       }
-    }
-    else
-    {
-      delete[] msgBuffer;
     }
   }
 #ifdef HAVE_ZENOH
@@ -562,14 +586,23 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     if (subscribers.haveRemote)
     {
       zenoh::Publisher::PutOptions options;
-      // Add message type as an attachment.
       options.attachment = this->dataPtr->publisher.MsgTypeName();
-
-      // Zenoh will call this lambda once Bytes objects are destroyed
-      auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-      auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
-      this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
-                               std::move(options));
+      if (shmChunk)
+      {
+        // Data was serialized directly into SHM — publish with no extra copy.
+        this->dataPtr->zPub->put(shmChunk.TakeBytes(), std::move(options));
+      }
+      else
+      {
+        // Heap publish. The SHM attempt already happened during
+        // serialization above, so there is no point retrying it here.
+        // Ownership of the buffer passes to Zenoh via the deleter.
+        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+        this->dataPtr->zPub->put(
+          zenoh::Bytes(reinterpret_cast<uint8_t *>(msgBuffer.release()),
+                       msgSize, deleter),
+          std::move(options));
+      }
     }
   }
 #endif
@@ -618,19 +651,18 @@ bool Node::Publisher::PublishRaw(
   // serialized, so we just pass it along for publication.
   if (subscribers.haveRemote)
   {
-    const std::size_t msgSize = _msgData.size();
-    char *msgBuffer = static_cast<char *>(new char[msgSize]);
-    memcpy(msgBuffer, _msgData.c_str(), msgSize);
-
     std::string impl = this->dataPtr->shared->GzImplementation();
     if (impl == "zeromq")
     {
+      const std::size_t msgSize = _msgData.size();
+      char *msgBuffer = static_cast<char *>(new char[msgSize]);
+      memcpy(msgBuffer, _msgData.c_str(), msgSize);
+
       auto myDeallocator = [](void *_buffer, void * /*_hint*/)
       {
         delete[] reinterpret_cast<char*>(_buffer);
       };
 
-      // Note: This will copy _msgData (i.e. not zero copy)
       if (!this->dataPtr->shared->Publish(
             this->dataPtr->publisher.Topic(),
             msgBuffer, msgSize, myDeallocator, _msgType))
@@ -642,14 +674,8 @@ bool Node::Publisher::PublishRaw(
     else if (impl == "zenoh")
     {
       zenoh::Publisher::PutOptions options;
-      // Add message type as an attachment.
       options.attachment = this->dataPtr->publisher.MsgTypeName();
-
-      // Zenoh will call this lambda once Bytes objects are destroyed
-      auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-      auto zMsgBuffer = reinterpret_cast<uint8_t *>(msgBuffer);
-      this->dataPtr->zPub->put(zenoh::Bytes(zMsgBuffer, msgSize, deleter),
-                               std::move(options));
+      this->dataPtr->zPub->put(_msgData, std::move(options));
     }
 #endif
     else
@@ -1278,8 +1304,16 @@ Node::Publisher Node::Advertise(const std::string &_topic,
 #ifdef HAVE_ZENOH
   else if (impl == "zenoh")
   {
+    // Subscribers in this process are served directly by Publish(): the
+    // transport must only deliver to other sessions, otherwise every
+    // local subscriber would get each message twice (once from Publish()
+    // and once looped back by Zenoh) and SubscribeOptions::
+    // IgnoreLocalMessages() could not be honored.
+    zenoh::Session::PublisherOptions pubOpts =
+      zenoh::Session::PublisherOptions::create_default();
+    pubOpts.allowed_destination = zenoh::Locality::Z_LOCALITY_REMOTE;
     auto zPub = this->Shared()->dataPtr->session->declare_publisher(
-     zenoh::KeyExpr(fullyQualifiedTopic));
+      zenoh::KeyExpr(fullyQualifiedTopic), std::move(pubOpts));
 
     std::string token = TopicUtils::CreateLivelinessToken(
       fullyQualifiedTopic, this->Shared()->pUuid, this->NodeUuid(), "MP",
@@ -1301,6 +1335,20 @@ Node::Publisher Node::Advertise(const std::string &_topic,
 /////////////////////////////////////////////////
 bool Node::SubscribeHelper(const std::string &_fullyQualifiedTopic)
 {
+#ifdef HAVE_ZENOH
+  // Create the centralized Zenoh subscriber here and not in the inline
+  // Subscribe templates, so applications compiled against older headers
+  // (which call SubscribeHelper but not EnsureZenohSubscription) still
+  // receive data. Every caller added its handler already; the lock
+  // prevents concurrent Subscribe() calls for the same topic from
+  // creating duplicate subscribers.
+  if (this->Shared()->GzImplementation() == "zenoh")
+  {
+    std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+    this->Shared()->EnsureZenohSubscription(_fullyQualifiedTopic);
+  }
+#endif
+
   if (!this->dataPtr->shared->SubscribeHelper(_fullyQualifiedTopic,
                                               this->dataPtr->nUuid))
   {
