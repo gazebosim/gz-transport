@@ -1049,7 +1049,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
           std::lock_guard<std::recursive_mutex> requestsLock(this->mutex);
           this->dataPtr->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
         };
-        if (req.second->CreateZenohGet(
+        if (req.second->CreateZenohGet(req.second,
               this->GetOrDeclareZenohQuerier(_topic), _topic, onDone))
         {
           req.second->Requested(true);
