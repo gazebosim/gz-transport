@@ -90,7 +90,26 @@ namespace ignition::transport
   /// \brief A class that allows a client to communicate with other peers.
   /// There are two main communication modes: pub/sub messages and service
   /// calls.
+<<<<<<< HEAD
   class IGNITION_TRANSPORT_VISIBLE Node
+=======
+
+  /// \brief Information about a topic, including its name, publishers and
+  /// subscribers.
+  struct GZ_TRANSPORT_VISIBLE TopicInfo
+  {
+    /// \brief Topic name.
+    public: std::string topicName;
+
+    /// \brief Publishers advertising this topic.
+    public: std::vector<MessagePublisher> publishers;
+
+    /// \brief Subscribers subscribed to this topic.
+    public: std::vector<MessagePublisher> subscribers;
+  };
+
+  class GZ_TRANSPORT_VISIBLE Node
+>>>>>>> 10d387f (Add Node::AllTopicInfo (#967))
   {
     class PublisherPrivate;
 
@@ -754,6 +773,12 @@ namespace ignition::transport
     public: bool TopicInfo(const std::string &_topic,
                            std::vector<MessagePublisher> &_publishers) const;
 
+    /// \brief Get the information about all topics.
+    /// \param[out] _topics List of advertised topics.
+    /// \return False if unable to get topic info.
+    public: bool AllTopicInfo(
+                std::vector<gz::transport::TopicInfo> &_topics) const;
+
     /// \brief Get the list of topics currently advertised in the network.
     /// Note that this function can block for some time if the
     /// discovery is in its initialization phase.
@@ -834,6 +859,115 @@ namespace ignition::transport
     /// \return True on success.
     private: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
 
+<<<<<<< HEAD
+=======
+    /// \brief Helper function for TopicInfo and AllTopicInfo.
+    /// \param[in] _topic Topic name to get information about.
+    /// \param[out] _publishers List of publishers on the topic.
+    /// \param[out] _subscribers List of subscribers on the topic.
+    /// \return False if unable to get topic info.
+    private: bool TopicInfoHelper(const std::string &_topic,
+                std::vector<MessagePublisher> &_publishers,
+                std::vector<MessagePublisher> &_subscribers) const;
+
+    /// \brief Subscribe to a topic registering a callback.
+    /// Note that this callback does not include any message information.
+    /// In this version the callback is a free function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Pointer to the callback function with the
+    /// following parameters:
+    ///   * _msg Protobuf message containing a new topic update.
+    /// \param[in] _opts Subscription options.
+    /// \return true when successfully subscribed or false otherwise.
+    private: template<typename MessageT>
+    std::shared_ptr<SubscriptionHandler<MessageT>> SubscribeImpl(
+        const std::string &_topic,
+        void(*_callback)(const MessageT &_msg),
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+    /// \brief Subscribe to a topic registering a callback.
+    /// Note that this callback does not include any message information.
+    /// In this version the callback is a lambda function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Lambda function with the following parameters:
+    ///   * _msg Protobuf message containing a new topic update.
+    /// \param[in] _opts Subscription options.
+    /// \return true when successfully subscribed or false otherwise.
+    private: template<typename MessageT>
+    std::shared_ptr<SubscriptionHandler<MessageT>> SubscribeImpl(
+        const std::string &_topic,
+        std::function<void(const MessageT &_msg)> _callback,
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+    /// \brief Subscribe to a topic registering a callback.
+    /// Note that this callback does not include any message information.
+    /// In this version the callback is a member function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Pointer to the callback function with the
+    /// following parameters:
+    ///   * _msg Protobuf message containing a new topic update.
+    /// \param[in] _obj Instance containing the member function.
+    /// \param[in] _opts Subscription options.
+    /// \return true when successfully subscribed or false otherwise.
+    private: template<typename ClassT, typename MessageT>
+    std::shared_ptr<SubscriptionHandler<MessageT>> SubscribeImpl(
+        const std::string &_topic,
+        void(ClassT::*_callback)(const MessageT &_msg),
+        ClassT *_obj,
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+    /// \brief Subscribe to a topic registering a callback.
+    /// Note that this callback includes message information.
+    /// In this version the callback is a free function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Pointer to the callback function with the
+    /// following parameters:
+    ///   * _msg Protobuf message containing a new topic update.
+    ///   * _info Message information (e.g.: topic name).
+    /// \param[in] _opts Subscription options.
+    /// \return true when successfully subscribed or false otherwise.
+    private: template<typename MessageT>
+    std::shared_ptr<SubscriptionHandler<MessageT>> SubscribeImpl(
+        const std::string &_topic,
+        void(*_callback)(const MessageT &_msg, const MessageInfo &_info),
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+    /// \brief Subscribe to a topic registering a callback.
+    /// Note that this callback includes message information.
+    /// In this version the callback is a lambda function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Lambda function with the following parameters:
+    ///   * _msg Protobuf message containing a new topic update.
+    ///   * _info Message information (e.g.: topic name).
+    /// \param[in] _opts Subscription options.
+    /// \return true when successfully subscribed or false otherwise.
+    private: template<typename MessageT>
+    std::shared_ptr<SubscriptionHandler<MessageT>> SubscribeImpl(
+        const std::string &_topic,
+        std::function<void(const MessageT &_msg,
+                           const MessageInfo &_info)> _callback,
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+    /// \brief Subscribe to a topic registering a callback.
+    /// Note that this callback includes message information.
+    /// In this version the callback is a member function.
+    /// \param[in] _topic Topic to be subscribed.
+    /// \param[in] _callback Pointer to the callback function with the
+    /// following parameters:
+    ///   * _msg Protobuf message containing a new topic update.
+    ///   * _info Message information (e.g.: topic name).
+    /// \param[in] _obj Instance containing the member function.
+    /// \param[in] _opts Subscription options.
+    /// \return true when successfully subscribed or false otherwise.
+    private: template<typename ClassT, typename MessageT>
+    std::shared_ptr<SubscriptionHandler<MessageT>> SubscribeImpl(
+        const std::string &_topic,
+        void(ClassT::*_callback)(const MessageT &_msg,
+                                 const MessageInfo &_info),
+        ClassT *_obj,
+        const SubscribeOptions &_opts = SubscribeOptions());
+
+>>>>>>> 10d387f (Add Node::AllTopicInfo (#967))
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::unique_ptr
