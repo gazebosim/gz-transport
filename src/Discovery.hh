@@ -64,6 +64,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>  // NOLINT(build/include_order)
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -263,6 +264,19 @@ namespace gz
       /// \brief Destructor.
       public: virtual ~Discovery()
       {
+#ifdef HAVE_ZENOH
+        // Close the gate before dropping the liveliness subscriber: this
+        // waits for a callback already running and makes any later
+        // sample return without touching this object. zenoh-c before
+        // 1.8.0 undeclares a subscriber without waiting for callbacks in
+        // flight, and even 1.8.0 only waits inside the undeclare itself.
+        {
+          std::lock_guard<std::shared_mutex> lock(this->callbackGate->mutex);
+          this->callbackGate->open = false;
+        }
+        this->livelinessSubscriber.reset();
+#endif
+
         // Tell the service thread to terminate.
         this->exitMutex.lock();
         this->exit = true;
@@ -467,10 +481,22 @@ namespace gz
         zenoh::Session::LivelinessSubscriberOptions opts;
         opts.history = true;
 
+        // The closure Zenoh owns shares the gate with this object, so a
+        // sample dispatched while or after the destructor runs is
+        // dropped instead of calling into freed memory.
+        auto gate = this->callbackGate;
+        auto guardedCb = [gate, cb = std::move(_cb)](const zenoh::Sample &_s)
+        {
+          std::shared_lock<std::shared_mutex> lock(gate->mutex);
+          if (gate->open)
+            cb(_s);
+        };
+
         // Notice the Zenoh hermetic namespace starting with @.
         this->livelinessSubscriber = std::make_unique<zenoh::Subscriber<void>>(
           _session->liveliness_declare_subscriber(
-            "@gz/**", _cb, zenoh::closures::none, std::move(opts)));
+            "@gz/**", std::move(guardedCb), zenoh::closures::none,
+            std::move(opts)));
 
         this->initialized = true;
         this->useZenoh = true;
@@ -1770,6 +1796,25 @@ namespace gz
 #ifdef HAVE_ZENOH
       /// \brief The liveliness subscriber.
       private: std::unique_ptr<zenoh::Subscriber<void>> livelinessSubscriber;
+
+      /// \brief Guards the liveliness callback against the destruction
+      /// of this object. Shared with the closure Zenoh owns, so it
+      /// outlives the Discovery. Do not destroy a Discovery from inside
+      /// its own liveliness callback: the destructor would wait for that
+      /// callback to return.
+      private: struct CallbackGate
+      {
+        /// \brief Held shared by callbacks and exclusively by the
+        /// destructor.
+        std::shared_mutex mutex;
+
+        /// \brief False once the destructor has run.
+        bool open{true};
+      };
+
+      /// \brief The gate shared with the liveliness closure.
+      private: std::shared_ptr<CallbackGate> callbackGate =
+        std::make_shared<CallbackGate>();
 #endif
 
       /// \brief ToDo: Find a better way.
