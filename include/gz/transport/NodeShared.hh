@@ -618,11 +618,6 @@ namespace gz::transport
 #endif
     private: friend Node;
     private: friend NodePrivate;
-
-    /// \brief The service handlers reach the per-process Zenoh shared
-    /// memory state in NodeSharedPrivate.
-    private: friend IRepHandler;
-    private: friend IReqHandler;
   };
   }
 }

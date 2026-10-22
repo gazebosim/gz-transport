@@ -204,8 +204,11 @@ namespace gz::transport
       std::shared_ptr<zenoh::Session> _session,
       const FullyQualifiedTopic &_fullyQualifiedTopic);
 
-    /// \brief Deprecated. Use CreateLivelinessToken instead.
-    public: GZ_DEPRECATED(16) void CreateGenericZenohSubscriber(
+    /// \brief Kept for ABI compatibility. Use CreateLivelinessToken
+    /// instead.
+    /// \param[in] _session Zenoh session.
+    /// \param[in] _fullyQualifiedTopic The fully qualified topic.
+    public: void CreateGenericZenohSubscriber(
       std::shared_ptr<zenoh::Session> _session,
       const FullyQualifiedTopic &_fullyQualifiedTopic);
 #endif
