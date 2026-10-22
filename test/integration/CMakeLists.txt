@@ -22,6 +22,7 @@ if (HAVE_ZENOH)
   list(APPEND tests
     zenohPublisherLeak.cc
     zenohShutdownStress.cc
+    zenohSrvCallEmptyReply.cc
     zenohTeardownFromCallback.cc)
 endif()
 
@@ -69,6 +70,7 @@ if (HAVE_ZENOH)
   list(APPEND auxiliary_files
     zenohPublisherLeak_aux
     zenohShutdown_aux
+    zenohSrvCallEmptyReply_aux
     zenohTeardownFromCallback_aux)
 endif()
 

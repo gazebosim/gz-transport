@@ -38,5 +38,6 @@ if (HAVE_ZENOH)
   target_compile_definitions(test_config INTERFACE
     "ZENOH_PUBLISHER_LEAK_AUX_EXE=\"$<TARGET_FILE:zenohPublisherLeak_aux>\""
     "ZENOH_SHUTDOWN_AUX_EXE=\"$<TARGET_FILE:zenohShutdown_aux>\""
+    "ZENOH_SRV_CALL_EMPTY_REPLY_AUX_EXE=\"$<TARGET_FILE:zenohSrvCallEmptyReply_aux>\""
     "ZENOH_TEARDOWN_FROM_CALLBACK_AUX_EXE=\"$<TARGET_FILE:zenohTeardownFromCallback_aux>\"")
 endif()

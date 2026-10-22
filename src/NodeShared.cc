@@ -169,18 +169,12 @@ namespace
 //////////////////////////////////////////////////
 /// \brief Fire a service request through a Zenoh Querier.
 /// Asynchronous: the reply closure notifies the handler, mirroring the
-/// ZeroMQ flow. Like the queryable in IRepHandler::CreateZenohQueriable,
-/// the closure never keeps a reference to the handler. It resolves it
-/// through the requests storage, keyed by the same service, node UUID and
-/// handler UUID. A reply arriving after the handler was removed from the
-/// storage (e.g. after Node::Request timed out) finds nothing and is
-/// dropped, and a reply arriving while the handler is alive keeps it alive
-/// while it is notified.
-/// \param[in] _shared NodeShared instance owning the requests storage.
-/// NodeShared is never destroyed (see NodeShared::Instance()), so the
-/// closure can capture it.
-/// \param[in] _handler The request handler, as stored in the requests
-/// storage. No reference to it is kept.
+/// ZeroMQ flow. The closure holds a weak_ptr to the handler, so a reply
+/// is delivered while somebody still owns the handler (the requests
+/// storage, or a synchronous Node::Request waiting on it, which also
+/// covers requests with an Empty reply that leave the storage as soon as
+/// they are sent), and dropped once nobody does.
+/// \param[in] _handler The request handler. Only a weak_ptr is kept.
 /// \param[in] _querier Persistent Querier for the service, from
 /// NodeShared::GetOrDeclareZenohQuerier.
 /// \param[in] _service The service.
@@ -189,8 +183,7 @@ namespace
 /// expired.
 /// \return True if the query was fired, false otherwise (the caller
 /// should leave the handler pending so it is retried).
-bool zenohGet(NodeShared *_shared,
-              const std::shared_ptr<IReqHandler> &_handler,
+bool zenohGet(const std::shared_ptr<IReqHandler> &_handler,
               const std::shared_ptr<zenoh::Querier> &_querier,
               const std::string &_service,
               std::function<void()> _onDone)
@@ -204,17 +197,12 @@ bool zenohGet(NodeShared *_shared,
 
   // Capture everything BY VALUE: the closure can fire on a Zenoh worker
   // thread long after this stack frame has returned.
-  const std::string nUuid = _handler->NodeUuid();
-  const std::string hUuid = _handler->HandlerUuid();
-  auto onReply =
-    [_shared, nUuid, hUuid, _service](const zenoh::Reply &_reply)
+  std::weak_ptr<IReqHandler> weakHandler = _handler;
+  auto onReply = [weakHandler, _service](const zenoh::Reply &_reply)
   {
-    std::shared_ptr<IReqHandler> handler;
-    {
-      std::lock_guard<std::recursive_mutex> lk(_shared->mutex);
-      if (!_shared->Requests().Handler(_service, nUuid, hUuid, handler))
-        return;
-    }
+    auto handler = weakHandler.lock();
+    if (!handler)
+      return;
 
     if (_reply.is_ok())
     {
@@ -1325,7 +1313,7 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
           std::lock_guard<std::recursive_mutex> requestsLock(this->mutex);
           this->dataPtr->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
         };
-        if (zenohGet(this, req.second,
+        if (zenohGet(req.second,
               this->GetOrDeclareZenohQuerier(_topic), _topic, onDone))
         {
           req.second->Requested(true);

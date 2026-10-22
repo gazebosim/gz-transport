@@ -66,6 +66,7 @@ test_executables = [
     "twoProcsSrvCallWithoutOutputReplierInc_aux",
     "zenohPublisherLeak_aux",
     "zenohShutdown_aux",
+    "zenohSrvCallEmptyReply_aux",
     "zenohTeardownFromCallback_aux",
 ]
 
@@ -100,6 +101,7 @@ integration_test_sources = [
     "twoProcsSrvCallWithoutOutputStress.cc",
     "zenohPublisherLeak.cc",
     "zenohShutdownStress.cc",
+    "zenohSrvCallEmptyReply.cc",
     "zenohTeardownFromCallback.cc",
 ]
 
@@ -135,6 +137,7 @@ flaky_test_srcs = [
         'TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE=\\"./test/twoProcsSrvCallWithoutOutputReplierInc_aux\\"',
         'ZENOH_PUBLISHER_LEAK_AUX_EXE=\\"./test/zenohPublisherLeak_aux\\"',
         'ZENOH_SHUTDOWN_AUX_EXE=\\"./test/zenohShutdown_aux\\"',
+        'ZENOH_SRV_CALL_EMPTY_REPLY_AUX_EXE=\\"./test/zenohSrvCallEmptyReply_aux\\"',
         'ZENOH_TEARDOWN_FROM_CALLBACK_AUX_EXE=\\"./test/zenohTeardownFromCallback_aux\\"',
     ],
     env = {
