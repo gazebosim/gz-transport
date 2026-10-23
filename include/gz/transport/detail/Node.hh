@@ -297,48 +297,54 @@ namespace gz::transport
         this->NodeUuid()));
 
     // Insert the callback into the handler.
+    repHandlerPtr->SetCallback(_cb);
+
     std::string impl = this->Shared()->GzImplementation();
-    if (impl == "zeromq")
-      repHandlerPtr->SetCallback(_cb);
-#ifdef HAVE_ZENOH
-    else if (impl == "zenoh")
     {
-      repHandlerPtr->SetCallback(_cb,
+      std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
+
+      // Add the topic to the list of advertised services.
+      this->SrvsAdvertised().insert(fullyQualifiedTopic);
+
+      // Store the replier handler. Each replier handler is
+      // associated with a topic. When the receiving thread gets new
+      // requests, it will recover the replier handler associated to the
+      // topic and will invoke the service call.
+      this->Shared()->Repliers().AddHandler(
+        fullyQualifiedTopic, this->NodeUuid(), repHandlerPtr);
+
+      if (impl == "zeromq")
+      {
+        // Notify the discovery service to register and advertise my
+        // responser.
+        ServicePublisher publisher(fullyQualifiedTopic,
+          this->Shared()->ReplierAddress(),
+          this->Shared()->replierId.ToString(),
+          this->Shared()->pUuid, this->NodeUuid(),
+          std::string(RequestT().GetTypeName()),
+          std::string(ReplyT().GetTypeName()), _options);
+
+        if (!this->Shared()->AdvertisePublisher(publisher))
+        {
+          std::cerr << "Node::Advertise(): Error advertising service ["
+                    << topic
+                    << "]. Did you forget to start the discovery service?"
+                    << std::endl;
+          return false;
+        }
+      }
+    }
+
+#ifdef HAVE_ZENOH
+    // Create the queriable and advertise the service only now that the
+    // handler is stored: the queriable looks the handler up there, so a
+    // query arriving earlier would be dropped.
+    if (impl == "zenoh")
+    {
+      repHandlerPtr->CreateZenohQueriable(
         this->Shared()->Session(), fullyQualifiedTopic);
     }
 #endif
-
-    std::lock_guard<std::recursive_mutex> lk(this->Shared()->mutex);
-
-    // Add the topic to the list of advertised services.
-    this->SrvsAdvertised().insert(fullyQualifiedTopic);
-
-    // Store the replier handler. Each replier handler is
-    // associated with a topic. When the receiving thread gets new requests,
-    // it will recover the replier handler associated to the topic and
-    // will invoke the service call.
-    this->Shared()->Repliers().AddHandler(
-      fullyQualifiedTopic, this->NodeUuid(), repHandlerPtr);
-
-    if (impl == "zeromq")
-    {
-      // Notify the discovery service to register and advertise my responser.
-      ServicePublisher publisher(fullyQualifiedTopic,
-        this->Shared()->ReplierAddress(),
-        this->Shared()->replierId.ToString(),
-        this->Shared()->pUuid, this->NodeUuid(),
-        std::string(RequestT().GetTypeName()),
-        std::string(ReplyT().GetTypeName()), _options);
-
-      if (!this->Shared()->AdvertisePublisher(publisher))
-      {
-        std::cerr << "Node::Advertise(): Error advertising service ["
-                  << topic
-                  << "]. Did you forget to start the discovery service?"
-                  << std::endl;
-        return false;
-      }
-    }
 
     return true;
   }
@@ -655,6 +661,16 @@ namespace gz::transport
 
     // Wait until the REP is available.
     bool executed = reqHandlerPtr->WaitUntil(lk, _timeout);
+
+    // This request is finished (answered or timed out): remove the
+    // handler from the requests storage. After a reply this is a no
+    // op on both paths (RecvSrvResponse and the Zenoh query completion
+    // already removed it); it matters when the user timeout expires
+    // first. A late reply is simply dropped: on Zenoh the weak_ptr in
+    // the reply closure is expired by then.
+    this->Shared()->Requests().RemoveHandler(
+      fullyQualifiedTopic, this->NodeUuid(),
+      reqHandlerPtr->HandlerUuid());
 
     // The request was not executed.
     if (!executed)

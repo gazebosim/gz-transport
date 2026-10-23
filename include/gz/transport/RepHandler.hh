@@ -98,12 +98,19 @@ namespace gz::transport
     public: virtual std::string RepTypeName() const = 0;
 
 #ifdef HAVE_ZENOH
-    /// \brief Create a Zenoh queriable.
+    /// \brief Create a Zenoh queriable and the liveliness token that
+    /// advertises the service. The queriable resolves this handler
+    /// through the repliers storage, so it must be called once the handler
+    /// is stored there.
     /// \param[in] _session Zenoh session.
     /// \param[in] _service The service.
     protected: void CreateZenohQueriable(
       std::shared_ptr<zenoh::Session> _session,
       const std::string &_service);
+
+    /// \brief Node::Advertise creates the queriable after storing the
+    /// handler.
+    private: friend class Node;
 #endif
 
 #ifdef _WIN32
@@ -152,6 +159,9 @@ namespace gz::transport
     ///   successful or false otherwise.
     /// \param[in] _session The Zenoh session.
     /// \param[in] _service The service name.
+    /// \note Node::Advertise no longer uses this overload: it creates the
+    /// queriable only after storing the handler, so a query never arrives
+    /// before the handler can be found.
     public: void SetCallback(
       const std::function<bool(const Req &, Rep &)> &_cb,
       std::shared_ptr<zenoh::Session> _session,

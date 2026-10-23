@@ -20,11 +20,14 @@
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "gz/transport/Node.hh"
+#include "gz/transport/NodeShared.hh"
+#include "gz/transport/ReqHandler.hh"
 #include "gz/transport/TopicUtils.hh"
 
 #include <gz/utils/Environment.hh>
@@ -106,6 +109,23 @@ TEST_F(twoProcSrvCall, SrvTwoProcs)
   // Check that the service call response was executed.
   EXPECT_TRUE(responseExecuted);
   EXPECT_EQ(counter, 1);
+
+  // Both asynchronous requests were answered, so their handlers must
+  // leave the requests storage. Regression: on the Zenoh path they used
+  // to stay there for the lifetime of the process.
+  std::string fullyQualifiedTopic;
+  ASSERT_TRUE(transport::TopicUtils::FullyQualifiedName(
+    node.Options().Partition(), node.Options().NameSpace(), g_topic,
+    fullyQualifiedTopic));
+  auto pendingRequests = [&fullyQualifiedTopic]()
+  {
+    std::map<std::string,
+      std::map<std::string, std::shared_ptr<transport::IReqHandler>>> reqs;
+    return transport::NodeShared::Instance()->Requests().Handlers(
+      fullyQualifiedTopic, reqs);
+  };
+  transport::waitUntil([&]{ return !pendingRequests(); });
+  EXPECT_FALSE(pendingRequests());
 
   reset();
 }
