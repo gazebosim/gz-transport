@@ -21,6 +21,7 @@ from gz.transport import transport_implementation
 import os
 import random
 import subprocess
+import threading
 import unittest
 
 # Set a unique partition for this test process to avoid conflicts
@@ -56,6 +57,40 @@ class RequesterTEST(unittest.TestCase):
         )
         self.assertTrue(result)
         self.assertEqual(response.data, self.request.data)
+
+    # Checks that the node is able to create a service request while it
+    # receives messages from another process. The responses and the
+    # subscription callbacks are handled by the same transport thread, and the
+    # callbacks need the GIL, so the request must not hold it while waiting.
+    def test_request_while_receiving_messages(self):
+        # Publishes on /bar every millisecond, so that messages keep reaching
+        # this process through the transport reception thread.
+        publisher_process = subprocess.Popen([
+            f"{os.getenv('CMAKE_BINARY_DIR')}/fastPubLoop_aux",
+            gz_partition, '30'])
+        received = []
+        receiving = threading.Event()
+
+        def callback(msg):
+            received.append(msg)
+            if len(received) >= 100:
+                receiving.set()
+
+        try:
+            self.assertTrue(self.node.subscribe(Int32, '/bar', callback))
+            # Wait until messages arrive steadily.
+            self.assertTrue(receiving.wait(10))
+            for _ in range(10):
+                result, response = self.node.request(
+                    self.service_name, self.request, Int32, Int32,
+                    self.timeout
+                )
+                self.assertTrue(result)
+                self.assertEqual(response.data, self.request.data)
+        finally:
+            self.node.unsubscribe('/bar')
+            publisher_process.kill()
+            publisher_process.wait()
 
     # Checks that the node is unable to create a service request if the types
     # of the request and response are wrong.

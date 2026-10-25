@@ -225,8 +225,14 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
           {
             bool result{false};
             std::string _response;
-            result = _node.RequestRaw(_service, _request, _reqType,
-                            _repType, _timeout, _response, result);
+            {
+              // The response is received by the same thread that runs the
+              // subscription callbacks, which need the GIL. Holding it while
+              // waiting would delay the response until the request timed out.
+              py::gil_scoped_release release;
+              result = _node.RequestRaw(_service, _request, _reqType,
+                              _repType, _timeout, _response, result);
+            }
             return py::make_tuple(result, py::bytes(_response.c_str(), _response.size()));
           },
           py::arg("topic"),
