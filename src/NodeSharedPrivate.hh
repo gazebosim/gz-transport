@@ -402,7 +402,8 @@ namespace gz::transport
 
     /// \brief Encapsulates information needed to publish a message. An
     /// instance of this class is pushed onto a publish queue, pubQueue, when
-    /// a message is published through Node::Publisher::Publish.
+    /// a message is published through Node::Publisher::Publish or
+    /// Node::Publisher::PublishInPlace.
     /// The pubThread processes the pubQueue in the
     /// NodeSharedPrivate::PublishThread function.
     ///
@@ -420,8 +421,9 @@ namespace gz::transport
               /// \brief Buffer for the raw handlers.
               public: std::unique_ptr<char[]> sharedBuffer = nullptr;
 
-              /// \brief Msg copy for the local handlers.
-              public: std::unique_ptr<ProtoMsg> msgCopy = nullptr;
+              /// \brief Msg copy for the local handlers. Null when there are
+              /// none (Node::Publisher::PublishInPlace with raw handlers only).
+              public: std::shared_ptr<ProtoMsg> msgCopy = nullptr;
 
               /// \brief Message size.
               // cppcheck-suppress unusedStructMember
