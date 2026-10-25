@@ -87,7 +87,12 @@ Below are descriptions of the available environment variables:
       shared memory, smaller ones through the regular transport. gz-transport
       serializes messages at or above the threshold directly into the pool.
     When the pool is exhausted or shared memory is unavailable, delivery
-    falls back to the network path automatically.
+    falls back to the network path automatically, and gz-transport prints
+    a warning once. The pool has to fit in the locked-memory limit
+    (`ulimit -l`, often 8 MiB by default, below the 48 MiB pool) and in
+    `/dev/shm` (64 MB by default in Docker; raise it with `--shm-size`, and
+    the limit with `--ulimit memlock=-1`). Otherwise Zenoh cannot create the
+    pool at all, and the network path can be slower than ZeroMQ.
     * *Available in backend:*: zenoh
 * **GZ_TRANSPORT_LOG_SQL_PATH**
     * *Value allowed*: Any path
