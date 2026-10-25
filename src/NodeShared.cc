@@ -1806,7 +1806,7 @@ void NodeSharedPrivate::PublishThread()
       }
       catch (...)
       {
-        if (std::string str;
+        if (std::string str; msgDetails->msgCopy &&
             google::protobuf::TextFormat::PrintToString(
               *(msgDetails->msgCopy), &str))
         {
