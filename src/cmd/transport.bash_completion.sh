@@ -55,6 +55,8 @@ GZ_SERVICE_COMPLETION_LIST="
   --reqtype
   --reptype
   --timeout
+  --oneway
+  --verbose
   -l --list
   -i --info
   -r --req

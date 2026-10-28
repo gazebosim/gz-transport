@@ -59,6 +59,7 @@ namespace gz::transport
   /// \class IRepHandler RepHandler.hh gz/transport/RepHandler.hh
   /// \brief Interface class used to manage a replier handler.
   class GZ_TRANSPORT_VISIBLE IRepHandler
+    : public std::enable_shared_from_this<IRepHandler>
   {
     /// \brief Constructor.
     /// \param[in] _pUuid Process UUID.
