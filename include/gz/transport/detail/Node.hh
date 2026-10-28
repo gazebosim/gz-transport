@@ -50,12 +50,42 @@ namespace gz::transport
   }
 
   //////////////////////////////////////////////////
+  // TODO(azeey): Fix ambiguity when using non-capturing lambdas
+  template <typename MessageT, typename CallbackT, typename... Args>
+  bool Node::Subscribe(
+      const std::string& _topic, CallbackT&& _cb, Args&&... _args)
+  {
+    return this->template SubscribeImpl<MessageT>(
+        _topic, std::forward<CallbackT>(_cb),
+        std::forward<Args>(_args)...) != nullptr;
+  }
+
+  //////////////////////////////////////////////////
   template <typename ...Args>
   Node::Subscriber Node::CreateSubscriber(const std::string &_topic,
                                           Args && ...args)
   {
     auto handler = this->SubscribeImpl(_topic,
                                        std::forward<Args>(args)...);
+    if (handler && !handler->HandlerUuid().empty())
+    {
+      return Node::Subscriber(_topic,
+                              handler->NodeUuid(),
+                              this->Options(),
+                              handler->HandlerUuid());
+    }
+    return Node::Subscriber();
+  }
+
+  //////////////////////////////////////////////////
+  template <typename MessageT, typename CallbackT, typename ...Args>
+  Node::Subscriber Node::CreateSubscriber(const std::string &_topic,
+                                          CallbackT && _cb,
+                                          Args && ..._args)
+  {
+    auto handler = this->template SubscribeImpl<MessageT>(
+        _topic, std::forward<CallbackT>(_cb), std::forward<Args>(_args)...);
+
     if (handler && !handler->HandlerUuid().empty())
     {
       return Node::Subscriber(_topic,
