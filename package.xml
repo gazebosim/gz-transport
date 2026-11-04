@@ -20,6 +20,7 @@
   <depend>libzenohc-dev</depend>
   <depend>libzenohcpp-dev</depend>
   <depend>libzmq3-dev</depend>
+  <depend>cppzmq-dev</depend>
   <depend>pkg-config</depend>
   <depend>protobuf-dev</depend>
   <depend>pybind11-dev</depend>
