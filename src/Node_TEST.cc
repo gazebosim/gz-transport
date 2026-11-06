@@ -2818,7 +2818,7 @@ TEST(NodeTest, SndHwm)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check the high water mark of the local publication queue.
+/// \brief Check the default local queue capacity.
 TEST(NodeTest, LocalHwm)
 {
   // LocalHwm is applicable to all backends.

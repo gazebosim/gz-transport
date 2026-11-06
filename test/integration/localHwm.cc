@@ -35,20 +35,17 @@
 using namespace gz;
 using namespace std::chrono_literals;
 
-// The capacity of the local publication queue used in this test. It is set
-// via the GZ_TRANSPORT_LOCAL_HWM environment variable in main().
+// Local queue capacity, set via GZ_TRANSPORT_LOCAL_HWM in main().
 static const int kLocalHwm = 5;
 
-/// \brief Helper that subscribes to a topic and optionally blocks the local
-/// delivery thread inside the callback of the first received message until
-/// the test releases it. All the received values are recorded.
+/// \brief Records received values and can block the delivery thread on
+/// the first message until released.
 class BlockingSubscriber
 {
   /// \brief Constructor.
   /// \param[in] _node Node used to subscribe.
   /// \param[in] _topic Topic name.
-  /// \param[in] _blockFirst True to block the delivery thread inside the
-  /// callback of the first received message.
+  /// \param[in] _blockFirst True to block on the first message.
   public: BlockingSubscriber(transport::Node &_node,
     const std::string &_topic, bool _blockFirst = true)
   {
@@ -60,8 +57,7 @@ class BlockingSubscriber
         this->cv.notify_all();
         if (_blockFirst && this->received.size() == 1u)
         {
-          // Block the local delivery thread until ReleaseAndWait() is
-          // called.
+          // Block the delivery thread until ReleaseAndWait().
           this->cv.wait_for(lk, 30s, [this]{return this->released;});
         }
       };
@@ -69,18 +65,17 @@ class BlockingSubscriber
     EXPECT_TRUE(this->sub);
   }
 
-  /// \brief Wait until the delivery thread is blocked inside the callback
-  /// of the first received message.
-  /// \return True if the first message was received before the timeout.
+  /// \brief Wait for the first message.
+  /// \return True if received before the timeout.
   public: bool WaitFirstMsg()
   {
     std::unique_lock<std::mutex> lk(this->mutex);
     return this->cv.wait_for(lk, 10s, [this]{return !this->received.empty();});
   }
 
-  /// \brief Wait until _count messages have been received in total.
-  /// \param[in] _count Expected total number of received messages.
-  /// \return True if _count messages were received before the timeout.
+  /// \brief Wait until _count messages were received in total.
+  /// \param[in] _count Expected total.
+  /// \return True if reached before the timeout.
   public: bool WaitReceived(size_t _count)
   {
     std::unique_lock<std::mutex> lk(this->mutex);
@@ -88,10 +83,9 @@ class BlockingSubscriber
       [this, _count]{return this->received.size() >= _count;});
   }
 
-  /// \brief Unblock the delivery thread and wait until _count messages have
-  /// been received in total.
-  /// \param[in] _count Expected total number of received messages.
-  /// \return True if _count messages were received before the timeout.
+  /// \brief Unblock the delivery thread and call WaitReceived(_count).
+  /// \param[in] _count Expected total.
+  /// \return True if reached before the timeout.
   public: bool ReleaseAndWait(size_t _count)
   {
     {
@@ -102,8 +96,8 @@ class BlockingSubscriber
     return this->WaitReceived(_count);
   }
 
-  /// \brief Get the values received so far.
-  /// \return The received values, in reception order.
+  /// \brief Get the values received so far, in order.
+  /// \return The received values.
   public: std::vector<int> Received()
   {
     std::lock_guard<std::mutex> lk(this->mutex);
@@ -113,7 +107,7 @@ class BlockingSubscriber
   /// \brief Protects all the members below.
   private: std::mutex mutex;
 
-  /// \brief Signals new received messages and the release of the callback.
+  /// \brief Signals new messages and the release.
   private: std::condition_variable cv;
 
   /// \brief True when the callback should stop blocking.
@@ -122,19 +116,15 @@ class BlockingSubscriber
   /// \brief Values received so far.
   private: std::vector<int> received;
 
-  /// \brief Subscription. Declared last so that it unsubscribes before the
-  /// members used by the callback are destroyed.
+  /// \brief Declared last so it unsubscribes first.
   private: transport::Node::Subscriber sub;
 };
 
-/// \brief Sentinel value published after the expected messages. The
-/// delivery is FIFO, so once it is received no other message is pending.
+/// \brief Published last; delivery is FIFO, so nothing is pending after it.
 static const int kSentinel = -1;
 
 //////////////////////////////////////////////////
-/// \brief Check that when a topic exceeds the capacity of the local
-/// publication queue, its oldest queued messages are dropped and the
-/// newest ones are delivered.
+/// \brief A full topic drops its oldest messages and keeps the newest.
 TEST(localHwmTest, DropOldestWhenFull)
 {
   ASSERT_EQ(kLocalHwm, transport::localHwm());
@@ -145,37 +135,32 @@ TEST(localHwmTest, DropOldestWhenFull)
 
   BlockingSubscriber sub(node, "/foo");
 
-  // Publish a first message and wait until the delivery thread is blocked
-  // inside its callback. At this point the local publication queue is empty.
+  // Block the delivery thread on the first message.
   msgs::Int32 msg;
   msg.set_data(0);
   EXPECT_TRUE(pub.Publish(msg));
   ASSERT_TRUE(sub.WaitFirstMsg());
 
-  // Publish more messages than the capacity of the queue. The oldest
-  // messages should be dropped, keeping only the newest kLocalHwm ones.
+  // Overflow the queue: only the newest kLocalHwm should remain.
   for (int i = 1; i <= 2 * kLocalHwm; ++i)
   {
     msg.set_data(i);
     EXPECT_TRUE(pub.Publish(msg));
   }
 
-  // Unblock the delivery thread and wait for the queued messages.
   ASSERT_TRUE(sub.ReleaseAndWait(1u + kLocalHwm));
 
-  // Any unexpected extra message would be delivered before the sentinel.
+  // Any unexpected extra message would arrive before the sentinel.
   msg.set_data(kSentinel);
   EXPECT_TRUE(pub.Publish(msg));
   ASSERT_TRUE(sub.WaitReceived(2u + kLocalHwm));
 
-  // We expect the first message, the newest kLocalHwm ones and the sentinel.
   std::vector<int> expected = {0, 6, 7, 8, 9, 10, kSentinel};
   EXPECT_EQ(expected, sub.Received());
 }
 
 //////////////////////////////////////////////////
-/// \brief Check that no messages are dropped while a topic stays within the
-/// capacity of the local publication queue.
+/// \brief No drops while a topic stays within capacity.
 TEST(localHwmTest, NoDropsUnderCapacity)
 {
   ASSERT_EQ(kLocalHwm, transport::localHwm());
@@ -186,21 +171,19 @@ TEST(localHwmTest, NoDropsUnderCapacity)
 
   BlockingSubscriber sub(node, "/bar");
 
-  // Publish a first message and wait until the delivery thread is blocked
-  // inside its callback. At this point the local publication queue is empty.
+  // Block the delivery thread on the first message.
   msgs::Int32 msg;
   msg.set_data(100);
   EXPECT_TRUE(pub.Publish(msg));
   ASSERT_TRUE(sub.WaitFirstMsg());
 
-  // Fill the queue up to its capacity. No messages should be dropped.
+  // Fill the queue exactly to capacity.
   for (int i = 101; i <= 100 + kLocalHwm; ++i)
   {
     msg.set_data(i);
     EXPECT_TRUE(pub.Publish(msg));
   }
 
-  // Unblock the delivery thread and wait for the queued messages.
   ASSERT_TRUE(sub.ReleaseAndWait(1u + kLocalHwm));
 
   std::vector<int> expected = {100, 101, 102, 103, 104, 105};
@@ -208,8 +191,7 @@ TEST(localHwmTest, NoDropsUnderCapacity)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check that a topic exceeding its queue capacity does not cause
-/// drops on other topics, even when their queued messages are older.
+/// \brief A full topic never drops other topics' messages, even older ones.
 TEST(localHwmTest, TopicIsolation)
 {
   ASSERT_EQ(kLocalHwm, transport::localHwm());
@@ -223,31 +205,26 @@ TEST(localHwmTest, TopicIsolation)
   BlockingSubscriber subA(node, "/iso_a");
   BlockingSubscriber subB(node, "/iso_b", false);
 
-  // Publish a first message and wait until the delivery thread is blocked
-  // inside its callback.
+  // Block the delivery thread on the first message.
   msgs::Int32 msg;
   msg.set_data(0);
   EXPECT_TRUE(pubA.Publish(msg));
   ASSERT_TRUE(subA.WaitFirstMsg());
 
-  // Queue a few messages of the quiet topic first, so that they become the
-  // oldest entries of the whole queue.
+  // Queue the quiet topic first, so its messages are the oldest.
   for (int i = 1; i <= 3; ++i)
   {
     msg.set_data(i);
     EXPECT_TRUE(pubB.Publish(msg));
   }
 
-  // Flood the noisy topic beyond its capacity. Only its own oldest
-  // messages should be dropped, never the older messages of the quiet
-  // topic.
+  // Overflow the noisy topic.
   for (int i = 1; i <= 2 * kLocalHwm; ++i)
   {
     msg.set_data(i);
     EXPECT_TRUE(pubA.Publish(msg));
   }
 
-  // Unblock the delivery thread and wait for all the expected messages.
   ASSERT_TRUE(subA.ReleaseAndWait(1u + kLocalHwm));
   ASSERT_TRUE(subB.WaitReceived(3u));
 
@@ -258,12 +235,12 @@ TEST(localHwmTest, TopicIsolation)
 }
 
 //////////////////////////////////////////////////
-/// \brief Check that the capacity is also enforced for raw subscribers.
+/// \brief The capacity also applies to raw subscribers.
 TEST(localHwmTest, RawSubscriber)
 {
   ASSERT_EQ(kLocalHwm, transport::localHwm());
 
-  // Declared before the node so that they outlive the raw subscription.
+  // Declared before the node to outlive the subscription.
   std::mutex mutex;
   std::vector<int> received;
 
@@ -310,7 +287,7 @@ TEST(localHwmTest, RawSubscriber)
 
 //////////////////////////////////////////////////
 /// \brief Count the drop warnings printed for a topic.
-/// \param[in] _output Captured standard error.
+/// \param[in] _output Captured std::cerr.
 /// \param[in] _topic Topic name.
 /// \return Number of drop warnings for _topic.
 static int CountDropWarnings(const std::string &_output,
@@ -327,8 +304,8 @@ static int CountDropWarnings(const std::string &_output,
 }
 
 //////////////////////////////////////////////////
-/// \brief Check that the drop warning is printed once per overload episode
-/// and printed again after the backlog of the topic fully drains.
+/// \brief The drop warning prints once per overload, and again after the
+/// topic drains.
 TEST(localHwmTest, WarnOncePerEpisode)
 {
   ASSERT_EQ(kLocalHwm, transport::localHwm());
@@ -345,8 +322,7 @@ TEST(localHwmTest, WarnOncePerEpisode)
   BlockingSubscriber gate2(node, "/warn_gate2");
   BlockingSubscriber sub(node, "/warn", false);
 
-  // The warning is printed from the publishing thread, so std::cerr can be
-  // captured around the Publish() calls.
+  // The warning is printed by Publish(), so capture std::cerr around it.
   std::ostringstream captured;
   auto flood = [&](int _first)
   {
@@ -360,18 +336,18 @@ TEST(localHwmTest, WarnOncePerEpisode)
     std::cerr.rdbuf(original);
   };
 
-  // First overload episode: a single warning.
+  // First overload: one warning.
   msgs::Int32 msg;
   EXPECT_TRUE(pubGate1.Publish(msg));
   ASSERT_TRUE(gate1.WaitFirstMsg());
   flood(0);
   EXPECT_EQ(1, CountDropWarnings(captured.str(), "/warn"));
 
-  // Fully drain the backlog of the topic.
+  // Drain the topic.
   ASSERT_TRUE(gate1.ReleaseAndWait(1u));
   ASSERT_TRUE(sub.WaitReceived(kLocalHwm));
 
-  // Second overload episode: the warning is printed again.
+  // Second overload: warns again.
   EXPECT_TRUE(pubGate2.Publish(msg));
   ASSERT_TRUE(gate2.WaitFirstMsg());
   flood(100);
@@ -390,7 +366,7 @@ int main(int argc, char **argv)
   // Set the partition name for this process.
   gz::utils::setenv("GZ_PARTITION", partition);
 
-  // Use a small local publication queue to make it easy to fill it up.
+  // A small queue is easy to fill.
   gz::utils::setenv("GZ_TRANSPORT_LOCAL_HWM", std::to_string(kLocalHwm));
 
   ::testing::InitGoogleTest(&argc, argv);

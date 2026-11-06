@@ -191,9 +191,7 @@ namespace gz::transport
   /// \sa NodeShared::SndHwm
   const int kDefaultSndHwm = 1000;
 
-  /// \brief The high water mark of the queue that stores messages to be
-  /// delivered to local (intraprocess) subscribers. This limit is applied
-  /// per topic.
+  /// \brief The per topic high water mark of the local delivery queue.
   /// \sa NodeShared::LocalHwm
   const int kDefaultLocalHwm = 1000;
   }

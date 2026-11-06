@@ -73,17 +73,11 @@ namespace gz::transport
   /// If your buffer reaches the maximum capacity data will be dropped.
   int GZ_TRANSPORT_VISIBLE sndHwm();
 
-  /// \brief Get the capacity (High Water Mark) of the queue that stores
-  /// messages to be delivered to local (intraprocess) subscribers. Note
-  /// that this limit is applied per topic.
-  /// \return The capacity of the local publication queue (units are
-  /// messages). A value of 0 indicates an unlimited queue, which will grow
-  /// until you run out of memory if the local subscribers cannot keep up
-  /// with the publication rate. The default capacity is contained in the
-  /// #kDefaultLocalHwm variable and can be changed with the
-  /// GZ_TRANSPORT_LOCAL_HWM environment variable.
-  /// When a topic reaches this capacity, its oldest queued message is
-  /// dropped to make room for a new one.
+  /// \brief Get the per topic capacity (High Water Mark) of the queue
+  /// delivering messages to local (intraprocess) subscribers. When full,
+  /// the oldest message of the topic is dropped.
+  /// \return The capacity in messages, or 0 if unlimited. Defaults to
+  /// #kDefaultLocalHwm; set it with GZ_TRANSPORT_LOCAL_HWM.
   int GZ_TRANSPORT_VISIBLE localHwm();
 
   /// \class Node Node.hh gz/transport/Node.hh

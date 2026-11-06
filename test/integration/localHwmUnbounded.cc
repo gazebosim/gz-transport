@@ -34,8 +34,7 @@ using namespace gz;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
-/// \brief Check that GZ_TRANSPORT_LOCAL_HWM=0 disables the capacity of the
-/// local publication queue, so no messages are dropped.
+/// \brief GZ_TRANSPORT_LOCAL_HWM=0 disables the capacity: no drops.
 TEST(localHwmUnboundedTest, NoDrops)
 {
   ASSERT_EQ(0, transport::localHwm());
@@ -43,7 +42,7 @@ TEST(localHwmUnboundedTest, NoDrops)
   // More messages than the default capacity.
   const int kNumMsgs = 2 * transport::kDefaultLocalHwm;
 
-  // Declared before the node so that they outlive the subscription.
+  // Declared before the node to outlive the subscription.
   std::mutex mutex;
   std::condition_variable cv;
   bool released = false;
@@ -53,8 +52,7 @@ TEST(localHwmUnboundedTest, NoDrops)
   auto pub = node.Advertise<msgs::Int32>("/unbounded");
   ASSERT_TRUE(pub);
 
-  // Block the local delivery thread inside the callback of the first message
-  // so that all the following messages stay queued.
+  // Block the delivery thread on the first message so the rest queue up.
   std::function<void(const msgs::Int32 &)> cb =
     [&](const msgs::Int32 &_msg)
     {
@@ -92,7 +90,7 @@ int main(int argc, char **argv)
   // Set the partition name for this process.
   gz::utils::setenv("GZ_PARTITION", partition);
 
-  // Disable the capacity of the local publication queue.
+  // Unlimited local queue.
   gz::utils::setenv("GZ_TRANSPORT_LOCAL_HWM", "0");
 
   ::testing::InitGoogleTest(&argc, argv);

@@ -233,8 +233,7 @@ NodeShared::NodeShared()
     this->dataPtr->topicStatsEnabled = (gzStats == "1");
   }
 
-  // Set the capacity of the queue used to deliver messages to local
-  // (intraprocess) subscribers.
+  // Per topic capacity of the local delivery queue.
   this->dataPtr->localHwm = this->dataPtr->NonNegativeEnvVar(
     "GZ_TRANSPORT_LOCAL_HWM", kDefaultLocalHwm);
 
@@ -1746,18 +1745,15 @@ void NodeSharedPrivate::EnqueuePubMsg(
 {
   std::string droppedTopic;
 
-  // Destroyed after releasing the lock: it may hold the last reference to a
-  // subscription handler, whose destruction runs user code that could call
-  // back into NodeShared (e.g. Unsubscribe) and lock pubThreadMutex.
+  // Freed after unlocking: it may own the last handler reference, whose
+  // destructor can run user code that calls back into NodeShared.
   std::unique_ptr<PublishMsgDetails> droppedMsg;
   {
     std::unique_lock<std::mutex> queueLock(this->pubThreadMutex);
 
     auto &backlog = this->pubQueueBacklog[_msgDetails->fullyQualifiedTopic];
 
-    // The queue of this topic is full. Drop its oldest message so that the
-    // queue does not grow in an unbounded way when the local subscription
-    // callbacks are slower than the publication rate.
+    // Topic full: drop its oldest message.
     if (this->localHwm > 0 &&
         backlog.entries.size() >= static_cast<std::size_t>(this->localHwm))
     {
@@ -1778,8 +1774,7 @@ void NodeSharedPrivate::EnqueuePubMsg(
 
   this->signalNewPub.notify_one();
 
-  // Warn outside the lock so that slow I/O does not block the publishers
-  // or the delivery thread.
+  // Warn outside the lock.
   if (!droppedTopic.empty())
   {
     std::cerr << "The local subscribers of [" << droppedTopic
@@ -1824,9 +1819,8 @@ void NodeSharedPrivate::PublishThread()
       msgDetails = std::move(this->pubQueue.front());
       this->pubQueue.pop_front();
 
-      // Keep the per topic bookkeeping in sync with the pubQueue. The
-      // front of the backlog of this topic references the entry just
-      // popped. Removing a drained backlog also resets its drop warning.
+      // The topic backlog front is the entry just popped. Erasing a drained
+      // backlog also resets its drop warning.
       auto backlogIt =
         this->pubQueueBacklog.find(msgDetails->fullyQualifiedTopic);
       if (backlogIt != this->pubQueueBacklog.end())
