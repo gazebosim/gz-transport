@@ -21,6 +21,7 @@
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <csignal>
@@ -34,6 +35,7 @@
 #include "gz/transport/Node.hh"
 #include "gz/transport/NodeShared.hh"
 #include "gz/transport/TransportTypes.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include <gz/utils/Environment.hh>
 
@@ -451,7 +453,7 @@ class MyTestClass
 
     // Advertise and request a valid service.
     EXPECT_TRUE(this->node.Advertise(g_topic, &MyTestClass::Echo, this));
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    transport::waitUntil([&]{ return this->responseExecuted.load(); });
     EXPECT_TRUE(this->responseExecuted);
   }
 
@@ -463,9 +465,9 @@ class MyTestClass
   }
 
   /// \brief Member variables that flag when the actions are executed.
-  public: bool callbackExecuted;
-  public: bool callbackSrvExecuted;
-  public: bool responseExecuted;
+  public: std::atomic<bool> callbackExecuted;
+  public: std::atomic<bool> callbackSrvExecuted;
+  public: std::atomic<bool> responseExecuted;
 
   /// \brief Transport node;
   private: transport::Node node;
@@ -579,8 +581,8 @@ TEST(NodeTest, PubWithoutAdvertise)
   ASSERT_EQ(subscribedTopics.size(), 1u);
   EXPECT_EQ(subscribedTopics.at(0), g_topic);
 
-  // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub1.HasConnections(); });
 
   std::unique_lock<std::mutex> lk(cbMutex);
   // Publish a message by each node.
@@ -621,14 +623,14 @@ TEST(NodeTest, PubSubSameThread)
 
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
-  // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub.HasConnections(); });
 
   // Publish a first message.
   EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
@@ -639,7 +641,7 @@ TEST(NodeTest, PubSubSameThread)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the data was received.
   EXPECT_TRUE(cbExecuted);
@@ -663,14 +665,14 @@ TEST(NodeTest, PubSubSameThreadGenericCb)
 
   EXPECT_TRUE(node.Subscribe(g_topic, genericCb));
 
-  // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub.HasConnections(); });
 
   // Publish a first message.
   EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return genericCbExecuted.load(); });
 
   // Check that the message was received.
   EXPECT_TRUE(genericCbExecuted);
@@ -681,7 +683,7 @@ TEST(NodeTest, PubSubSameThreadGenericCb)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return genericCbExecuted.load(); });
 
   // Check that the data was received.
   EXPECT_TRUE(genericCbExecuted);
@@ -706,14 +708,14 @@ TEST(NodeTest, PubSubSameThreadMessageInfo)
 
   EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
 
-  // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub.HasConnections(); });
 
   // Publish a first message.
   EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
@@ -724,7 +726,7 @@ TEST(NodeTest, PubSubSameThreadMessageInfo)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the data was received.
   EXPECT_TRUE(cbExecuted);
@@ -746,15 +748,15 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
 
   EXPECT_TRUE(node.Subscribe(g_topic, cbInfo));
 
-  // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub.HasConnections(); });
 
   // Publish a first message.
   EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
         std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
@@ -766,7 +768,7 @@ TEST(NodeTest, RawPubSubSameThreadMessageInfo)
         std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the data was received.
   EXPECT_TRUE(cbExecuted);
@@ -788,15 +790,15 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
 
   EXPECT_TRUE(node.SubscribeRaw(g_topic, rawCbInfo));
 
-  // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub.HasConnections(); });
 
   // Publish a first message.
   EXPECT_TRUE(pub.PublishRaw(msg.SerializeAsString(),
         std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
@@ -808,7 +810,7 @@ TEST(NodeTest, RawPubRawSubSameThreadMessageInfo)
         std::string(msg.GetTypeName())));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the data was received.
   EXPECT_TRUE(cbExecuted);
@@ -830,14 +832,14 @@ TEST(NodeTest, PubRawSubSameThreadMessageInfo)
 
   EXPECT_TRUE(node.SubscribeRaw(g_topic, rawCbInfo));
 
-  // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub.HasConnections(); });
 
   // Publish a first message.
   EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the message was received.
   EXPECT_TRUE(cbExecuted);
@@ -848,7 +850,7 @@ TEST(NodeTest, PubRawSubSameThreadMessageInfo)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the data was received.
   EXPECT_TRUE(cbExecuted);
@@ -885,8 +887,8 @@ TEST(NodeTest, PubSubSameThreadLambda)
 
   EXPECT_TRUE(node.Subscribe(g_topic, subCb));
 
-  // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub.HasConnections(); });
 
   // Publish a first message.
   EXPECT_TRUE(pub.Publish(msg));
@@ -935,8 +937,8 @@ TEST(NodeTest, PubSubSameThreadLambdaMessageInfo)
 
   EXPECT_TRUE(node.Subscribe(g_topic, subCb));
 
-  // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub.HasConnections(); });
 
   // Publish a first message.
   std::unique_lock<std::mutex> lk(cbMutex);
@@ -1013,8 +1015,8 @@ TEST(NodeTest, PubSubWithCreateSubscriber)
     sub = node.CreateSubscriber(g_topic, subCb);
     EXPECT_TRUE(sub);
 
-    // Give some time to the subscribers.
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // Wait until the subscriber is connected.
+    transport::waitUntil([&]{ return pub.HasConnections(); });
 
     // Publish a message.
     EXPECT_TRUE(pub.Publish(msg));
@@ -1097,8 +1099,8 @@ TEST(NodeTest, PubSubWithMixedSubscribeAPIs)
   transport::Node::Subscriber sub3 = node.CreateSubscriber(g_topic, subCb3);
   EXPECT_TRUE(sub3);
 
-  // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub.HasConnections(); });
 
   // Publish a message.
   EXPECT_TRUE(pub.Publish(msg));
@@ -1193,6 +1195,58 @@ TEST(NodeTest, AdvertiseTwoEqualTopics)
   EXPECT_FALSE(pub2);
   auto pub3 = node2.Advertise<msgs::StringMsg>(g_topic);
   EXPECT_TRUE(pub3);
+}
+
+//////////////////////////////////////////////////
+/// \brief Advertise the same topic with the same type twice on the same node.
+TEST(NodeTest, AdvertiseSameTopicSameTypeOnSameNode)
+{
+  transport::Node node;
+
+  auto pub1 = node.Advertise<msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub1);
+  auto pub2 = node.Advertise<msgs::Int32>(g_topic);
+  EXPECT_FALSE(pub2);
+}
+
+//////////////////////////////////////////////////
+/// \brief Advertise a relative topic (no leading slash) twice on the same node.
+TEST(NodeTest, AdvertiseRelativeTopicTwice)
+{
+  transport::Node node;
+
+  auto pub1 = node.Advertise<msgs::Int32>("relative_topic");
+  EXPECT_TRUE(pub1);
+  auto pub2 = node.Advertise<msgs::Int32>("relative_topic");
+  EXPECT_FALSE(pub2);
+}
+
+//////////////////////////////////////////////////
+/// \brief Advertise a remapped topic twice on the same node.
+TEST(NodeTest, AdvertiseRemappedTopicTwice)
+{
+  transport::NodeOptions opts;
+  opts.AddTopicRemap("/remap_from", "/remap_to");
+  transport::Node node(opts);
+
+  auto pub1 = node.Advertise<msgs::Int32>("/remap_from");
+  EXPECT_TRUE(pub1);
+  auto pub2 = node.Advertise<msgs::Int32>("/remap_from");
+  EXPECT_FALSE(pub2);
+}
+
+//////////////////////////////////////////////////
+/// \brief Advertise a namespaced relative topic twice on the same node.
+TEST(NodeTest, AdvertiseNamespacedTopicTwice)
+{
+  transport::NodeOptions opts;
+  opts.SetNameSpace("my_ns");
+  transport::Node node(opts);
+
+  auto pub1 = node.Advertise<msgs::Int32>("ns_topic");
+  EXPECT_TRUE(pub1);
+  auto pub2 = node.Advertise<msgs::Int32>("ns_topic");
+  EXPECT_FALSE(pub2);
 }
 
 //////////////////////////////////////////////////
@@ -1299,13 +1353,14 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
     // Subscribe to topic in node2.
     EXPECT_TRUE(node2.Subscribe(g_topic, cb2));
 
-    // Wait some time before publishing.
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // Wait until the subscriber is connected.
+    transport::waitUntil([&]{ return pub1.HasConnections(); });
 
     EXPECT_TRUE(pub1.Publish(msg));
 
     // Give some time to the subscribers.
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    transport::waitUntil(
+        [&]{ return cbExecuted.load() && cb2Executed.load(); });
 
     // Check that the msg was received by node1.
     EXPECT_TRUE(cbExecuted);
@@ -1331,7 +1386,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
     EXPECT_TRUE(pub1.Publish(msg));
 
     // Give some time to the subscribers.
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    transport::waitUntil([&]{ return cb2Executed.load(); });
 
     // Check that the msg was not received by node1.
     EXPECT_FALSE(cbExecuted);
@@ -1344,7 +1399,7 @@ TEST(NodeTest, PubSubOneThreadTwoSubs)
   }
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return node1.AdvertisedTopics().empty(); });
 
   auto advertisedTopics = node1.AdvertisedTopics();
   ASSERT_TRUE(advertisedTopics.empty());
@@ -1366,7 +1421,7 @@ TEST(NodeTest, ClassMemberCallbackMessage)
   client.SendSomeData();
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return client.callbackExecuted.load(); });
   EXPECT_TRUE(client.callbackExecuted);
 }
 
@@ -1384,7 +1439,7 @@ TEST(NodeTest, ClassMemberCallbackMessageInfo)
   client.SendSomeData();
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return client.callbackExecuted.load(); });
   EXPECT_TRUE(client.callbackExecuted);
 }
 
@@ -2190,8 +2245,8 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
 
   EXPECT_TRUE(node.Subscribe(g_topic, cb));
 
-  // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub.HasConnections(); });
 
   // Send a message with a wrong type.
   EXPECT_FALSE(pub.Publish(msgV));
@@ -2205,7 +2260,7 @@ TEST(NodeTest, PubSubWrongTypesOnPublish)
   EXPECT_TRUE(pub.Publish(msg));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the data was received.
   EXPECT_TRUE(cbExecuted);
@@ -2267,13 +2322,13 @@ TEST(NodeTest, PubSubWrongTypesTwoSubscribers)
   // Bad subscriber: cbVector does not match the types advertised by node1.
   EXPECT_TRUE(node2.Subscribe(g_topic, cbVector));
 
-  // Wait some time before publishing.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Wait until the subscriber is connected.
+  transport::waitUntil([&]{ return pub1.HasConnections(); });
 
   EXPECT_TRUE(pub1.Publish(msg));
 
   // Give some time to the subscribers.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return cbExecuted.load(); });
 
   // Check that the message was received by node1.
   EXPECT_TRUE(cbExecuted);
@@ -2506,7 +2561,7 @@ TEST(NodeTest, SrvTwoRequestsOneWrong)
   // Valid service requests.
   EXPECT_TRUE(node.Request(g_topic, req, timeout, goodRep, result));
   EXPECT_TRUE(node.Request(g_topic, req, response));
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  transport::waitUntil([&]{ return responseExecuted.load(); });
   EXPECT_TRUE(responseExecuted);
 
   reset();
@@ -2538,7 +2593,7 @@ TEST(NodeTest, SrvWithoutInputTwoRequestsOneWrong)
   // Valid service requests.
   EXPECT_TRUE(node.Request(g_topic, timeout, goodRep, result));
   EXPECT_TRUE(node.Request(g_topic, response));
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  transport::waitUntil([&]{ return responseExecuted.load(); });
   EXPECT_TRUE(responseExecuted);
 
   reset();
@@ -2631,6 +2686,51 @@ TEST(NodeTest, TopicInfoSubscriberOnly)
   EXPECT_EQ(publishers.size(), 0u);
   ASSERT_EQ(subscribers.size(), 1u);
   EXPECT_EQ(subscribers.front().MsgTypeName(), "gz.msgs.Int32");
+}
+
+//////////////////////////////////////////////////
+/// \brief This test creates multiple nodes that publish and subscribe to
+/// different topics. The test verifies that AllTopicInfo() returns publisher
+/// and subscriber information for all the topics.
+TEST(NodeTest, AllTopicInfo)
+{
+  transport::Node node1;
+  transport::Node node2;
+  transport::Node node3;
+  transport::Node node4;
+
+  auto pub1 = node1.Advertise<msgs::Int32>("/topic1");
+  auto pub2 = node2.Advertise<msgs::Int32>("/topic2");
+  EXPECT_TRUE(node2.Subscribe("/topic1", cb));
+  EXPECT_TRUE(node3.Subscribe("/topic3", cb2));
+
+  std::vector<transport::TopicInfo> topicInfo;
+  EXPECT_TRUE(node4.AllTopicInfo(topicInfo));
+  ASSERT_EQ(topicInfo.size(), 3u);
+
+  auto findTopic = [&topicInfo](const std::string &_topicname)
+  {
+    return std::find_if(topicInfo.begin(), topicInfo.end(),
+        [&_topicname](const transport::TopicInfo &_info)
+        {
+          return _info.topicName == _topicname;
+        });
+  };
+
+  auto topic1 = findTopic("/topic1");
+  ASSERT_NE(topic1, topicInfo.end());
+  EXPECT_EQ(topic1->publishers.size(), 1u);
+  EXPECT_EQ(topic1->subscribers.size(), 1u);
+
+  auto topic2 = findTopic("/topic2");
+  ASSERT_NE(topic2, topicInfo.end());
+  EXPECT_EQ(topic2->publishers.size(), 1u);
+  EXPECT_EQ(topic2->subscribers.size(), 0u);
+
+  auto topic3 = findTopic("/topic3");
+  ASSERT_NE(topic3, topicInfo.end());
+  EXPECT_EQ(topic3->publishers.size(), 0u);
+  EXPECT_EQ(topic3->subscribers.size(), 1u);
 }
 
 //////////////////////////////////////////////////

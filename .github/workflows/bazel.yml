@@ -12,8 +12,19 @@ concurrency:
 
 jobs:
   test:
+    name: Test (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: default
+            bazel_test_command: "bazel test -c opt --repo_env=CC=clang --repo_env=CXX=clang++ --test_output=errors //..."
+          - name: zenoh
+            bazel_test_command: "bazel test -c opt --repo_env=CC=clang --repo_env=CXX=clang++ --test_env=GZ_TRANSPORT_IMPLEMENTATION=zenoh --test_output=errors //..."
     uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.7.0
     with:
+      # Make sure to keep in sync with version in root's .bazelversion
+      bazel_versions: '["9.1.1"]'
       folders: |
         [
           "."
@@ -23,6 +34,4 @@ jobs:
           {"folder": ".", "bzlmodEnabled": false}
         ]
       exclude_windows: true
-      # Use opt compilation mode to prevent perf-related test flakiness.
-      # This only adds a couple minutes of build time overhead.
-      bazel_test_command: "bazel test -c opt --test_output=errors //..."
+      bazel_test_command: ${{ matrix.bazel_test_command }}

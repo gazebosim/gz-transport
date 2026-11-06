@@ -75,20 +75,37 @@ import time
 #   clear: list of env var names to REMOVE
 CONFIGS = [
     {
-        'name': 'zenoh',
-        'description': 'Zenoh (default settings)',
-        'env': {
-            'GZ_TRANSPORT_IMPLEMENTATION': 'zenoh',
-        },
-        'clear': [],
-    },
-    {
         'name': 'zeromq',
         'description': 'ZeroMQ (default HWM=1000)',
         'env': {
             'GZ_TRANSPORT_IMPLEMENTATION': 'zeromq',
         },
+        'clear': [
+            'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE',
+        ],
+    },
+    {
+        # Disables Zenoh's shared memory subsystem entirely, including its
+        # own transport optimization, so this is a pure network baseline
+        # rather than what a default gz-transport build does.
+        'name': 'zenoh_no_shm',
+        'description': 'Zenoh with shared memory disabled (network only)',
+        'env': {
+            'GZ_TRANSPORT_IMPLEMENTATION': 'zenoh',
+            'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE':
+                'transport/shared_memory/enabled=false',
+        },
         'clear': [],
+    },
+    {
+        'name': 'zenoh_shm',
+        'description': 'Zenoh with shared memory (gz-transport defaults)',
+        'env': {
+            'GZ_TRANSPORT_IMPLEMENTATION': 'zenoh',
+        },
+        'clear': [
+            'GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE',
+        ],
     },
 ]
 

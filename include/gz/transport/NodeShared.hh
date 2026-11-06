@@ -27,6 +27,7 @@
 #pragma warning(pop)
 #endif
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -49,7 +50,8 @@
 
 namespace zenoh
 {
-  // Forward declaration.
+  // Forward declarations.
+  class Querier;
   class Session;
 }
 
@@ -185,6 +187,19 @@ namespace gz::transport
       const std::string &_msgData,
       const HandlerInfo &_handlerInfo);
 
+    /// \brief Call the SubscriptionHandler callbacks from a raw buffer.
+    /// Avoids constructing a std::string from the data, enabling zero-copy
+    /// when the buffer comes directly from Zenoh SHM via get_contiguous_view.
+    /// \param[in] _info Message information.
+    /// \param[in] _msgData Pointer to the serialized data.
+    /// \param[in] _msgSize Number of bytes in _msgData.
+    /// \param[in] _handlerInfo Information for the handlers of this node.
+    public: void TriggerCallbacks(
+      const MessageInfo &_info,
+      const char *_msgData,
+      std::size_t _msgSize,
+      const HandlerInfo &_handlerInfo);
+
     /// \brief Method in charge of receiving the service call requests.
     public: void RecvSrvRequest();
 
@@ -316,6 +331,31 @@ namespace gz::transport
     /// \brief Get the current Zenoh session.
     /// \return The Zenoh session.
     public: std::shared_ptr<zenoh::Session> Session();
+
+    /// \brief Ensure a centralized Zenoh subscriber exists for this topic.
+    /// If one already exists, this is a no-op. The centralized subscriber
+    /// extracts the payload once and dispatches to all handlers via
+    /// TriggerCallbacks (matching the ZMQ efficiency model).
+    /// \param[in] _topic Fully qualified topic name.
+    public: void EnsureZenohSubscription(const std::string &_topic);
+
+    /// \brief Remove the centralized Zenoh subscriber for a topic if no
+    /// handlers remain.
+    /// \param[in] _topic Fully qualified topic name.
+    public: void MaybeRemoveZenohSubscription(const std::string &_topic);
+
+    /// \internal
+    /// \brief Get or declare a persistent Zenoh Querier for the
+    /// given service keyexpr. The Querier carries an explicit
+    /// interest declaration that gives the responser's queryable
+    /// announcement a routing path back, closing the cold-start race
+    /// for cross-process service calls. Cached so subsequent calls
+    /// reuse the already-converged interest.
+    /// \param[in] _service Fully-qualified service keyexpr.
+    /// \return Shared pointer to the cached Querier, or nullptr if
+    /// it could not be declared.
+    public: std::shared_ptr<zenoh::Querier>
+        GetOrDeclareZenohQuerier(const std::string &_service);
 #endif
 
     /// \brief Unsubscribe a node from a topic.
@@ -578,6 +618,11 @@ namespace gz::transport
 #endif
     private: friend Node;
     private: friend NodePrivate;
+
+    /// \brief The service handlers reach the per-process Zenoh shared
+    /// memory state in NodeSharedPrivate.
+    private: friend IRepHandler;
+    private: friend IReqHandler;
   };
   }
 }

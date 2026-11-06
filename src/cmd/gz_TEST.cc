@@ -29,6 +29,7 @@
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "test_config.hh"
 #include "test_utils.hh"
@@ -121,6 +122,15 @@ exec_with_retry(const std::vector<std::string> &_args,
 }
 
 //////////////////////////////////////////////////
+/// \brief Check whether _output contains _topic as a complete line.
+/// A plain substring search would also match suffixes of other topics
+/// (e.g. "/foo" inside "/bar/foo").
+bool containsTopicLine(const std::string &_output, const std::string &_topic)
+{
+  return ("\n" + _output).find("\n" + _topic + "\n") != std::string::npos;
+}
+
+//////////////////////////////////////////////////
 /// \brief Check 'gz topic -l' running the advertiser on a different process.
 TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
@@ -129,7 +139,7 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 
   auto output = exec_with_retry({"topic", "-l"},
     [](auto procOut){
-      return procOut.cout == "/foo\n";
+      return containsTopicLine(procOut.cout, "/foo");
     });
 
   EXPECT_TRUE(output);
@@ -149,10 +159,10 @@ TEST(gzTest, TopicListSub)
 
   auto output = exec_with_retry({"topic", "-l"},
     [](auto procOut){
-      return procOut.cout.find("/foo\n") != std::string::npos &&
-             procOut.cout.find("/bar\n") != std::string::npos &&
-             procOut.cout.find("/baz\n") != std::string::npos &&
-             procOut.cout.find("/no\n") == std::string::npos;
+      return containsTopicLine(procOut.cout, "/foo") &&
+             containsTopicLine(procOut.cout, "/bar") &&
+             containsTopicLine(procOut.cout, "/baz") &&
+             !containsTopicLine(procOut.cout, "/no");
     });
 
   EXPECT_TRUE(output);
@@ -229,7 +239,7 @@ TEST(gzTest, TopicListSameProc)
 
   auto output = exec_with_retry({"topic", "-l"},
     [](auto procOut){
-      return procOut.cout == "/foo\n";
+      return containsTopicLine(procOut.cout, "/foo");
     });
 
   EXPECT_TRUE(output);
@@ -411,7 +421,7 @@ TEST(gzTest, ServiceOnewayRequest)
     {"service", "-s", service, "--reqtype", "gz.msgs.StringMsg",
      "--req", "data: \"good_value\""});
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  transport::waitUntil([]{ return g_topicCBStr == "good_value"; });
   EXPECT_EQ("good_value", g_topicCBStr);
 }
 

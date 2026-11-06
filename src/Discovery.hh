@@ -64,6 +64,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>  // NOLINT(build/include_order)
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -263,6 +264,19 @@ namespace gz
       /// \brief Destructor.
       public: virtual ~Discovery()
       {
+#ifdef HAVE_ZENOH
+        // Close the gate before dropping the liveliness subscriber: this
+        // waits for a callback already running and makes any later
+        // sample return without touching this object. zenoh-c before
+        // 1.8.0 undeclares a subscriber without waiting for callbacks in
+        // flight, and even 1.8.0 only waits inside the undeclare itself.
+        {
+          std::lock_guard<std::shared_mutex> lock(this->callbackGate->mutex);
+          this->callbackGate->open = false;
+        }
+        this->livelinessSubscriber.reset();
+#endif
+
         // Tell the service thread to terminate.
         this->exitMutex.lock();
         this->exit = true;
@@ -467,10 +481,22 @@ namespace gz
         zenoh::Session::LivelinessSubscriberOptions opts;
         opts.history = true;
 
+        // The closure Zenoh owns shares the gate with this object, so a
+        // sample dispatched while or after the destructor runs is
+        // dropped instead of calling into freed memory.
+        auto gate = this->callbackGate;
+        auto guardedCb = [gate, cb = std::move(_cb)](const zenoh::Sample &_s)
+        {
+          std::shared_lock<std::shared_mutex> lock(gate->mutex);
+          if (gate->open)
+            cb(_s);
+        };
+
         // Notice the Zenoh hermetic namespace starting with @.
         this->livelinessSubscriber = std::make_unique<zenoh::Subscriber<void>>(
           _session->liveliness_declare_subscriber(
-            "@gz/**", _cb, zenoh::closures::none, std::move(opts)));
+            "@gz/**", std::move(guardedCb), zenoh::closures::none,
+            std::move(opts)));
 
         this->initialized = true;
         this->useZenoh = true;
@@ -1036,6 +1062,7 @@ namespace gz
       private: void RecvMessages()
       {
         bool timeToExit = false;
+        bool recvFailing = false;
         while (!timeToExit)
         {
           // Calculate the timeout.
@@ -1043,7 +1070,13 @@ namespace gz
 
           if (pollSockets(this->sockets, timeout))
           {
-            this->RecvDiscoveryUpdate();
+            // A failed socket stays readable (e.g. one that macOS has
+            // defunct), so wait before polling it again.
+            if (!this->RecvDiscoveryUpdate(recvFailing))
+            {
+              std::this_thread::sleep_for(
+                std::chrono::milliseconds(this->kTimeout));
+            }
 
             if (this->verbose)
               this->PrintCurrentState();
@@ -1062,7 +1095,10 @@ namespace gz
       }
 
       /// \brief Method in charge of receiving the discovery updates.
-      private: void RecvDiscoveryUpdate()
+      /// \param[in,out] _failing Whether the last receive failed, so that a
+      /// failure streak prints once.
+      /// \return False if receiving from the socket failed or read nothing.
+      private: bool RecvDiscoveryUpdate(bool &_failing)
       {
         char rcvStr[Discovery::kMaxRcvStr];
         sockaddr_in clntAddr;
@@ -1114,11 +1150,24 @@ namespace gz
             this->DispatchDiscoveryMsg(srcAddr, rcvStr + sizeof(len), len);
           }
         }
-        else if (received < 0)
+        else
         {
-          std::cerr << "Discovery::RecvDiscoveryUpdate() recvfrom error"
-            << std::endl;
+          // An empty read carries no discovery frame. A socket that the OS
+          // has shut down keeps returning errors or empty reads.
+          if (!_failing)
+          {
+            std::cerr << "Discovery::RecvDiscoveryUpdate() failed ("
+                      << (received < 0 ? strerror(errno) : "empty read")
+                      << "). If the OS shut down this process's sockets "
+                      << "(macOS does this under network memory pressure), "
+                      << "discovery won't recover until the process restarts."
+                      << std::endl;
+          }
+          _failing = true;
+          return false;
         }
+        _failing = false;
+        return true;
       }
 
       /// \brief Parse a discovery message received via the UDP socket
@@ -1606,6 +1655,18 @@ namespace gz
           return false;
         }
 
+#ifdef SO_NOSIGPIPE
+        // Fail sends with EPIPE instead of raising SIGPIPE when the OS shuts
+        // this socket down, as macOS does when it runs out of network buffers.
+        int noSigPipe = 1;
+        if (setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, &noSigPipe,
+          sizeof(noSigPipe)) != 0)
+        {
+          std::cerr << "Error setting socket option (SO_NOSIGPIPE)."
+                    << std::endl;
+        }
+#endif
+
         // Socket option: IP_MULTICAST_IF.
         // This socket option needs to be applied to each socket used to send
         // data. This option selects the source interface for outgoing messages.
@@ -1770,6 +1831,25 @@ namespace gz
 #ifdef HAVE_ZENOH
       /// \brief The liveliness subscriber.
       private: std::unique_ptr<zenoh::Subscriber<void>> livelinessSubscriber;
+
+      /// \brief Guards the liveliness callback against the destruction
+      /// of this object. Shared with the closure Zenoh owns, so it
+      /// outlives the Discovery. Do not destroy a Discovery from inside
+      /// its own liveliness callback: the destructor would wait for that
+      /// callback to return.
+      private: struct CallbackGate
+      {
+        /// \brief Held shared by callbacks and exclusively by the
+        /// destructor.
+        std::shared_mutex mutex;
+
+        /// \brief False once the destructor has run.
+        bool open{true};
+      };
+
+      /// \brief The gate shared with the liveliness closure.
+      private: std::shared_ptr<CallbackGate> callbackGate =
+        std::make_shared<CallbackGate>();
 #endif
 
       /// \brief ToDo: Find a better way.
