@@ -6,6 +6,7 @@ set(tests
   callback_scope_TEST.cc
   defunctSockets.cc
   localHwm.cc
+  localHwmUnbounded.cc
   statistics.cc
   twoProcsPubSub.cc
   twoProcsPubSubStats.cc

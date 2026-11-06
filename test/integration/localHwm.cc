@@ -19,9 +19,10 @@
 #include <chrono>
 #include <condition_variable>
 #include <functional>
+#include <iostream>
 #include <mutex>
+#include <sstream>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -51,7 +52,8 @@ class BlockingSubscriber
   public: BlockingSubscriber(transport::Node &_node,
     const std::string &_topic, bool _blockFirst = true)
   {
-    this->cb = [this, _blockFirst](const msgs::Int32 &_msg)
+    std::function<void(const msgs::Int32 &)> cb =
+      [this, _blockFirst](const msgs::Int32 &_msg)
       {
         std::unique_lock<std::mutex> lk(this->mutex);
         this->received.push_back(_msg.data());
@@ -63,7 +65,8 @@ class BlockingSubscriber
           this->cv.wait_for(lk, 30s, [this]{return this->released;});
         }
       };
-    EXPECT_TRUE(_node.Subscribe(_topic, this->cb));
+    this->sub = _node.CreateSubscriber(_topic, cb);
+    EXPECT_TRUE(this->sub);
   }
 
   /// \brief Wait until the delivery thread is blocked inside the callback
@@ -119,9 +122,14 @@ class BlockingSubscriber
   /// \brief Values received so far.
   private: std::vector<int> received;
 
-  /// \brief Subscription callback.
-  private: std::function<void(const msgs::Int32 &)> cb;
+  /// \brief Subscription. Declared last so that it unsubscribes before the
+  /// members used by the callback are destroyed.
+  private: transport::Node::Subscriber sub;
 };
+
+/// \brief Sentinel value published after the expected messages. The
+/// delivery is FIFO, so once it is received no other message is pending.
+static const int kSentinel = -1;
 
 //////////////////////////////////////////////////
 /// \brief Check that when a topic exceeds the capacity of the local
@@ -155,11 +163,13 @@ TEST(localHwmTest, DropOldestWhenFull)
   // Unblock the delivery thread and wait for the queued messages.
   ASSERT_TRUE(sub.ReleaseAndWait(1u + kLocalHwm));
 
-  // Give the delivery thread some time to process unexpected extra messages.
-  std::this_thread::sleep_for(200ms);
+  // Any unexpected extra message would be delivered before the sentinel.
+  msg.set_data(kSentinel);
+  EXPECT_TRUE(pub.Publish(msg));
+  ASSERT_TRUE(sub.WaitReceived(2u + kLocalHwm));
 
-  // We expect the first message and the newest kLocalHwm ones.
-  std::vector<int> expected = {0, 6, 7, 8, 9, 10};
+  // We expect the first message, the newest kLocalHwm ones and the sentinel.
+  std::vector<int> expected = {0, 6, 7, 8, 9, 10, kSentinel};
   EXPECT_EQ(expected, sub.Received());
 }
 
@@ -245,6 +255,130 @@ TEST(localHwmTest, TopicIsolation)
   std::vector<int> expectedB = {1, 2, 3};
   EXPECT_EQ(expectedA, subA.Received());
   EXPECT_EQ(expectedB, subB.Received());
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that the capacity is also enforced for raw subscribers.
+TEST(localHwmTest, RawSubscriber)
+{
+  ASSERT_EQ(kLocalHwm, transport::localHwm());
+
+  // Declared before the node so that they outlive the raw subscription.
+  std::mutex mutex;
+  std::vector<int> received;
+
+  transport::Node node;
+  auto pubGate = node.Advertise<msgs::Int32>("/raw_gate");
+  auto pub = node.Advertise<msgs::Int32>("/raw");
+  ASSERT_TRUE(pubGate);
+  ASSERT_TRUE(pub);
+
+  EXPECT_TRUE(node.SubscribeRaw("/raw",
+    [&](const char *_data, size_t _size, const transport::MessageInfo &)
+    {
+      msgs::Int32 rawMsg;
+      ASSERT_TRUE(rawMsg.ParseFromArray(_data, static_cast<int>(_size)));
+      std::lock_guard<std::mutex> lk(mutex);
+      received.push_back(rawMsg.data());
+    },
+    msgs::Int32().GetTypeName()));
+
+  // Block the delivery thread with a message on another topic.
+  BlockingSubscriber gate(node, "/raw_gate");
+  msgs::Int32 msg;
+  msg.set_data(0);
+  EXPECT_TRUE(pubGate.Publish(msg));
+  ASSERT_TRUE(gate.WaitFirstMsg());
+
+  for (int i = 1; i <= 2 * kLocalHwm; ++i)
+  {
+    msg.set_data(i);
+    EXPECT_TRUE(pub.Publish(msg));
+  }
+
+  ASSERT_TRUE(gate.ReleaseAndWait(1u));
+  ASSERT_TRUE(transport::waitUntil([&]
+  {
+    std::lock_guard<std::mutex> lk(mutex);
+    return received.size() >= static_cast<size_t>(kLocalHwm);
+  }));
+
+  std::lock_guard<std::mutex> lk(mutex);
+  std::vector<int> expected = {6, 7, 8, 9, 10};
+  EXPECT_EQ(expected, received);
+}
+
+//////////////////////////////////////////////////
+/// \brief Count the drop warnings printed for a topic.
+/// \param[in] _output Captured standard error.
+/// \param[in] _topic Topic name.
+/// \return Number of drop warnings for _topic.
+static int CountDropWarnings(const std::string &_output,
+  const std::string &_topic)
+{
+  const std::string pattern = _topic + "] are processing messages slower";
+  int count = 0;
+  for (auto pos = _output.find(pattern); pos != std::string::npos;
+       pos = _output.find(pattern, pos + pattern.size()))
+  {
+    ++count;
+  }
+  return count;
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that the drop warning is printed once per overload episode
+/// and printed again after the backlog of the topic fully drains.
+TEST(localHwmTest, WarnOncePerEpisode)
+{
+  ASSERT_EQ(kLocalHwm, transport::localHwm());
+
+  transport::Node node;
+  auto pubGate1 = node.Advertise<msgs::Int32>("/warn_gate1");
+  auto pubGate2 = node.Advertise<msgs::Int32>("/warn_gate2");
+  auto pub = node.Advertise<msgs::Int32>("/warn");
+  ASSERT_TRUE(pubGate1);
+  ASSERT_TRUE(pubGate2);
+  ASSERT_TRUE(pub);
+
+  BlockingSubscriber gate1(node, "/warn_gate1");
+  BlockingSubscriber gate2(node, "/warn_gate2");
+  BlockingSubscriber sub(node, "/warn", false);
+
+  // The warning is printed from the publishing thread, so std::cerr can be
+  // captured around the Publish() calls.
+  std::ostringstream captured;
+  auto flood = [&](int _first)
+  {
+    auto *original = std::cerr.rdbuf(captured.rdbuf());
+    msgs::Int32 msg;
+    for (int i = _first; i < _first + 3 * kLocalHwm; ++i)
+    {
+      msg.set_data(i);
+      EXPECT_TRUE(pub.Publish(msg));
+    }
+    std::cerr.rdbuf(original);
+  };
+
+  // First overload episode: a single warning.
+  msgs::Int32 msg;
+  EXPECT_TRUE(pubGate1.Publish(msg));
+  ASSERT_TRUE(gate1.WaitFirstMsg());
+  flood(0);
+  EXPECT_EQ(1, CountDropWarnings(captured.str(), "/warn"));
+
+  // Fully drain the backlog of the topic.
+  ASSERT_TRUE(gate1.ReleaseAndWait(1u));
+  ASSERT_TRUE(sub.WaitReceived(kLocalHwm));
+
+  // Second overload episode: the warning is printed again.
+  EXPECT_TRUE(pubGate2.Publish(msg));
+  ASSERT_TRUE(gate2.WaitFirstMsg());
+  flood(100);
+  EXPECT_EQ(2, CountDropWarnings(captured.str(), "/warn"));
+
+  ASSERT_TRUE(gate2.ReleaseAndWait(1u));
+  ASSERT_TRUE(sub.WaitReceived(2u * kLocalHwm));
 }
 
 //////////////////////////////////////////////////
