@@ -935,7 +935,6 @@ std::unordered_set<std::string> &Node::SrvsAdvertised() const
 }
 
 //////////////////////////////////////////////////
-<<<<<<< HEAD
 bool Node::TopicInfo(const std::string &_topic,
                      std::vector<MessagePublisher> &_publishers) const
 {
@@ -944,14 +943,9 @@ bool Node::TopicInfo(const std::string &_topic,
 }
 
 //////////////////////////////////////////////////
-bool Node::TopicInfo(const std::string &_topic,
-                     std::vector<MessagePublisher> &_publishers,
-                     std::vector<MessagePublisher> &_subscribers) const
-=======
 bool Node::TopicInfoHelper(const std::string &_topic,
                            std::vector<MessagePublisher> &_publishers,
                            std::vector<MessagePublisher> &_subscribers) const
->>>>>>> 10d387f (Add Node::AllTopicInfo (#967))
 {
   // Construct a topic name with the partition and namespace
   std::string fullyQualifiedTopic;
