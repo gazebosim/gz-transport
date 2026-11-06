@@ -190,6 +190,10 @@ namespace gz::transport
   /// \brief The high water mark of the send message buffer.
   /// \sa NodeShared::SndHwm
   const int kDefaultSndHwm = 1000;
+
+  /// \brief The per topic high water mark of the local delivery queue.
+  /// \sa NodeShared::LocalHwm
+  const int kDefaultLocalHwm = 1000;
   }
 }
 #endif
