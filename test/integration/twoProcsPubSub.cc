@@ -558,8 +558,6 @@ TEST(twoProcPubSub, AllTopicInfo)
     std::chrono::milliseconds(5000)));
 
   std::vector<transport::TopicInfo> topicInfo;
-  EXPECT_TRUE(node.AllTopicInfo(topicInfo));
-
   auto findTopic = [&topicInfo](const std::string &_topicname)
   {
     return std::find_if(topicInfo.begin(), topicInfo.end(),
@@ -568,6 +566,20 @@ TEST(twoProcPubSub, AllTopicInfo)
           return _info.topicName == _topicname;
         });
   };
+
+  // Publishers from previous tests in this partition may take a few
+  // seconds to expire from discovery.
+  transport::waitUntil([&]
+  {
+    topicInfo.clear();
+    if (!node.AllTopicInfo(topicInfo))
+      return false;
+    auto t = findTopic(g_topic);
+    auto s = findTopic("/subscriber_only");
+    return t != topicInfo.end() && s != topicInfo.end() &&
+           t->publishers.size() == 1u && t->subscribers.size() == 1u &&
+           s->publishers.empty() && s->subscribers.size() == 1u;
+  });
 
   auto topic = findTopic(g_topic);
   ASSERT_NE(topic, topicInfo.end());
