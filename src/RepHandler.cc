@@ -25,6 +25,7 @@
 
 #ifdef HAVE_ZENOH
 #include <zenoh.hxx>
+#include "ShmHelpers.hh"
 #endif
 
 namespace gz::transport
@@ -116,9 +117,15 @@ namespace gz::transport
       auto self = weakSelf.lock();
       if (!self)
         return;
-      std::string input = "";
+
+      std::string input;
       if (_query.get_payload())
-        input = _query.get_payload()->get().as_string();
+      {
+        // Reads through a direct pointer into the (SHM) buffer when the
+        // payload is contiguous.
+        input = payloadToString(_query.get_payload()->get());
+      }
+
       std::string output;
       if (self->RunCallback(input, output))
         _query.reply(_service, output);

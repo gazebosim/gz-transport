@@ -4,10 +4,12 @@ set(tests
   authPubSub.cc
   scopedTopic.cc
   callback_scope_TEST.cc
+  defunctSockets.cc
   statistics.cc
   twoProcsPubSub.cc
   twoProcsPubSubStats.cc
   twoProcsSrvCall.cc
+  twoProcsSrvCallLateResponder.cc
   twoProcsSrvCallStress.cc
   twoProcsSrvCallSync1.cc
   twoProcsSrvCallWithoutInput.cc
@@ -19,6 +21,7 @@ set(tests
 
 if (HAVE_ZENOH)
   list(APPEND tests
+    zenohPublisherLeak.cc
     zenohShutdownStress.cc
     zenohTeardownFromCallback.cc)
 endif()
@@ -65,6 +68,7 @@ set(auxiliary_files
 
 if (HAVE_ZENOH)
   list(APPEND auxiliary_files
+    zenohPublisherLeak_aux
     zenohShutdown_aux
     zenohTeardownFromCallback_aux)
 endif()
