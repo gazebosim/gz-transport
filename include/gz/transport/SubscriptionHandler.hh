@@ -158,12 +158,14 @@ namespace gz::transport
       const MessageInfo &_info) = 0;
 
     /// \brief Create a specific protobuf message given its serialized data.
+    /// Defaults to CreateMsgFromBuffer().
     /// \param[in] _data The serialized data.
     /// \param[in] _type The data type.
-    /// \return Pointer to the specific protobuf message.
+    /// \return Pointer to the specific protobuf message, or nullptr if
+    /// _data can't be parsed.
     public: virtual const std::shared_ptr<ProtoMsg> CreateMsg(
       const std::string &_data,
-      const std::string &_type) const = 0;
+      const std::string &_type) const;
 
     /// \brief Create a protobuf message from a raw buffer.
     /// Avoids a string copy compared to CreateMsg when the data already
@@ -171,7 +173,8 @@ namespace gz::transport
     /// \param[in] _data Pointer to the serialized data.
     /// \param[in] _size Number of bytes in _data.
     /// \param[in] _type The data type.
-    /// \return Pointer to the specific protobuf message.
+    /// \return Pointer to the specific protobuf message, or nullptr if
+    /// _data can't be parsed.
     public: virtual const std::shared_ptr<ProtoMsg> CreateMsgFromBuffer(
       const char *_data,
       std::size_t _size,
@@ -220,16 +223,9 @@ namespace gz::transport
       {
         std::cerr << "SubscriptionHandler::CreateMsgFromBuffer() error: "
                   << "ParseFromArray failed" << std::endl;
+        return nullptr;
       }
       return msgPtr;
-    }
-
-    // Documentation inherited.
-    public: const std::shared_ptr<ProtoMsg> CreateMsg(
-      const std::string &_data,
-      const std::string &_type) const override
-    {
-      return this->CreateMsgFromBuffer(_data.data(), _data.size(), _type);
     }
 
     // Documentation inherited.
@@ -365,14 +361,6 @@ namespace gz::transport
       }
 
       return msgPtr;
-    }
-
-    // Documentation inherited.
-    public: const std::shared_ptr<ProtoMsg> CreateMsg(
-      const std::string &_data,
-      const std::string &_type) const override
-    {
-      return this->CreateMsgFromBuffer(_data.data(), _data.size(), _type);
     }
 
     // Documentation inherited.

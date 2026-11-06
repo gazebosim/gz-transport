@@ -163,6 +163,14 @@ namespace gz::transport
     // Do nothing
   }
 
+  /////////////////////////////////////////////////
+  const std::shared_ptr<ProtoMsg> ISubscriptionHandler::CreateMsg(
+    const std::string &_data,
+    const std::string &_type) const
+  {
+    return this->CreateMsgFromBuffer(_data.data(), _data.size(), _type);
+  }
+
 #ifdef HAVE_ZENOH
   /////////////////////////////////////////////////
   void ISubscriptionHandler::CreateLivelinessToken(
