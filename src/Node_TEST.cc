@@ -959,54 +959,36 @@ TEST(NodeTest, PubSubExplicitMessageTypeLambda)
   msgs::Int32 msg;
   msg.set_data(data);
 
-  transport::Node node;
+  // Declared before the node so they outlive the subscriptions.
+  std::atomic<bool> subscribeExecuted{false};
+  std::atomic<bool> createSubscriberExecuted{false};
 
+  transport::Node node;
   auto pub = node.Advertise<msgs::Int32>(g_topic);
   EXPECT_TRUE(pub);
 
-  bool capturingExecuted = false;
   EXPECT_TRUE(node.Subscribe<msgs::Int32>(g_topic,
-    [&capturingExecuted](const msgs::Int32 &_msg)
+    [&subscribeExecuted](const msgs::Int32 &_msg)
     {
       EXPECT_EQ(_msg.data(), data);
-      std::lock_guard<std::mutex> lk(cbMutex);
-      capturingExecuted = true;
-      cbCondition.notify_all();
+      subscribeExecuted = true;
     }));
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  {
-    std::unique_lock<std::mutex> lk(cbMutex);
-    EXPECT_TRUE(pub.Publish(msg));
-    cbCondition.wait(lk, [&capturingExecuted] { return capturingExecuted; });
-  }
-
-  EXPECT_TRUE(capturingExecuted);
-
-  reset();
-
-  bool createSubscriberExecuted = false;
-  auto sub = node.CreateSubscriber<msgs::Int32>(
-      g_topic,
-      [&createSubscriberExecuted](const msgs::Int32 &_msg)
-      {
-        EXPECT_EQ(_msg.data(), data);
-        std::lock_guard<std::mutex> lk(cbMutex);
-        createSubscriberExecuted = true;
-        cbCondition.notify_all();
-      });
+  auto sub = node.CreateSubscriber<msgs::Int32>(g_topic,
+    [&createSubscriberExecuted](const msgs::Int32 &_msg)
+    {
+      EXPECT_EQ(_msg.data(), data);
+      createSubscriberExecuted = true;
+    });
   EXPECT_TRUE(sub);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  transport::waitUntil([&]{ return pub.HasConnections(); });
+  EXPECT_TRUE(pub.Publish(msg));
 
+  EXPECT_TRUE(transport::waitUntil([&]
   {
-    std::unique_lock<std::mutex> lk(cbMutex);
-    EXPECT_TRUE(pub.Publish(msg));
-    cbCondition.wait(lk, [&createSubscriberExecuted]
-                     { return createSubscriberExecuted; });
-  }
-
-  EXPECT_TRUE(createSubscriberExecuted);
+    return subscribeExecuted && createSubscriberExecuted;
+  }));
 
   reset();
 }
@@ -1020,6 +1002,9 @@ TEST(NodeTest, PubSubExplicitMessageTypeNonCapturingLambda)
 
   msgs::Int32 msg;
   msg.set_data(data);
+
+  // Declared before the node so it outlives the subscription.
+  std::atomic<int> optsCounter{0};
 
   transport::Node node;
   auto pub = node.Advertise<msgs::Int32>(g_topic);
@@ -1046,7 +1031,6 @@ TEST(NodeTest, PubSubExplicitMessageTypeNonCapturingLambda)
   // Capturing lambda with SubscribeOptions.
   transport::SubscribeOptions opts;
   opts.SetMsgsPerSec(1000u);
-  std::atomic<int> optsCounter{0};
   EXPECT_TRUE(node.Subscribe<msgs::Int32>(g_topic,
     [&optsCounter](const msgs::Int32 &) { ++optsCounter; }, opts));
 
