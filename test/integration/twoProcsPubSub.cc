@@ -535,6 +535,64 @@ TEST(twoProcPubSub, TopicInfo)
 }
 
 //////////////////////////////////////////////////
+/// \brief This test spawns two nodes on different processes. One of the nodes
+/// advertises a topic and the other subscribes to a topic. The test verifies
+/// that AllTopicInfo() returns publisher and subscriber information about the
+/// topics.
+TEST(twoProcPubSub, AllTopicInfo)
+{
+  auto pubPi = testing::SubprocessJoinWrapper(
+    {test_executables::kTwoProcsPublisher, partition});
+
+  auto subPi = testing::SubprocessJoinWrapper(
+    {test_executables::kSubscriberOnly, partition});
+
+  reset();
+
+  transport::Node node;
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+
+  ASSERT_TRUE(transport::waitForTopic(node, g_topic,
+    std::chrono::milliseconds(5000)));
+  ASSERT_TRUE(transport::waitForTopic(node, "/subscriber_only",
+    std::chrono::milliseconds(5000)));
+
+  std::vector<transport::TopicInfo> topicInfo;
+  auto findTopic = [&topicInfo](const std::string &_topicname)
+  {
+    return std::find_if(topicInfo.begin(), topicInfo.end(),
+        [&_topicname](const transport::TopicInfo &_info)
+        {
+          return _info.topicName == _topicname;
+        });
+  };
+
+  // Publishers from previous tests in this partition may take a few
+  // seconds to expire from discovery.
+  transport::waitUntil([&]
+  {
+    topicInfo.clear();
+    if (!node.AllTopicInfo(topicInfo))
+      return false;
+    auto t = findTopic(g_topic);
+    auto s = findTopic("/subscriber_only");
+    return t != topicInfo.end() && s != topicInfo.end() &&
+           t->publishers.size() == 1u && t->subscribers.size() == 1u &&
+           s->publishers.empty() && s->subscribers.size() == 1u;
+  });
+
+  auto topic = findTopic(g_topic);
+  ASSERT_NE(topic, topicInfo.end());
+  EXPECT_EQ(topic->publishers.size(), 1u);
+  EXPECT_EQ(topic->subscribers.size(), 1u);
+
+  auto subOnlyTopic = findTopic("/subscriber_only");
+  ASSERT_NE(subOnlyTopic, topicInfo.end());
+  EXPECT_EQ(subOnlyTopic->publishers.size(), 0u);
+  EXPECT_EQ(subOnlyTopic->subscribers.size(), 1u);
+}
+
+//////////////////////////////////////////////////
 /// \brief Two different nodes running in two different processes. The
 /// publisher in the main process here publishes a message to the
 /// remote subscriber in the other process before immediately going
