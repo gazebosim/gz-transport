@@ -758,6 +758,7 @@ namespace ignition
       private: void RecvMessages()
       {
         bool timeToExit = false;
+        bool recvFailing = false;
         while (!timeToExit)
         {
           // Calculate the timeout.
@@ -765,7 +766,13 @@ namespace ignition
 
           if (pollSockets(this->sockets, timeout))
           {
-            this->RecvDiscoveryUpdate();
+            // A failed socket stays readable (e.g. one that macOS has
+            // defunct), so wait before polling it again.
+            if (!this->RecvDiscoveryUpdate(recvFailing))
+            {
+              std::this_thread::sleep_for(
+                std::chrono::milliseconds(this->kTimeout));
+            }
 
             if (this->verbose)
               this->PrintCurrentState();
@@ -784,7 +791,10 @@ namespace ignition
       }
 
       /// \brief Method in charge of receiving the discovery updates.
-      private: void RecvDiscoveryUpdate()
+      /// \param[in,out] _failing Whether the last receive failed, so that a
+      /// failure streak prints once.
+      /// \return False if receiving from the socket failed or read nothing.
+      private: bool RecvDiscoveryUpdate(bool &_failing)
       {
         char rcvStr[Discovery::kMaxRcvStr];
         sockaddr_in clntAddr;
@@ -836,11 +846,24 @@ namespace ignition
             this->DispatchDiscoveryMsg(srcAddr, rcvStr + sizeof(len), len);
           }
         }
-        else if (received < 0)
+        else
         {
-          std::cerr << "Discovery::RecvDiscoveryUpdate() recvfrom error"
-            << std::endl;
+          // An empty read carries no discovery frame. A socket that the OS
+          // has shut down keeps returning errors or empty reads.
+          if (!_failing)
+          {
+            std::cerr << "Discovery::RecvDiscoveryUpdate() failed ("
+                      << (received < 0 ? strerror(errno) : "empty read")
+                      << "). If the OS shut down this process's sockets "
+                      << "(macOS does this under network memory pressure), "
+                      << "discovery won't recover until the process restarts."
+                      << std::endl;
+          }
+          _failing = true;
+          return false;
         }
+        _failing = false;
+        return true;
       }
 
       /// \brief Parse a discovery message received via the UDP socket
@@ -1297,6 +1320,18 @@ namespace ignition
           std::cerr << "Socket creation failed." << std::endl;
           return false;
         }
+
+#ifdef SO_NOSIGPIPE
+        // Fail sends with EPIPE instead of raising SIGPIPE when the OS shuts
+        // this socket down, as macOS does when it runs out of network buffers.
+        int noSigPipe = 1;
+        if (setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, &noSigPipe,
+          sizeof(noSigPipe)) != 0)
+        {
+          std::cerr << "Error setting socket option (SO_NOSIGPIPE)."
+                    << std::endl;
+        }
+#endif
 
         // Socket option: IP_MULTICAST_IF.
         // This socket option needs to be applied to each socket used to send
