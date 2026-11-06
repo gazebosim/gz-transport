@@ -1436,7 +1436,7 @@ int NodeShared::SndHwm()
 /////////////////////////////////////////////////
 int NodeShared::LocalHwm() const
 {
-  return static_cast<int>(this->dataPtr->localHwm);
+  return this->dataPtr->localHwm;
 }
 
 //////////////////////////////////////////////////
@@ -1745,27 +1745,34 @@ void NodeSharedPrivate::EnqueuePubMsg(
     std::unique_ptr<PublishMsgDetails> _msgDetails)
 {
   std::string droppedTopic;
+
+  // Destroyed after releasing the lock: it may hold the last reference to a
+  // subscription handler, whose destruction runs user code that could call
+  // back into NodeShared (e.g. Unsubscribe) and lock pubThreadMutex.
+  std::unique_ptr<PublishMsgDetails> droppedMsg;
   {
     std::unique_lock<std::mutex> queueLock(this->pubThreadMutex);
 
-    auto &topicIters = this->pubQueueIters[_msgDetails->fullyQualifiedTopic];
+    auto &backlog = this->pubQueueBacklog[_msgDetails->fullyQualifiedTopic];
 
     // The queue of this topic is full. Drop its oldest message so that the
     // queue does not grow in an unbounded way when the local subscription
     // callbacks are slower than the publication rate.
-    if (this->localHwm > 0 && topicIters.size() >= this->localHwm)
+    if (this->localHwm > 0 &&
+        backlog.entries.size() >= static_cast<std::size_t>(this->localHwm))
     {
-      if (this->pubQueueDropWarned.insert(
-            _msgDetails->fullyQualifiedTopic).second)
+      if (!backlog.dropWarned)
       {
+        backlog.dropWarned = true;
         droppedTopic = _msgDetails->fullyQualifiedTopic;
       }
 
-      this->pubQueue.erase(topicIters.front());
-      topicIters.pop_front();
+      droppedMsg = std::move(*backlog.entries.front());
+      this->pubQueue.erase(backlog.entries.front());
+      backlog.entries.pop_front();
     }
 
-    topicIters.push_back(
+    backlog.entries.push_back(
       this->pubQueue.insert(this->pubQueue.end(), std::move(_msgDetails)));
   }
 
@@ -1818,20 +1825,15 @@ void NodeSharedPrivate::PublishThread()
       this->pubQueue.pop_front();
 
       // Keep the per topic bookkeeping in sync with the pubQueue. The
-      // front of the deque of this topic references the entry just popped.
-      auto topicItersIt =
-        this->pubQueueIters.find(msgDetails->fullyQualifiedTopic);
-      if (topicItersIt != this->pubQueueIters.end())
+      // front of the backlog of this topic references the entry just
+      // popped. Removing a drained backlog also resets its drop warning.
+      auto backlogIt =
+        this->pubQueueBacklog.find(msgDetails->fullyQualifiedTopic);
+      if (backlogIt != this->pubQueueBacklog.end())
       {
-        topicItersIt->second.pop_front();
-        if (topicItersIt->second.empty())
-        {
-          this->pubQueueIters.erase(topicItersIt);
-
-          // The backlog of this topic fully drained. Allow the drop
-          // warning to be shown again on the next overload episode.
-          this->pubQueueDropWarned.erase(msgDetails->fullyQualifiedTopic);
-        }
+        backlogIt->second.entries.pop_front();
+        if (backlogIt->second.entries.empty())
+          this->pubQueueBacklog.erase(backlogIt);
       }
     }
 
@@ -2327,7 +2329,7 @@ bool NodeShared::RemoveHandlersFromPubQueue(const std::string &_topic,
     {
       if ((*handlerIt)->NodeUuid() == _nUuid)
       {
-        msgDetails->localHandlers.erase(handlerIt);
+        handlerIt = msgDetails->localHandlers.erase(handlerIt);
       }
       else
         ++handlerIt;
@@ -2338,7 +2340,7 @@ bool NodeShared::RemoveHandlersFromPubQueue(const std::string &_topic,
          handlerIt != msgDetails->rawHandlers.end();)
     {
       if ((*handlerIt)->NodeUuid() == _nUuid)
-        msgDetails->rawHandlers.erase(handlerIt);
+        handlerIt = msgDetails->rawHandlers.erase(handlerIt);
       else
         ++handlerIt;
     }
@@ -2369,7 +2371,7 @@ bool NodeShared::RemoveHandlerFromPubQueue(const std::string &_topic,
       if ((*handlerIt)->NodeUuid() == _nUuid &&
           _hUuid == (*handlerIt)->HandlerUuid())
       {
-        msgDetails->localHandlers.erase(handlerIt);
+        handlerIt = msgDetails->localHandlers.erase(handlerIt);
       }
       else
       {
@@ -2384,7 +2386,7 @@ bool NodeShared::RemoveHandlerFromPubQueue(const std::string &_topic,
       if ((*handlerIt)->NodeUuid() == _nUuid &&
           _hUuid == (*handlerIt)->HandlerUuid())
       {
-        msgDetails->rawHandlers.erase(handlerIt);
+        handlerIt = msgDetails->rawHandlers.erase(handlerIt);
       }
       else
       {

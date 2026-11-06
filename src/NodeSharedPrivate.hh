@@ -455,24 +455,31 @@ namespace gz::transport
     /// is enforced.
     public: PubQueue pubQueue;
 
-    /// \brief Iterators to the pubQueue entries of each topic, in queue
-    /// order. Used to track the number of queued messages per topic and to
-    /// drop the oldest message of a topic in constant time when the
-    /// localHwm capacity is reached. Protected by pubThreadMutex.
-    public: std::unordered_map<std::string, std::deque<PubQueue::iterator>>
-              pubQueueIters;
+    /// \brief Bookkeeping of the messages of one topic stored in the
+    /// pubQueue.
+    public: struct TopicBacklog
+            {
+              /// \brief Iterators to the pubQueue entries of this topic, in
+              /// queue order. Used to count the queued messages of the topic
+              /// and to drop its oldest one in constant time.
+              public: std::deque<PubQueue::iterator> entries;
 
-    /// \brief Topics that have already dropped messages from the pubQueue.
-    /// Used to warn only once per overload episode: a topic is removed from
-    /// this set when its backlog fully drains from the pubQueue. Protected
-    /// by pubThreadMutex.
-    public: std::unordered_set<std::string> pubQueueDropWarned;
+              /// \brief True if this topic already dropped messages during
+              /// the current overload episode. Used to warn only once per
+              /// episode.
+              public: bool dropWarned = false;
+            };
+
+    /// \brief Backlog of each topic with messages in the pubQueue. A topic
+    /// is removed when its backlog fully drains, which also resets its drop
+    /// warning. Protected by pubThreadMutex.
+    public: std::unordered_map<std::string, TopicBacklog> pubQueueBacklog;
 
     /// \brief Maximum number of messages that can be stored in the pubQueue
     /// per topic. A value of 0 means no limit. Initialized from the
     /// GZ_TRANSPORT_LOCAL_HWM environment variable before the pubThread
     /// starts and never modified afterwards.
-    public: std::size_t localHwm = kDefaultLocalHwm;
+    public: int localHwm = kDefaultLocalHwm;
 
     /// \brief Add a message to the pubQueue so that it is asynchronously
     /// delivered to local subscribers. If the topic already has localHwm
