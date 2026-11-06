@@ -1012,6 +1012,56 @@ TEST(NodeTest, PubSubExplicitMessageTypeLambda)
 }
 
 //////////////////////////////////////////////////
+/// \brief Subscribe with explicit MessageT using non-capturing lambdas,
+/// lambdas with MessageInfo and SubscribeOptions.
+TEST(NodeTest, PubSubExplicitMessageTypeNonCapturingLambda)
+{
+  reset();
+
+  msgs::Int32 msg;
+  msg.set_data(data);
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
+  EXPECT_TRUE(pub);
+
+  // Non-capturing lambda (issue #880).
+  EXPECT_TRUE(node.Subscribe<msgs::Int32>(g_topic,
+    [](const msgs::Int32 &_msg)
+    {
+      EXPECT_EQ(_msg.data(), data);
+      cbExecuted = true;
+    }));
+
+  // Non-capturing lambda with MessageInfo through CreateSubscriber.
+  auto sub = node.CreateSubscriber<msgs::Int32>(g_topic,
+    [](const msgs::Int32 &_msg, const transport::MessageInfo &_info)
+    {
+      EXPECT_EQ(_msg.data(), data);
+      EXPECT_EQ(_info.Topic(), g_topic);
+      cb2Executed = true;
+    });
+  EXPECT_TRUE(sub);
+
+  // Capturing lambda with SubscribeOptions.
+  transport::SubscribeOptions opts;
+  opts.SetMsgsPerSec(1000u);
+  std::atomic<int> optsCounter{0};
+  EXPECT_TRUE(node.Subscribe<msgs::Int32>(g_topic,
+    [&optsCounter](const msgs::Int32 &) { ++optsCounter; }, opts));
+
+  transport::waitUntil([&]{ return pub.HasConnections(); });
+  EXPECT_TRUE(pub.Publish(msg));
+
+  EXPECT_TRUE(transport::waitUntil([&]
+  {
+    return cbExecuted && cb2Executed && optsCounter == 1;
+  }));
+
+  reset();
+}
+
+//////////////////////////////////////////////////
 /// \brief Test the bool operator of the Node::Subscriber class
 TEST(NodeSubTest, BoolOperatorTest)
 {

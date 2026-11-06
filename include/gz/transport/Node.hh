@@ -20,6 +20,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <unordered_set>
 #include <vector>
 #include "gz/transport/AdvertiseOptions.hh"
@@ -368,17 +369,14 @@ namespace gz::transport
     /// \endcode
     ///
     /// \param[in] _topic Topic to be subscribed.
-    /// \param[in] _cb Callback function (lambda, std::function, or functor).
-    /// \param[in] _args Additional arguments forwarded to SubscribeImpl.
+    /// \param[in] _cb Any callable (lambda, std::function, functor or free
+    /// function) invocable with (const MessageT &) or with
+    /// (const MessageT &, const MessageInfo &).
+    /// \param[in] _opts Subscription options.
     /// \return true when successfully subscribed or false otherwise.
-    ///
-    /// \note If a lambda that doesn't capture any values is used as the
-    /// callback, a compiler error will be generated due to a template matching
-    /// ambiguity.
-    // TODO(azeey): Fix ambiguity when using non-capturing lambdas
-    public: template <typename MessageT, typename CallbackT, typename ...Args>
-    bool Subscribe(const std::string &_topic, CallbackT && _cb,
-                   Args && ..._args);
+    public: template <typename MessageT, typename CallbackT>
+    bool Subscribe(const std::string &_topic, CallbackT &&_cb,
+                   const SubscribeOptions &_opts = SubscribeOptions());
 
     /// \brief Create a subscriber to a topic registering a callback
     /// This is function is overloaded with different variants of callback
@@ -390,7 +388,7 @@ namespace gz::transport
     /// Supported function callbacks are:
     ///   * free function
     ///   * member function
-    ///   * lambda function
+    ///   * std::function
     /// The callback function can contain one (_msg) or both (_msg, _info) of
     /// the following parameters:
     ///   * _msg Protobuf message containing a new topic update.
@@ -416,18 +414,17 @@ namespace gz::transport
     /// \endcode
     ///
     /// \param[in] _topic Topic to be subscribed.
-    /// \param[in] _cb Callback function (lambda, std::function, or functor).
-    /// \param[in] args Additional arguments forwarded to SubscribeImpl.
-    /// \return A Node::Subscriber object.
-    ///
-    /// \note If a lambda that doesn't capture any values is used as the
-    /// callback, a compiler error will be generated due to a template matching
-    /// ambiguity.
-    // TODO(azeey): Fix ambiguity when using non-capturing lambdas
-    public: template <typename MessageT, typename CallbackT, typename ...Args>
-    Node::Subscriber CreateSubscriber(const std::string &_topic,
-                                      CallbackT && _cb,
-                                      Args && ..._args);
+    /// \param[in] _cb Any callable (lambda, std::function, functor or free
+    /// function) invocable with (const MessageT &) or with
+    /// (const MessageT &, const MessageInfo &).
+    /// \param[in] _opts Subscription options.
+    /// \return A Node::Subscriber object. It evaluates to false if the
+    /// subscription failed.
+    public: template <typename MessageT, typename CallbackT>
+    Node::Subscriber CreateSubscriber(
+        const std::string &_topic,
+        CallbackT &&_cb,
+        const SubscribeOptions &_opts = SubscribeOptions());
 
     /// \brief Get the list of topics subscribed by this node. Note that
     /// we might be interested in one topic but we still don't know the
@@ -1000,6 +997,15 @@ namespace gz::transport
     private: bool TopicInfoHelper(const std::string &_topic,
                 std::vector<MessagePublisher> &_publishers,
                 std::vector<MessagePublisher> &_subscribers) const;
+
+    /// \brief Wrap a callable in the std::function type that matches its
+    /// signature, so it selects exactly one SubscribeImpl overload.
+    /// \param[in] _cb Callable invocable with (const MessageT &) or with
+    /// (const MessageT &, const MessageInfo &).
+    /// \return std::function<void(const MessageT &, const MessageInfo &)> or
+    /// std::function<void(const MessageT &)>.
+    private: template <typename MessageT, typename CallbackT>
+    static auto ToStdFunction(CallbackT &&_cb);
 
     /// \brief Subscribe to a topic registering a callback.
     /// Note that this callback does not include any message information.

@@ -43,6 +43,26 @@ namespace gz::transport
   }
 
   //////////////////////////////////////////////////
+  template <typename MessageT, typename CallbackT>
+  auto Node::ToStdFunction(CallbackT &&_cb)
+  {
+    if constexpr (std::is_invocable_v<CallbackT &, const MessageT &,
+                                      const MessageInfo &>)
+    {
+      return std::function<void(const MessageT &, const MessageInfo &)>(
+        std::forward<CallbackT>(_cb));
+    }
+    else
+    {
+      static_assert(std::is_invocable_v<CallbackT &, const MessageT &>,
+        "Callback must be invocable with (const MessageT &) or "
+        "(const MessageT &, const MessageInfo &)");
+      return std::function<void(const MessageT &)>(
+        std::forward<CallbackT>(_cb));
+    }
+  }
+
+  //////////////////////////////////////////////////
   template <typename ...Args>
   bool Node::Subscribe(Args && ...args)
   {
@@ -50,14 +70,12 @@ namespace gz::transport
   }
 
   //////////////////////////////////////////////////
-  // TODO(azeey): Fix ambiguity when using non-capturing lambdas
-  template <typename MessageT, typename CallbackT, typename... Args>
-  bool Node::Subscribe(
-      const std::string& _topic, CallbackT&& _cb, Args&&... _args)
+  template <typename MessageT, typename CallbackT>
+  bool Node::Subscribe(const std::string &_topic, CallbackT &&_cb,
+                       const SubscribeOptions &_opts)
   {
-    return this->template SubscribeImpl<MessageT>(
-        _topic, std::forward<CallbackT>(_cb),
-        std::forward<Args>(_args)...) != nullptr;
+    return this->Subscribe(_topic,
+      ToStdFunction<MessageT>(std::forward<CallbackT>(_cb)), _opts);
   }
 
   //////////////////////////////////////////////////
@@ -78,22 +96,13 @@ namespace gz::transport
   }
 
   //////////////////////////////////////////////////
-  template <typename MessageT, typename CallbackT, typename ...Args>
+  template <typename MessageT, typename CallbackT>
   Node::Subscriber Node::CreateSubscriber(const std::string &_topic,
-                                          CallbackT && _cb,
-                                          Args && ..._args)
+                                          CallbackT &&_cb,
+                                          const SubscribeOptions &_opts)
   {
-    auto handler = this->template SubscribeImpl<MessageT>(
-        _topic, std::forward<CallbackT>(_cb), std::forward<Args>(_args)...);
-
-    if (handler && !handler->HandlerUuid().empty())
-    {
-      return Node::Subscriber(_topic,
-                              handler->NodeUuid(),
-                              this->Options(),
-                              handler->HandlerUuid());
-    }
-    return Node::Subscriber();
+    return this->CreateSubscriber(_topic,
+      ToStdFunction<MessageT>(std::forward<CallbackT>(_cb)), _opts);
   }
 
   //////////////////////////////////////////////////
