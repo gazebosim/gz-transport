@@ -113,9 +113,9 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 // platform independent since Zenoh 1.4 (POSIX shared memory on Linux, macOS
 // and BSD, file mappings on Windows). When either macro is missing, the
 // #else branch below provides no-op stand-ins with the same interface so
-// call sites compile unchanged and transparently fall back to heap-based
-// transfer (Zenoh's own transport optimization still applies at the
-// transport level when the library supports it). Zenoh SHM types never leak
+// call sites compile unchanged and fall back to heap-based transfer, noted
+// once per session (Zenoh's own transport optimization still applies at
+// the transport level when the library supports it). Zenoh SHM types never leak
 // out of this block: the public surface is ZenohShm, ShmChunk,
 // allocShmChunk, and zenoh::Bytes (which exists in every Zenoh build).
 // Payloads that are already serialized on the heap (services, PublishRaw)
@@ -258,7 +258,8 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
                 << "message), so the message goes through the network stack "
                 << "instead, which can be slower than ZeroMQ. Raise the pool "
                 << "size through GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE."
-                << shmLimitsText() << " Reported once." << std::endl;
+                << shmLimitsText() << " Reported once per session."
+                << std::endl;
     }
 
     /// \brief Resolution state of the provider.
@@ -376,19 +377,56 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
 
 #else  // No SHM support: no-op stand-ins with the same interface so call
        // sites compile without extra #ifdefs. Allocation always fails,
-       // causing transparent fallback to heap-based transfer. The branches
-       // that would consume a SHM buffer still type-check (ShmChunk::Data()
-       // returns nullptr and TakeBytes() returns empty zenoh::Bytes) but
-       // are never taken at runtime.
+       // causing fallback to heap-based transfer, noted once per session.
+       // The branches that would consume a SHM buffer still type-check
+       // (ShmChunk::Data() returns nullptr and TakeBytes() returns empty
+       // zenoh::Bytes) but are never taken at runtime.
 
-  /// \brief Stand-in SHM state: nothing to attach to.
+  /// \brief Stand-in SHM state: the threshold, to note once per session
+  /// that a message that would use SHM cannot.
   class ZenohShm
   {
-    /// \brief No-op: SHM not available in this build.
-    public: void Init([[maybe_unused]] std::shared_ptr<zenoh::Session>,
-                      [[maybe_unused]] std::size_t)
+    /// \brief Attach a session. SHM is not available in this build.
+    /// \param[in] _session The Zenoh session.
+    /// \param[in] _threshold Minimum payload size, in bytes, that would
+    /// use SHM.
+    public: void Init(std::shared_ptr<zenoh::Session> _session,
+                      std::size_t _threshold)
     {
+      this->threshold.store(_session ? _threshold : SIZE_MAX,
+                            std::memory_order_relaxed);
+      this->reported.store(false, std::memory_order_relaxed);
     }
+
+    /// \brief Minimum payload size, in bytes, that would use SHM.
+    /// \return The threshold, SIZE_MAX without a session.
+    public: std::size_t Threshold() const
+    {
+      return this->threshold.load(std::memory_order_relaxed);
+    }
+
+    /// \brief Report, once per session, that a message at or above the
+    /// threshold cannot be serialized into SHM.
+    /// \param[in] _size Size of the message, in bytes.
+    public: void WarnUnavailable(std::size_t _size)
+    {
+      if (this->reported.exchange(true, std::memory_order_relaxed))
+        return;
+      std::cerr << "gz-transport: A " << _size << " byte message is not "
+                << "serialized into Zenoh shared memory: this zenoh-c was "
+                << "built without its shared memory or unstable API "
+                << "(ZENOHC_BUILD_WITH_SHARED_MEMORY, "
+                << "ZENOHC_BUILD_WITH_UNSTABLE_API). Without shared memory, "
+                << "messages to other processes on this host go through the "
+                << "network stack, which can be slower than ZeroMQ. Reported "
+                << "once per session." << std::endl;
+    }
+
+    /// \brief See Threshold().
+    private: std::atomic<std::size_t> threshold{SIZE_MAX};
+
+    /// \brief Whether WarnUnavailable() has printed its note.
+    private: std::atomic<bool> reported{false};
   };
 
   /// \brief Stand-in chunk: always empty.
@@ -414,10 +452,15 @@ inline namespace GZ_TRANSPORT_VERSION_NAMESPACE
     }
   };
 
-  /// \brief No-op: SHM not available in this build.
+  /// \brief SHM is not available in this build: note it, once per
+  /// session, for a message at or above the threshold.
+  /// \param[in] _shm The SHM state of the session.
+  /// \param[in] _size Number of bytes that would be allocated.
   /// \return Always returns an empty chunk.
-  inline ShmChunk allocShmChunk(ZenohShm &, std::size_t)
+  inline ShmChunk allocShmChunk(ZenohShm &_shm, std::size_t _size)
   {
+    if (_size != 0 && _size >= _shm.Threshold())
+      _shm.WarnUnavailable(_size);
     return ShmChunk();
   }
 
