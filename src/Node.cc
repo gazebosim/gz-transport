@@ -254,6 +254,61 @@ class Node::PublisherPrivate
     this->shared->dataPtr->signalNewPub.notify_one();
   }
 
+  /// \brief Send a serialized message to the remote subscribers, if any:
+  /// the Zenoh SHM chunk when there is one, the heap buffer otherwise,
+  /// whose ownership passes to ZeroMQ or Zenoh.
+  /// \param[in] _impl The transport implementation.
+  /// \param[in] _haveRemote Whether there are remote subscribers.
+  /// \param[in] _msgBuffer The heap buffer, released when sent.
+  /// \param[in] _msgSize Size in bytes of the serialized message.
+  /// \param[in] _shmChunk The SHM chunk, used if not empty (Zenoh only).
+  /// \return False if ZeroMQ could not send it or _impl is unknown.
+  public: bool PublishRemote(const std::string &_impl, bool _haveRemote,
+                             std::unique_ptr<char[]> &_msgBuffer,
+                             std::size_t _msgSize
+#ifdef HAVE_ZENOH
+                             , ShmChunk &_shmChunk
+#endif
+                             ) const
+  {
+    if (_impl == "zeromq")
+    {
+      if (!_haveRemote)
+        return true;
+      // ZeroMQ calls the deallocator once the message is sent.
+      auto deallocator = [](void *_buffer, void *)
+      {
+        delete[] reinterpret_cast<char *>(_buffer);
+      };
+      return this->shared->Publish(this->publisher.Topic(),
+        _msgBuffer.release(), _msgSize, deallocator,
+        this->publisher.MsgTypeName());
+    }
+#ifdef HAVE_ZENOH
+    if (_impl == "zenoh")
+    {
+      if (!_haveRemote)
+        return true;
+      zenoh::Publisher::PutOptions options;
+      options.attachment = this->publisher.MsgTypeName();
+      if (_shmChunk)
+      {
+        this->zPub->put(_shmChunk.TakeBytes(), std::move(options));
+      }
+      else
+      {
+        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+        this->zPub->put(
+          zenoh::Bytes(reinterpret_cast<uint8_t *>(_msgBuffer.release()),
+                       _msgSize, deleter),
+          std::move(options));
+      }
+      return true;
+    }
+#endif
+    return false;
+  }
+
   /// \brief Pointer to the object shared between all the nodes within the
   /// same process.
   public: NodeShared *shared = nullptr;
@@ -577,57 +632,13 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
     this->dataPtr->Enqueue(std::move(pubMsgDetails));
   }
 
-  // Handle remote subscribers.
-  if (impl == "zeromq")
-  {
-    if (subscribers.haveRemote)
-    {
-      // Zmq will call this lambda when the message is published.
-      // We use it to deallocate the buffer.
-      auto myDeallocator = [](void *_buffer, void *)
-      {
-        delete[] reinterpret_cast<char*>(_buffer);
-      };
-
-      // Ownership of the buffer passes to ZeroMQ via the deallocator.
-      if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
-            msgBuffer.release(), msgSize, myDeallocator,
-            std::string(_msg.GetTypeName())))
-      {
-        return false;
-      }
-    }
-  }
+  // Handle remote subscribers (the type was checked above).
+  return this->dataPtr->PublishRemote(impl, subscribers.haveRemote,
+                                      msgBuffer, msgSize
 #ifdef HAVE_ZENOH
-  else if (impl == "zenoh")
-  {
-    if (subscribers.haveRemote)
-    {
-      zenoh::Publisher::PutOptions options;
-      options.attachment = this->dataPtr->publisher.MsgTypeName();
-      if (shmChunk)
-      {
-        // Data was serialized directly into SHM — publish with no extra copy.
-        this->dataPtr->zPub->put(shmChunk.TakeBytes(), std::move(options));
-      }
-      else
-      {
-        // Heap publish. The SHM attempt already happened during
-        // serialization above, so there is no point retrying it here.
-        // Ownership of the buffer passes to Zenoh via the deleter.
-        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-        this->dataPtr->zPub->put(
-          zenoh::Bytes(reinterpret_cast<uint8_t *>(msgBuffer.release()),
-                       msgSize, deleter),
-          std::move(options));
-      }
-    }
-  }
+                                      , shmChunk
 #endif
-  else
-    return false;
-
-  return true;
+                                      );
 }
 
 //////////////////////////////////////////////////
@@ -808,36 +819,12 @@ bool Node::Publisher::PublishInPlace(
   if (!subscribers.haveRemote)
     return true;
 
-  if (impl == "zeromq")
-  {
-    auto deallocator = [](void *_buffer, void *)
-    {
-      delete[] reinterpret_cast<char *>(_buffer);
-    };
-    return this->dataPtr->shared->Publish(
-      topic, msgBuffer.release(), _msgSize, deallocator, msgType);
-  }
+  return this->dataPtr->PublishRemote(impl, subscribers.haveRemote,
+                                      msgBuffer, _msgSize
 #ifdef HAVE_ZENOH
-  if (impl == "zenoh")
-  {
-    zenoh::Publisher::PutOptions options;
-    options.attachment = msgType;
-    if (shmChunk)
-    {
-      this->dataPtr->zPub->put(shmChunk.TakeBytes(), std::move(options));
-    }
-    else
-    {
-      auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-      this->dataPtr->zPub->put(
-        zenoh::Bytes(reinterpret_cast<uint8_t *>(msgBuffer.release()),
-                     _msgSize, deleter),
-        std::move(options));
-    }
-    return true;
-  }
+                                      , shmChunk
 #endif
-  return false;
+                                      );
 }
 
 //////////////////////////////////////////////////
