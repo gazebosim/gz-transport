@@ -18,6 +18,7 @@
 #include <gz/msgs/vector3d.pb.h>
 
 #include <chrono>
+#include <cstddef>
 #include <string>
 
 #include "gz/transport/Node.hh"
@@ -30,6 +31,20 @@ using namespace gz;
 
 static std::string g_topic = "/foo"; // NOLINT(*)
 static std::string g_largeTopic = "/large_msg"; // NOLINT(*)
+static std::string g_inPlaceTopic = "/in_place"; // NOLINT(*)
+static std::string g_largeInPlaceTopic = "/large_msg_in_place"; // NOLINT(*)
+
+//////////////////////////////////////////////////
+/// \brief Publish _msg with PublishInPlace().
+void publishInPlace(transport::Node::Publisher &_pub,
+                    const google::protobuf::Message &_msg)
+{
+  const std::size_t size = _msg.ByteSizeLong();
+  _pub.PublishInPlace(size, [&](char *_buffer)
+  {
+    return _msg.SerializeToArray(_buffer, static_cast<int>(size));
+  });
+}
 
 //////////////////////////////////////////////////
 /// \brief A publisher node.
@@ -50,14 +65,28 @@ void advertiseAndPublish()
 
   auto pub = node.Advertise<msgs::Vector3d>(g_topic);
   auto largePub = node.Advertise<msgs::Bytes>(g_largeTopic);
+  // The same messages, serialized in place every 100 ms meanwhile: a heap
+  // buffer handed over to the transport, or for the large one a Zenoh SHM
+  // buffer once Zenoh has set up its pool (lazily, after the first ones).
+  auto inPlacePub = node.Advertise<msgs::Vector3d>(g_inPlaceTopic);
+  auto largeInPlacePub = node.Advertise<msgs::Bytes>(g_largeInPlaceTopic);
+  auto waitPublishingInPlace = [&](int _ms)
+  {
+    for (int t = 0; t < _ms; t += 100)
+    {
+      publishInPlace(inPlacePub, msg);
+      publishInPlace(largeInPlacePub, largeMsg);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  };
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  waitPublishingInPlace(500);
   pub.Publish(msg);
   largePub.Publish(largeMsg);
-  std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+  waitPublishingInPlace(1500);
   pub.Publish(msg);
   largePub.Publish(largeMsg);
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  waitPublishingInPlace(1000);
 }
 
 //////////////////////////////////////////////////
