@@ -28,8 +28,11 @@
 #include <cstdlib>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <stdexcept>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/Node.hh"
@@ -2827,6 +2830,314 @@ TEST(NodePubTest, DestructionOrder)
     transport::Node node;
     pub = node.Advertise<msgs::Vector3d>(g_topic);
   }
+}
+
+//////////////////////////////////////////////////
+/// \brief PublishInPlace() serializing _msg.
+static bool PublishInPlace(transport::Node::Publisher &_pub,
+                           const google::protobuf::Message &_msg)
+{
+  const std::size_t size = _msg.ByteSizeLong();
+  return _pub.PublishInPlace(size, [&](char *_buffer)
+  {
+    return _msg.SerializeToArray(_buffer, static_cast<int>(size));
+  });
+}
+
+//////////////////////////////////////////////////
+/// \brief PublishInPlace() runs local and raw subscribers on the publish
+/// thread, like Publish(): a callback may take a lock the publisher holds
+/// while it publishes, and gets the message once the lock is released.
+TEST(NodeTest, PublishInPlaceLocalCallbacksAsync)
+{
+  // Shared with the callbacks, which may outlive this scope on failure.
+  struct State
+  {
+    std::mutex publisherMutex;
+    std::thread::id publisherThread = std::this_thread::get_id();
+    std::atomic<int> inline_{0};
+    std::atomic<int> typed{-1};
+    std::atomic<int> raw{-1};
+  };
+  auto state = std::make_shared<State>();
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
+  ASSERT_TRUE(pub);
+
+  std::function<void(const msgs::Int32 &)> typedCb =
+    [state](const msgs::Int32 &_msg)
+    {
+      // Called from inside PublishInPlace: locking would deadlock.
+      if (std::this_thread::get_id() == state->publisherThread)
+      {
+        ++state->inline_;
+        return;
+      }
+      std::lock_guard<std::mutex> lock(state->publisherMutex);
+      state->typed = _msg.data();
+    };
+  ASSERT_TRUE(node.Subscribe(g_topic, typedCb));
+  ASSERT_TRUE(node.SubscribeRaw(g_topic,
+    [state](const char *_data, std::size_t _size,
+            const transport::MessageInfo &_info)
+    {
+      if (std::this_thread::get_id() == state->publisherThread)
+      {
+        ++state->inline_;
+        return;
+      }
+      std::lock_guard<std::mutex> lock(state->publisherMutex);
+      msgs::Int32 msg;
+      EXPECT_TRUE(msg.ParseFromArray(_data, static_cast<int>(_size)));
+      EXPECT_EQ(g_topic, _info.Topic());
+      EXPECT_TRUE(_info.IntraProcess());
+      state->raw = msg.data();
+    }));
+  ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }));
+
+  msgs::Int32 msg;
+  msg.set_data(42);
+  {
+    std::lock_guard<std::mutex> lock(state->publisherMutex);
+    // The callbacks wait for this lock.
+    EXPECT_TRUE(PublishInPlace(pub, msg));
+  }
+  EXPECT_TRUE(transport::waitUntil(
+    [&]{ return state->typed == 42 && state->raw == 42; }));
+  EXPECT_EQ(0, state->inline_);
+}
+
+//////////////////////////////////////////////////
+/// \brief Local subscribers get PublishInPlace() and Publish() messages in
+/// the order they were published.
+TEST(NodeTest, PublishInPlaceOrderWithPublish)
+{
+  // Shared with the callbacks, which may outlive this scope on failure.
+  struct State
+  {
+    std::mutex mutex;
+    std::vector<int> typed, raw;
+    std::atomic<bool> release{false};
+  };
+  auto state = std::make_shared<State>();
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
+  ASSERT_TRUE(pub);
+
+  std::function<void(const msgs::Int32 &)> typedCb =
+    [state](const msgs::Int32 &_msg)
+    {
+      // Hold the publish thread on the first message until all are
+      // published: one delivered in the publisher's thread overtakes it.
+      if (_msg.data() == 1)
+        transport::waitUntil([&]{ return state->release.load(); },
+            std::chrono::milliseconds(2000), std::chrono::milliseconds(1));
+      std::lock_guard<std::mutex> lock(state->mutex);
+      state->typed.push_back(_msg.data());
+    };
+  ASSERT_TRUE(node.Subscribe(g_topic, typedCb));
+  ASSERT_TRUE(node.SubscribeRaw(g_topic,
+    [state](const char *_data, std::size_t _size,
+            const transport::MessageInfo &)
+    {
+      msgs::Int32 msg;
+      EXPECT_TRUE(msg.ParseFromArray(_data, static_cast<int>(_size)));
+      std::lock_guard<std::mutex> lock(state->mutex);
+      state->raw.push_back(msg.data());
+    }));
+  ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }));
+
+  const std::vector<int> expected{1, 2, 3, 4, 5, 6};
+  msgs::Int32 msg;
+  for (int i : expected)
+  {
+    msg.set_data(i);
+    EXPECT_TRUE(i % 2 ? pub.Publish(msg) : PublishInPlace(pub, msg));
+  }
+  state->release = true;
+  EXPECT_TRUE(transport::waitUntil([&]
+  {
+    std::lock_guard<std::mutex> lock(state->mutex);
+    return state->typed.size() == expected.size() &&
+        state->raw.size() == expected.size();
+  }));
+  std::lock_guard<std::mutex> lock(state->mutex);
+  EXPECT_EQ(expected, state->typed);
+  EXPECT_EQ(expected, state->raw);
+}
+
+//////////////////////////////////////////////////
+/// \brief Local typed and raw subscribers that record, in order, the
+/// serialized bytes they receive. Shared with the callbacks, which may
+/// outlive the test scope on failure.
+struct InPlaceRecorder
+{
+  std::mutex mutex;
+  std::vector<std::string> typed, raw;
+
+  /// \brief Subscribe a typed and a raw callback to _topic on _node.
+  static std::shared_ptr<InPlaceRecorder> Subscribe(
+    transport::Node &_node, const std::string &_topic)
+  {
+    auto state = std::make_shared<InPlaceRecorder>();
+    std::function<void(const msgs::StringMsg &)> typedCb =
+      [state](const msgs::StringMsg &_msg)
+      {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        state->typed.push_back(_msg.SerializeAsString());
+      };
+    EXPECT_TRUE(_node.Subscribe(_topic, typedCb));
+    EXPECT_TRUE(_node.SubscribeRaw(_topic,
+      [state](const char *_data, std::size_t _size,
+              const transport::MessageInfo &)
+      {
+        std::lock_guard<std::mutex> lock(state->mutex);
+        state->raw.emplace_back(_data, _size);
+      }));
+    return state;
+  }
+
+  /// \brief Wait until both subscribers got _n messages.
+  bool WaitFor(std::size_t _n)
+  {
+    return transport::waitUntil([&]
+    {
+      std::lock_guard<std::mutex> lock(this->mutex);
+      return this->typed.size() >= _n && this->raw.size() >= _n;
+    });
+  }
+};
+
+//////////////////////////////////////////////////
+/// \brief A message published in place reaches the local typed and raw
+/// subscribers with the bytes Publish() delivers for the same message.
+TEST(NodeTest, PublishInPlaceSameBytesAsPublish)
+{
+  transport::Node node;
+  auto pub = node.Advertise<msgs::StringMsg>(g_topic);
+  ASSERT_TRUE(pub);
+  auto state = InPlaceRecorder::Subscribe(node, g_topic);
+  ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }));
+
+  msgs::StringMsg msg;
+  msg.mutable_header()->mutable_stamp()->set_sec(12);
+  msg.mutable_header()->mutable_stamp()->set_nsec(345);
+  msg.set_data(std::string(1000, 'x') + "in place");
+  const std::string expected = msg.SerializeAsString();
+
+  EXPECT_TRUE(pub.Publish(msg));
+  EXPECT_TRUE(PublishInPlace(pub, msg));
+  ASSERT_TRUE(state->WaitFor(2));
+
+  std::lock_guard<std::mutex> lock(state->mutex);
+  EXPECT_EQ(std::vector<std::string>(2, expected), state->raw);
+  EXPECT_EQ(std::vector<std::string>(2, expected), state->typed);
+}
+
+//////////////////////////////////////////////////
+/// \brief When _serialize returns false, PublishInPlace() returns false and
+/// delivers nothing: the next message is the first one subscribers get.
+TEST(NodeTest, PublishInPlaceSerializeFails)
+{
+  transport::Node node;
+  auto pub = node.Advertise<msgs::StringMsg>(g_topic);
+  ASSERT_TRUE(pub);
+  auto state = InPlaceRecorder::Subscribe(node, g_topic);
+  ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }));
+
+  msgs::StringMsg msg;
+  msg.set_data("cancelled");
+  const std::size_t size = msg.ByteSizeLong();
+  EXPECT_FALSE(pub.PublishInPlace(size, [&](char *_buffer)
+  {
+    // A complete message, then cancelled: it must not be delivered.
+    EXPECT_TRUE(msg.SerializeToArray(_buffer, static_cast<int>(size)));
+    return false;
+  }));
+
+  msg.set_data("delivered");
+  EXPECT_TRUE(PublishInPlace(pub, msg));
+  ASSERT_TRUE(state->WaitFor(1));
+  // Give a wrongly queued message the time to show up.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  std::lock_guard<std::mutex> lock(state->mutex);
+  const std::vector<std::string> expected{msg.SerializeAsString()};
+  EXPECT_EQ(expected, state->raw);
+  EXPECT_EQ(expected, state->typed);
+}
+
+//////////////////////////////////////////////////
+/// \brief _serialize is not called when the topic has no subscribers or the
+/// publication is throttled.
+TEST(NodeTest, PublishInPlaceSerializeNotCalled)
+{
+  int calls = 0;
+  auto serialize = [&calls]([[maybe_unused]] char *_buffer)
+  {
+    ++calls;
+    return true;
+  };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
+  ASSERT_TRUE(pub);
+  EXPECT_TRUE(pub.PublishInPlace(2, serialize));
+  EXPECT_EQ(0, calls);
+
+  transport::AdvertiseMessageOptions opts;
+  opts.SetMsgsPerSec(1u);
+  auto throttledPub = node.Advertise<msgs::Int32>(g_topic_remap, opts);
+  ASSERT_TRUE(throttledPub);
+  ASSERT_TRUE(node.SubscribeRaw(g_topic_remap,
+    [](const char *, std::size_t, const transport::MessageInfo &) {}));
+  ASSERT_TRUE(transport::waitUntil(
+    [&]{ return throttledPub.HasConnections(); }));
+
+  msgs::Int32 msg;
+  msg.set_data(1);
+  EXPECT_TRUE(throttledPub.PublishInPlace(msg.ByteSizeLong(), [&](char *_b)
+  {
+    ++calls;
+    return msg.SerializeToArray(_b, static_cast<int>(msg.ByteSizeLong()));
+  }));
+  EXPECT_EQ(1, calls);
+  // Within the same second: throttled.
+  EXPECT_TRUE(throttledPub.PublishInPlace(msg.ByteSizeLong(), serialize));
+  EXPECT_EQ(1, calls);
+}
+
+//////////////////////////////////////////////////
+/// \brief A raw-only subscriber whose callback throws: the publish thread
+/// reports it without a parsed message (there is none for raw-only
+/// publications) and keeps delivering.
+TEST(NodeTest, PublishInPlaceRawCallbackThrows)
+{
+  auto received = std::make_shared<std::atomic<int>>(0);
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Int32>(g_topic);
+  ASSERT_TRUE(pub);
+  ASSERT_TRUE(node.SubscribeRaw(g_topic,
+    [received](const char *_data, std::size_t _size,
+               const transport::MessageInfo &)
+    {
+      msgs::Int32 msg;
+      EXPECT_TRUE(msg.ParseFromArray(_data, static_cast<int>(_size)));
+      if (msg.data() == 1)
+        throw std::runtime_error("raw callback failure");
+      *received = msg.data();
+    }));
+  ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }));
+
+  msgs::Int32 msg;
+  msg.set_data(1);
+  EXPECT_TRUE(PublishInPlace(pub, msg));
+  msg.set_data(2);
+  EXPECT_TRUE(PublishInPlace(pub, msg));
+  EXPECT_TRUE(transport::waitUntil([&]{ return *received == 2; }));
 }
 
 //////////////////////////////////////////////////

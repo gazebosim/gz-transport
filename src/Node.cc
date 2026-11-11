@@ -168,6 +168,147 @@ class Node::PublisherPrivate
     return info;
   }
 
+  /// \brief Start a publication for the publish thread: the message
+  /// information and the local and raw handlers that take this
+  /// publisher's message type. The caller adds the message data.
+  /// \param[in] _subscribers The subscribers of this publisher's topic.
+  /// \param[in] _caller Name of the calling function, for errors.
+  /// \return The new publication.
+  public: std::unique_ptr<NodeSharedPrivate::PublishMsgDetails>
+  LocalPublication(const NodeShared::SubscriberInfo &_subscribers,
+                   const char *_caller) const
+  {
+    std::unique_ptr<NodeSharedPrivate::PublishMsgDetails> details(
+      new NodeSharedPrivate::PublishMsgDetails);
+    const std::string &msgType = this->publisher.MsgTypeName();
+    details->info.SetTopicAndPartition(this->publisher.Topic());
+    details->info.SetType(msgType);
+    details->info.SetIntraProcess(true);
+    details->publisherNodeUUID = this->publisher.NUuid();
+
+    if (_subscribers.haveLocal)
+    {
+      for (const auto &node : _subscribers.localHandlers)
+      {
+        for (const auto &handler : node.second)
+        {
+          if (!handler.second)
+          {
+            std::cerr << "Node::Publisher::" << _caller << "(): "
+                      << "NULL local subscription handler" << std::endl;
+            continue;
+          }
+
+          if (handler.second->TypeName() != kGenericMessageType &&
+              handler.second->TypeName() != msgType)
+          {
+            continue;
+          }
+
+          details->localHandlers.push_back(handler.second);
+        }
+      }
+    }
+
+    if (_subscribers.haveRaw)
+    {
+      for (const auto &node : _subscribers.rawHandlers)
+      {
+        for (const auto &handler : node.second)
+        {
+          const RawSubscriptionHandlerPtr &rawHandler = handler.second;
+
+          if (!rawHandler)
+          {
+            std::cerr << "Node::Publisher::" << _caller << "(): "
+                      << "NULL raw subscription handler" << std::endl;
+            continue;
+          }
+
+          if (rawHandler->TypeName() != kGenericMessageType &&
+              rawHandler->TypeName() != msgType)
+          {
+            continue;
+          }
+
+          details->rawHandlers.push_back(rawHandler);
+        }
+      }
+    }
+
+    return details;
+  }
+
+  /// \brief Queue a publication for the publish thread, which runs the
+  /// local and raw callbacks asynchronously.
+  /// \param[in] _details The publication.
+  public: void Enqueue(
+    std::unique_ptr<NodeSharedPrivate::PublishMsgDetails> _details) const
+  {
+    {
+      std::unique_lock<std::mutex> queueLock(
+          this->shared->dataPtr->pubThreadMutex);
+      this->shared->dataPtr->pubQueue.push_back(std::move(_details));
+    }
+
+    this->shared->dataPtr->signalNewPub.notify_one();
+  }
+
+  /// \brief Send a serialized message to the remote subscribers, if any:
+  /// the Zenoh SHM chunk when there is one, the heap buffer otherwise,
+  /// whose ownership passes to ZeroMQ or Zenoh.
+  /// \param[in] _impl The transport implementation.
+  /// \param[in] _haveRemote Whether there are remote subscribers.
+  /// \param[in] _msgBuffer The heap buffer, released when sent.
+  /// \param[in] _msgSize Size in bytes of the serialized message.
+  /// \param[in] _shmChunk The SHM chunk, used if not empty (Zenoh only).
+  /// \return False if ZeroMQ could not send it or _impl is unknown.
+  public: bool PublishRemote(const std::string &_impl, bool _haveRemote,
+                             std::unique_ptr<char[]> &_msgBuffer,
+                             std::size_t _msgSize
+#ifdef HAVE_ZENOH
+                             , ShmChunk &_shmChunk
+#endif
+                             ) const
+  {
+    if (_impl == "zeromq")
+    {
+      if (!_haveRemote)
+        return true;
+      // ZeroMQ calls the deallocator once the message is sent.
+      auto deallocator = [](void *_buffer, void *)
+      {
+        delete[] reinterpret_cast<char *>(_buffer);
+      };
+      return this->shared->Publish(this->publisher.Topic(),
+        _msgBuffer.release(), _msgSize, deallocator,
+        this->publisher.MsgTypeName());
+    }
+#ifdef HAVE_ZENOH
+    if (_impl == "zenoh")
+    {
+      if (!_haveRemote)
+        return true;
+      zenoh::Publisher::PutOptions options;
+      options.attachment = this->publisher.MsgTypeName();
+      if (_shmChunk)
+      {
+        this->zPub->put(_shmChunk.TakeBytes(), std::move(options));
+      }
+      else
+      {
+        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
+        this->zPub->put(
+          zenoh::Bytes(reinterpret_cast<uint8_t *>(_msgBuffer.release()),
+                       _msgSize, deleter),
+          std::move(options));
+      }
+      return true;
+    }
+#endif
+    return false;
+  }
+
   /// \brief Pointer to the object shared between all the nodes within the
   /// same process.
   public: NodeShared *shared = nullptr;
@@ -475,141 +616,29 @@ bool Node::Publisher::Publish(const ProtoMsg &_msg)
   // Local and raw subscribers.
   if (subscribers.haveLocal || subscribers.haveRaw)
   {
-    std::unique_ptr<NodeSharedPrivate::PublishMsgDetails> pubMsgDetails(
-      new NodeSharedPrivate::PublishMsgDetails);
-
-    // Create and populate the message information object.
-    // This must be a shared pointer so that we can pass it to
-    // multiple threads below, and then allow this function to go
-    // out of scope.
-    pubMsgDetails->info.SetTopicAndPartition(this->dataPtr->publisher.Topic());
-    pubMsgDetails->info.SetType(this->dataPtr->publisher.MsgTypeName());
-    pubMsgDetails->info.SetIntraProcess(true);
+    std::unique_ptr<NodeSharedPrivate::PublishMsgDetails> pubMsgDetails =
+      this->dataPtr->LocalPublication(subscribers, "Publish");
 
     pubMsgDetails->msgCopy.reset(_msg.New());
     pubMsgDetails->msgCopy->CopyFrom(_msg);
 
-    pubMsgDetails->publisherNodeUUID = this->dataPtr->publisher.NUuid();
-
-    if (subscribers.haveLocal)
+    if (!pubMsgDetails->rawHandlers.empty())
     {
-      for (const auto &node : subscribers.localHandlers)
-      {
-        for (const auto &handler : node.second)
-        {
-          if (!handler.second)
-          {
-            std::cerr << "Node::Publisher::Publish(): "
-                      << "NULL local subscription handler" << std::endl;
-            continue;
-          }
-
-          if (handler.second->TypeName() != kGenericMessageType &&
-              handler.second->TypeName() != _msg.GetTypeName())
-          {
-            continue;
-          }
-
-          pubMsgDetails->localHandlers.push_back(handler.second);
-        }
-      }
+      pubMsgDetails->msgSize = msgSize;
+      pubMsgDetails->sharedBuffer.reset(new char[msgSize]);
+      memcpy(pubMsgDetails->sharedBuffer.get(), serializedData, msgSize);
     }
 
-    if (subscribers.haveRaw)
-    {
-      for (auto &node : subscribers.rawHandlers)
-      {
-        for (auto &handler : node.second)
-        {
-          const RawSubscriptionHandlerPtr &rawHandler = handler.second;
-
-          if (!rawHandler)
-          {
-            std::cerr << "Node::Publisher::Publish(): "
-                      << "NULL raw subscription handler" << std::endl;
-            continue;
-          }
-
-          if (rawHandler->TypeName() != kGenericMessageType &&
-              rawHandler->TypeName() != _msg.GetTypeName())
-          {
-            continue;
-          }
-
-          if (!pubMsgDetails->sharedBuffer)
-          {
-            pubMsgDetails->msgSize = msgSize;
-            pubMsgDetails->sharedBuffer.reset(new char[msgSize]);
-            memcpy(pubMsgDetails->sharedBuffer.get(), serializedData, msgSize);
-          }
-          pubMsgDetails->rawHandlers.push_back(rawHandler);
-        }
-      }
-    }
-
-    // Add the publish message details to the publish queue. The message
-    // will be published asynchronously to the local and raw callbacks.
-    {
-      std::unique_lock<std::mutex> queueLock(
-          this->dataPtr->shared->dataPtr->pubThreadMutex);
-      this->dataPtr->shared->dataPtr->pubQueue.push_back(
-          std::move(pubMsgDetails));
-    }
-
-    this->dataPtr->shared->dataPtr->signalNewPub.notify_one();
+    this->dataPtr->Enqueue(std::move(pubMsgDetails));
   }
 
-  // Handle remote subscribers.
-  if (impl == "zeromq")
-  {
-    if (subscribers.haveRemote)
-    {
-      // Zmq will call this lambda when the message is published.
-      // We use it to deallocate the buffer.
-      auto myDeallocator = [](void *_buffer, void *)
-      {
-        delete[] reinterpret_cast<char*>(_buffer);
-      };
-
-      // Ownership of the buffer passes to ZeroMQ via the deallocator.
-      if (!this->dataPtr->shared->Publish(this->dataPtr->publisher.Topic(),
-            msgBuffer.release(), msgSize, myDeallocator,
-            std::string(_msg.GetTypeName())))
-      {
-        return false;
-      }
-    }
-  }
+  // Handle remote subscribers (the type was checked above).
+  return this->dataPtr->PublishRemote(impl, subscribers.haveRemote,
+                                      msgBuffer, msgSize
 #ifdef HAVE_ZENOH
-  else if (impl == "zenoh")
-  {
-    if (subscribers.haveRemote)
-    {
-      zenoh::Publisher::PutOptions options;
-      options.attachment = this->dataPtr->publisher.MsgTypeName();
-      if (shmChunk)
-      {
-        // Data was serialized directly into SHM — publish with no extra copy.
-        this->dataPtr->zPub->put(shmChunk.TakeBytes(), std::move(options));
-      }
-      else
-      {
-        // Heap publish. The SHM attempt already happened during
-        // serialization above, so there is no point retrying it here.
-        // Ownership of the buffer passes to Zenoh via the deleter.
-        auto deleter = [](uint8_t *_buffer) { delete[] _buffer; };
-        this->dataPtr->zPub->put(
-          zenoh::Bytes(reinterpret_cast<uint8_t *>(msgBuffer.release()),
-                       msgSize, deleter),
-          std::move(options));
-      }
-    }
-  }
+                                      , shmChunk
 #endif
-  else
-    return false;
-
-  return true;
+                                      );
 }
 
 //////////////////////////////////////////////////
@@ -683,6 +712,119 @@ bool Node::Publisher::PublishRaw(
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool Node::Publisher::PublishInPlace(
+    std::size_t _msgSize,
+    const std::function<bool(char *_buffer)> &_serialize)
+{
+  if (!this->Valid())
+    return false;
+
+  const std::string &msgType = this->dataPtr->publisher.MsgTypeName();
+  if (msgType == kGenericMessageType)
+  {
+    std::cerr << "Node::Publisher::PublishInPlace(): in-place serialization "
+              << "needs a publisher advertised with a message type"
+              << std::endl;
+    return false;
+  }
+
+  if (!this->UpdateThrottling())
+    return true;
+
+  const std::string &topic = this->dataPtr->publisher.Topic();
+  const NodeShared::SubscriberInfo &subscribers =
+      this->dataPtr->shared->CheckSubscriberInfo(topic, msgType);
+  if (!subscribers.haveLocal && !subscribers.haveRaw &&
+      !subscribers.haveRemote)
+  {
+    return true;
+  }
+
+  const std::string impl = this->dataPtr->shared->GzImplementation();
+
+  // The outgoing buffer: SHM when Zenoh can deliver the payload through it,
+  // a heap buffer whose ownership passes to the transport otherwise.
+  char *buffer = nullptr;
+  std::unique_ptr<char[]> msgBuffer;
+#ifdef HAVE_ZENOH
+  ShmChunk shmChunk;
+  if (impl == "zenoh" && subscribers.haveRemote)
+  {
+    shmChunk = allocShmChunk(
+      this->dataPtr->shared->dataPtr->zenohShm, _msgSize);
+    buffer = reinterpret_cast<char *>(shmChunk.Data());
+  }
+#endif
+  if (!buffer)
+  {
+    // Default-initialized on purpose: _serialize overwrites it.
+    msgBuffer.reset(new char[_msgSize]);
+    buffer = msgBuffer.get();
+  }
+
+  if (!_serialize(buffer))
+    return false;
+
+  // Local and raw subscribers, as in Publish(): their callbacks run on the
+  // publish thread, never in the caller's (which may hold a lock a callback
+  // takes), in publication order with Publish(). They need data of their
+  // own: a copy of the buffer for the raw ones, the message parsed from it
+  // for the others. Remote subscribers keep the zero-copy path below.
+  if (subscribers.haveLocal || subscribers.haveRaw)
+  {
+    std::unique_ptr<NodeSharedPrivate::PublishMsgDetails> pubMsgDetails =
+      this->dataPtr->LocalPublication(subscribers, "PublishInPlace");
+
+    if (!pubMsgDetails->localHandlers.empty())
+    {
+      // Protobuf knows every type linked into this process: if one handler
+      // can't parse the message, none can.
+      pubMsgDetails->msgCopy = pubMsgDetails->localHandlers.front()->
+        CreateMsgFromBuffer(buffer, _msgSize, msgType);
+      if (!pubMsgDetails->msgCopy)
+      {
+        std::cerr << "Node::Publisher::PublishInPlace(): cannot create a "
+                  << "[" << msgType << "] message for the local "
+                  << "subscribers of [" << topic << "]" << std::endl;
+        pubMsgDetails->localHandlers.clear();
+      }
+    }
+
+    if (!pubMsgDetails->rawHandlers.empty())
+    {
+      pubMsgDetails->msgSize = _msgSize;
+      if (!subscribers.haveRemote)
+      {
+        // Nobody else needs the heap buffer (SHM is used only for remote
+        // subscribers): hand it over instead of copying it.
+        pubMsgDetails->sharedBuffer = std::move(msgBuffer);
+      }
+      else
+      {
+        pubMsgDetails->sharedBuffer.reset(new char[_msgSize]);
+        memcpy(pubMsgDetails->sharedBuffer.get(), buffer, _msgSize);
+      }
+    }
+
+    if (!pubMsgDetails->localHandlers.empty() ||
+        !pubMsgDetails->rawHandlers.empty())
+    {
+      this->dataPtr->Enqueue(std::move(pubMsgDetails));
+    }
+  }
+
+  if (!subscribers.haveRemote)
+    return true;
+
+  return this->dataPtr->PublishRemote(impl, subscribers.haveRemote,
+                                      msgBuffer, _msgSize
+#ifdef HAVE_ZENOH
+                                      , shmChunk
+#endif
+                                      );
 }
 
 //////////////////////////////////////////////////

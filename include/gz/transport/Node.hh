@@ -17,6 +17,8 @@
 #ifndef GZ_TRANSPORT_NODE_HH_
 #define GZ_TRANSPORT_NODE_HH_
 
+#include <cstddef>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -181,6 +183,38 @@ namespace gz::transport
       public: bool PublishRaw(
         const std::string &_msgData,
         const std::string &_msgType);
+
+      /// \brief Publish a message that the caller serializes in place, into
+      /// the buffer the transport sends: a shared memory buffer when Zenoh
+      /// delivers it through shared memory, a heap buffer handed over to
+      /// the transport otherwise. Unlike Publish(const ProtoMsg &), there
+      /// is no intermediate serialization buffer, and unlike
+      /// PublishRaw(const std::string &, const std::string &) no copy of the
+      /// serialized data, so a large payload is written once, by the
+      /// caller, straight into the outgoing buffer.
+      ///
+      /// \warning This function is only intended for advanced users, see
+      /// PublishRaw(const std::string &, const std::string &).
+      ///
+      /// \note Local (intraprocess) subscribers are called on the publish
+      /// thread, as with Publish(const ProtoMsg &), in publication order:
+      /// raw subscribers with a copy of the buffer, the others with the
+      /// message parsed from it. That copy is made only when there are such
+      /// subscribers. As with PublishRaw(), parsing needs a message type
+      /// known to this process (generated, or registered with the gz-msgs
+      /// factory): otherwise typed and generic local subscribers are
+      /// skipped, with an error on stderr.
+      ///
+      /// \param[in] _msgSize Size in bytes of the serialized message.
+      /// \param[in] _serialize Writes exactly _msgSize bytes, a serialized
+      /// message of the advertised type, into the buffer it is given, and
+      /// returns false to cancel the publication. It is not called when
+      /// nobody subscribes or the publication is throttled.
+      /// \return False if the publisher is not valid, was advertised with
+      /// the generic message type, or _serialize returned false.
+      public: bool PublishInPlace(
+        std::size_t _msgSize,
+        const std::function<bool(char *_buffer)> &_serialize);
 
       /// \brief Check if message publication is throttled. If so, verify
       /// whether the next message should be published or not.
