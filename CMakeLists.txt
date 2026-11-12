@@ -215,7 +215,7 @@ if (NOT SKIP_PYBIND11)
   if (Python3_Development.Module_FOUND)
     add_subdirectory(python)
   else ()
-    message(WARNING "Python Development.Module libraries are missing: Python interfaces are disabled.")
+    message(WARNING "Python development headers (Development.Module) are missing: Python interfaces are disabled.")
   endif()
 endif()
 
