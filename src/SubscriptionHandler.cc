@@ -86,12 +86,6 @@ namespace gz::transport
     /// \brief Node UUID.
     public: std::string nUuid;
 
-    /// \brief Deserializer registered by concrete ISubscriptionHandler
-    /// subclasses, used by CreateMsgFromBuffer(). May be empty for
-    /// handlers compiled against older headers. Lives here (instead of a
-    /// virtual function) to preserve the ABI of the public classes.
-    public: ISubscriptionHandler::MsgFactory msgFactory;
-
 #ifdef HAVE_ZENOH
     /// \brief The liveliness token. The Zenoh subscriber itself is
     /// managed centrally by NodeShared (one per topic).
@@ -170,25 +164,11 @@ namespace gz::transport
   }
 
   /////////////////////////////////////////////////
-  const std::shared_ptr<ProtoMsg> ISubscriptionHandler::CreateMsgFromBuffer(
-    const char *_data,
-    std::size_t _size,
+  const std::shared_ptr<ProtoMsg> ISubscriptionHandler::CreateMsg(
+    const std::string &_data,
     const std::string &_type) const
   {
-    // Zero-copy parse through the deserializer registered on construction.
-    if (this->dataPtr->msgFactory)
-      return this->dataPtr->msgFactory(_data, _size, _type);
-
-    // Fallback for handlers without a registered factory (e.g. compiled
-    // against older headers): copy into a string and use the virtual
-    // CreateMsg.
-    return this->CreateMsg(std::string(_data, _size), _type);
-  }
-
-  /////////////////////////////////////////////////
-  void ISubscriptionHandler::SetMsgFactory(MsgFactory _factory)
-  {
-    this->dataPtr->msgFactory = std::move(_factory);
+    return this->CreateMsgFromBuffer(_data.data(), _data.size(), _type);
   }
 
 #ifdef HAVE_ZENOH
