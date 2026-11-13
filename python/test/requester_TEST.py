@@ -36,8 +36,9 @@ class RequesterTEST(unittest.TestCase):
     def setUp(self):
         # Environment Setup - use the module-level partition
 
-        # Subprocess Setup
-        cmd = f"{os.getenv('CMAKE_BINARY_DIR')}/twoProcsSrvCallReplier_aux {gz_partition}"
+        # Subprocess Setup. The replier lifetime covers the longest test.
+        cmd = (f"{os.getenv('CMAKE_BINARY_DIR')}/twoProcsSrvCallReplier_aux "
+               f"{gz_partition} 60")
         self.service_process = subprocess.Popen(cmd, shell=True)
 
         # Requester Setup
