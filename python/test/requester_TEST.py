@@ -75,12 +75,13 @@ class RequesterTEST(unittest.TestCase):
         publisher_process = subprocess.Popen([
             f"{os.getenv('CMAKE_BINARY_DIR')}/fastPubLoop_aux",
             gz_partition, '60'])
-        received = []
+        count = 0
         receiving = threading.Event()
 
         def callback(msg):
-            received.append(msg)
-            if len(received) >= 100:
+            nonlocal count
+            count += 1
+            if count >= 100:
                 receiving.set()
 
         try:
