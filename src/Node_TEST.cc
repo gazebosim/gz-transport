@@ -34,6 +34,7 @@
 #include "gz/transport/MessageInfo.hh"
 #include "gz/transport/Node.hh"
 #include "gz/transport/NodeShared.hh"
+#include "gz/transport/TopicUtils.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/WaitHelpers.hh"
 
@@ -2861,6 +2862,68 @@ TEST(NodeTest, relay) {
         [](const std::string &relay) { return relay == "127.0.0.123"; });
     EXPECT_NE(relayIt, relaysAfterAdd.cend());
   }
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that the registrations of the local subscribers are
+/// re-sent on every heartbeat after a NEW_CONNECTION datagram is lost
+/// (see issue #985). The discovery traffic itself cannot be delivered
+/// in this test environment, so the loss is simulated by driving
+/// OnNewConnection() directly (which is what discovery would do) and
+/// checking the content of the registrations that RefreshRegistrations()
+/// would re-send.
+TEST(NodeTest, RefreshRegistrationsAfterLostNewConnection)
+{
+  // A topic that no other test uses.
+  std::string topic = "/refresh_registrations_" + testing::getRandomNumber();
+  std::string fullyQualifiedTopic;
+  ASSERT_TRUE(transport::TopicUtils::FullyQualifiedName(
+      partition, "", topic, fullyQualifiedTopic));
+
+  transport::Node node;
+  ASSERT_TRUE(node.Subscribe(topic, cb));
+
+  transport::NodeShared *shared = transport::NodeShared::Instance();
+  ASSERT_NE(nullptr, shared);
+
+  // No remote publisher is known yet, so there is nothing to refresh.
+  EXPECT_TRUE(shared->RegistrationsToRefresh().empty());
+
+  // Simulate a remote publisher being discovered. In a real run the
+  // NEW_CONNECTION datagram sent here would be the only one, and if it
+  // was dropped the publisher would never learn about this subscriber.
+  std::string remotePUuid = "remote-proc-" + testing::getRandomNumber();
+  std::string remoteNUuid = "remote-node-" + testing::getRandomNumber();
+  transport::MessagePublisher remotePub(fullyQualifiedTopic,
+      "tcp://127.0.0.1:12345", "tcp://127.0.0.1:12346", remotePUuid,
+      remoteNUuid, "gz.msgs.Int32",
+      transport::AdvertiseMessageOptions());
+  shared->OnNewConnection(remotePub);
+
+  // The refresh must re-send exactly one NEW_CONNECTION for the local
+  // subscriber node, addressed to the remote publisher process.
+  std::vector<transport::MessagePublisher> registrations =
+      shared->RegistrationsToRefresh();
+  ASSERT_EQ(registrations.size(), 1u);
+  EXPECT_EQ(registrations[0].Topic(), fullyQualifiedTopic);
+  EXPECT_EQ(registrations[0].PUuid(), shared->pUuid);
+  EXPECT_EQ(registrations[0].Ctrl(), remotePUuid);
+  EXPECT_EQ(registrations[0].Addr(), "tcp://127.0.0.1:12345");
+  EXPECT_EQ(registrations[0].MsgTypeName(), "gz.msgs.Int32");
+  // The node UUID must be one of the local subscriber nodes of the topic.
+  std::vector<std::string> nodeUuids = shared->localSubscribers.NodeUuids(
+      fullyQualifiedTopic, "gz.msgs.Int32");
+  ASSERT_EQ(nodeUuids.size(), 1u);
+  EXPECT_EQ(registrations[0].NUuid(), nodeUuids[0]);
+
+  // RefreshRegistrations() itself must not throw when the discovery
+  // datagrams cannot be delivered.
+  EXPECT_NO_THROW(shared->RefreshRegistrations());
+
+  // Once the node unsubscribes, there is nothing to refresh anymore:
+  // the refresh must not re-register a dead subscriber.
+  ASSERT_TRUE(node.Unsubscribe(topic));
+  EXPECT_TRUE(shared->RegistrationsToRefresh().empty());
 }
 
 //////////////////////////////////////////////////

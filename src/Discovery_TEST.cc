@@ -16,6 +16,7 @@
 */
 #include "gtest/gtest.h"
 
+#include <atomic>
 #include <chrono>
 #include <cstdlib>
 #include <memory>
@@ -551,4 +552,35 @@ TEST(DiscoveryTest, GZ_UTILS_TEST_DISABLED_ON_LINUX(WrongGzIp))
   // Restore GZ_IP.
   if (!gzIp.empty())
     gz::utils::setenv("GZ_IP", gzIp);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that the callback registered with RefreshRegistrationsCb
+/// is executed on every heartbeat cycle, so a dropped NEW_CONNECTION
+/// datagram can be re-sent (see issue #985). This only needs the local
+/// heartbeat thread to run: no discovery traffic has to be delivered.
+TEST(DiscoveryTest, HeartbeatRefreshRegistrationsCb)
+{
+  // Create a discovery node.
+  MsgDiscovery discovery(pUuid1, g_ip, g_msgPort);
+
+  // Refresh the registrations much more often than the default 1 s
+  // heartbeat so the test finishes quickly.
+  discovery.SetHeartbeatInterval(50);
+
+  std::atomic<int> refreshCount{0};
+  discovery.RefreshRegistrationsCb(
+      [&refreshCount]() { ++refreshCount; });
+
+  discovery.Start();
+
+  // Wait until the callback has fired at least twice, or time out.
+  int i = 0;
+  while (i < MaxIters && refreshCount.load() < 2)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(Nap));
+    ++i;
+  }
+
+  EXPECT_GE(refreshCount.load(), 2);
 }

@@ -261,6 +261,13 @@ NodeShared::NodeShared()
   this->dataPtr->msgDiscovery->SubscribersCb(
       std::bind(&NodeShared::OnSubscribers, this));
 
+  // Refresh the registrations of the local subscribers with the known
+  // remote publishers on every heartbeat. NEW_CONNECTION is otherwise
+  // sent exactly once per discovered publisher, so a dropped datagram
+  // leaves the subscription silent forever (see issue #985).
+  this->dataPtr->msgDiscovery->RefreshRegistrationsCb(
+      std::bind(&NodeShared::RefreshRegistrations, this));
+
   // Set the callback to notify svc discovery updates (new services).
   this->dataPtr->srvDiscovery->ConnectionsCb(
     std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
@@ -1305,6 +1312,69 @@ void NodeShared::OnSubscribers()
   // Called outside the lock to avoid deadlocks with Discovery::mutex.
   for (auto const &publisher : pubs)
     this->dataPtr->msgDiscovery->SendSubscribersRep(publisher);
+}
+
+//////////////////////////////////////////////////
+void NodeShared::RefreshRegistrations()
+{
+  // Registrations only exist for the ZeroMQ implementation: the Zenoh
+  // implementation discovers subscribers through liveliness tokens.
+  if (this->GzImplementation() != "zeromq")
+    return;
+
+  std::vector<MessagePublisher> registrations =
+    this->RegistrationsToRefresh();
+
+  // Send the registrations outside the lock to avoid deadlocks with
+  // Discovery::mutex.
+  for (const auto &pub : registrations)
+    this->dataPtr->msgDiscovery->Register(pub);
+}
+
+//////////////////////////////////////////////////
+std::vector<MessagePublisher> NodeShared::RegistrationsToRefresh()
+{
+  std::vector<MessagePublisher> registrations;
+
+  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+
+  // The connections table holds the remote publishers this process is
+  // connected to, one entry per (topic, remote publisher node). For each
+  // of them, re-send a NEW_CONNECTION for every local subscriber node
+  // of that topic, exactly as OnNewConnection() does when the publisher
+  // is first discovered.
+  std::vector<std::string> topics;
+  this->connections.TopicList(topics);
+  for (const std::string &topic : topics)
+  {
+    MsgAddresses_M addresses;
+    if (!this->connections.Publishers(topic, addresses))
+      continue;
+
+    for (const auto &proc : addresses)
+    {
+      for (const auto &remotePub : proc.second)
+      {
+        MessagePublisher pub(remotePub);
+        pub.SetPUuid(this->pUuid);
+
+        // Hack: We use this field to store the PUuid of the topic
+        // publisher.
+        pub.SetCtrl(remotePub.PUuid());
+
+        std::vector<std::string> handlerNodeUuids =
+            this->localSubscribers.NodeUuids(topic,
+                remotePub.MsgTypeName());
+        for (const std::string &nodeUuid : handlerNodeUuids)
+        {
+          pub.SetNUuid(nodeUuid);
+          registrations.push_back(pub);
+        }
+      }
+    }
+  }
+
+  return registrations;
 }
 
 //////////////////////////////////////////////////
