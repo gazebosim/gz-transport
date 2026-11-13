@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <string>
 #include <optional>
+#include <utility>
 #include <vector>
 
 #include "gz/transport/config.hh"
@@ -387,12 +388,11 @@ namespace gz::transport
                                 const std::string &_topic)
         : partition(_partition), ns(_ns), topic(_topic)
     {
-      this->fullTopic.emplace();
-      if (!TopicUtils::FullyQualifiedName(_partition, _ns, _topic,
-                                          *this->fullTopic))
-      {
-        this->fullTopic.reset();
-      }
+      // Avoid emplace+reset on fullTopic: GCC -Wmaybe-uninitialized
+      // false-positives the reset path through inlined readers.
+      std::string fullName;
+      if (TopicUtils::FullyQualifiedName(_partition, _ns, _topic, fullName))
+        this->fullTopic = std::move(fullName);
     }
     /// \brief Gets the partition
     /// \return partition
@@ -413,8 +413,8 @@ namespace gz::transport
       return this->topic;
     }
     /// \brief Gets the fully qualified topic if it is valid
-    /// \return THe fully qualified topic if valid, otherwise std::nullopt
-    std::optional<std::string> FullTopic() const
+    /// \return The fully qualified topic if valid, otherwise std::nullopt
+    const std::optional<std::string> &FullTopic() const
     {
       return this->fullTopic;
     }

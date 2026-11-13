@@ -18,6 +18,7 @@
 #include <google/protobuf/text_format.h>
 #include "gtest/gtest.h"
 #include <gz/msgs/int32.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <future>
 #include <string>
@@ -43,6 +44,7 @@ static const std::string g_reqData = "data: 10"; // NOLINT(*)
 static std::string     g_partition; // NOLINT(*)
 static std::streambuf *g_stdOutFile;
 static std::streambuf *g_stdErrFile;
+static int             g_onewayData = 0;
 
 // \brief Redirect stdout and stderr to streams.
 void redirectIO(std::stringstream &_stdOutBuffer,
@@ -70,10 +72,35 @@ void restoreIO()
 }
 
 /// \brief Provide a service.
-bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
+bool srvEchoFail(const msgs::Int32 &_req, msgs::Int32 &_rep)
 {
   _rep.set_data(_req.data());
   return false;
+}
+
+/// \brief Provide a service.
+bool srvEchoOk(const msgs::Int32 &_req, msgs::Int32 &_rep)
+{
+  _rep.set_data(_req.data());
+  return true;
+}
+
+/// \brief Provide a StringMsg echo service
+bool srvEchoStringOk(const msgs::StringMsg &_req, msgs::StringMsg &_rep)
+{
+  _rep.set_data(_req.data());
+  return true;
+}
+
+/// \brief Provide a one-way service.
+void srvOnewayInt(const msgs::Int32 &_req)
+{
+  g_onewayData = _req.data();
+}
+
+/// \brief Provide a one-way service with a different request type.
+void srvOnewayString(const msgs::StringMsg &)
+{
 }
 
 //////////////////////////////////////////////////
@@ -166,7 +193,7 @@ TEST(gzTest, cmdServiceReq)
   const int         kTimeout     = 10;
 
   transport::Node node;
-  EXPECT_TRUE(node.Advertise(g_service, srvEcho));
+  EXPECT_TRUE(node.Advertise(g_service, srvEchoFail));
 
   msgs::Int32 msg;
   msg.set_data(10);
@@ -175,18 +202,6 @@ TEST(gzTest, cmdServiceReq)
   cmdServiceReq(nullptr, g_intType.c_str(), g_intType.c_str(),
     kTimeout, g_reqData.c_str());
   EXPECT_EQ(stdErrBuffer.str(), "Service name is null\n");
-  clearIOStreams(stdOutBuffer, stdErrBuffer);
-
-  // A null service request type should generate an error message.
-  cmdServiceReq(g_service.c_str(), nullptr, g_intType.c_str(),
-    kTimeout, g_reqData.c_str());
-  EXPECT_EQ(stdErrBuffer.str(), "Request type is null\n");
-  clearIOStreams(stdOutBuffer, stdErrBuffer);
-
-  // A null service response type should generate an error message.
-  cmdServiceReq(g_service.c_str(), g_intType.c_str(), nullptr,
-    kTimeout, g_reqData.c_str());
-  EXPECT_EQ(stdErrBuffer.str(), "Response type is null\n");
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
   // Null data should generate an error message.
@@ -224,6 +239,261 @@ TEST(gzTest, cmdServiceReq)
   EXPECT_EQ(stdErrBuffer.str(), "Service call timed out\n");
   clearIOStreams(stdOutBuffer, stdErrBuffer);
 
+  restoreIO();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check cmdServiceReq with type resolution
+TEST(gzTest, cmdServiceReqInferTypes)
+{
+  std::stringstream  stdOutBuffer;
+  std::stringstream  stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const std::string kUnknownType = "_unknown_type_";
+  const int         kTimeout     = 10;
+  const int         value        = 10;
+  const std::string value_s      = std::to_string(value);
+
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(g_service, srvEchoOk));
+
+  msgs::Int32 msg;
+  msg.set_data(value);
+
+  // A null service request type should be automatically inferred. In
+  // verbose mode the inferred type is reported on stderr.
+  cmdServiceReq(g_service.c_str(), nullptr, g_intType.c_str(),
+    kTimeout, g_reqData.c_str(), 1);
+  EXPECT_EQ(stdOutBuffer.str(), "data: " + value_s + "\n\n");
+  EXPECT_EQ(stdErrBuffer.str(), "Inferred types: request=gz.msgs.Int32\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  // A null service response type should be automatically inferred
+  cmdServiceReq(g_service.c_str(), g_intType.c_str(), nullptr,
+    kTimeout, g_reqData.c_str(), 1);
+  EXPECT_EQ(stdOutBuffer.str(), "data: " + value_s + "\n\n");
+  EXPECT_EQ(stdErrBuffer.str(), "Inferred types: response=gz.msgs.Int32\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  cmdServiceReq(g_service.c_str(), nullptr, nullptr,
+    kTimeout, g_reqData.c_str(), 1);
+  EXPECT_EQ(stdOutBuffer.str(), "data: " + value_s + "\n\n");
+  EXPECT_EQ(stdErrBuffer.str(),
+    "Inferred types: request=gz.msgs.Int32, response=gz.msgs.Int32\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  // Without verbose mode the inference is silent.
+  cmdServiceReq(g_service.c_str(), nullptr, nullptr,
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "data: " + value_s + "\n\n");
+  EXPECT_EQ(stdErrBuffer.str(), "");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  restoreIO();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check cmdServiceReq with type resolution and no service providers
+TEST(gzTest, cmdServiceReqNoProviders)
+{
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const int kTimeout = 100;
+
+  // The types cannot be resolved because nobody advertises the service.
+  cmdServiceReq("/unadvertised", nullptr, nullptr,
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(),
+    "No service providers on service [/unadvertised] after waiting 100 ms.\n"
+    "Use --reqtype and --reptype to request without discovery.\n");
+
+  restoreIO();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check cmdServiceReq with type resolution and an invalid service
+/// name.
+TEST(gzTest, cmdServiceReqInvalidService)
+{
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const int kTimeout = 10;
+
+  // The types cannot be resolved because the service name is not valid.
+  cmdServiceReq("invalid service", nullptr, nullptr,
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(),
+    "Service [invalid service] is not valid.\n");
+
+  restoreIO();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that an explicit "gz.msgs.Empty" response type (what the
+/// --oneway flag maps to) disambiguates between a two-way and a one-way
+/// provider on the same service.
+TEST(gzTest, cmdServiceReqOnewayDisambiguation)
+{
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const int kTimeout = 10;
+  const std::string service = "/mixed_echo";
+  g_onewayData = 0;
+
+  transport::Node node1;
+  transport::Node node2;
+
+  EXPECT_TRUE(node1.Advertise(service, srvEchoOk));
+  EXPECT_TRUE(node2.Advertise(service, srvOnewayInt));
+
+  // Without any explicit type the service is ambiguous. One of the
+  // providers is one-way, so --oneway is suggested.
+  cmdServiceReq(service.c_str(), nullptr, nullptr,
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(),
+      "Ambiguous service types for service [/mixed_echo]:\n"
+      "  request=gz.msgs.Int32, response=gz.msgs.Int32\n"
+      "  request=gz.msgs.Int32, response=gz.msgs.Empty\n"
+      "Use --reqtype and --reptype to specify explicitly.\n"
+      "Use --oneway to select the one-way provider.\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  // An explicit "gz.msgs.Empty" response type resolves the request type
+  // (all the providers agree on it) and reaches the one-way provider.
+  cmdServiceReq(service.c_str(), nullptr, "gz.msgs.Empty",
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(), "");
+  EXPECT_EQ(10, g_onewayData);
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  // An explicit two-way response type selects the two-way provider.
+  cmdServiceReq(service.c_str(), nullptr, "gz.msgs.Int32",
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "data: 10\n\n");
+  EXPECT_EQ(stdErrBuffer.str(), "");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  // The underscore spelling of a type is normalized, so it selects the
+  // one-way provider just like the canonical spelling does.
+  g_onewayData = 0;
+  cmdServiceReq(service.c_str(), nullptr, "gz_msgs.Empty",
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(), "");
+  EXPECT_EQ(10, g_onewayData);
+
+  restoreIO();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a one-way request with an inferred type is reported,
+/// rather than silently dropped, when no provider offers the requested
+/// types, while explicit types remain best effort.
+TEST(gzTest, cmdServiceReqOnewayNoCompatibleProvider)
+{
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const int kTimeout = 10;
+  const std::string service = "/twoway_only";
+
+  // The only provider is two-way.
+  transport::Node node;
+  EXPECT_TRUE(node.Advertise(service, srvEchoOk));
+
+  // Asking for a one-way request cannot be served by it. The request type
+  // is inferred, so the resolver reports the incompatibility.
+  cmdServiceReq(service.c_str(), nullptr, "gz.msgs.Empty",
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(),
+      "No provider on service [/twoway_only] offers "
+      "response type [gz.msgs.Empty].\n");
+  clearIOStreams(stdOutBuffer, stdErrBuffer);
+
+  // With both types given explicitly discovery is not consulted: the
+  // request is sent best effort and nothing is reported.
+  cmdServiceReq(service.c_str(), "gz.msgs.Int32", "gz.msgs.Empty",
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(), "");
+
+  restoreIO();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that --oneway is not suggested when the response type is
+/// already explicit and the request type is the ambiguous one.
+TEST(gzTest, cmdServiceReqOnewayAmbiguousRequest)
+{
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const int kTimeout = 10;
+  const std::string service = "/oneway_ambiguous";
+
+  transport::Node node1;
+  transport::Node node2;
+
+  // Two one-way providers that disagree on the request type.
+  EXPECT_TRUE(node1.Advertise(service, srvOnewayInt));
+  EXPECT_TRUE(node2.Advertise(service, srvOnewayString));
+
+  cmdServiceReq(service.c_str(), nullptr, "gz.msgs.Empty",
+    kTimeout, g_reqData.c_str());
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(),
+      "Ambiguous service types for service [/oneway_ambiguous]:\n"
+      "  request=gz.msgs.Int32, response=gz.msgs.Empty\n"
+      "  request=gz.msgs.StringMsg, response=gz.msgs.Empty\n"
+      "Use --reqtype and --reptype to specify explicitly.\n");
+
+  restoreIO();
+}
+
+//////////////////////////////////////////////////
+/// \brief Check cmdServiceReq with ambiguous types
+TEST(gzTest, cmdServiceReqAmbiguousTypes)
+{
+  std::stringstream stdOutBuffer;
+  std::stringstream stdErrBuffer;
+  redirectIO(stdOutBuffer, stdErrBuffer);
+
+  const int kTimeout = 10;
+  const std::string service = "/ambiguous_echo";
+
+  transport::Node node1;
+  transport::Node node2;
+  transport::Node node3;
+
+  // node3 repeats node1's types: the error should list each distinct
+  // request/response pair only once.
+  EXPECT_TRUE(node1.Advertise(service, srvEchoOk));
+  EXPECT_TRUE(node2.Advertise(service, srvEchoStringOk));
+  EXPECT_TRUE(node3.Advertise(service, srvEchoOk));
+
+  cmdServiceReq(service.c_str(), nullptr, nullptr,
+      kTimeout, g_reqData.c_str());
+
+  EXPECT_EQ(stdOutBuffer.str(), "");
+  EXPECT_EQ(stdErrBuffer.str(),
+      "Ambiguous service types for service [/ambiguous_echo]:\n"
+      "  request=gz.msgs.Int32, response=gz.msgs.Int32\n"
+      "  request=gz.msgs.StringMsg, response=gz.msgs.StringMsg\n"
+      "Use --reqtype and --reptype to specify explicitly.\n");
   restoreIO();
 }
 

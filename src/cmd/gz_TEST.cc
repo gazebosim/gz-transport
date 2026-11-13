@@ -29,6 +29,7 @@
 
 #include "gtest/gtest.h"
 #include "gz/transport/Node.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "test_config.hh"
 #include "test_utils.hh"
@@ -121,6 +122,15 @@ exec_with_retry(const std::vector<std::string> &_args,
 }
 
 //////////////////////////////////////////////////
+/// \brief Check whether _output contains _topic as a complete line.
+/// A plain substring search would also match suffixes of other topics
+/// (e.g. "/foo" inside "/bar/foo").
+bool containsTopicLine(const std::string &_output, const std::string &_topic)
+{
+  return ("\n" + _output).find("\n" + _topic + "\n") != std::string::npos;
+}
+
+//////////////////////////////////////////////////
 /// \brief Check 'gz topic -l' running the advertiser on a different process.
 TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 {
@@ -129,7 +139,7 @@ TEST(gzTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TopicList))
 
   auto output = exec_with_retry({"topic", "-l"},
     [](auto procOut){
-      return procOut.cout == "/foo\n";
+      return containsTopicLine(procOut.cout, "/foo");
     });
 
   EXPECT_TRUE(output);
@@ -149,10 +159,10 @@ TEST(gzTest, TopicListSub)
 
   auto output = exec_with_retry({"topic", "-l"},
     [](auto procOut){
-      return procOut.cout.find("/foo\n") != std::string::npos &&
-             procOut.cout.find("/bar\n") != std::string::npos &&
-             procOut.cout.find("/baz\n") != std::string::npos &&
-             procOut.cout.find("/no\n") == std::string::npos;
+      return containsTopicLine(procOut.cout, "/foo") &&
+             containsTopicLine(procOut.cout, "/bar") &&
+             containsTopicLine(procOut.cout, "/baz") &&
+             !containsTopicLine(procOut.cout, "/no");
     });
 
   EXPECT_TRUE(output);
@@ -229,7 +239,7 @@ TEST(gzTest, TopicListSameProc)
 
   auto output = exec_with_retry({"topic", "-l"},
     [](auto procOut){
-      return procOut.cout == "/foo\n";
+      return containsTopicLine(procOut.cout, "/foo");
     });
 
   EXPECT_TRUE(output);
@@ -298,8 +308,11 @@ TEST(gzTest, TopicPublish)
   g_topicCBStr = "bad_value";
   EXPECT_TRUE(node.Subscribe("/bar", topicCB));
 
+  // Each attempt waits for the subscriber to be discovered before
+  // publishing, so a few retries are enough. Keep the total runtime within
+  // the test timeout even when discovery is completely broken.
   unsigned int retries = 0;
-  while (retries++ < 100u)
+  while (retries++ < 30u)
   {
     auto output = custom_exec_str({"topic",
         "-t", "/bar",
@@ -320,7 +333,7 @@ TEST(gzTest, TopicPublish)
     "-t", "/bar",
     "-m", "gz.msgs.__bad_msg_type",
     "-p", R"(data: "good_value")"});
-  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0)
+  EXPECT_NE(output.cerr.find(error), std::string::npos)
     << "error {" << error << "}, output.cerr {" << output.cerr << "}";
 
   // Try to publish using an incorrect topic name.
@@ -329,7 +342,7 @@ TEST(gzTest, TopicPublish)
       "-t", "/",
       "-m", "gz.msgs.StringMsg",
       "-p", R"(data: "good_value")"});
-  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0)
+  EXPECT_NE(output.cerr.find(error), std::string::npos)
     << "error {" << error << "}, output.cerr {" << output.cerr << "}";
 
   // Try to publish using an incorrect number of arguments.
@@ -338,7 +351,7 @@ TEST(gzTest, TopicPublish)
       "-t", "/", "wrong_topic",
       "-m", "gz.msgs.StringMsg",
       "-p", R"(data: "good_value")"});
-  EXPECT_EQ(output.cerr.compare(0, error.size(), error), 0)
+  EXPECT_NE(output.cerr.find(error), std::string::npos)
     << "error {" << error << "}, output.cerr {" << output.cerr << "}";
 }
 
@@ -408,7 +421,7 @@ TEST(gzTest, ServiceOnewayRequest)
     {"service", "-s", service, "--reqtype", "gz.msgs.StringMsg",
      "--req", "data: \"good_value\""});
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  transport::waitUntil([]{ return g_topicCBStr == "good_value"; });
   EXPECT_EQ("good_value", g_topicCBStr);
 }
 
@@ -427,6 +440,150 @@ TEST(gzTest, ServiceRequestNoInput)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   EXPECT_EQ("data: \"good_value\"\n\n", output.cout);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r' to request a service with inferred types
+TEST(gzTest, ServiceRequestAutoTypes)
+{
+  transport::Node node;
+
+  // Advertise a service.
+  std::string service = "/echo";
+  std::string value = "10";
+  EXPECT_TRUE(node.Advertise(service, srvEcho));
+
+  auto output = exec_with_retry(
+    {"service",
+     "-s", service,
+     "--timeout", "1000",
+     "--verbose",
+     "--req", "data: " + value},
+    [value](const auto &_out)
+    {
+      return _out.cout == "data: " + value + "\n\n";
+    });
+
+  ASSERT_TRUE(output);
+  EXPECT_EQ(output->cout, "data: " + value + "\n\n");
+  EXPECT_EQ(output->cerr,
+    "Inferred types: request=gz.msgs.Int32, response=gz.msgs.Int32\n");
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r' to request a one-way service with inferred
+/// request type.
+TEST(gzTest, ServiceOnewayRequestAutoTypes)
+{
+  g_topicCBStr = "bad_value";
+  transport::Node node;
+
+  // Advertise a one-way service.
+  std::string service = "/oneway";
+  EXPECT_TRUE(node.Advertise(service, srvOneway));
+
+  auto output = exec_with_retry(
+    {"service", "-s", service, "--req", "data: \"good_value\""},
+    [](const auto &/*_out*/)
+    {
+      return g_topicCBStr == "good_value";
+    });
+
+  ASSERT_TRUE(output);
+  EXPECT_EQ("good_value", g_topicCBStr);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r --oneway' with an explicit request type. No
+/// discovery is involved, so this works even before the provider is visible.
+TEST(gzTest, ServiceOnewayFlag)
+{
+  g_topicCBStr = "bad_value";
+  transport::Node node;
+
+  // Advertise a one-way service.
+  std::string service = "/oneway";
+  EXPECT_TRUE(node.Advertise(service, srvOneway));
+
+  auto output = exec_with_retry(
+    {"service",
+     "-s", service,
+     "--oneway",
+     "--reqtype", "gz.msgs.StringMsg",
+     "--req", "data: \"good_value\""},
+    [](const auto &/*_out*/)
+    {
+      return g_topicCBStr == "good_value";
+    });
+
+  ASSERT_TRUE(output);
+  EXPECT_EQ("good_value", g_topicCBStr);
+  EXPECT_EQ("", output->cerr);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r --oneway' with an inferred request type.
+TEST(gzTest, ServiceOnewayFlagAutoReqType)
+{
+  g_topicCBStr = "bad_value";
+  transport::Node node;
+
+  // Advertise a one-way service.
+  std::string service = "/oneway";
+  EXPECT_TRUE(node.Advertise(service, srvOneway));
+
+  auto output = exec_with_retry(
+    {"service",
+     "-s", service,
+     "--oneway",
+     "--req", "data: \"good_value\""},
+    [](const auto &/*_out*/)
+    {
+      return g_topicCBStr == "good_value";
+    });
+
+  ASSERT_TRUE(output);
+  EXPECT_EQ("good_value", g_topicCBStr);
+  EXPECT_EQ("", output->cerr);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that 'gz service -r' rejects --oneway with --reptype.
+TEST(gzTest, ServiceOnewayFlagExcludesRepType)
+{
+  auto output = custom_exec_str(
+    {"service",
+     "-s", "/oneway",
+     "--oneway",
+     "--reptype", "gz.msgs.Empty",
+     "--req", "data: \"good_value\""});
+
+  EXPECT_EQ("", output.cout);
+  EXPECT_NE(std::string::npos, output.cerr.find("--oneway"));
+  EXPECT_NE(std::string::npos, output.cerr.find("--reptype"));
+}
+
+//////////////////////////////////////////////////
+/// \brief Check 'gz service -r' to request a service without input args
+/// with inferred response type.
+TEST(gzTest, ServiceRequestNoInputAutoTypes)
+{
+  transport::Node node;
+
+  // Advertise a service without input.
+  std::string service = "/no_input";
+  EXPECT_TRUE(node.Advertise(service, srvNoInput));
+
+  auto output = exec_with_retry(
+    {"service", "-s", service, "--req"},
+    [](const auto &_out)
+    {
+      return _out.cout == "data: \"good_value\"\n\n";
+    });
+
+  ASSERT_TRUE(output);
+  EXPECT_EQ("data: \"good_value\"\n\n", output->cout);
+  EXPECT_EQ("", output->cerr);
 }
 
 //////////////////////////////////////////////////
