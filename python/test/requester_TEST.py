@@ -74,7 +74,7 @@ class RequesterTEST(unittest.TestCase):
         # this process through the transport reception thread.
         publisher_process = subprocess.Popen([
             f"{os.getenv('CMAKE_BINARY_DIR')}/fastPubLoop_aux",
-            gz_partition, '30'])
+            gz_partition, '60'])
         received = []
         receiving = threading.Event()
 
