@@ -30,26 +30,32 @@ gz_partition = str(random.randint(0, 2147483647))
 os.environ['GZ_PARTITION'] = gz_partition
 
 
+@unittest.skipIf(transport_implementation() == "zenoh",
+                 "transport implementation 'zenoh' is not supported")
 class RequesterTEST(unittest.TestCase):
-    @unittest.skipIf(transport_implementation() == "zenoh",
-                     "transport implementation 'zenoh' is not supported")
+    # One replier serves all the tests. A killed replier never says goodbye,
+    # so it stays known by this process and could get the requests of the
+    # next tests. The lifetime only needs to cover all the tests, since
+    # tearDownClass kills it.
+    @classmethod
+    def setUpClass(cls):
+        # Use the module-level partition.
+        cls.service_process = subprocess.Popen([
+            f"{os.getenv('CMAKE_BINARY_DIR')}/twoProcsSrvCallReplier_aux",
+            gz_partition, '120'])
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.service_process.kill()
+        cls.service_process.wait()
+
     def setUp(self):
-        # Environment Setup - use the module-level partition
-
-        # Subprocess Setup. The replier lifetime covers the longest test.
-        cmd = (f"{os.getenv('CMAKE_BINARY_DIR')}/twoProcsSrvCallReplier_aux "
-               f"{gz_partition} 60")
-        self.service_process = subprocess.Popen(cmd, shell=True)
-
         # Requester Setup
         self.node = Node()
         self.service_name = "/foo"
         self.request = Int32()
         self.request.data = 100
         self.timeout = 2000
-
-    def tearDown(self):
-        self.service_process.kill()
 
     # Checks that the node is able to create a service request.
     def test_request(self):
