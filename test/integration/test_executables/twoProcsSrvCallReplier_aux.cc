@@ -39,17 +39,19 @@ bool srvEcho(const msgs::Int32 &_req, msgs::Int32 &_rep)
 }
 
 //////////////////////////////////////////////////
-void runReplier()
+void runReplier(int _lifetimeSec)
 {
   transport::Node node;
   EXPECT_TRUE(node.Advertise(g_topic, srvEcho));
-  std::this_thread::sleep_for(std::chrono::milliseconds(6000));
+  std::this_thread::sleep_for(std::chrono::seconds(_lifetimeSec));
 }
 
 //////////////////////////////////////////////////
+/// \brief Usage: twoProcsSrvCallReplier_aux <partition> [lifetimeSec].
+/// Advertise the /foo echo service during lifetimeSec (6 by default).
 int main(int argc, char **argv)
 {
-  if (argc != 2)
+  if (argc < 2 || argc > 3)
   {
     std::cerr << "Partition name has not be passed as argument" << std::endl;
     return -1;
@@ -58,5 +60,7 @@ int main(int argc, char **argv)
   // Set the partition name for this test.
   gz::utils::setenv("GZ_PARTITION", argv[1]);
 
-  runReplier();
+  const int lifetimeSec = argc > 2 ? std::stoi(argv[2]) : 6;
+
+  runReplier(lifetimeSec);
 }
