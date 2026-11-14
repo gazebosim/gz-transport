@@ -8,6 +8,62 @@ release will remove the deprecated code.
 
 ## Gazebo Transport 15.X to 16.X
 
+### Modifications
+
+1. On the Zenoh implementation, the asynchronous `Node::Request`
+   overload (callback based) now sends the query asynchronously, like
+   the ZeroMQ implementation always did. Earlier Zenoh versions of
+   gz-transport blocked inside the request call until the reply
+   arrived, so code that relied on the callback having run by the
+   time `Request` returned must now wait for the callback (as the API
+   always documented).
+
+1. `gz service --req` no longer interprets an omitted `--reptype` as a
+   one-way request, nor an omitted `--reqtype` as a `gz.msgs.Empty` request.
+   Omitted types are now resolved from the advertised service provider,
+   waiting up to `--timeout` ms for a provider to appear. In particular:
+    * `gz service -s /foo --reqtype T --req '...'` used to fire a one-way
+      request; it now performs a two-way request and prints the response.
+      Use the new `--oneway` flag (or `--reptype gz.msgs.Empty`) to keep the
+      old behavior.
+    * Type inference needs a live provider to learn the types from: the
+      request is only sent once a provider appears (waiting up to `--timeout`
+      ms). In particular, a one-way request with inferred types now fails if
+      nobody advertises the service, whereas explicit `--reqtype`/`--reptype`
+      (or `--oneway --reqtype T`) still send without waiting for discovery.
+    * A type given explicitly also selects which providers the other,
+      inferred type is read from, so `--oneway` (or `--reptype`) can now
+      disambiguate a service offered with more than one signature. If the
+      service is advertised but no provider offers the given type, the
+      command reports it (while resolving the other type) instead of
+      sending a request that nobody can answer.
+
+### Moved
+
+1. Wait helper functions consolidated into `WaitHelpers.hh` / `WaitHelpers.cc`:
+    * `waitForShutdown()` moved from `Node.hh` / `Node.cc` to `WaitHelpers.hh` / `WaitHelpers.cc`. `Node.hh` re-exports via `#include "gz/transport/WaitHelpers.hh"`, so no code changes are required for existing users of `waitForShutdown()`.
+    * `waitUntil()`, `waitForService()`, `waitForTopic()` moved from `Helpers.hh` / `Helpers.cc` to `WaitHelpers.hh` / `WaitHelpers.cc`. Code using these functions must now `#include "gz/transport/WaitHelpers.hh"` directly.
+
+### Deprecations
+
+1. The `gzTransportPublish` function in `CIface.h` has been deprecated because
+   it is not binary-safe (truncates data at null bytes). Use `gzTransportPublishRaw`
+   instead, which takes an explicit size parameter:
+   ```c
+   // Deprecated (not binary-safe):
+   int gzTransportPublish(GzTransportNode *_node, const char *_topic,
+                         const void *_data, const char *_msgType);
+
+   // Use this instead:
+   int gzTransportPublishRaw(GzTransportNode *_node, const char *_topic,
+                            const void *_data, size_t _size, const char *_msgType);
+   ```
+   * [GitHub issue 773](https://github.com/gazebosim/gz-transport/issues/773)
+
+1. `ISubscriptionHandler::CreateGenericZenohSubscriber()` has been renamed to
+   `CreateLivelinessToken()`. The old name is kept as a deprecated forwarding
+   function and will be removed in a future release.
+
 ### Removed
 
 1. Removed zeromq from public header and CMake target. Specifically,

@@ -490,28 +490,16 @@ std::string TopicUtils::CreateLivelinessToken(
 //////////////////////////////////////////////////
 std::string TopicUtils::MangleName(const std::string &_input)
 {
-  std::string output = "";
-  for (std::size_t i = 0; i < _input.length(); ++i)
-  {
-    if (_input[i] == '/')
-      output += kSlashReplacement;
-    else
-      output += _input[i];
-  }
+  std::string output = _input;
+  std::replace(output.begin(), output.end(), '/', kSlashReplacement);
   return output;
 }
 
 //////////////////////////////////////////////////
 std::string TopicUtils::DemangleName(const std::string &_input)
 {
-  std::string output = "";
-  for (std::size_t i = 0; i < _input.length(); ++i)
-  {
-    if (_input[i] == kSlashReplacement)
-      output += kTokenSeparator;
-    else
-      output += _input[i];
-  }
+  std::string output = _input;
+  std::replace(output.begin(), output.end(), kSlashReplacement, '/');
   return output;
 }
 
@@ -524,7 +512,7 @@ bool TopicUtils::MangleType(const std::vector<std::string> &_input,
   if (_input.empty())
     return false;
 
-  for (auto type : _input)
+  for (const auto &type : _input)
   {
     if (type.empty())
       return false;

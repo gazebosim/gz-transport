@@ -15,6 +15,7 @@
  *
 */
 
+#include <cstring>
 #include <map>
 #include <memory>
 
@@ -68,8 +69,8 @@ int gzTransportAdvertise(GzTransportNode *_node, const char *_topic,
 }
 
 /////////////////////////////////////////////////
-int gzTransportPublish(GzTransportNode *_node, const char *_topic,
-    const void *_data, const char *_msgType)
+int gzTransportPublishRaw(GzTransportNode *_node, const char *_topic,
+    const void *_data, size_t _size, const char *_msgType)
 {
   if (!_node)
     return 1;
@@ -77,12 +78,22 @@ int gzTransportPublish(GzTransportNode *_node, const char *_topic,
   // Create a publisher if one does not exist.
   if (gzTransportAdvertise(_node, _topic, _msgType) == 0)
   {
-    // Publish the message.
+    // Publish the message using explicit size to handle binary data with
+    // embedded null bytes.
     return _node->publishers[_topic].PublishRaw(
-      reinterpret_cast<const char*>(_data), _msgType) ? 0 : 1;
+      std::string(reinterpret_cast<const char*>(_data), _size),
+      _msgType) ? 0 : 1;
   }
 
   return 1;
+}
+
+/////////////////////////////////////////////////
+int gzTransportPublish(GzTransportNode *_node, const char *_topic,
+    const void *_data, const char *_msgType)
+{
+  return gzTransportPublishRaw(_node, _topic, _data,
+    std::strlen(reinterpret_cast<const char*>(_data)), _msgType);
 }
 
 /////////////////////////////////////////////////

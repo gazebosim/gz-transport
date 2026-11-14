@@ -13,12 +13,16 @@ target_compile_definitions(test_config INTERFACE
 # Location of the "gz" command
   "GZ_EXE=\"${HAVE_GZ_TOOLS}\""
   "TRANSPORT_BASH_COMPLETION_SH=\"${PROJECT_SOURCE_DIR}/src/cmd/transport.bash_completion.sh\""
+# Zenoh test config files
+  "GZ_ZENOH_TEST_CONFIG=\"${PROJECT_SOURCE_DIR}/test/config/gz_zenoh_test_config.json5\""
+  "GZ_ZENOH_INVALID_CONFIG=\"${PROJECT_SOURCE_DIR}/test/config/gz_zenoh_invalid_config.json5\""
 # Auxiliary executables for test
   "AUTH_PUB_SUB_SUBSCRIBER_INVALID_EXE=\"$<TARGET_FILE:authPubSubSubscriberInvalid_aux>\""
   "FAST_PUB_EXE=\"$<TARGET_FILE:fastPub_aux>\""
   "PUB_EXE=\"$<TARGET_FILE:pub_aux>\""
   "PUB_THROTTLED_EXE=\"$<TARGET_FILE:pub_aux_throttled>\""
   "SCOPED_TOPIC_SUBSCRIBER_EXE=\"$<TARGET_FILE:scopedTopicSubscriber_aux>\""
+  "SUBSCRIBER_ONLY_EXE=\"$<TARGET_FILE:subscriberOnly_aux>\""
   "TWO_PROCS_PUBLISHER_EXE=\"$<TARGET_FILE:twoProcsPublisher_aux>\""
   "TWO_PROCS_PUB_SUB_MIXED_SUBSCRIBERS_EXE=\"$<TARGET_FILE:twoProcsPubSubMixedSubscribers_aux>\""
   "TWO_PROCS_PUB_SUB_SINGLE_SUBSCRIBER_EXE=\"$<TARGET_FILE:twoProcsPubSubSingleSubscriber_aux>\""
@@ -29,3 +33,10 @@ target_compile_definitions(test_config INTERFACE
   "TWO_PROCS_SRV_CALL_WITHOUT_INPUT_REPLIER_INC_EXE=\"$<TARGET_FILE:twoProcsSrvCallWithoutInputReplierInc_aux>\""
   "TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_EXE=\"$<TARGET_FILE:twoProcsSrvCallWithoutOutputReplier_aux>\""
   "TWO_PROCS_SRV_CALL_WITHOUT_OUTPUT_REPLIER_INC_EXE=\"$<TARGET_FILE:twoProcsSrvCallWithoutOutputReplierInc_aux>\"")
+
+if (HAVE_ZENOH)
+  target_compile_definitions(test_config INTERFACE
+    "ZENOH_PUBLISHER_LEAK_AUX_EXE=\"$<TARGET_FILE:zenohPublisherLeak_aux>\""
+    "ZENOH_SHUTDOWN_AUX_EXE=\"$<TARGET_FILE:zenohShutdown_aux>\""
+    "ZENOH_TEARDOWN_FROM_CALLBACK_AUX_EXE=\"$<TARGET_FILE:zenohTeardownFromCallback_aux>\"")
+endif()

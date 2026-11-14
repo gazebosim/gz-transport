@@ -15,9 +15,16 @@
  *
 */
 
+#include <gz/msgs/stringmsg.pb.h>
+
+#include <atomic>
+#include <chrono>
 #include <regex>
 #include <string>
+#include <thread>
 
+#include "gz/transport/Node.hh"
+#include "gz/transport/NodeOptions.hh"
 #include "gz/transport/log/Recorder.hh"
 #include "gtest/gtest.h"
 
@@ -101,4 +108,39 @@ TEST(Record, SetBufferSize)
 
   recorder.SetBufferSize(40);
   EXPECT_EQ(40u, recorder.BufferSize());
+}
+
+//////////////////////////////////////////////////
+/// \brief Destroy Recorders while liveliness announcements keep arriving.
+/// Regression: the Recorder owns a discovery object whose callback used
+/// to run into the destroyed Recorder, because zenoh-c before 1.8.0
+/// undeclares a subscriber without waiting for a callback in flight.
+TEST(Record, DestroyUnderDiscoveryChurn)
+{
+  std::atomic<bool> stop{false};
+  std::thread churn([&stop]()
+  {
+    // A different partition, so the Recorders under test never subscribe
+    // to these topics; their discovery callback still runs for each one.
+    transport::NodeOptions opts;
+    opts.SetPartition("recorder_churn");
+    while (!stop)
+    {
+      transport::Node node(opts);
+      for (int i = 0; i < 4; ++i)
+      {
+        node.Advertise<gz::msgs::StringMsg>(
+          "/churn/topic" + std::to_string(i));
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+  });
+
+  for (int i = 0; i < 50; ++i)
+  {
+    transport::log::Recorder recorder;
+  }
+
+  stop = true;
+  churn.join();
 }

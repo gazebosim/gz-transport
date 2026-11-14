@@ -17,8 +17,10 @@
 #include <google/protobuf/text_format.h>
 #include <gz/msgs/empty.pb.h>
 
+#include <atomic>
 #include <chrono>
 #include <cstring>
+#include <future>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -42,6 +44,7 @@
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TransportTypes.hh"
 #include "gz/transport/Uuid.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 #include "Discovery.hh"
 #include "NodeSharedPrivate.hh"
@@ -144,6 +147,13 @@ NodeShared *NodeShared::Instance()
 {
   // Create an instance of NodeShared per process so the ZMQ context
   // is not shared between different processes.
+  //
+  // The instance is intentionally never destroyed (see issues #101 and
+  // #954). Reference counting it against the live Nodes was tried in
+  // #484 and reverted in #490, so ~NodeShared does not run in practice
+  // and everything owned here, including the Zenoh session, discovery
+  // objects and Querier cache, is released by process exit. Do not add
+  // teardown logic that depends on the destructor running.
 
   static std::shared_mutex mutex;
   static std::unordered_map<unsigned int, NodeShared*> nodeSharedMap;
@@ -187,13 +197,6 @@ NodeShared *NodeShared::Instance()
 NodeShared::NodeShared()
   : dataPtr(new NodeSharedPrivate)
 {
-  // If GZ_VERBOSE=1 enable the verbose mode.
-  std::string gzVerbose;
-  if (env("GZ_VERBOSE", gzVerbose) && !gzVerbose.empty())
-  {
-    this->dataPtr->verbose = (gzVerbose == "1");
-  }
-
   // Set the multicast IP used for discovery.
   std::string envDiscoveryIp;
   if (env("GZ_DISCOVERY_MULTICAST_IP", envDiscoveryIp) &&
@@ -241,30 +244,6 @@ NodeShared::NodeShared()
   this->dataPtr->srvDiscovery.reset(
       new SrvDiscovery(this->pUuid, this->discoveryIP, this->srvDiscPort));
 
-  // Initialize the 0MQ objects.
-  if (!this->InitializeSockets())
-    return;
-
-  if (this->dataPtr->verbose)
-  {
-    std::cout << "Host address: " << this->dataPtr->hostAddr << std::endl;
-    std::cout << "Process UUID: " << this->pUuid << std::endl;
-    std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
-              << this->msgDiscPort << "] for msg discovery\n";
-    std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
-              << this->srvDiscPort << "] for srv discovery\n";
-    std::cout << "Bind at: [" << this->dataPtr->myAddress << "] for pub/sub\n";
-    std::cout << "Bind at: [" << this->dataPtr->myReplierAddress << "]"
-              << " for srv. calls\n";
-    std::cout << "Identity for receiving srv. requests: ["
-              << this->replierId.ToString() << "]" << std::endl;
-    std::cout << "Identity for receiving srv. responses: ["
-              << this->responseReceiverId.ToString() << "]" << std::endl;
-  }
-
-  // Start the service thread.
-  this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
-
   // Set the callback to notify discovery updates (new topics).
   this->dataPtr->msgDiscovery->ConnectionsCb(
       std::bind(&NodeShared::OnNewConnection, this, std::placeholders::_1));
@@ -286,8 +265,35 @@ NodeShared::NodeShared()
   this->dataPtr->srvDiscovery->ConnectionsCb(
     std::bind(&NodeShared::OnNewSrvConnection, this, std::placeholders::_1));
 
-  if (this->GzImplementation() == "zeromq")
+  // Implementation-specific initialization.
+  std::string impl = this->GzImplementation();
+  if (impl == "zeromq")
   {
+    // Initialize the 0MQ objects.
+    if (!this->InitializeSockets())
+      return;
+
+    if (this->dataPtr->verbose)
+    {
+      std::cout << "Host address: " << this->dataPtr->hostAddr << std::endl;
+      std::cout << "Process UUID: " << this->pUuid << std::endl;
+      std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
+                << this->msgDiscPort << "] for msg discovery\n";
+      std::cout << "Bind at: [udp://" << this->discoveryIP << ":"
+                << this->srvDiscPort << "] for srv discovery\n";
+      std::cout << "Bind at: [" << this->dataPtr->myAddress
+                << "] for pub/sub\n";
+      std::cout << "Bind at: [" << this->dataPtr->myReplierAddress << "]"
+                << " for srv. calls\n";
+      std::cout << "Identity for receiving srv. requests: ["
+                << this->replierId.ToString() << "]" << std::endl;
+      std::cout << "Identity for receiving srv. responses: ["
+                << this->responseReceiverId.ToString() << "]" << std::endl;
+    }
+
+    // Start the ZMQ reception thread.
+    this->threadReception = std::thread(&NodeShared::RunReceptionTask, this);
+
     // Set the callback to notify svc discovery updates (invalid services).
     this->dataPtr->srvDiscovery->DisconnectionsCb(
       std::bind(&NodeShared::OnNewSrvDisconnection,
@@ -298,8 +304,51 @@ NodeShared::NodeShared()
     this->dataPtr->srvDiscovery->Start();
   }
 #ifdef HAVE_ZENOH
-  else if (this->GzImplementation() == "zenoh")
+  else if (impl == "zenoh")
   {
+    // Cold-start readiness: synchronously drain the currently-alive
+    // liveliness tokens before subscribing to updates.
+    // Every reachable publisher and service token is fed into the
+    // discovery info structures so the first user request finds
+    // the queryable already known.
+    constexpr int kZenohLivelinessGetTimeoutMs = 1000;
+
+    try
+    {
+      zenoh::Session::LivelinessGetOptions opts =
+        zenoh::Session::LivelinessGetOptions::create_default();
+      opts.timeout_ms = kZenohLivelinessGetTimeoutMs;
+
+      zenoh::ZResult result = Z_OK;
+      auto replies = this->Session()->liveliness_get(
+        zenoh::KeyExpr("@gz/**"),
+        zenoh::channels::FifoChannel(SIZE_MAX - 1),
+        std::move(opts),
+        &result);
+
+      if (result == Z_OK)
+      {
+        for (auto res = replies.recv();
+             std::holds_alternative<zenoh::Reply>(res);
+             res = replies.recv())
+        {
+          const auto &reply = std::get<zenoh::Reply>(res);
+          if (reply.is_ok())
+          {
+            const auto &sample = reply.get_ok();
+            this->dataPtr->msgDiscovery->LivelinessMsgDataHandler(sample);
+            this->dataPtr->srvDiscovery->LivelinessSrvDataHandler(sample);
+          }
+        }
+      }
+    }
+    catch (const zenoh::ZException &e)
+    {
+      std::cerr << "gz-transport: synchronous liveliness_get failed ("
+                << e.what() << "); falling back to async history replay.\n";
+    }
+
+    // Now start continuous discovery subscribers to receive future updates.
     this->dataPtr->msgDiscovery->Start(this->Session(),
       std::bind(&MsgDiscovery::LivelinessMsgDataHandler,
             this->dataPtr->msgDiscovery.get(), std::placeholders::_1));
@@ -535,6 +584,17 @@ void NodeShared::TriggerCallbacks(
     const std::string &_msgData,
     const HandlerInfo &_handlerInfo)
 {
+  this->TriggerCallbacks(_info, _msgData.data(), _msgData.size(),
+    _handlerInfo);
+}
+
+//////////////////////////////////////////////////
+void NodeShared::TriggerCallbacks(
+    const MessageInfo &_info,
+    const char *_msgData,
+    std::size_t _msgSize,
+    const HandlerInfo &_handlerInfo)
+{
   if (!_handlerInfo.haveLocal && !_handlerInfo.haveRaw)
     return;
 
@@ -550,8 +610,7 @@ void NodeShared::TriggerCallbacks(
           if (rawHandler->TypeName() == _info.Type() ||
               rawHandler->TypeName() == kGenericMessageType)
           {
-            rawHandler->RunRawCallback(_msgData.c_str(), _msgData.size(),
-                _info);
+            rawHandler->RunRawCallback(_msgData, _msgSize, _info);
           }
         }
         else
@@ -582,19 +641,19 @@ void NodeShared::TriggerCallbacks(
               // If the message has not been deserialized yet, do it now since
               // we have allegedly found a subscriber which should be able to
               // do it.
-              msg = localHandler->CreateMsg(_msgData, _info.Type());
+              msg = localHandler->CreateMsgFromBuffer(
+                _msgData, _msgSize, _info.Type());
 
               if (!msg)
               {
                 // If the message could not be created, then none of the
                 // handlers in this process will be able to create it, because
                 // protobuf has access to all message types that the current
-                // process is linked to. If CreateMsg(~,~) fails, then we may
-                // as well quit.
+                // process is linked to. If CreateMsgFromBuffer fails, then we
+                // may as well quit.
                 return;
               }
             }
-
             localHandler->RunLocalCallback(*msg, _info);
           }
         }
@@ -914,14 +973,14 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
         continue;
       }
 
-      // Mark the handler as requested.
-      req.second->Requested(true);
-
       auto nodeUuid = req.second->NodeUuid();
       auto reqUuid = req.second->HandlerUuid();
 
       if (impl == "zeromq")
       {
+        // Mark the handler as requested.
+        req.second->Requested(true);
+
         std::string data;
         if (!req.second->Serialize(data))
           continue;
@@ -977,7 +1036,24 @@ void NodeShared::SendPendingRemoteReqs(const std::string &_topic,
 #ifdef HAVE_ZENOH
       else if (impl == "zenoh")
       {
-        req.second->CreateZenohGet(this->Session(), _topic);
+        // Mark the handler as requested only when the query was
+        // actually fired: a failed declaration or send leaves it
+        // pending so the next responder announcement retries it.
+        // Once the query is over the handler leaves the storage, whether
+        // it was answered or timed out. A synchronous Node::Request
+        // removes its own handler as well; the second removal is a no
+        // op. NodeShared outlives every query: it is never destroyed
+        // (see Instance()) and the Zenoh timeout bounds the callback.
+        auto onDone = [this, _topic, nodeUuid, reqUuid]()
+        {
+          std::lock_guard<std::recursive_mutex> requestsLock(this->mutex);
+          this->dataPtr->requests.RemoveHandler(_topic, nodeUuid, reqUuid);
+        };
+        if (req.second->CreateZenohGet(
+              this->GetOrDeclareZenohQuerier(_topic), _topic, onDone))
+        {
+          req.second->Requested(true);
+        }
       }
 #endif
 
@@ -1008,44 +1084,54 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     std::cout << _pub;
   }
 
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
+  // Collect publishers to register while holding the lock,
+  // then call Discovery methods outside the lock to avoid deadlocks.
+  std::vector<MessagePublisher> publishersToRegister;
 
-  // Check if we are interested in this topic.
-  if (this->localSubscribers.HasSubscriber(topic) &&
-      this->pUuid.compare(procUuid) != 0)
   {
-    // Handle security
-    this->dataPtr->SecurityOnNewConnection();
+    std::lock_guard<std::recursive_mutex> lock(this->mutex);
 
-    // I am not connected to the process.
-    if (!this->connections.HasPublisher(addr) && this->dataPtr->subscriber)
-      this->dataPtr->subscriber->connect(addr.c_str());
-
-    // Add a new filter for the topic.
-    this->dataPtr->subscriber->set(zmq::sockopt::subscribe, topic);
-
-    // Register the new connection with the publisher.
-    this->connections.AddPublisher(_pub);
-
-    if (this->dataPtr->verbose)
-      std::cout << "\t* Connected to [" << addr << "] for data\n";
-
-    MessagePublisher pub(_pub);
-    pub.SetPUuid(this->pUuid);
-
-    // Hack: We use this field to store the PUuid of the topic publisher.
-    pub.SetCtrl(_pub.PUuid());
-
-    std::vector<std::string> handlerNodeUuids =
-        this->localSubscribers.NodeUuids(topic, _pub.MsgTypeName());
-    for (const std::string &nodeUuid : handlerNodeUuids)
+    // Check if we are interested in this topic.
+    if (this->localSubscribers.HasSubscriber(topic) &&
+        this->pUuid.compare(procUuid) != 0)
     {
-      pub.SetNUuid(nodeUuid);
+      // Handle security
+      this->dataPtr->SecurityOnNewConnection();
 
-      // Send a message to the publisher notify it
-      // about all my remoteSubscribers.
-      this->dataPtr->msgDiscovery->Register(pub);
+      // I am not connected to the process.
+      if (!this->connections.HasPublisher(addr) && this->dataPtr->subscriber)
+        this->dataPtr->subscriber->connect(addr.c_str());
+
+      // Add a new filter for the topic.
+      this->dataPtr->subscriber->set(zmq::sockopt::subscribe, topic);
+
+      // Register the new connection with the publisher.
+      this->connections.AddPublisher(_pub);
+
+      if (this->dataPtr->verbose)
+        std::cout << "\t* Connected to [" << addr << "] for data\n";
+
+      MessagePublisher pub(_pub);
+      pub.SetPUuid(this->pUuid);
+
+      // Hack: We use this field to store the PUuid of the topic publisher.
+      pub.SetCtrl(_pub.PUuid());
+
+      std::vector<std::string> handlerNodeUuids =
+          this->localSubscribers.NodeUuids(topic, _pub.MsgTypeName());
+      for (const std::string &nodeUuid : handlerNodeUuids)
+      {
+        pub.SetNUuid(nodeUuid);
+        publishersToRegister.push_back(pub);
+      }
     }
+  }
+
+  // Send messages to the publisher outside the lock to avoid deadlocks
+  // with Discovery::mutex.
+  for (const auto &pub : publishersToRegister)
+  {
+    this->dataPtr->msgDiscovery->Register(pub);
   }
 }
 
@@ -1207,12 +1293,16 @@ void NodeShared::OnEndRegistration(const MessagePublisher &_pub)
 //////////////////////////////////////////////////
 void NodeShared::OnSubscribers()
 {
-  // Get the list of local subscribers.
-  std::lock_guard<std::recursive_mutex> lock(this->mutex);
-  auto pubs = this->localSubscribers.Convert(
-    this->dataPtr->myAddress, this->pUuid);
+  // Get the list of local subscribers while holding the lock.
+  std::vector<MessagePublisher> pubs;
+  {
+    std::lock_guard<std::recursive_mutex> lock(this->mutex);
+    pubs = this->localSubscribers.Convert(
+      this->dataPtr->myAddress, this->pUuid);
+  }
 
   // Reply to the SUBSCRIBERS_REQ with multiple SUBSCRIBERS_REP.
+  // Called outside the lock to avoid deadlocks with Discovery::mutex.
   for (auto const &publisher : pubs)
     this->dataPtr->msgDiscovery->SendSubscribersRep(publisher);
 }
@@ -1303,6 +1393,9 @@ bool NodeShared::AdvertisePublisher(const ServicePublisher &_publisher)
 /////////////////////////////////////////////////
 int NodeShared::RcvHwm()
 {
+  if (!this->dataPtr->subscriber)
+    return -1;
+
   int rcvHwm;
   try
   {
@@ -1319,6 +1412,9 @@ int NodeShared::RcvHwm()
 /////////////////////////////////////////////////
 int NodeShared::SndHwm()
 {
+  if (!this->dataPtr->publisher)
+    return -1;
+
   int sndHwm;
   try
   {
@@ -1476,6 +1572,10 @@ void NodeSharedPrivate::SecurityOnNewConnection()
 //////////////////////////////////////////////////
 void NodeSharedPrivate::SecurityInit()
 {
+  // Security is only applicable to zeromq backend.
+  if (this->gzImplementation != "zeromq")
+    return;
+
   // Check if a username and password has been set. If so, then
   // setup a PLAIN authentication server.
   std::string user, pass;
@@ -1862,6 +1962,124 @@ std::shared_ptr<zenoh::Session> NodeShared::Session()
 {
   return this->dataPtr->session;
 }
+
+/////////////////////////////////////////////////
+void NodeShared::EnsureZenohSubscription(const std::string &_topic)
+{
+  // Precondition: caller holds this->mutex.
+  auto &subscriptions = this->dataPtr->zenohSubscribers;
+  if (subscriptions.count(_topic))
+    return;
+
+  // The flag lets MaybeRemoveZenohSubscription retire this subscriber
+  // before its (deferred) undeclare completes. Capturing 'this' is safe:
+  // NodeShared is never destroyed (see Instance()).
+  auto active = std::make_shared<std::atomic<bool>>(true);
+  auto dataHandler = [this, _topic, active](const zenoh::Sample &_sample)
+  {
+    if (!active->load(std::memory_order_acquire))
+      return;
+
+    auto attachment = _sample.get_attachment();
+    if (!attachment.has_value())
+    {
+      std::cerr << "NodeShared::EnsureZenohSubscription(): "
+                << "Unable to find attachment. Ignoring message..."
+                << std::endl;
+      return;
+    }
+    auto msgType = attachment->get().as_string();
+
+    MessageInfo info;
+    info.SetTopicAndPartition(_topic);
+    info.SetType(msgType);
+
+    HandlerInfo handlerInfo = this->CheckHandlerInfo(_topic);
+
+    // SHM-optimized receive: dispatch from a contiguous view into the SHM
+    // buffer when available, falling back to a copied string otherwise.
+    withPayloadView(_sample.get_payload(),
+      [&](const char *_data, std::size_t _size)
+      {
+        this->TriggerCallbacks(info, _data, _size, handlerInfo);
+      });
+  };
+
+  ZenohTopicSubscription subscription;
+  subscription.active = active;
+  subscription.subscriber = std::make_unique<zenoh::Subscriber<void>>(
+    this->dataPtr->session->declare_subscriber(_topic, dataHandler,
+      zenoh::closures::none));
+  subscriptions[_topic] = std::move(subscription);
+}
+
+/////////////////////////////////////////////////
+void NodeShared::MaybeRemoveZenohSubscription(const std::string &_topic)
+{
+  // Precondition: caller holds this->mutex.
+  if (this->localSubscribers.HasSubscriber(_topic))
+    return;
+
+  auto &subscriptions = this->dataPtr->zenohSubscribers;
+  auto it = subscriptions.find(_topic);
+  if (it == subscriptions.end())
+    return;
+
+  ZenohTopicSubscription subscription = std::move(it->second);
+  subscriptions.erase(it);
+
+  // Retire the callback first so a sample racing with the undeclare is
+  // not dispatched to handlers registered by a later Subscribe() on the
+  // same topic.
+  subscription.active->store(false, std::memory_order_release);
+
+  // Undeclaring a Zenoh subscriber waits for its in-flight callbacks.
+  // Such a callback may be blocked on this->mutex (held by the caller)
+  // or may be the very callback that triggered this unsubscribe, so run
+  // the undeclare on a detached thread (same pattern as the handler
+  // destructors in SubscriptionHandler.cc and RepHandler.cc).
+  std::thread([sub = std::move(subscription.subscriber)]() mutable
+  {
+    sub.reset();
+  }).detach();
+}
+
+/////////////////////////////////////////////////
+std::shared_ptr<zenoh::Querier>
+NodeShared::GetOrDeclareZenohQuerier(const std::string &_service)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->querierCacheMutex);
+  auto &cache = this->dataPtr->querierCache;
+  auto it = cache.find(_service);
+  if (it != cache.end())
+    return it->second;
+
+  std::shared_ptr<zenoh::Querier> querier;
+  try
+  {
+    zenoh::Session::QuerierOptions opts =
+      zenoh::Session::QuerierOptions::create_default();
+    // BEST_MATCHING (Zenoh's default) routes the query to the closest
+    // matching queryable. For gz-transport's request/reply semantics
+    // (single response expected per service call), this avoids the
+    // "wait for ALL queryables" problem that target=ALL exposes when
+    // a stale or slow peer is in the network.
+    opts.target = zenoh::QueryTarget::Z_QUERY_TARGET_BEST_MATCHING;
+
+    querier = std::make_shared<zenoh::Querier>(
+      this->Session()->declare_querier(zenoh::KeyExpr(_service),
+                                       std::move(opts)));
+  }
+  catch (const zenoh::ZException &e)
+  {
+    std::cerr << "gz-transport zenoh: declare_querier failed for ["
+              << _service << "]: " << e.what() << "\n";
+    return nullptr;
+  }
+
+  cache[_service] = querier;
+  return querier;
+}
 #endif
 
 //////////////////////////////////////////////////
@@ -1893,57 +2111,83 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
               <<  std::endl;
   }
 
-  std::lock_guard<std::recursive_mutex> lk(this->mutex);
+  // Flag to track if we need to notify publishers
+  bool shouldNotifyPublishers = false;
+  std::string localAddress;
+  std::string localPUuid;
 
-  // Remove the subscribers for the given topic that belong to this node.
-  if (_hUuid.empty())
   {
-    this->localSubscribers.RemoveHandlersForNode(
-          fullyQualifiedTopic, _nUuid);
-  }
-  else
-  {
-    this->localSubscribers.RemoveHandler(
-          fullyQualifiedTopic, _nUuid, _hUuid);
-  }
+    std::lock_guard<std::recursive_mutex> lk(this->mutex);
 
-  // Check if there are still local subscribers in this node. If so then we
-  // are done here. Otherwise, let others know that this node is no longer
-  // interested in the topic
-  if (this->localSubscribers.HasSubscriberForNode(fullyQualifiedTopic, _nUuid))
-    return true;
+    // Remove the subscribers for the given topic that belong to this node.
+    if (_hUuid.empty())
+    {
+      this->localSubscribers.RemoveHandlersForNode(
+            fullyQualifiedTopic, _nUuid);
+    }
+    else
+    {
+      this->localSubscribers.RemoveHandler(
+            fullyQualifiedTopic, _nUuid, _hUuid);
+    }
 
-  // No more susbcribers so remove the topic from the list of subscribed topics
-  // in this node.
-  this->RemoveSubscribedTopic(fullyQualifiedTopic, _nUuid);
+    // Check if there are still local subscribers in this node. If so then we
+    // are done here. Otherwise, let others know that this node is no longer
+    // interested in the topic
+    if (this->localSubscribers.HasSubscriberForNode(
+              fullyQualifiedTopic, _nUuid))
+    {
+      return true;
+    }
 
-  // Remove the filter for this topic if I am the last subscriber.
-  if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
-  {
-    this->dataPtr->subscriber->set(
-      zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+    // No more susbcribers so remove the topic from the list of subscribed
+    // topics in this node.
+    this->RemoveSubscribedTopic(fullyQualifiedTopic, _nUuid);
+
+    // Remove the filter for this topic if I am the last subscriber.
+    if (this->GzImplementation() == "zeromq")
+    {
+      if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
+      {
+        this->dataPtr->subscriber->set(
+          zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+      }
+    }
+#ifdef HAVE_ZENOH
+    else if (this->GzImplementation() == "zenoh")
+      this->MaybeRemoveZenohSubscription(fullyQualifiedTopic);
+#endif
+
+    // Prepare to notify publishers outside the lock
+    shouldNotifyPublishers = true;
+    localAddress = this->dataPtr->myAddress;
+    localPUuid = this->pUuid;
   }
 
   // Notify to the publishers that I am no longer interested in the topic.
-  MsgAddresses_M addresses;
-  this->dataPtr->msgDiscovery->Publishers(
-    fullyQualifiedTopic, addresses);
-
-  for (auto &proc : addresses)
+  // Called outside the lock to avoid deadlocks with Discovery::mutex.
+  if (shouldNotifyPublishers)
   {
-    std::string dstPUuid = proc.first;
-    MessagePublisher pub(fullyQualifiedTopic, this->dataPtr->myAddress,
-      dstPUuid, this->pUuid, _nUuid,
+    MsgAddresses_M addresses;
+    this->dataPtr->msgDiscovery->Publishers(
+      fullyQualifiedTopic, addresses);
+
+    for (auto &proc : addresses)
+    {
+      std::string dstPUuid = proc.first;
+      MessagePublisher pub(fullyQualifiedTopic, localAddress,
+        dstPUuid, localPUuid, _nUuid,
+        kGenericMessageType, AdvertiseMessageOptions());
+
+      this->dataPtr->msgDiscovery->Unregister(pub);
+    }
+
+    MessagePublisher pub(fullyQualifiedTopic, localAddress,
+      "", localPUuid, _nUuid,
       kGenericMessageType, AdvertiseMessageOptions());
 
     this->dataPtr->msgDiscovery->Unregister(pub);
   }
-
-  MessagePublisher pub(fullyQualifiedTopic, this->dataPtr->myAddress,
-    "", this->pUuid, _nUuid,
-    kGenericMessageType, AdvertiseMessageOptions());
-
-  this->dataPtr->msgDiscovery->Unregister(pub);
 
   return true;
 }

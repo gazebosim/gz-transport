@@ -19,8 +19,14 @@ from gz.transport import Node, AdvertiseMessageOptions, SubscribeOptions, TopicS
 from gz.transport import transport_implementation
 from threading import Lock
 
+import os
+import random
 import time
 import unittest
+
+# Set a unique partition for this test process to avoid conflicts
+# when running tests in parallel. This mirrors what C++ tests do.
+os.environ['GZ_PARTITION'] = str(random.randint(0, 2147483647))
 
 mutex = Lock()
 

@@ -2,10 +2,10 @@
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
   <name>gz-transport</name>
-  <version>15.0.0</version>
+  <version>16.0.0</version>
   <description>Gazebo Transport: Provides fast and efficient asynchronous message passing, services, and data logging.</description>
-  <maintainer email="caguero@openrobotics.org">Carlos Agüero</maintainer>
-  <license>Apache License 2.0</license>
+  <maintainer email="caguero@honurobotics.com">Carlos Agüero</maintainer>
+  <license>Apache-2.0</license>
   <url type="website">https://github.com/gazebosim/gz-transport</url>
 
   <buildtool_depend>cmake</buildtool_depend>
@@ -14,9 +14,11 @@
 
   <depend>gz-math</depend>
   <depend>gz-msgs</depend>
-  <depend>gz-tools2</depend>
+  <depend>gz-tools</depend>
   <depend>gz-utils</depend>
   <depend>libsqlite3-dev</depend>
+  <depend>libzenohc-dev</depend>
+  <depend>libzenohcpp-dev</depend>
   <depend>libzmq3-dev</depend>
   <depend>pkg-config</depend>
   <depend>protobuf-dev</depend>

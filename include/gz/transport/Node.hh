@@ -32,6 +32,7 @@
 #include "gz/transport/SubscriptionHandler.hh"
 #include "gz/transport/TopicStatistics.hh"
 #include "gz/transport/TransportTypes.hh"
+#include "gz/transport/WaitHelpers.hh"
 
 namespace zenoh
 {
@@ -72,15 +73,25 @@ namespace gz::transport
   /// If your buffer reaches the maximum capacity data will be dropped.
   int GZ_TRANSPORT_VISIBLE sndHwm();
 
-  /// \brief Block the current thread until a SIGINT or SIGTERM is received.
-  /// Note that this function registers a signal handler. Do not use this
-  /// function if you want to manage yourself SIGINT/SIGTERM.
-  void GZ_TRANSPORT_VISIBLE waitForShutdown();
-
   /// \class Node Node.hh gz/transport/Node.hh
   /// \brief A class that allows a client to communicate with other peers.
   /// There are two main communication modes: pub/sub messages and service
   /// calls.
+
+  /// \brief Information about a topic, including its name, publishers and
+  /// subscribers.
+  struct GZ_TRANSPORT_VISIBLE TopicInfo
+  {
+    /// \brief Topic name.
+    public: std::string topicName;
+
+    /// \brief Publishers advertising this topic.
+    public: std::vector<MessagePublisher> publishers;
+
+    /// \brief Subscribers subscribed to this topic.
+    public: std::vector<MessagePublisher> subscribers;
+  };
+
   class GZ_TRANSPORT_VISIBLE Node
   {
     class PublisherPrivate;
@@ -281,10 +292,15 @@ namespace gz::transport
 #endif
     };
 
+    /// \brief Default constructor.
+    /// \throws gz::transport::Exception if a Zenoh session cannot be opened
+    /// (e.g. when using client mode without a reachable router).
     public: Node();
 
     /// \brief Constructor.
     /// \param[in] _options Node options.
+    /// \throws gz::transport::Exception if a Zenoh session cannot be opened
+    /// (e.g. when using client mode without a reachable router).
     public: explicit Node(const NodeOptions &_options);
 
     /// \brief Destructor.
@@ -377,6 +393,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service.
     /// In this version the callback is a plain function pointer.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -395,6 +417,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without input parameter.
     /// In this version the callback is a free function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -412,6 +440,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without any output parameter.
     /// In this version the callback is a free function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -428,6 +462,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service.
     /// In this version the callback is a lambda function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -447,6 +487,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without input parameter.
     /// In this version the callback is a lambda function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -464,6 +510,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without any output parameter.
     /// In this version the callback is a lambda function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -480,6 +532,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service.
     /// In this version the callback is a member function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -500,6 +558,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without input parameter.
     /// In this version the callback is a member function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -519,6 +583,12 @@ namespace gz::transport
 
     /// \brief Advertise a new service without any output parameter.
     /// In this version the callback is a member function.
+    ///
+    /// Multiple nodes can advertise the same service. When a request is
+    /// made, only one of the available service providers will handle it.
+    /// There is no guarantee of which provider will be selected. If one
+    /// provider becomes unavailable, the remaining providers can still
+    /// handle subsequent requests.
     /// \param[in] _topic Topic name associated to the service.
     /// \param[in] _callback Callback to handle the service request with the
     /// following parameters:
@@ -723,6 +793,12 @@ namespace gz::transport
                            std::vector<MessagePublisher> &_publishers,
                            std::vector<MessagePublisher> &_subscribers) const;
 
+    /// \brief Get the information about all topics.
+    /// \param[out] _topics List of advertised topics.
+    /// \return False if unable to get topic info.
+    public: bool AllTopicInfo(
+                std::vector<gz::transport::TopicInfo> &_topics) const;
+
     /// \brief Get the list of topics currently advertised in the network.
     /// Note that this function can block for some time if the
     /// discovery is in its initialization phase.
@@ -738,6 +814,56 @@ namespace gz::transport
     public: bool ServiceInfo(
         const std::string &_service,
         std::vector<ServicePublisher> &_publishers) const;
+
+    /// \brief Result of a call to ResolveServiceTypes().
+    public: enum class ServiceTypeResolution
+    {
+      /// \brief All requested types were resolved unambiguously.
+      kResolved = 0,
+
+      /// \brief The service name is not valid.
+      kInvalidService,
+
+      /// \brief No provider advertised the service before the timeout
+      /// expired.
+      kNoProviders,
+
+      /// \brief The advertised providers disagree on at least one of the
+      /// types being resolved.
+      kAmbiguousTypes,
+
+      /// \brief The service is advertised, but no provider offers the
+      /// types that were specified by the caller.
+      kIncompatibleTypes,
+    };
+
+    /// \brief Resolve the request and response types advertised by the
+    /// providers of a service. Only the types that are empty on entry are
+    /// resolved; non-empty types are left untouched and are instead used to
+    /// select the providers that the empty types are resolved from. Only
+    /// those matching providers take part in the ambiguity check. If the
+    /// service is not advertised yet, this function keeps polling discovery
+    /// until a matching provider appears or _timeoutMs expires.
+    ///
+    /// Non-empty types must be spelled the same way the providers advertise
+    /// them, i.e. using the canonical protobuf name ("gz.msgs.Empty").
+    ///
+    /// If both types are non-empty there is nothing to resolve, so discovery
+    /// is not consulted at all and kResolved is returned.
+    /// \param[in] _service Name of the service.
+    /// \param[in, out] _reqType Request type. Resolved if empty on entry,
+    /// used to select the providers otherwise.
+    /// \param[in, out] _repType Response type. Resolved if empty on entry,
+    /// used to select the providers otherwise.
+    /// \param[in] _timeoutMs Maximum time to wait, in milliseconds, for a
+    /// matching service provider to appear.
+    /// \return ServiceTypeResolution::kResolved if all the empty types were
+    /// resolved, or the reason for the failure otherwise.
+    public: ServiceTypeResolution ResolveServiceTypes(
+        const std::string &_service,
+        std::string &_reqType,
+        std::string &_repType,
+        unsigned int _timeoutMs = 0) const;
 
     /// \brief Subscribe to a topic registering a callback. The callback must
     /// accept a std::string to represent the message data, and a MessageInfo
@@ -815,6 +941,15 @@ namespace gz::transport
     /// \param[in] _fullyQualifiedTopic Fully qualified topic name
     /// \return True on success.
     private: bool SubscribeHelper(const std::string &_fullyQualifiedTopic);
+
+    /// \brief Helper function for TopicInfo and AllTopicInfo.
+    /// \param[in] _topic Topic name to get information about.
+    /// \param[out] _publishers List of publishers on the topic.
+    /// \param[out] _subscribers List of subscribers on the topic.
+    /// \return False if unable to get topic info.
+    private: bool TopicInfoHelper(const std::string &_topic,
+                std::vector<MessagePublisher> &_publishers,
+                std::vector<MessagePublisher> &_subscribers) const;
 
     /// \brief Subscribe to a topic registering a callback.
     /// Note that this callback does not include any message information.

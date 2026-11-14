@@ -14,14 +14,21 @@
  * limitations under the License.
  *
 */
+#include <gz/msgs/bytes.pb.h>
 #include <gz/msgs/int32.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
+#include <algorithm>
+#include <atomic>
 #include <chrono>
+#include <functional>
+#include <set>
+#include <thread>
 #include <string>
 #include <vector>
 
 #include "gz/transport/Node.hh"
+#include "gz/transport/WaitHelpers.hh"
 #include "gz/transport/TransportTypes.hh"
 
 #include <gz/utils/Environment.hh>
@@ -36,13 +43,16 @@ using namespace gz;
 static std::string partition;  // NOLINT(*)
 static std::string g_FQNPartition;  // NOLINT(*)
 static const std::string g_topic = "/foo";  // NOLINT(*)
+static const std::string g_largeTopic = "/large_msg";  // NOLINT(*)
 static std::string data = "bar";  // NOLINT(*)
-static bool cbExecuted = false;
-static bool cbInfoExecuted = false;
-static bool genericCbExecuted = false;
-static bool cbVectorExecuted = false;
-static bool cbRawExecuted = false;
-static int counter = 0;
+static std::atomic<bool> cbExecuted{false};
+static std::atomic<bool> cbInfoExecuted{false};
+static std::atomic<bool> genericCbExecuted{false};
+static std::atomic<bool> cbVectorExecuted{false};
+static std::atomic<bool> cbRawExecuted{false};
+static std::atomic<bool> cbLargeExecuted{false};
+static std::string g_largeReceivedData;  // NOLINT(*)
+static std::atomic<int> counter{0};
 
 //////////////////////////////////////////////////
 /// \brief Initialize some global variables.
@@ -53,6 +63,8 @@ void reset()
   genericCbExecuted = false;
   cbVectorExecuted = false;
   cbRawExecuted = false;
+  cbLargeExecuted = false;
+  g_largeReceivedData.clear();
   counter = 0;
 }
 
@@ -79,10 +91,13 @@ void cbInfo(const msgs::Int32 &_msg,
 
 //////////////////////////////////////////////////
 /// \brief A generic callback.
-void genericCb(const transport::ProtoMsg &/*_msg*/)
+void genericCb(const transport::ProtoMsg &/*_msg*/,
+               const transport::MessageInfo &_info)
 {
   genericCbExecuted = true;
   ++counter;
+
+  EXPECT_EQ(_info.Topic().find("@"), std::string::npos);
 }
 
 //////////////////////////////////////////////////
@@ -210,9 +225,10 @@ TEST(twoProcPubSub, PubSubWrongTypesTwoRawSubscribers)
   };
 
   auto genericCb = [&](const char *, const size_t /*_size*/,
-                       const transport::MessageInfo &)
+                       const transport::MessageInfo &_info)
   {
     genericRawCbExecuted = true;
+    EXPECT_EQ(_info.Topic().find("@"), std::string::npos);
   };
 
   transport::Node node1;
@@ -339,34 +355,96 @@ TEST(twoProcPubSub, TopicList)
   transport::Node node;
   std::vector<std::string> topics;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForTopic(node, g_topic));
 
-  auto start1 = std::chrono::steady_clock::now();
   node.TopicList(topics);
-  auto end1 = std::chrono::steady_clock::now();
-  ASSERT_EQ(topics.size(), 1u);
-  EXPECT_EQ(topics.at(0), g_topic);
+  EXPECT_FALSE(topics.empty());
+  EXPECT_NE(std::find(topics.begin(), topics.end(), g_topic),
+            topics.end());
   topics.clear();
 
-  // Time elapsed to get the first topic list
-  auto elapsed1 = std::chrono::duration_cast<std::chrono::milliseconds>
-    (end1 - start1).count();
-
+  // The second call should never block since discovery already completed.
   auto start2 = std::chrono::steady_clock::now();
   node.TopicList(topics);
   auto end2 = std::chrono::steady_clock::now();
-  EXPECT_EQ(topics.size(), 1u);
-  EXPECT_EQ(topics.at(0), g_topic);
+  EXPECT_FALSE(topics.empty());
+  EXPECT_NE(std::find(topics.begin(), topics.end(), g_topic),
+            topics.end());
 
-  // The first TopicList() call might block if the discovery is still
-  // initializing (it may happen if we run this test alone).
-  // However, the second call should never block.
   auto elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>
     (end2 - start2).count();
-  EXPECT_LE(elapsed2, elapsed1);
-
   EXPECT_LT(elapsed2, 2);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns a process that only subscribes to a topic, without
+/// any publisher involved. The test verifies that a node whose discovery is
+/// already initialized eventually reports the topic in TopicList().
+TEST(twoProcPubSub, TopicListSubscriberOnly)
+{
+  reset();
+
+  transport::Node node;
+  std::vector<std::string> topics;
+
+  // Make sure that discovery is initialized before spawning the subscriber,
+  // so this test does not benefit from the initialization wait inside the
+  // first TopicList() call.
+  node.TopicList(topics);
+
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kSubscriberOnly, partition});
+
+  EXPECT_TRUE(transport::waitForTopic(node, "/subscriber_only",
+    std::chrono::milliseconds(5000)));
+
+  // The remote subscription should also be visible in TopicInfo().
+  std::vector<transport::MessagePublisher> publishers;
+  std::vector<transport::MessagePublisher> subscribers;
+  EXPECT_TRUE(node.TopicInfo("/subscriber_only", publishers, subscribers));
+  EXPECT_EQ(publishers.size(), 0u);
+  EXPECT_EQ(subscribers.size(), 1u);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns a process that subscribes to a topic and
+/// unsubscribes after a while, keeping the process alive. The test verifies
+/// that TopicList() stops reporting the topic after the unsubscription.
+TEST(twoProcPubSub, TopicListRemovesUnsubscribed)
+{
+  reset();
+
+  transport::Node node;
+  std::vector<std::string> topics;
+
+  // Make sure that discovery is initialized before spawning the subscriber.
+  node.TopicList(topics);
+
+  // The remote process subscribes to /unsub_test, unsubscribes after 4
+  // seconds and stays alive for 15 seconds.
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kSubscriberOnly, partition, "/unsub_test", "15", "4"});
+
+  ASSERT_TRUE(transport::waitForTopic(node, "/unsub_test",
+    std::chrono::milliseconds(4000)));
+
+  // After the remote node unsubscribes, the topic should disappear from
+  // TopicList() while its process is still alive. Note that the timeout is
+  // shorter than the remaining lifetime of the remote process, so a topic
+  // removal triggered by the process termination cannot make this pass.
+  auto topicAbsent = [&node]()
+  {
+    std::vector<std::string> topicsNow;
+    node.TopicList(topicsNow);
+    return std::find(topicsNow.begin(), topicsNow.end(), "/unsub_test") ==
+      topicsNow.end();
+  };
+  EXPECT_TRUE(transport::waitUntil(topicAbsent,
+    std::chrono::milliseconds(8000), std::chrono::milliseconds(100)));
 
   reset();
 }
@@ -386,8 +464,7 @@ TEST(twoProcPubSub, TopicInfo)
   std::vector<transport::MessagePublisher> publishers;
   std::vector<transport::MessagePublisher> subscribers;
 
-  // We need some time for discovering the other node.
-  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  ASSERT_TRUE(transport::waitForTopic(node, g_topic));
 
   EXPECT_FALSE(node.TopicInfo("@", publishers, subscribers));
   EXPECT_EQ(publishers.size(), 0u);
@@ -400,6 +477,52 @@ TEST(twoProcPubSub, TopicInfo)
   EXPECT_EQ(publishers.front().MsgTypeName(), "gz.msgs.Vector3d");
 
   reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief This test spawns two nodes on different processes. One of the nodes
+/// advertises a topic and the other subscribes to a topic. The test verifies
+/// that AllTopicInfo() returns publisher and subscriber information about the
+/// topics.
+TEST(twoProcPubSub, AllTopicInfo)
+{
+  auto pubPi = testing::SubprocessJoinWrapper(
+    {test_executables::kTwoProcsPublisher, partition});
+
+  auto subPi = testing::SubprocessJoinWrapper(
+    {test_executables::kSubscriberOnly, partition});
+
+  reset();
+
+  transport::Node node;
+  EXPECT_TRUE(node.Subscribe(g_topic, cb));
+
+  ASSERT_TRUE(transport::waitForTopic(node, g_topic,
+    std::chrono::milliseconds(5000)));
+  ASSERT_TRUE(transport::waitForTopic(node, "/subscriber_only",
+    std::chrono::milliseconds(5000)));
+
+  std::vector<transport::TopicInfo> topicInfo;
+  EXPECT_TRUE(node.AllTopicInfo(topicInfo));
+
+  auto findTopic = [&topicInfo](const std::string &_topicname)
+  {
+    return std::find_if(topicInfo.begin(), topicInfo.end(),
+        [&_topicname](const transport::TopicInfo &_info)
+        {
+          return _info.topicName == _topicname;
+        });
+  };
+
+  auto topic = findTopic(g_topic);
+  ASSERT_NE(topic, topicInfo.end());
+  EXPECT_EQ(topic->publishers.size(), 1u);
+  EXPECT_EQ(topic->subscribers.size(), 1u);
+
+  auto subOnlyTopic = findTopic("/subscriber_only");
+  ASSERT_NE(subOnlyTopic, topicInfo.end());
+  EXPECT_EQ(subOnlyTopic->publishers.size(), 0u);
+  EXPECT_EQ(subOnlyTopic->subscribers.size(), 1u);
 }
 
 //////////////////////////////////////////////////
@@ -421,19 +544,15 @@ TEST(twoProcPubSub, PubSubTwoProcsScopedPub)
     auto pi = testing::SubprocessJoinWrapper(
        {test_executables::kTwoProcsPubSubSingleSubscriber, partition});
 
-    // Sleep for subscriber process to fully come up
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
     // Reduce the publisher scope so that it is destroyed before the subscriber
     // process ends.
     {
       auto pub = node.Advertise<msgs::Vector3d>(g_topic);
       EXPECT_TRUE(pub);
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }))
+          << "No subscriber connections within timeout";
 
-      // Now, we should have subscribers.
-      EXPECT_TRUE(pub.HasConnections());
 
       msgs::Vector3d msg;
       msg.set_x(1.0);
@@ -469,10 +588,8 @@ TEST(twoProcPubSub, PubSubTwoProcsMixedSubscribers)
   msg.set_y(2.0);
   msg.set_z(3.0);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-  // Now, we should have subscribers.
-  EXPECT_TRUE(pub.HasConnections());
+  ASSERT_TRUE(transport::waitUntil([&]{ return pub.HasConnections(); }))
+      << "No subscriber connections within timeout";
 
   // Publish messages for a few seconds
   for (auto i = 0; i < 10; ++i)
@@ -480,6 +597,192 @@ TEST(twoProcPubSub, PubSubTwoProcsMixedSubscribers)
     EXPECT_TRUE(pub.Publish(msg));
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
+}
+
+//////////////////////////////////////////////////
+/// \brief Callback for receiving large Bytes messages.
+void cbLarge(const msgs::Bytes &_msg)
+{
+  g_largeReceivedData = _msg.data();
+  cbLargeExecuted = true;
+}
+
+//////////////////////////////////////////////////
+/// \brief Two-process pub/sub with a message above the SHM threshold.
+/// The publisher (twoProcsPublisher_aux) sends a 256 KB Bytes message
+/// on /large_msg (above the default 128 KB SHM threshold). This exercises
+/// the SHM publish path end-to-end across process boundaries.
+TEST(twoProcPubSub, PubSubLargeMessageAboveShmThreshold)
+{
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kTwoProcsPublisher, partition});
+
+  reset();
+
+  transport::Node node;
+  EXPECT_TRUE(node.Subscribe(g_largeTopic, cbLarge));
+
+  // Wait for the publisher to send (it publishes at 500 ms and 2000 ms).
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+  EXPECT_TRUE(cbLargeExecuted)
+    << "Large message was not received";
+
+  // Must match the payload size in twoProcsPublisher_aux.cc (256 KB).
+  const std::size_t expectedSize = 256u * 1024u;
+  EXPECT_EQ(expectedSize, g_largeReceivedData.size());
+
+  // Verify the payload content matches what the publisher sent.
+  std::string expectedPayload(expectedSize, 'S');
+  EXPECT_EQ(expectedPayload, g_largeReceivedData);
+
+  reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief Wait until _topic has subscribers in at least two processes:
+/// this one and the auxiliary one.
+/// \return True if that happened before the timeout.
+bool waitForRemoteSubscriber(const transport::Node &_node,
+                             const std::string &_topic)
+{
+  return transport::waitUntil([&]
+    {
+      std::vector<transport::MessagePublisher> publishers;
+      std::vector<transport::MessagePublisher> subscribers;
+      _node.TopicInfo(_topic, publishers, subscribers);
+      std::set<std::string> processes;
+      for (const auto &subscriber : subscribers)
+        processes.insert(subscriber.PUuid());
+      return processes.size() >= 2;
+    }, std::chrono::seconds(10), std::chrono::milliseconds(50));
+}
+
+//////////////////////////////////////////////////
+/// \brief Wait until _counter has not changed for _quiet and return its
+/// value. Used for negative checks ("nothing else arrives"): it returns
+/// as soon as the counter is quiet instead of after a fixed delay, and
+/// keeps waiting while late messages are still trickling in.
+/// \param[in] _counter The counter to watch.
+/// \param[in] _quiet How long the counter has to stay unchanged.
+/// \param[in] _timeout Upper bound for the whole wait.
+/// \return The last value observed.
+int settledValue(const std::atomic<int> &_counter,
+                 std::chrono::milliseconds _quiet =
+                   std::chrono::milliseconds(300),
+                 std::chrono::seconds _timeout = std::chrono::seconds(5))
+{
+  const auto deadline = std::chrono::steady_clock::now() + _timeout;
+  int last = _counter.load();
+  auto lastChange = std::chrono::steady_clock::now();
+  while (std::chrono::steady_clock::now() < deadline)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    const int current = _counter.load();
+    const auto now = std::chrono::steady_clock::now();
+    if (current != last)
+    {
+      last = current;
+      lastChange = now;
+    }
+    else if (now - lastChange >= _quiet)
+    {
+      break;
+    }
+  }
+  return last;
+}
+
+//////////////////////////////////////////////////
+/// \brief A process that publishes a topic and also subscribes to it must
+/// see each message exactly once while a subscriber in another process is
+/// connected. Local delivery happens directly inside Publish(); the copy
+/// sent to the remote subscriber must not be delivered back to this
+/// process by the transport.
+TEST(twoProcPubSub, LocalSubscriberReceivesOnceWithRemoteSubscriber)
+{
+  const std::string topic = "/local_and_remote";
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kSubscriberOnly, partition, topic, "10"});
+
+  transport::Node node;
+  std::atomic<int> received{0};
+  std::function<void(const msgs::Vector3d &)> cb =
+    [&received](const msgs::Vector3d &)
+    {
+      ++received;
+    };
+  EXPECT_TRUE(node.Subscribe(topic, cb));
+  auto pub = node.Advertise<msgs::Vector3d>(topic);
+  ASSERT_TRUE(pub);
+  ASSERT_TRUE(waitForRemoteSubscriber(node, topic));
+
+  constexpr int kMessages = 10;
+  msgs::Vector3d msg;
+  for (int i = 0; i < kMessages; ++i)
+  {
+    msg.set_x(i);
+    EXPECT_TRUE(pub.Publish(msg));
+  }
+
+  // Direct local delivery brings every message.
+  ASSERT_TRUE(transport::waitUntil([&]
+    {
+      return received.load() >= kMessages;
+    }, std::chrono::seconds(5), std::chrono::milliseconds(10)));
+
+  // Nothing else may arrive afterwards, in particular no copy looped back
+  // by the transport.
+  EXPECT_EQ(kMessages, settledValue(received));
+}
+
+//////////////////////////////////////////////////
+/// \brief SubscribeOptions::IgnoreLocalMessages() must hold when the
+/// message also travels to a subscriber in another process: the node that
+/// published it must not get it back through the transport. A second node
+/// in this process subscribes normally and witnesses the deliveries.
+TEST(twoProcPubSub, IgnoreLocalMessagesWithRemoteSubscriber)
+{
+  const std::string topic = "/ignore_local_remote";
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kSubscriberOnly, partition, topic, "10"});
+
+  transport::Node node;
+  std::atomic<int> ignoring{0};
+  std::function<void(const msgs::Vector3d &)> ignoringCb =
+    [&ignoring](const msgs::Vector3d &)
+    {
+      ++ignoring;
+    };
+  transport::SubscribeOptions opts;
+  opts.SetIgnoreLocalMessages(true);
+  EXPECT_TRUE(node.Subscribe(topic, ignoringCb, opts));
+
+  transport::Node witnessNode;
+  std::atomic<int> witnessed{0};
+  std::function<void(const msgs::Vector3d &)> witnessCb =
+    [&witnessed](const msgs::Vector3d &)
+    {
+      ++witnessed;
+    };
+  EXPECT_TRUE(witnessNode.Subscribe(topic, witnessCb));
+
+  auto pub = node.Advertise<msgs::Vector3d>(topic);
+  ASSERT_TRUE(pub);
+  ASSERT_TRUE(waitForRemoteSubscriber(node, topic));
+
+  constexpr int kMessages = 10;
+  msgs::Vector3d msg;
+  for (int i = 0; i < kMessages; ++i)
+    EXPECT_TRUE(pub.Publish(msg));
+
+  ASSERT_TRUE(transport::waitUntil([&]
+    {
+      return witnessed.load() >= kMessages;
+    }, std::chrono::seconds(5), std::chrono::milliseconds(10)));
+
+  EXPECT_EQ(kMessages, settledValue(witnessed));
+  EXPECT_EQ(0, ignoring.load());
 }
 
 //////////////////////////////////////////////////

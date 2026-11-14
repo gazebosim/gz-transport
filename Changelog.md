@@ -1,3 +1,7 @@
+## Gazebo Transport 16.x
+
+### Gazebo Transport 16.0.0 (20XX-XX-XX)
+
 ## Gazebo Transport 15.X
 
 ### Gazebo Transport 15.0.0 (2025-09-xx)

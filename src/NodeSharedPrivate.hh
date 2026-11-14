@@ -18,14 +18,18 @@
 #ifndef GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 #define GZ_TRANSPORT_NODESHAREDPRIVATE_HH_
 
+#include <algorithm>
 #include <atomic>
+#include <cstdlib>
+#include <filesystem>
 #include <list>
 #include <map>
 #include <memory>
-#include <algorithm>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <zmq.hpp>
@@ -34,13 +38,29 @@
 #endif
 
 #include "gz/transport/config.hh"
+#include "gz/transport/Exception.hh"
 #include "gz/transport/Node.hh"
 #include "Discovery.hh"
+#include "ShmHelpers.hh"
 
 namespace gz::transport
 {
   // Inline bracket to help doxygen filtering.
   inline namespace GZ_TRANSPORT_VERSION_NAMESPACE {
+#ifdef HAVE_ZENOH
+  /// \internal
+  /// \brief A centralized per-topic Zenoh subscriber (see
+  /// NodeShared::EnsureZenohSubscription).
+  struct ZenohTopicSubscription
+  {
+    /// \brief Cleared by NodeShared::MaybeRemoveZenohSubscription so the
+    /// callback stops dispatching before the deferred undeclare completes.
+    std::shared_ptr<std::atomic<bool>> active;
+
+    /// \brief The Zenoh subscriber.
+    std::unique_ptr<zenoh::Subscriber<void>> subscriber;
+  };
+#endif
   //
   /// \brief Metadata for a publication. This is sent as part of the ZMQ
   /// message for topic statistics.
@@ -57,16 +77,12 @@ namespace gz::transport
   // Private data class for NodeShared.
   class NodeSharedPrivate
   {
-    // Constructor
-    public: NodeSharedPrivate() :
-              context(new zmq::context_t(1)),
-              publisher(new zmq::socket_t(*context, ZMQ_PUB)),
-              subscriber(new zmq::socket_t(*context, ZMQ_SUB)),
-              requester(new zmq::socket_t(*context, ZMQ_ROUTER)),
-              responseReceiver(new zmq::socket_t(*context, ZMQ_ROUTER)),
-              replier(new zmq::socket_t(*context, ZMQ_ROUTER))
+    /// \brief Constructor.
+    /// \throws gz::transport::Exception if a Zenoh session cannot be opened
+    /// (e.g. when using client mode without a reachable router).
+    public: NodeSharedPrivate()
     {
-      // Set the Gz Transport implementation (ZeroMQ, Zenoh, ...).
+      // Determine implementation first, before creating any resources.
       std::string gzImpl;
       if (env("GZ_TRANSPORT_IMPLEMENTATION", gzImpl) && !gzImpl.empty())
       {
@@ -80,11 +96,96 @@ namespace gz::transport
         }
       }
 
-#ifdef HAVE_ZENOH
-      if (this->gzImplementation == "zenoh")
+      // Create resources based on implementation.
+      if (this->gzImplementation == "zeromq")
       {
-        this->session = std::make_shared<zenoh::Session>(
-          zenoh::Session::open(zenoh::Config::create_default()));
+        this->context.reset(new zmq::context_t(1));
+        this->publisher.reset(new zmq::socket_t(*context, ZMQ_PUB));
+        this->subscriber.reset(new zmq::socket_t(*context, ZMQ_SUB));
+        this->requester.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
+        this->responseReceiver.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
+        this->replier.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
+      }
+#ifdef HAVE_ZENOH
+      else if (this->gzImplementation == "zenoh")
+      {
+        ZenohConfigSource configSource;
+        auto config = ZenohConfig(configSource);
+        if (this->verbose)
+        {
+          if (configSource == ZenohConfigSource::kFromEnvVariable)
+            std::cout << "Zenoh config loaded from ZENOH_CONFIG" << std::endl;
+          else
+            std::cout << "Zenoh default config loaded" << std::endl;
+        }
+
+        // gz-transport's built-in defaults differ from Zenoh's only in
+        // the SHM pool size (see kDefaultZenohShmPoolSize). A user
+        // supplied ZENOH_CONFIG file is left untouched.
+        if (configSource == ZenohConfigSource::kDefault)
+        {
+          zenoh::ZResult result;
+          config.insert_json5(kZenohShmPoolSizeKey,
+              std::to_string(kDefaultZenohShmPoolSize), &result);
+          if (result != Z_OK)
+          {
+            std::cerr << "Unable to set [" << kZenohShmPoolSizeKey
+                      << "] in the default Zenoh config" << std::endl;
+          }
+        }
+
+        // Apply key=value overrides from GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE.
+        const char *overrideEnv =
+            std::getenv("GZ_TRANSPORT_ZENOH_CONFIG_OVERRIDE");
+        if (overrideEnv)
+          ApplyZenohConfigOverrides(config, overrideEnv, this->verbose);
+
+        // The SHM threshold is Zenoh's own transport optimization
+        // threshold, read after the file and the overrides so there is a
+        // single knob for both the implicit and the explicit SHM paths.
+        std::size_t shmThreshold = kDefaultZenohShmThreshold;
+        {
+          zenoh::ZResult result;
+          const std::string value = config.get(kZenohShmThresholdKey,
+                                               &result);
+          if (result == Z_OK)
+          {
+            try
+            {
+              shmThreshold = static_cast<std::size_t>(std::stoull(value));
+            }
+            catch (const std::exception &)
+            {
+              std::cerr << "Invalid value [" << value << "] for ["
+                        << kZenohShmThresholdKey << "], using "
+                        << shmThreshold << std::endl;
+            }
+          }
+        }
+
+        // Route Zenoh's internal logs to stderr when RUST_LOG is set
+        // (e.g. RUST_LOG=zenoh_shm=trace to watch shared memory traffic).
+        // No-op otherwise.
+        zenoh::try_init_log_from_env();
+
+        try
+        {
+          this->session = std::make_shared<zenoh::Session>(
+            zenoh::Session::open(std::move(config)));
+        }
+        catch (const zenoh::ZException &e)
+        {
+          // Throw rather than continuing with a null session, which
+          // would cause segfaults downstream. This can happen when
+          // using client mode without a reachable router. Users can
+          // configure connect.timeout_ms in the Zenoh config to wait
+          // for the router to become available.
+          throw gz::transport::Exception(
+            std::string("Failed to open Zenoh session: ") + e.what());
+        }
+
+        // Let the explicit SHM path borrow the session's provider.
+        this->zenohShm.Init(this->session, shmThreshold);
       }
 #endif
     }
@@ -110,8 +211,138 @@ namespace gz::transport
                                   int _defaultValue) const;
 
 #ifdef HAVE_ZENOH
-    /// \Pointer to the Zenoh session.
+    /// \brief Enumeration for the source of Zenoh configuration.
+    public: enum class ZenohConfigSource
+            {
+              /// \brief Configuration loaded from ZENOH_CONFIG env variable.
+              kFromEnvVariable,
+              /// \brief Default Zenoh configuration.
+              kDefault
+            };
+
+    /// \brief Get the Zenoh configuration.
+    /// If the environment variable ZENOH_CONFIG is set, use that config file.
+    /// Otherwise, use the default Zenoh configuration.
+    /// \param[out] _configSource The source of the configuration.
+    /// \return The Zenoh configuration object.
+    public: inline zenoh::Config ZenohConfig(ZenohConfigSource &_configSource)
+            {
+              const char *zenohConfigEnv = std::getenv("ZENOH_CONFIG");
+              if (zenohConfigEnv)
+              {
+                std::string configPath(zenohConfigEnv);
+
+                // Check if the file exists and is a regular file.
+                if (std::filesystem::is_regular_file(configPath))
+                {
+                  // Try to load the config file.
+                  zenoh::ZResult result;
+                  zenoh::Config config =
+                    zenoh::Config::from_file(configPath, &result);
+                  if (result == Z_OK)
+                  {
+                    _configSource = ZenohConfigSource::kFromEnvVariable;
+                    return config;
+                  }
+                  std::cerr << "Failed to parse Zenoh config file: "
+                            << configPath << "\n";
+                }
+                else
+                {
+                  std::cerr << "Zenoh config file not found: "
+                            << configPath << "\n";
+                }
+              }
+
+              // Fallback to default configuration.
+              _configSource = ZenohConfigSource::kDefault;
+              return zenoh::Config::create_default();
+            }
+
+    /// \brief Apply key=value config overrides to a Zenoh config.
+    /// Format: "key1=value1;key2=value2;..."
+    /// Values are passed directly to insert_json5(), so they can be any
+    /// valid JSON5 (strings, numbers, objects, arrays).
+    /// \param[in,out] _config The Zenoh config to modify.
+    /// \param[in] _overrides The override string to parse.
+    /// \param[in] _verbose Print applied overrides to stdout.
+    public: static inline void ApplyZenohConfigOverrides(
+              zenoh::Config &_config,
+              const std::string &_overrides,
+              bool _verbose = false)
+            {
+              std::string::size_type pos = 0;
+              while (pos < _overrides.size())
+              {
+                auto semi = _overrides.find(';', pos);
+                if (semi == std::string::npos)
+                  semi = _overrides.size();
+                auto eq = _overrides.find('=', pos);
+                if (eq != std::string::npos && eq < semi)
+                {
+                  std::string key = _overrides.substr(pos, eq - pos);
+                  std::string val = _overrides.substr(eq + 1, semi - eq - 1);
+                  // Trim leading/trailing whitespace.
+                  auto trim = [](std::string &s)
+                  {
+                    auto start = s.find_first_not_of(" \t");
+                    auto end = s.find_last_not_of(" \t");
+                    s = (start == std::string::npos) ? "" :
+                        s.substr(start, end - start + 1);
+                  };
+                  trim(key);
+                  trim(val);
+                  if (!key.empty())
+                  {
+                    zenoh::ZResult result;
+                    _config.insert_json5(key, val, &result);
+                    if (result != Z_OK)
+                    {
+                      std::cerr << "gz-transport: failed to apply Zenoh "
+                                << "config override: " << key << "="
+                                << val << std::endl;
+                    }
+                    else if (_verbose)
+                    {
+                      std::cout << "Zenoh config override: " << key
+                                << "=" << val << std::endl;
+                    }
+                  }
+                }
+                pos = semi + 1;
+              }
+            }
+
+    /// \brief Pointer to the Zenoh session.
     public: std::shared_ptr<zenoh::Session> session;
+
+    /// \brief Shared memory state of the session (provider handle and
+    /// threshold), used by publishers and service handlers.
+    public: ZenohShm zenohShm;
+
+    /// \brief Centralized Zenoh subscribers, one per topic. The callback
+    /// dispatches to all registered handlers via TriggerCallbacks, so
+    /// each sample is copied and deserialized once regardless of how
+    /// many handlers are registered. Guarded by NodeShared::mutex.
+    /// Entries are removed by NodeShared::MaybeRemoveZenohSubscription
+    /// when the last handler for the topic goes away; whatever remains
+    /// lives for the rest of the process, like NodeShared itself.
+    public: std::map<std::string, ZenohTopicSubscription> zenohSubscribers;
+
+    /// \internal
+    /// \brief Cache of declared Queriers keyed by service keyexpr.
+    /// Each Querier keeps an interest declaration alive so the
+    /// responser's queryable announcement has a routing path back,
+    /// closing the post-1.6 Zenoh cold-start race for cross-process
+    /// service calls. Added on first request and kept for the rest of
+    /// the process lifetime, like NodeShared itself (see
+    /// NodeShared::Instance()).
+    public: std::unordered_map<std::string,
+        std::shared_ptr<zenoh::Querier>> querierCache;
+
+    /// \internal
+    /// \brief Mutex guarding querierCache.
+    public: std::mutex querierCacheMutex;
 #endif
 
     //////////////////////////////////////////////////

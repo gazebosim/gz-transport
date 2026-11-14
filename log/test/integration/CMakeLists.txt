@@ -36,7 +36,10 @@ foreach(test_target ${logging_tests})
   list(APPEND _env_vars "GZ_IP=127.0.0.1")
   list(APPEND _env_vars "GZ_TRANSPORT_LOG_SQL_PATH=${PROJECT_SOURCE_DIR}/log/sql")
   set_tests_properties(${test_target} PROPERTIES
-    ENVIRONMENT "${_env_vars}")
+    ENVIRONMENT "${_env_vars}"
+    # These tests are timing-sensitive and can fail when run in parallel
+    # with other resource-intensive tests
+    RUN_SERIAL TRUE)
   target_compile_definitions(${test_target}
     PRIVATE GZ_TRANSPORT_LOG_SQL_PATH="${PROJECT_SOURCE_DIR}/log/sql")
 endforeach()
