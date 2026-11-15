@@ -40,7 +40,8 @@ int main(int argc, char **argv)
 {
   if (argc < 2 || argc > 3)
   {
-    std::cerr << "Partition name has not be passed as argument" << std::endl;
+    std::cerr << "Usage: fastPubLoop_aux <partition> [lifetimeSec]"
+              << std::endl;
     return -1;
   }
 
