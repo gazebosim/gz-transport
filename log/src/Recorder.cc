@@ -383,7 +383,12 @@ void Recorder::Implementation::StartDataWriter()
 //////////////////////////////////////////////////
 void Recorder::Implementation::StopDataWriter()
 {
-  this->dataWriterState = false;
+  {
+    // Change the state under the mutex, so the data writer can't miss the
+    // notification between checking its wait predicate and blocking.
+    std::lock_guard<std::mutex> lock(this->dataQueueMutex);
+    this->dataWriterState = false;
+  }
   this->dataQueueCondVar.notify_one();
   if (this->dataWriter.joinable())
   {
