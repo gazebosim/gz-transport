@@ -396,12 +396,16 @@ void NodeShared::RunReceptionTask()
 {
   while (!this->dataPtr->exit)
   {
+    // Apply connections and filters requested by other threads.
+    this->dataPtr->ApplyPendingSubscriberOps(this->mutex);
+
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
     {
       {static_cast<void*>(*this->dataPtr->subscriber), 0, ZMQ_POLLIN, 0},
       {static_cast<void*>(*this->dataPtr->replier), 0, ZMQ_POLLIN, 0},
-      {static_cast<void*>(*this->dataPtr->responseReceiver), 0, ZMQ_POLLIN, 0}
+      {static_cast<void*>(*this->dataPtr->responseReceiver), 0, ZMQ_POLLIN, 0},
+      {static_cast<void*>(*this->dataPtr->wakeReceiver), 0, ZMQ_POLLIN, 0}
     };
     try
     {
@@ -1095,15 +1099,10 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     if (this->localSubscribers.HasSubscriber(topic) &&
         this->pUuid.compare(procUuid) != 0)
     {
-      // Handle security
-      this->dataPtr->SecurityOnNewConnection();
-
-      // I am not connected to the process.
-      if (!this->connections.HasPublisher(addr) && this->dataPtr->subscriber)
-        this->dataPtr->subscriber->connect(addr.c_str());
-
-      // Add a new filter for the topic.
-      this->dataPtr->subscriber->set(zmq::sockopt::subscribe, topic);
+      // ZMQ sockets are not thread safe and the reception thread is polling
+      // the subscriber socket, so let that thread connect and subscribe.
+      this->dataPtr->QueueSubscriberOp(
+        this->connections.HasPublisher(addr) ? std::string() : addr, topic);
 
       // Register the new connection with the publisher.
       this->connections.AddPublisher(_pub);
@@ -1359,6 +1358,13 @@ bool NodeShared::InitializeSockets()
 
     this->dataPtr->requester->set(zmq::sockopt::linger, lingerVal);
     this->dataPtr->requester->set(zmq::sockopt::router_mandatory, routeOn);
+
+    // Inproc pair used to wake up the reception thread.
+    std::string wakeEp = "inproc://gz-transport-wake-" + this->pUuid;
+    this->dataPtr->wakeReceiver->set(zmq::sockopt::linger, lingerVal);
+    this->dataPtr->wakeSender->set(zmq::sockopt::linger, lingerVal);
+    this->dataPtr->wakeReceiver->bind(wakeEp);
+    this->dataPtr->wakeSender->connect(wakeEp);
   }
   catch(const zmq::error_t& ze)
   {
@@ -1549,6 +1555,55 @@ std::vector<MessagePublisher> NodeShared::HandlerWrapper::Convert(
   }
 
   return res;
+}
+
+//////////////////////////////////////////////////
+void NodeSharedPrivate::QueueSubscriberOp(const std::string &_addr,
+    const std::string &_topic)
+{
+  this->pendingSubscriberOps.push_back({_addr, _topic});
+  try
+  {
+    this->wakeSender->send(zmq::message_t(), zmq::send_flags::dontwait);
+  }
+  catch(const zmq::error_t &)
+  {
+    // The reception thread will apply the operation after its poll timeout.
+  }
+}
+
+//////////////////////////////////////////////////
+void NodeSharedPrivate::ApplyPendingSubscriberOps(std::recursive_mutex &_mutex)
+{
+  // Drain the wake up notifications.
+  zmq::message_t msg;
+  while (this->wakeReceiver->recv(msg, zmq::recv_flags::dontwait))
+  {
+  }
+
+  std::vector<SubscriberOp> ops;
+  {
+    std::lock_guard<std::recursive_mutex> lock(_mutex);
+    ops.swap(this->pendingSubscriberOps);
+  }
+
+  for (const auto &op : ops)
+  {
+    try
+    {
+      if (!op.addr.empty())
+      {
+        this->SecurityOnNewConnection();
+        this->subscriber->connect(op.addr);
+      }
+      this->subscriber->set(zmq::sockopt::subscribe, op.topic);
+    }
+    catch(const zmq::error_t &_error)
+    {
+      std::cerr << "Error applying subscriber operation: " << _error.what()
+                << std::endl;
+    }
+  }
 }
 
 //////////////////////////////////////////////////
