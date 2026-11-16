@@ -21,6 +21,7 @@
 #include <chrono>
 #include <filesystem>
 #include <functional>
+#include <system_error>
 
 #include <gz/transport/log/Log.hh>
 #include <gz/transport/log/Playback.hh>
@@ -755,7 +756,8 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(PauseWhileWaiting))
   const std::string topic = "/pause_while_waiting";
   const std::string logName = (std::filesystem::temp_directory_path() /
     ("playbackPauseWhileWaiting_" + partition + ".tlog")).string();
-  std::filesystem::remove(logName);
+  std::error_code ec;
+  std::filesystem::remove(logName, ec);
 
   // A log with two messages two seconds apart. The data is a serialized
   // gz.msgs.StringMsg with "x" as its data field.
@@ -779,26 +781,30 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(PauseWhileWaiting))
       ++received;
     }));
 
-  gz::transport::log::Playback playback(logName);
-  ASSERT_EQ(1, playback.AddTopic(topic));
-  const auto handle = playback.Start();
-  ASSERT_NE(nullptr, handle);
+  // Scoped so playback closes the log before it is removed. Windows can't
+  // remove an open file.
+  {
+    gz::transport::log::Playback playback(logName);
+    ASSERT_EQ(1, playback.AddTopic(topic));
+    const auto handle = playback.Start();
+    ASSERT_NE(nullptr, handle);
 
-  // Pause while playback waits for the second message.
-  ASSERT_TRUE(WaitFor([&received]{return received == 1;},
-    std::chrono::milliseconds(1500)));
-  handle->Pause();
+    // Pause while playback waits for the second message.
+    ASSERT_TRUE(WaitFor([&received]{return received == 1;},
+      std::chrono::milliseconds(1500)));
+    handle->Pause();
 
-  // The second message was due after two seconds.
-  std::this_thread::sleep_for(std::chrono::seconds(3));
-  EXPECT_EQ(1, received);
+    // The second message was due after two seconds.
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    EXPECT_EQ(1, received);
 
-  handle->Resume();
-  handle->WaitUntilFinished();
-  EXPECT_TRUE(WaitFor([&received]{return received == 2;},
-    std::chrono::milliseconds(1000)));
+    handle->Resume();
+    handle->WaitUntilFinished();
+    EXPECT_TRUE(WaitFor([&received]{return received == 2;},
+      std::chrono::milliseconds(1000)));
+  }
 
-  std::filesystem::remove(logName);
+  std::filesystem::remove(logName, ec);
 }
 
 //////////////////////////////////////////////////
