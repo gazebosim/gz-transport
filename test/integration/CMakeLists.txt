@@ -51,6 +51,7 @@ endforeach()
 set(auxiliary_files
   authPubSubSubscriberInvalid_aux
   fastPub_aux
+  fastPubLoop_aux
   pub_aux
   pub_aux_throttled
   scopedTopicSubscriber_aux
