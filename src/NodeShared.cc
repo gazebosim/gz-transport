@@ -396,16 +396,14 @@ void NodeShared::RunReceptionTask()
 {
   while (!this->dataPtr->exit)
   {
-    // Apply connections and filters requested by other threads.
-    this->dataPtr->ApplyPendingSubscriberOps(this->mutex);
-
     // Poll socket for a reply, with timeout.
     zmq::pollitem_t items[] =
     {
       {static_cast<void*>(*this->dataPtr->subscriber), 0, ZMQ_POLLIN, 0},
       {static_cast<void*>(*this->dataPtr->replier), 0, ZMQ_POLLIN, 0},
       {static_cast<void*>(*this->dataPtr->responseReceiver), 0, ZMQ_POLLIN, 0},
-      {static_cast<void*>(*this->dataPtr->wakeReceiver), 0, ZMQ_POLLIN, 0}
+      {static_cast<void*>(*this->dataPtr->subscriberCmdReceiver), 0,
+        ZMQ_POLLIN, 0}
     };
     try
     {
@@ -424,6 +422,8 @@ void NodeShared::RunReceptionTask()
       this->RecvSrvRequest();
     if (items[2].revents & ZMQ_POLLIN)
       this->RecvSrvResponse();
+    if (items[3].revents & ZMQ_POLLIN)
+      this->dataPtr->RecvSubscriberCmds();
   }
 }
 
@@ -1101,7 +1101,7 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     {
       // ZMQ sockets are not thread safe and the reception thread is polling
       // the subscriber socket, so let that thread connect and subscribe.
-      this->dataPtr->QueueSubscriberOp(
+      this->dataPtr->SendSubscriberCmd(
         this->connections.HasPublisher(addr) ? std::string() : addr, topic);
 
       // Register the new connection with the publisher.
@@ -1359,12 +1359,18 @@ bool NodeShared::InitializeSockets()
     this->dataPtr->requester->set(zmq::sockopt::linger, lingerVal);
     this->dataPtr->requester->set(zmq::sockopt::router_mandatory, routeOn);
 
-    // Inproc pair used to wake up the reception thread.
-    std::string wakeEp = "inproc://gz-transport-wake-" + this->pUuid;
-    this->dataPtr->wakeReceiver->set(zmq::sockopt::linger, lingerVal);
-    this->dataPtr->wakeSender->set(zmq::sockopt::linger, lingerVal);
-    this->dataPtr->wakeReceiver->bind(wakeEp);
-    this->dataPtr->wakeSender->connect(wakeEp);
+    // Inproc pair carrying subscriber commands to the reception thread.
+    // Unlimited queues, so a sender holding NodeShared::mutex never blocks.
+    std::string cmdEp = "inproc://gz-transport-subscriber-" + this->pUuid;
+    for (auto *sock : {this->dataPtr->subscriberCmdSender.get(),
+                       this->dataPtr->subscriberCmdReceiver.get()})
+    {
+      sock->set(zmq::sockopt::linger, lingerVal);
+      sock->set(zmq::sockopt::sndhwm, 0);
+      sock->set(zmq::sockopt::rcvhwm, 0);
+    }
+    this->dataPtr->subscriberCmdReceiver->bind(cmdEp);
+    this->dataPtr->subscriberCmdSender->connect(cmdEp);
   }
   catch(const zmq::error_t& ze)
   {
@@ -1558,69 +1564,38 @@ std::vector<MessagePublisher> NodeShared::HandlerWrapper::Convert(
 }
 
 //////////////////////////////////////////////////
-void NodeSharedPrivate::QueueSubscriberOp(const std::string &_addr,
+void NodeSharedPrivate::SendSubscriberCmd(const std::string &_addr,
     const std::string &_topic)
 {
-  this->pendingSubscriberOps.push_back({_addr, _topic});
-  try
+  // Fails only if the sockets were not initialized, in which case there is
+  // no reception thread either.
+  if (this->subscriberCmdSender->send(zmq::buffer(_addr),
+        zmq::send_flags::sndmore | zmq::send_flags::dontwait))
   {
-    this->wakeSender->send(zmq::message_t(), zmq::send_flags::dontwait);
-  }
-  catch(const zmq::error_t &)
-  {
-    // The reception thread will apply the operation after its poll timeout.
+    this->subscriberCmdSender->send(zmq::buffer(_topic),
+      zmq::send_flags::dontwait);
   }
 }
 
 //////////////////////////////////////////////////
-void NodeSharedPrivate::ApplyPendingSubscriberOps(std::recursive_mutex &_mutex)
+void NodeSharedPrivate::RecvSubscriberCmds()
 {
-  // Drain the wake up notifications.
-  zmq::message_t msg;
-  while (this->wakeReceiver->recv(msg, zmq::recv_flags::dontwait))
-  {
-  }
-
-  std::vector<SubscriberOp> ops;
-  {
-    std::lock_guard<std::recursive_mutex> lock(_mutex);
-    ops.swap(this->pendingSubscriberOps);
-  }
-
-  for (const auto &op : ops)
+  zmq::message_t addr;
+  zmq::message_t topic;
+  while (this->subscriberCmdReceiver->recv(addr, zmq::recv_flags::dontwait) &&
+         this->subscriberCmdReceiver->recv(topic))
   {
     try
     {
-      if (!op.addr.empty())
-      {
-        this->SecurityOnNewConnection();
-        this->subscriber->connect(op.addr);
-      }
-      this->subscriber->set(zmq::sockopt::subscribe, op.topic);
+      if (addr.size() > 0)
+        this->subscriber->connect(addr.to_string());
+      this->subscriber->set(zmq::sockopt::subscribe, topic.to_string());
     }
     catch(const zmq::error_t &_error)
     {
-      std::cerr << "Error applying subscriber operation: " << _error.what()
+      std::cerr << "Error applying subscriber command: " << _error.what()
                 << std::endl;
     }
-  }
-}
-
-//////////////////////////////////////////////////
-void NodeSharedPrivate::SecurityOnNewConnection()
-{
-  std::string user, pass;
-
-  // Set username and pass if they exist
-  // \todo(anyone): This will cause the subscriber to connect only to secure
-  // connections. Would be nice if the subscriber could still connect to
-  // unsecure connections. This might require an unsecure and secure
-  // subscriber.
-  // See issue #74
-  if (userPass(user, pass))
-  {
-    this->subscriber->set(zmq::sockopt::plain_username, user);
-    this->subscriber->set(zmq::sockopt::plain_password, pass);
   }
 }
 
@@ -1645,6 +1620,14 @@ void NodeSharedPrivate::SecurityInit()
 
     this->publisher->set(zmq::sockopt::plain_server, asPlainSecurityServer);
     this->publisher->set(zmq::sockopt::zap_domain, kGzAuthDomain);
+
+    // \todo(anyone): This will cause the subscriber to connect only to secure
+    // connections. Would be nice if the subscriber could still connect to
+    // unsecure connections. This might require an unsecure and secure
+    // subscriber.
+    // See issue #74
+    this->subscriber->set(zmq::sockopt::plain_username, user);
+    this->subscriber->set(zmq::sockopt::plain_password, pass);
   }
 }
 

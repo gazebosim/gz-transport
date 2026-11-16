@@ -105,8 +105,9 @@ namespace gz::transport
         this->requester.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
         this->responseReceiver.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
         this->replier.reset(new zmq::socket_t(*context, ZMQ_ROUTER));
-        this->wakeSender.reset(new zmq::socket_t(*context, ZMQ_PAIR));
-        this->wakeReceiver.reset(new zmq::socket_t(*context, ZMQ_PAIR));
+        this->subscriberCmdSender.reset(new zmq::socket_t(*context, ZMQ_PAIR));
+        this->subscriberCmdReceiver.reset(
+          new zmq::socket_t(*context, ZMQ_PAIR));
       }
 #ifdef HAVE_ZENOH
       else if (this->gzImplementation == "zenoh")
@@ -195,23 +196,19 @@ namespace gz::transport
     /// \brief Initialize security
     public: void SecurityInit();
 
-    /// \brief Handle new secure connections
-    public: void SecurityOnNewConnection();
-
-    /// \brief Queue a connection and topic filter for the subscriber socket
-    /// and wake up the reception thread to apply it. The caller must hold
+    /// \brief Ask the reception thread to connect the subscriber socket and
+    /// add a topic filter. ZMQ sockets are not thread safe and the reception
+    /// thread owns the subscriber socket. The caller must hold
     /// NodeShared::mutex.
     /// \param[in] _addr Publisher address to connect to, or empty if the
     /// subscriber is already connected to it.
     /// \param[in] _topic Topic filter to subscribe to.
-    public: void QueueSubscriberOp(const std::string &_addr,
+    public: void SendSubscriberCmd(const std::string &_addr,
                                    const std::string &_topic);
 
-    /// \brief Apply the subscriber socket operations queued by other threads.
-    /// ZMQ sockets are not thread safe, so this must only be called from the
-    /// reception thread, which owns the subscriber socket.
-    /// \param[in] _mutex NodeShared::mutex, guarding pendingSubscriberOps.
-    public: void ApplyPendingSubscriberOps(std::recursive_mutex &_mutex);
+    /// \brief Apply all pending subscriber commands. Only called from the
+    /// reception thread.
+    public: void RecvSubscriberCmds();
 
     /// \brief Access control handler for plain security.
     /// This function is designed to be run in a thread.
@@ -389,29 +386,13 @@ namespace gz::transport
     /// \brief ZMQ socket to receive service call requests.
     public: std::unique_ptr<zmq::socket_t> replier;
 
-    /// \brief ZMQ socket used to wake up the reception thread when there
-    /// are pending subscriber operations. Guarded by NodeShared::mutex.
-    public: std::unique_ptr<zmq::socket_t> wakeSender;
+    /// \brief ZMQ socket to send subscriber commands to the reception
+    /// thread. Guarded by NodeShared::mutex.
+    public: std::unique_ptr<zmq::socket_t> subscriberCmdSender;
 
-    /// \brief ZMQ socket polled by the reception thread to be woken up.
-    /// Only used from the reception thread.
-    public: std::unique_ptr<zmq::socket_t> wakeReceiver;
-
-    /// \brief A pending operation on the subscriber socket.
-    public: struct SubscriberOp
-    {
-      /// \brief Publisher address to connect to, or empty if already
-      /// connected.
-      std::string addr;
-
-      /// \brief Topic filter to subscribe to.
-      std::string topic;
-    };
-
-    /// \brief Operations on the subscriber socket requested by other threads.
-    /// ZMQ sockets are not thread safe, so only the reception thread applies
-    /// them. Guarded by NodeShared::mutex.
-    public: std::vector<SubscriberOp> pendingSubscriberOps;
+    /// \brief ZMQ socket to receive subscriber commands. Only used from the
+    /// reception thread.
+    public: std::unique_ptr<zmq::socket_t> subscriberCmdReceiver;
 
     /// \brief Thread the handle access control
     public: std::thread accessControlThread;
