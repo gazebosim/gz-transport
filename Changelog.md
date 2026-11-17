@@ -1,5 +1,34 @@
 ## Gazebo Transport 14.X
 
+### Gazebo Transport 14.4.0 (2026-11-17)
+
+1. Python: release the GIL while a service request waits
+    * [Pull request #990](https://github.com/gazebosim/gz-transport/pull/990)
+
+1. Add Node::AllTopicInfo
+    * [Pull request #987](https://github.com/gazebosim/gz-transport/pull/987)
+
+1. Don't die of SIGPIPE when discovery sockets fail
+    * [Pull request #972](https://github.com/gazebosim/gz-transport/pull/972)
+
+1. Update maintainer email
+    * [Pull request #1001](https://github.com/gazebosim/gz-transport/pull/1001)
+
+1. Update BCR maintainers
+    * [Pull request #984](https://github.com/gazebosim/gz-transport/pull/984)
+
+1. Use the SPDX identifier Apache-2.0 in the license declaration
+    * [Pull request #975](https://github.com/gazebosim/gz-transport/pull/975)
+
+1. Replace blind sleeps with waitUntil in Node_TEST and gz_TEST
+    * [Pull request #941](https://github.com/gazebosim/gz-transport/pull/941)
+
+1. More gz service updates
+    * [Pull request #940](https://github.com/gazebosim/gz-transport/pull/940)
+
+1. Improve gz topic publish
+    * [Pull request #934](https://github.com/gazebosim/gz-transport/pull/934)
+
 ### Gazebo Transport 14.3.0 (2026-08-14)
 
 1. Bazel updates:
