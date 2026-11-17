@@ -1,1 +1,1 @@
-feat: add experimental PR metadata validation github action
+ci: add PR changelog validation workflow

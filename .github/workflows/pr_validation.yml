@@ -1,14 +1,27 @@
 name: PR Metadata Validation
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches: [main]
+    # labeled/unlabeled re-run the check when the no-changelog label changes
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
-  validate:
+  changelog:
     runs-on: ubuntu-latest
     steps:
-      - name: PR Metadata Validation
-        uses: gazebo-tooling/pr-data-action@jrivero/conventional-commits
+      - name: Validate changelog entries
+        # gazebo-tooling/pr-data-action#3 (jrivero/conventional-commits)
+        # TODO: pin to a tag once that PR is merged
+        uses: gazebo-tooling/pr-data-action@2d186e27c038683d94fd2130f920e75b3a961b2e
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           changelog-dir: '.changelog'
+          # Forward ports and release PRs need no entry
+          skip-label: 'no-changelog'
