@@ -1,5 +1,10 @@
 ## Gazebo Transport 14.X
 
+### Gazebo Transport 14.4.1 (2026-11-18)
+
+1. cmake: Search Development.Module Python component to compile Python bindings
+    * [Pull request #1011](https://github.com/gazebosim/gz-transport/pull/1011)
+
 ### Gazebo Transport 14.4.0 (2026-11-17)
 
 1. Python: release the GIL while a service request waits
