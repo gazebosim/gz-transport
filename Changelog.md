@@ -1,5 +1,42 @@
 ## Gazebo Transport 11.X
 
+### Gazebo Transport 11.4.3 (2026-11-18)
+
+1. Don't die of SIGPIPE when discovery sockets fail
+    * [Pull request #972](https://github.com/gazebosim/gz-transport/pull/972)
+
+1. Improve gz topic publish
+    * [Pull request #930](https://github.com/gazebosim/gz-transport/pull/930)
+
+1. Make gz_TEST CLI error assertions robust to CLI11 message format changes
+    * [Pull request #929](https://github.com/gazebosim/gz-transport/pull/929)
+
+1. Fix flaky ignTest.TopicInfo on macOS
+    * [Pull request #887](https://github.com/gazebosim/gz-transport/pull/887)
+
+1. Fix compiler warning with protobuf 35.0
+    * [Pull request #875](https://github.com/gazebosim/gz-transport/pull/875)
+
+1. ci.yml fix push branch regex
+    * [Pull request #855](https://github.com/gazebosim/gz-transport/pull/855)
+
+1. Fix async signal safety undefined behavior in waitForShutdown()
+    * [Pull request #848](https://github.com/gazebosim/gz-transport/pull/848)
+
+1. Fix memory leak in ReqHandler<> specialization
+    * [Pull request #843](https://github.com/gazebosim/gz-transport/pull/843)
+
+1. Add benchmark suite
+    * [Pull request #833](https://github.com/gazebosim/gz-transport/pull/833)
+
+1. Fix unused-result warnings
+    * [Pull request #811](https://github.com/gazebosim/gz-transport/pull/811)
+    * [Pull request #812](https://github.com/gazebosim/gz-transport/pull/812)
+    * [Pull request #814](https://github.com/gazebosim/gz-transport/pull/814)
+
+1. Document duplicate service advertise behavior
+    * [Pull request #802](https://github.com/gazebosim/gz-transport/pull/802)
+
 ### Gazebo Transport 11.4.2 (2026-01-29)
 
 1. Fortress: disable Ubuntu Focal CI
