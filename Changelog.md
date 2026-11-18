@@ -1,5 +1,31 @@
 ## Gazebo Transport 13.X
 
+### Gazebo Transport 13.7.0 (2026-11-18)
+
+1. Python: release the GIL while a service request waits
+    * [Pull request #1006](https://github.com/gazebosim/gz-transport/pull/1006)
+
+1. Add Node::AllTopicInfo
+    * [Pull request #988](https://github.com/gazebosim/gz-transport/pull/988)
+
+1. Don't die of SIGPIPE when discovery sockets fail
+    * [Pull request #981](https://github.com/gazebosim/gz-transport/pull/981)
+
+1. Update maintainer email
+    * [Pull request #1002](https://github.com/gazebosim/gz-transport/pull/1002)
+
+1. Use the SPDX identifier Apache-2.0 in the license declaration
+    * [Pull request #976](https://github.com/gazebosim/gz-transport/pull/976)
+
+1. Replace sleeps with waitUntil in Node_TEST and gz_TEST
+    * [Pull request #946](https://github.com/gazebosim/gz-transport/pull/946)
+
+1. More gz service updates
+    * [Pull request #943](https://github.com/gazebosim/gz-transport/pull/943)
+
+1. Improve gz topic publish
+    * [Pull request #935](https://github.com/gazebosim/gz-transport/pull/935)
+
 ### Gazebo Transport 13.6.0 (2026-08-15)
 
 1. Fix TopicList() subscribers information
