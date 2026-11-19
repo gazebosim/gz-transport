@@ -1,4 +1,5 @@
 name: Bazel repeat tests
+run-name: Bazel repeat tests (flaky "${{ inputs.flaky }}", runs_per_test "${{ inputs.runs_per_test }}")
 on:
   workflow_call:
     inputs: &shared_inputs
