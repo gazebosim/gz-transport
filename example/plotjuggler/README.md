@@ -1,0 +1,56 @@
+# Gazebo to PlotJuggler Bridge
+
+This application serves as a bridge between the Gazebo simulation environment and the [PlotJuggler](https://www.plotjuggler.io/) data visualization tool.
+
+## What it Does
+
+The bridge performs the following actions:
+
+1.  **Connects to Gazebo Transport**: It initializes a Gazebo Transport node and discovers all available topics being published within the Gazebo ecosystem.
+2.  **Subscribes to Topics**: It automatically subscribes to all discovered Gazebo topics.
+3.  **Message Conversion**: For each message received, it converts the Protobuf-encoded message into a JSON format. This conversion ensures that all numeric fields, including 64-bit integers, are represented as numbers, to be compatible with PlotJuggler's JSON parser.
+4.  **Publishes over ZeroMQ**: The bridge publishes the converted messages on a ZeroMQ `PUB` socket on `tcp://*:9872`. Each message is a multipart message containing:
+    -   Frame 1: The original Gazebo topic name (e.g., `/stats`).
+    -   Frame 2: A JSON payload.
+
+## How to Build
+
+### Dependencies
+
+-   Gazebo Transport
+-   ZeroMQ (cppzmq)
+-   Protobuf
+
+### Compilation
+
+Build the application using your project's build system (e.g., `colcon` or `cmake`). For example:
+
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
+## How to Run the Bridge
+
+Simply execute the compiled binary:
+
+```bash
+build/gz_pj_bridge
+```
+
+You should see output indicating that it is broadcasting on `tcp://*:9872` and a list of subscribed topics.
+
+## How to Use with PlotJuggler
+
+1.  **Start PlotJuggler**.
+
+2.  From the main menu, select **Data Streaming** -> **ZeroMQ Subscriber**.
+
+3.  In the ZeroMQ configuration dialog:
+    -   **Endpoint**: Set to `tcp://localhost:9872`.
+    -   **Topic**: Leave this field **empty** to subscribe to all topics from the bridge.
+    -   **Receive Timeout**: Can be left at its default value (e.g., 50 ms).
+
+4.  From the **Parser** dropdown menu, select **json**.
+
+5.  Click **Start** to begin streaming data from the bridge into PlotJuggler. You should see the list of topics and their fields appear in the left panel.
