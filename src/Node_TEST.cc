@@ -2818,6 +2818,14 @@ TEST(NodeTest, SndHwm)
 }
 
 //////////////////////////////////////////////////
+/// \brief Check the default local queue capacity.
+TEST(NodeTest, LocalHwm)
+{
+  // LocalHwm is applicable to all backends.
+  EXPECT_EQ(transport::kDefaultLocalHwm, transport::localHwm());
+}
+
+//////////////////////////////////////////////////
 /// \brief Check that we destruct a Node object before a Node::Publisher.
 TEST(NodePubTest, DestructionOrder)
 {

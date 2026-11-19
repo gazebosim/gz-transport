@@ -89,6 +89,18 @@ Below are descriptions of the available environment variables:
     When the pool is exhausted or shared memory is unavailable, delivery
     falls back to the network path automatically.
     * *Available in backend:*: zenoh
+* **GZ_TRANSPORT_LOCAL_HWM**
+    * *Value allowed*: Any non-negative number.
+    * *Description*: Specifies the capacity (High Water Mark) of the queue
+    that stores messages to be delivered to local (intraprocess) subscribers.
+    This limit is applied per topic. When a topic reaches this capacity, its
+    oldest queued message is dropped to make room for a new one, keeping the
+    freshest data and preventing the queue from growing without limit when
+    the local subscription callbacks are slower than the publication rate.
+    A value of 0 means "infinite" capacity, which will make your process run
+    out of memory if the local subscribers cannot keep up.
+    * *Default value*: 1000.
+    * *Available in backend:*: zeromq, zenoh
 * **GZ_TRANSPORT_LOG_SQL_PATH**
     * *Value allowed*: Any path
     * *Description*: Path to the SQL files used by logging. This does not

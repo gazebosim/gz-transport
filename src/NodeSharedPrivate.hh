@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdlib>
+#include <deque>
 #include <filesystem>
 #include <list>
 #include <map>
@@ -432,7 +433,13 @@ namespace gz::transport
 
               /// \brief Publisher's node UUID.
               public: std::string publisherNodeUUID;
+
+              /// \brief Fully qualified topic name.
+              public: std::string fullyQualifiedTopic;
             };
+
+    /// \brief Queue of messages pending local delivery.
+    public: using PubQueue = std::list<std::unique_ptr<PublishMsgDetails>>;
 
     /// \brief Publish thread used to process the pubQueue.
     public: std::thread pubThread;
@@ -442,7 +449,32 @@ namespace gz::transport
 
     /// \brief List onto which new messages are pushed. The pubThread
     /// will pop off the messages and send them to local subscribers.
-    public: std::list<std::unique_ptr<PublishMsgDetails>> pubQueue;
+    /// Push with EnqueuePubMsg to enforce localHwm.
+    public: PubQueue pubQueue;
+
+    /// \brief Messages of one topic in the pubQueue.
+    public: struct TopicBacklog
+            {
+              /// \brief pubQueue entries of this topic, oldest first.
+              public: std::deque<PubQueue::iterator> entries;
+
+              /// \brief True once the drop warning was printed.
+              public: bool dropWarned = false;
+            };
+
+    /// \brief Backlog per topic, erased when drained. Protected by
+    /// pubThreadMutex.
+    public: std::unordered_map<std::string, TopicBacklog> pubQueueBacklog;
+
+    /// \brief Per topic capacity of the pubQueue (0 means no limit). Set
+    /// before pubThread starts and read-only afterwards.
+    public: int localHwm = kDefaultLocalHwm;
+
+    /// \brief Queue a message for local delivery, dropping the oldest one
+    /// of its topic if the topic already has localHwm messages.
+    /// \param[in] _msgDetails Details of the message to be published.
+    public: void EnqueuePubMsg(
+              std::unique_ptr<PublishMsgDetails> _msgDetails);
 
     /// \brief used to signal when new work is available
     public: std::condition_variable signalNewPub;
