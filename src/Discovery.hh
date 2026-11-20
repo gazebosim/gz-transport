@@ -797,6 +797,24 @@ namespace gz
         this->subscribersCb = _cb;
       }
 
+      /// \brief Register a callback to refresh the registrations of the
+      /// local subscribers with the known remote publishers. The callback
+      /// is executed on every heartbeat cycle.
+      /// A NEW_CONNECTION datagram is sent exactly once when a publisher
+      /// is discovered, so if that datagram is dropped (e.g. the discovery
+      /// receive buffer overflows while many topics are advertised at
+      /// once) the publisher never learns about the subscriber and the
+      /// subscription stays silent forever (see issue #985). Re-sending
+      /// the registrations with the heartbeat heals a lost datagram: the
+      /// receiver tolerates duplicates (TopicStorage::AddPublisher
+      /// ignores an entry that is already stored).
+      /// \param[in] _cb Function callback.
+      public: void RefreshRegistrationsCb(const std::function<void()> &_cb)
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        this->refreshRegistrationsCb = _cb;
+      }
+
       /// \brief Print the current discovery state.
       public: void PrintCurrentState() const
       {
@@ -1015,6 +1033,20 @@ namespace gz
                 msgs::Discovery::ADVERTISE, node);
           }
         }
+
+        // Re-send the registrations of the local subscribers with the
+        // known remote publishers. NEW_CONNECTION is otherwise sent
+        // exactly once per discovered publisher, so a single dropped
+        // datagram leaves the subscription silent forever (see issue
+        // #985). The callback is invoked outside the lock, mirroring
+        // the connection/registration callbacks.
+        std::function<void()> refreshCb;
+        {
+          std::lock_guard<std::mutex> lock(this->mutex);
+          refreshCb = this->refreshRegistrationsCb;
+        }
+        if (refreshCb)
+          refreshCb();
 
         {
           std::lock_guard<std::mutex> lock(this->mutex);
@@ -1770,6 +1802,11 @@ namespace gz
 
       /// \brief Callback executed when a SUBSCRIBERS_REQ message is received.
       private: std::function<void()> subscribersCb;
+
+      /// \brief Callback executed on every heartbeat to refresh the
+      /// registrations of the local subscribers with the known remote
+      /// publishers (see RefreshRegistrationsCb).
+      private: std::function<void()> refreshRegistrationsCb;
 
       /// \brief Addressing information.
       private: TopicStorage<Pub> info;

@@ -242,6 +242,22 @@ namespace gz::transport
     /// \brief Callback executed when a SUBSCRIBERS request is received.
     public: void OnSubscribers();
 
+    /// \brief Re-send the NEW_CONNECTION registrations for all the local
+    /// subscribers with the remote publishers this process is connected
+    /// to. Executed on every discovery heartbeat so that a dropped
+    /// NEW_CONNECTION datagram heals itself instead of leaving the
+    /// subscription silent forever (see issue #985). Duplicates are
+    /// harmless: the publisher's OnNewRegistration ignores a subscriber
+    /// that is already registered. Only live local subscribers are
+    /// re-registered, so unsubscribing stops the refresh for that node.
+    public: void RefreshRegistrations();
+
+    /// \brief Collect the NEW_CONNECTION registrations that
+    /// RefreshRegistrations() would re-send, without sending them.
+    /// \return The registrations to refresh, one per (local subscriber
+    /// node, known remote publisher) pair.
+    public: std::vector<MessagePublisher> RegistrationsToRefresh();
+
     /// \brief Pass through to bool Publishers(const std::string &_topic,
     /// Addresses_M<Pub> &_publishers) const
     /// \param[in] _topic Service name.
