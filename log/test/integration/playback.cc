@@ -17,6 +17,12 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <chrono>
+#include <filesystem>
+#include <functional>
+#include <system_error>
+
 #include <gz/transport/log/Log.hh>
 #include <gz/transport/log/Playback.hh>
 #include <gz/transport/log/Recorder.hh>
@@ -726,6 +732,79 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(ReplaySeek))
   // Wait to make sure our callbacks are done processing the incoming messages
   // (Strangely, Windows throws an exception when this is ~1s or more)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+//////////////////////////////////////////////////
+/// \brief Wait until a condition is true or a timeout expires.
+/// \param[in] _cond The condition.
+/// \param[in] _timeout Maximum time to wait.
+/// \return The value of the condition.
+bool WaitFor(const std::function<bool()> &_cond,
+             const std::chrono::milliseconds &_timeout)
+{
+  const auto deadline = std::chrono::steady_clock::now() + _timeout;
+  while (!_cond() && std::chrono::steady_clock::now() < deadline)
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  return _cond();
+}
+
+//////////////////////////////////////////////////
+/// \brief Pause while playback waits for the next message. That message must
+/// not be published until playback resumes.
+TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(PauseWhileWaiting))
+{
+  const std::string topic = "/pause_while_waiting";
+  const std::string logName = (std::filesystem::temp_directory_path() /
+    ("playbackPauseWhileWaiting_" + partition + ".tlog")).string();
+  std::error_code ec;
+  std::filesystem::remove(logName, ec);
+
+  // A log with two messages two seconds apart. The data is a serialized
+  // gz.msgs.StringMsg with "x" as its data field.
+  {
+    gz::transport::log::Log log;
+    ASSERT_TRUE(log.Open(logName, std::ios_base::out));
+    const std::string data{"\x12\x01x"};
+    for (const auto time : {std::chrono::seconds(1), std::chrono::seconds(3)})
+    {
+      ASSERT_TRUE(log.InsertMessage(time, topic, "gz.msgs.StringMsg",
+        data.data(), data.size()));
+    }
+  }
+
+  std::atomic<int> received{0};
+  gz::transport::Node node;
+  ASSERT_TRUE(node.SubscribeRaw(topic,
+    [&received](const char *, std::size_t,
+                const gz::transport::MessageInfo &)
+    {
+      ++received;
+    }));
+
+  // Scoped so playback closes the log before it is removed. Windows can't
+  // remove an open file.
+  {
+    gz::transport::log::Playback playback(logName);
+    ASSERT_EQ(1, playback.AddTopic(topic));
+    const auto handle = playback.Start();
+    ASSERT_NE(nullptr, handle);
+
+    // Pause while playback waits for the second message.
+    ASSERT_TRUE(WaitFor([&received]{return received == 1;},
+      std::chrono::milliseconds(1500)));
+    handle->Pause();
+
+    // The second message was due after two seconds.
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    EXPECT_EQ(1, received);
+
+    handle->Resume();
+    handle->WaitUntilFinished();
+    EXPECT_TRUE(WaitFor([&received]{return received == 2;},
+      std::chrono::milliseconds(1000)));
+  }
+
+  std::filesystem::remove(logName, ec);
 }
 
 //////////////////////////////////////////////////

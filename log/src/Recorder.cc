@@ -102,9 +102,6 @@ class gz::transport::log::Recorder::Implementation
   /// \param[in] _len The amount to decrement
   public: void DecrementBufferSize(std::size_t _len);
 
-  /// \brief Write any data left in the queue to the log file
-  public: void FlushDataQueue();
-
   /// \brief Write data to log file
   /// \param[in] _logData data to be written
   public: void WriteToLogFile(const LogData &_logData);
@@ -166,14 +163,9 @@ class gz::transport::log::Recorder::Implementation
   /// database
   public: std::thread dataWriter;
 
-  /// \brief State of dataWriter thread.
-  /// True: Data writer thread has started or is starting.
-  /// False: Data writer thread has not started or is shutting down.
-  public: std::atomic<bool> dataWriterState{false};
-
-  /// \brief Whether the OnMessageReceived should stop queuing received
-  /// messages. This will be set to true when `Recorder::Stop` is called
-  public: std::atomic<bool> stopQueue{false};
+  /// \brief True while recording: received messages are queued and the
+  /// dataWriter thread writes them. Guarded by dataQueueMutex.
+  public: bool dataWriterState{false};
 };
 
 //////////////////////////////////////////////////
@@ -232,13 +224,14 @@ void Recorder::Implementation::OnMessageReceived(
     LWRN("Clock isn't ready yet. Dropping message\n");
   }
 
+  std::lock_guard<std::mutex> lock(this->dataQueueMutex);
+
   // Don't store anything in the queue unless the data writer has started, which
   // happens when Recorder::Start is called.
   if (this->dataWriterState)
   {
     std::vector<char> tmp(_data, _data+_len);
 
-    std::lock_guard<std::mutex> lock(this->dataQueueMutex);
     // If the maxBufferSize is zero, we have an infinite queue
     if (this->maxBufferSize > 0)
     {
@@ -345,36 +338,37 @@ int64_t Recorder::Implementation::AddTopic(const std::regex &_pattern)
 //////////////////////////////////////////////////
 void Recorder::Implementation::DataWriterThread()
 {
-  while (this->dataWriterState)
+  std::unique_lock<std::mutex> lock(this->dataQueueMutex);
+  while (true)
   {
-    std::unique_lock<std::mutex> lock(this->dataQueueMutex);
-    if (this->dataQueue.empty())
-    {
-      this->dataQueueCondVar.wait(lock,
-        [this]
-        {
-          return !this->dataQueue.empty() || !this->dataWriterState;
-        });
-
-      if (this->dataQueue.empty())
+    this->dataQueueCondVar.wait(lock,
+      [this]
       {
-        continue;
-      }
-    }
+        return !this->dataQueue.empty() || !this->dataWriterState;
+      });
+
+    // Stopped and every queued message has been written.
+    if (this->dataQueue.empty())
+      return;
 
     const auto logData = std::move(this->dataQueue.front());
     this->dataQueue.pop_front();
+    this->DecrementBufferSize(logData.msgData.size());
+
     // Unlock before locking another mutex.
     lock.unlock();
-
     this->WriteToLogFile(logData);
+    lock.lock();
   }
 }
 
 //////////////////////////////////////////////////
 void Recorder::Implementation::StartDataWriter()
 {
-  this->dataWriterState = true;
+  {
+    std::lock_guard<std::mutex> lock(this->dataQueueMutex);
+    this->dataWriterState = true;
+  }
 
   this->dataWriter =
       std::thread(&Recorder::Implementation::DataWriterThread, this);
@@ -383,7 +377,12 @@ void Recorder::Implementation::StartDataWriter()
 //////////////////////////////////////////////////
 void Recorder::Implementation::StopDataWriter()
 {
-  this->dataWriterState = false;
+  {
+    // Change the state under the mutex, so the data writer can't miss the
+    // notification between checking its wait predicate and blocking.
+    std::lock_guard<std::mutex> lock(this->dataQueueMutex);
+    this->dataWriterState = false;
+  }
   this->dataQueueCondVar.notify_one();
   if (this->dataWriter.joinable())
   {
@@ -404,24 +403,6 @@ void Recorder::Implementation::DecrementBufferSize(std::size_t _len)
     LERR("Buffer size was decremented to a value less than zero. "
         "This should not happen\n");
     this->bufferSize = 0;
-  }
-}
-
-//////////////////////////////////////////////////
-void Recorder::Implementation::FlushDataQueue()
-{
-  while (true)
-  {
-    std::unique_lock<std::mutex> lock(this->dataQueueMutex);
-    if (this->dataQueue.empty())
-      return;
-
-    const auto logData = std::move(this->dataQueue.front());
-    this->dataQueue.pop_front();
-    // Unlock before locking another mutex.
-    lock.unlock();
-
-    this->WriteToLogFile(logData);
   }
 }
 
@@ -511,11 +492,9 @@ void Recorder::Stop()
     if (nullptr == this->dataPtr->logFile)
       return;
   }
-  this->dataPtr->stopQueue = true;
-  this->dataPtr->StopDataWriter();
-  // If there is any data left in the dataQueue, write it all to disk
+  // The data writer writes any data left in the queue before it exits.
   LMSG("Log Recorder finalizing log file. This might take some time...");
-  this->dataPtr->FlushDataQueue();
+  this->dataPtr->StopDataWriter();
   LMSG("Done\n");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->logFileMutex);

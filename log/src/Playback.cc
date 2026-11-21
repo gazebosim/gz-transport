@@ -146,10 +146,10 @@ class PlaybackHandle::Implementation
   public: void Seek(const std::chrono::nanoseconds &_newElapsedTime);
 
   /// \brief Puts the calling thread to sleep until a given time is achieved.
-  /// \param[in] _targetTime Time at which the wait must finish. Measured in
-  /// POSIX time (time since epoch) in nanoseconds
-  /// \return True if the wait ends successfully or false if a pause or
-  /// stop event interrupt it
+  /// \param[in] _targetTime Time at which the wait must finish, as time
+  /// since the epoch of std::chrono::steady_clock.
+  /// \return True if the target time was reached, or false if a pause or
+  /// stop order interrupted the wait
   public: bool WaitUntil(const std::chrono::nanoseconds &_targetTime);
 
   /// \brief Pauses the playback
@@ -175,15 +175,14 @@ class PlaybackHandle::Implementation
           std::unordered_map<std::string,
             gz::transport::Node::Publisher>> publishers;
 
-  /// \brief a mutex to use when waiting for playback to finish
-  public: std::mutex waitMutex;
+  /// \brief Mutex guarding changes to stop, paused and finished, and the
+  /// pause bookkeeping in Pause().
+  public: std::mutex stateMutex;
 
-  /// \brief Condition variable to wake up threads waiting on playback
-  public: std::condition_variable waitConditionVariable;
-
-  /// \brief Condition variable to wake up the playback thread if it's waiting
-  /// to publish the next message.
-  public: std::condition_variable stopConditionVariable;
+  /// \brief Notified on every change to stop, paused or finished. It wakes up
+  /// the playback thread while it waits for the next message or for a resume,
+  /// and the threads waiting for playback to finish.
+  public: std::condition_variable stateConditionVariable;
 
   /// \brief True if the thread should be stopped
   public: std::atomic_bool stop;
@@ -213,13 +212,6 @@ class PlaybackHandle::Implementation
 
   // \brief Time at which occurred the last event in the realtime frame
   public: std::chrono::nanoseconds lastEventTime;
-
-  /// \brief A mutex to use when waiting for playback to be resumed
-  public: std::mutex pauseMutex;
-
-  /// \brief Condition variable to wake up the playback thread if it's waiting
-  /// to get out of a pause state
-  public: std::condition_variable pauseConditionVariable;
 
   /// \brief thread running playback
   public: std::thread playbackThread;
@@ -502,10 +494,11 @@ void PlaybackHandle::Implementation::CreatePublisher(
 //////////////////////////////////////////////////
 void PlaybackHandle::Implementation::WaitUntilFinished()
 {
+  std::unique_lock<std::mutex> lk(this->stateMutex);
   if (this->logFile->Valid() && !this->stop)
   {
-    std::unique_lock<std::mutex> lk(this->waitMutex);
-    this->waitConditionVariable.wait(lk, [this]{return this->finished.load();});
+    this->stateConditionVariable.wait(lk,
+      [this]{return this->finished.load();});
   }
 }
 
@@ -539,10 +532,10 @@ void PlaybackHandle::Implementation::StartPlayback()
         // Lock if paused
         if (this->paused)
         {
-          std::unique_lock<std::mutex> lk(this->pauseMutex);
+          std::unique_lock<std::mutex> lk(this->stateMutex);
           // If paused, the thread will be blocked here
-          this->pauseConditionVariable.wait(lk,
-            [this]{return !this->paused.load();});
+          this->stateConditionVariable.wait(lk,
+            [this]{return !this->paused.load() || this->stop.load();});
           this->lastEventTime =
               std::chrono::steady_clock::now().time_since_epoch();
           // Abort current iteration after coming back from pause
@@ -598,8 +591,11 @@ void PlaybackHandle::Implementation::StartPlayback()
           this->Pause();
         }
       }
-      this->finished = true;
-      this->waitConditionVariable.notify_all();
+      {
+        std::lock_guard<std::mutex> lk(this->stateMutex);
+        this->finished = true;
+      }
+      this->stateConditionVariable.notify_all();
   });
 }
 
@@ -607,42 +603,14 @@ void PlaybackHandle::Implementation::StartPlayback()
 bool PlaybackHandle::Implementation::WaitUntil(
     const std::chrono::nanoseconds &_targetTime)
 {
-  const auto waitStartTime =
-    std::chrono::steady_clock::now().time_since_epoch();
+  const std::chrono::time_point<std::chrono::steady_clock,
+    std::chrono::nanoseconds> deadline(_targetTime);
 
-  // Lambda used as predicate below to check for spurious wake-ups
-  auto FinishedWaiting = [this, &_targetTime]() -> bool
-  {
-    const auto now =
-      std::chrono::steady_clock::now().time_since_epoch();
-    return _targetTime <= now || this->stop || this->paused;
-  };
-
-  // Passing a lock to wait_for is just a formality (we don't actually
-  // want to unlock any mutex while waiting), so we create a temporary
-  // mutex and lock to satisfy the function.
-  //
-  // According to the C++11 standard, it is undefined behavior to pass
-  // different mutexes into the condition_variable::wait_for()
-  // function of the same condition_variable instance from different
-  // threads. However, this current thread should be the only thread
-  // that is ever waiting on stopConditionVariable because we are
-  // keeping playbackLock locked this whole time. Therefore, it's okay
-  // for it lock its own local, unique mutex.
-  //
-  // This is really a substitute for the sleep_for function. This
-  // alternative allows us to interrupt the sleep in case the user
-  // calls Playback::Stop() while we are waiting between messages.
-  std::mutex tempMutex;
-  std::unique_lock<std::mutex> tempLock(tempMutex);
-
-  // Wait until reaching _targetTime or until a stop signal is received.
-  // The function will return true if the wait finished with a timeout state,
-  // (having successfully achieved the time to wait) or false if the predicate
-  // evaluates to true, which means that a pause or stop order was received,
-  // interrupting the wait.
-  return this->stopConditionVariable.wait_for(
-      tempLock, _targetTime - waitStartTime, FinishedWaiting);
+  // Returns true if the target time was reached, or false if a pause or stop
+  // order interrupted the wait.
+  std::unique_lock<std::mutex> lk(this->stateMutex);
+  return !this->stateConditionVariable.wait_until(lk, deadline,
+    [this]{return this->stop.load() || this->paused.load();});
 }
 
 //////////////////////////////////////////////////
@@ -686,15 +654,12 @@ void PlaybackHandle::Implementation::Stop()
     return;
   }
 
-  this->stop = true;
-  this->stopConditionVariable.notify_all();
-
-  if (this->paused)
   {
-    std::unique_lock<std::mutex> lk(this->pauseMutex);
-    this->pauseConditionVariable.notify_all();
+    std::lock_guard<std::mutex> lk(this->stateMutex);
+    this->stop = true;
     this->paused = false;
   }
+  this->stateConditionVariable.notify_all();
 
   if (this->playbackThread.joinable())
     this->playbackThread.join();
@@ -703,7 +668,7 @@ void PlaybackHandle::Implementation::Stop()
 //////////////////////////////////////////////////
 void PlaybackHandle::Implementation::Pause()
 {
-  std::unique_lock<std::mutex> lk(this->pauseMutex);
+  std::unique_lock<std::mutex> lk(this->stateMutex);
   if (!this->paused)
   {
     this->paused = true;
@@ -716,17 +681,20 @@ void PlaybackHandle::Implementation::Pause()
     this->lastEventTime = now;
     this->boundaryTime = std::chrono::nanoseconds::max();
   }
+  lk.unlock();
+
+  // Interrupt the wait for the next message.
+  this->stateConditionVariable.notify_all();
 }
 
 //////////////////////////////////////////////////
 void PlaybackHandle::Implementation::Resume()
 {
-  std::unique_lock<std::mutex> lk(this->pauseMutex);
-  if (this->paused)
   {
+    std::lock_guard<std::mutex> lk(this->stateMutex);
     this->paused = false;
-    this->pauseConditionVariable.notify_all();
   }
+  this->stateConditionVariable.notify_all();
 }
 
 //////////////////////////////////////////////////
