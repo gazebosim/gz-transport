@@ -22,6 +22,7 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
+#include <memory>
 #include <set>
 #include <thread>
 #include <string>
@@ -637,6 +638,76 @@ TEST(twoProcPubSub, PubSubLargeMessageAboveShmThreshold)
   EXPECT_EQ(expectedPayload, g_largeReceivedData);
 
   reset();
+}
+
+//////////////////////////////////////////////////
+/// \brief Two-process pub/sub of messages published with PublishInPlace()
+/// (twoProcsPublisher_aux, every 100 ms): a small one, whose buffer is
+/// handed over to ZeroMQ or Zenoh, and a 256 KB one, serialized straight
+/// into a Zenoh SHM buffer with Zenoh once its pool is up. Typed and raw
+/// subscribers get, every time, the bytes Publish() sends for the same
+/// message.
+TEST(twoProcPubSub, PubSubPublishInPlace)
+{
+  auto pi = testing::SubprocessJoinWrapper(
+    {test_executables::kTwoProcsPublisher, partition});
+
+  // Must match the messages in twoProcsPublisher_aux.cc.
+  msgs::Vector3d msg;
+  msg.set_x(1.0);
+  msg.set_y(2.0);
+  msg.set_z(3.0);
+  msgs::Bytes largeMsg;
+  largeMsg.set_data(std::string(256u * 1024u, 'S'));
+
+  // Messages received and how many differ from the expected bytes.
+  struct Received
+  {
+    explicit Received(const std::string &_expected) : expected(_expected) {}
+    const std::string expected;
+    std::atomic<int> typed{0}, raw{0}, wrong{0};
+  };
+  auto small = std::make_shared<Received>(msg.SerializeAsString());
+  auto large = std::make_shared<Received>(largeMsg.SerializeAsString());
+  auto onRaw = [](std::shared_ptr<Received> _r)
+  {
+    return [_r](const char *_data, std::size_t _size,
+                const transport::MessageInfo &_info)
+    {
+      EXPECT_FALSE(_info.IntraProcess());
+      _r->wrong += std::string(_data, _size) != _r->expected;
+      ++_r->raw;
+    };
+  };
+
+  transport::Node node;
+  std::function<void(const msgs::Vector3d &)> smallCb =
+    [small](const msgs::Vector3d &_msg)
+    {
+      small->wrong += _msg.SerializeAsString() != small->expected;
+      ++small->typed;
+    };
+  std::function<void(const msgs::Bytes &)> largeCb =
+    [large](const msgs::Bytes &_msg)
+    {
+      large->wrong += _msg.SerializeAsString() != large->expected;
+      ++large->typed;
+    };
+  EXPECT_TRUE(node.Subscribe("/in_place", smallCb));
+  EXPECT_TRUE(node.Subscribe("/large_msg_in_place", largeCb));
+  EXPECT_TRUE(node.SubscribeRaw("/in_place", onRaw(small)));
+  EXPECT_TRUE(node.SubscribeRaw("/large_msg_in_place", onRaw(large)));
+
+  // Several of each, so that the late ones go through Zenoh's SHM pool.
+  auto got = [](const Received &_r)
+  {
+    return _r.typed >= 5 && _r.raw >= 5;
+  };
+  EXPECT_TRUE(transport::waitUntil(
+    [&]{ return got(*small) && got(*large); },
+    std::chrono::milliseconds(3000)));
+  EXPECT_EQ(0, small->wrong);
+  EXPECT_EQ(0, large->wrong);
 }
 
 //////////////////////////////////////////////////
