@@ -22,6 +22,11 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <variant>
+
+#ifdef __linux__
+#include <sys/resource.h>
+#endif
 
 #include <gz/msgs/int32.pb.h>
 
@@ -230,8 +235,28 @@ TEST(ShmHelpersTest, NoSession)
   EXPECT_FALSE(allocShmBuf(nullptr, 1000).has_value());
 }
 
+/// \brief Number of times _needle occurs in _text.
+static int Count(const std::string &_text, const std::string &_needle)
+{
+  int count = 0;
+  for (auto pos = _text.find(_needle); pos != std::string::npos;
+       pos = _text.find(_needle, pos + 1))
+  {
+    ++count;
+  }
+  return count;
+}
+
+/// \brief Start of the warning printed when the pool cannot be created.
+static const char kPoolErrorWarning[] =
+    "Zenoh could not create its shared memory pool";
+
+/// \brief Start of the warning printed when the pool has no room.
+static const char kPoolExhaustedWarning[] = "Could not allocate ";
+
 //////////////////////////////////////////////////
-// SHM disabled in the session configuration: the provider stays null.
+// SHM disabled in the session configuration: the provider stays null, and
+// nothing is reported since the user asked for it.
 TEST(ShmHelpersTest, DisabledInConfig)
 {
   auto session = OpenTestSession(false);
@@ -240,11 +265,83 @@ TEST(ShmHelpersTest, DisabledInConfig)
 
   ZenohShm shm;
   shm.Init(session, kTestThreshold);
+  testing::internal::CaptureStderr();
   EXPECT_EQ(nullptr, shm.Provider());
   // A second call must not flip the answer.
   EXPECT_EQ(nullptr, shm.Provider());
   EXPECT_FALSE(static_cast<bool>(allocShmChunk(shm, kTestThreshold)));
+  EXPECT_EQ("", testing::internal::GetCapturedStderr());
 }
+
+#ifdef __linux__
+//////////////////////////////////////////////////
+// The pool cannot be created because it does not fit in the locked-memory
+// limit (SHM_PROVIDER_ERROR): the provider stays null and one warning
+// names the configuration key and the limit.
+TEST(ShmHelpersTest, PoolCreationFailureWarnsOnce)
+{
+  struct rlimit original;
+  ASSERT_EQ(0, getrlimit(RLIMIT_MEMLOCK, &original));
+  // Half the test pool: the session opens, the pool cannot be locked.
+  struct rlimit low = original;
+  low.rlim_cur = kTestPoolSize / 2;
+  if (original.rlim_cur != RLIM_INFINITY && original.rlim_cur < low.rlim_cur)
+    low.rlim_cur = original.rlim_cur;
+  ASSERT_EQ(0, setrlimit(RLIMIT_MEMLOCK, &low));
+  auto session = OpenTestSession(true);
+
+  // Wait for the session's own answer, without going through ZenohShm.
+  bool ready = false;
+  bool failed = false;
+  const auto deadline =
+    std::chrono::steady_clock::now() + std::chrono::seconds(10);
+  while (session && std::chrono::steady_clock::now() < deadline)
+  {
+    auto result = session->obtain_shm_provider();
+    if (std::holds_alternative<zenoh::SharedShmProvider>(result))
+    {
+      ready = true;
+      break;
+    }
+    const auto state = std::get<zenoh::ShmProviderNotReadyState>(result);
+    if (state != zenoh::ShmProviderNotReadyState::SHM_PROVIDER_INITIALIZING)
+    {
+      failed =
+        state == zenoh::ShmProviderNotReadyState::SHM_PROVIDER_ERROR;
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  }
+
+  ZenohShm shm;
+  shm.Init(session, kTestThreshold);
+  testing::internal::CaptureStderr();
+  const zenoh::ShmProvider *first = shm.Provider();
+  const zenoh::ShmProvider *second = shm.Provider();
+  const bool allocated =
+    static_cast<bool>(allocShmChunk(shm, kTestThreshold));
+  const std::string err = testing::internal::GetCapturedStderr();
+  EXPECT_EQ(0, setrlimit(RLIMIT_MEMLOCK, &original));
+
+  if (!session)
+    GTEST_SKIP() << "Unable to open a Zenoh session";
+  if (ready)
+  {
+    GTEST_SKIP() << "The pool was created despite the locked-memory limit "
+                 << "(e.g. CAP_IPC_LOCK)";
+  }
+  if (!failed)
+    GTEST_SKIP() << "The provider did not report an error within 10 s";
+  EXPECT_EQ(nullptr, first);
+  EXPECT_EQ(nullptr, second);
+  EXPECT_FALSE(allocated);
+  EXPECT_EQ(1, Count(err, kPoolErrorWarning)) << err;
+  EXPECT_EQ(1, Count(err, kZenohShmPoolSizeKey)) << err;
+  EXPECT_EQ(1, Count(err, "(ulimit -l: " +
+      std::to_string(low.rlim_cur / 1024u) + " KiB)")) << err;
+  EXPECT_EQ(0, Count(err, kPoolExhaustedWarning)) << err;
+}
+#endif
 
 //////////////////////////////////////////////////
 // The provider is the session's and stable across calls.
@@ -315,6 +412,53 @@ TEST_F(ZenohShmTest, WithPayloadViewShm)
     });
   EXPECT_EQ(data, copied);
   EXPECT_EQ(data, payloadToString(bytes));
+}
+
+//////////////////////////////////////////////////
+// allocShmChunk: nothing is reported while messages fit or stay below the
+// threshold; a message the pool has no room for falls back to the heap
+// path, and that is reported once per session.
+TEST_F(ZenohShmTest, AllocShmChunkPoolExhaustedWarnsOnce)
+{
+  testing::internal::CaptureStderr();
+  auto below = allocShmChunk(this->shm, kTestThreshold - 1);
+  auto fits = allocShmChunk(this->shm, kTestThreshold);
+  const std::string quiet = testing::internal::GetCapturedStderr();
+
+  testing::internal::CaptureStderr();
+  auto tooLarge = allocShmChunk(this->shm, kTestPoolSize + 1);
+  auto fitsAgain = allocShmChunk(this->shm, kTestThreshold);
+  auto tooLargeAgain = allocShmChunk(this->shm, kTestPoolSize + 2);
+  const std::string err = testing::internal::GetCapturedStderr();
+
+  EXPECT_FALSE(static_cast<bool>(below));
+  EXPECT_TRUE(static_cast<bool>(fits));
+  EXPECT_EQ("", quiet);
+  EXPECT_FALSE(static_cast<bool>(tooLarge));
+  EXPECT_TRUE(static_cast<bool>(fitsAgain));
+  EXPECT_FALSE(static_cast<bool>(tooLargeAgain));
+  EXPECT_EQ(1, Count(err, kPoolExhaustedWarning)) << err;
+  EXPECT_EQ(1, Count(err, std::string(kPoolExhaustedWarning) +
+      std::to_string(kTestPoolSize + 1) + " bytes")) << err;
+  EXPECT_EQ(1, Count(err, kZenohShmPoolSizeKey)) << err;
+  EXPECT_EQ(0, Count(err, kPoolErrorWarning)) << err;
+}
+
+//////////////////////////////////////////////////
+// allocShmChunk: an empty message never asks the pool for a buffer, even
+// with a zero threshold, so it is not reported as an exhausted pool.
+TEST_F(ZenohShmTest, AllocShmChunkEmptyMessageIsSilent)
+{
+  ZenohShm zeroThreshold;
+  zeroThreshold.Init(this->session, 0);
+  ASSERT_NE(nullptr, WaitForProvider(zeroThreshold));
+
+  testing::internal::CaptureStderr();
+  auto empty = allocShmChunk(zeroThreshold, 0);
+  const std::string err = testing::internal::GetCapturedStderr();
+
+  EXPECT_FALSE(static_cast<bool>(empty));
+  EXPECT_EQ("", err);
 }
 
 #endif  // Z_FEATURE_SHARED_MEMORY && Z_FEATURE_UNSTABLE_API
