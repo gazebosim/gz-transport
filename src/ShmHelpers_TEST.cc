@@ -62,21 +62,26 @@ TEST(ShmHelpersTest, CreateMsgFromBufferTyped)
 }
 
 //////////////////////////////////////////////////
-// CreateMsgFromBuffer: invalid data returns non-null but
-// may have default values (ParseFromArray on garbage).
+// CreateMsgFromBuffer and CreateMsg: data that can't be parsed returns
+// nullptr for both the typed and the generic handlers.
 TEST(ShmHelpersTest, CreateMsgFromBufferInvalidData)
 {
   SubscribeOptions opts;
-  SubscriptionHandler<gz::msgs::Int32> handler(
+  SubscriptionHandler<gz::msgs::Int32> typed(
+    "proc-uuid", "node-uuid", opts);
+  SubscriptionHandler<ProtoMsg> generic(
     "proc-uuid", "node-uuid", opts);
 
-  // Pass garbage data — ParseFromArray may succeed with default values
-  // or fail. Either way, it should not crash.
+  // Field number 0 is never valid in protobuf, so parsing always fails.
   const char garbage[] = {0x00, 0x01, 0x02, 0x03};
-  auto msg = handler.CreateMsgFromBuffer(
-    garbage, sizeof(garbage), "gz.msgs.Int32");
-  // Just verify no crash — result may or may not be null.
-  (void)msg;
+  const std::string garbageStr(garbage, sizeof(garbage));
+
+  EXPECT_EQ(nullptr, typed.CreateMsgFromBuffer(
+    garbage, sizeof(garbage), "gz.msgs.Int32"));
+  EXPECT_EQ(nullptr, generic.CreateMsgFromBuffer(
+    garbage, sizeof(garbage), "gz.msgs.Int32"));
+  EXPECT_EQ(nullptr, typed.CreateMsg(garbageStr, "gz.msgs.Int32"));
+  EXPECT_EQ(nullptr, generic.CreateMsg(garbageStr, "gz.msgs.Int32"));
 }
 
 //////////////////////////////////////////////////
