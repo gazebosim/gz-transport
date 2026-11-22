@@ -292,6 +292,11 @@ namespace gz::transport
     /// If your buffer reaches the maximum capacity data will be dropped.
     public: int SndHwm();
 
+    /// \brief Get the per topic capacity of the local delivery queue.
+    /// \return The capacity in messages, or 0 if unlimited.
+    /// \sa localHwm()
+    public: int LocalHwm() const;
+
     /// \brief Turn topic statistics on or off.
     /// \param[in] _topic The name of the topic on which to enable or disable
     /// statistics.

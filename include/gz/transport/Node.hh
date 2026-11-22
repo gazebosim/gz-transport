@@ -73,6 +73,13 @@ namespace gz::transport
   /// If your buffer reaches the maximum capacity data will be dropped.
   int GZ_TRANSPORT_VISIBLE sndHwm();
 
+  /// \brief Get the per topic capacity (High Water Mark) of the queue
+  /// delivering messages to local (intraprocess) subscribers. When full,
+  /// the oldest message of the topic is dropped.
+  /// \return The capacity in messages, or 0 if unlimited. Defaults to
+  /// #kDefaultLocalHwm; set it with GZ_TRANSPORT_LOCAL_HWM.
+  int GZ_TRANSPORT_VISIBLE localHwm();
+
   /// \class Node Node.hh gz/transport/Node.hh
   /// \brief A class that allows a client to communicate with other peers.
   /// There are two main communication modes: pub/sub messages and service

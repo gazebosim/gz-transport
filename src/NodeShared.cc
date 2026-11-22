@@ -233,6 +233,10 @@ NodeShared::NodeShared()
     this->dataPtr->topicStatsEnabled = (gzStats == "1");
   }
 
+  // Per topic capacity of the local delivery queue.
+  this->dataPtr->localHwm = this->dataPtr->NonNegativeEnvVar(
+    "GZ_TRANSPORT_LOCAL_HWM", kDefaultLocalHwm);
+
   // My process UUID.
   Uuid uuid;
   this->pUuid = uuid.ToString();
@@ -1428,6 +1432,12 @@ int NodeShared::SndHwm()
   return sndHwm;
 }
 
+/////////////////////////////////////////////////
+int NodeShared::LocalHwm() const
+{
+  return this->dataPtr->localHwm;
+}
+
 //////////////////////////////////////////////////
 bool NodeShared::HandlerWrapper::HasSubscriber(
     const std::string &_fullyQualifiedTopic,
@@ -1730,6 +1740,55 @@ void NodeSharedPrivate::AccessControlHandler()
 }
 
 /////////////////////////////////////////////////
+void NodeSharedPrivate::EnqueuePubMsg(
+    std::unique_ptr<PublishMsgDetails> _msgDetails)
+{
+  std::string droppedTopic;
+
+  // Freed after unlocking: it may own the last handler reference, whose
+  // destructor can run user code that calls back into NodeShared.
+  std::unique_ptr<PublishMsgDetails> droppedMsg;
+  {
+    std::unique_lock<std::mutex> queueLock(this->pubThreadMutex);
+
+    auto &backlog = this->pubQueueBacklog[_msgDetails->fullyQualifiedTopic];
+
+    // Topic full: drop its oldest message.
+    if (this->localHwm > 0 &&
+        backlog.entries.size() >= static_cast<std::size_t>(this->localHwm))
+    {
+      if (!backlog.dropWarned)
+      {
+        backlog.dropWarned = true;
+        droppedTopic = _msgDetails->fullyQualifiedTopic;
+      }
+
+      droppedMsg = std::move(*backlog.entries.front());
+      this->pubQueue.erase(backlog.entries.front());
+      backlog.entries.pop_front();
+    }
+
+    backlog.entries.push_back(
+      this->pubQueue.insert(this->pubQueue.end(), std::move(_msgDetails)));
+  }
+
+  this->signalNewPub.notify_one();
+
+  // Warn outside the lock.
+  if (!droppedTopic.empty())
+  {
+    std::cerr << "The local subscribers of [" << droppedTopic
+              << "] are processing messages slower than the publication "
+              << "rate. Dropping the oldest queued message. This warning "
+              << "will not be repeated for this topic until its queued "
+              << "messages fully drain. Use the GZ_TRANSPORT_LOCAL_HWM "
+              << "environment variable to tune the queue capacity (current "
+              << "capacity: " << this->localHwm << " messages per topic)."
+              << std::endl;
+  }
+}
+
+/////////////////////////////////////////////////
 void NodeSharedPrivate::PublishThread()
 {
   // Loop until exits
@@ -1759,6 +1818,17 @@ void NodeSharedPrivate::PublishThread()
       // Get the message
       msgDetails = std::move(this->pubQueue.front());
       this->pubQueue.pop_front();
+
+      // The topic backlog front is the entry just popped. Erasing a drained
+      // backlog also resets its drop warning.
+      auto backlogIt =
+        this->pubQueueBacklog.find(msgDetails->fullyQualifiedTopic);
+      if (backlogIt != this->pubQueueBacklog.end())
+      {
+        backlogIt->second.entries.pop_front();
+        if (backlogIt->second.entries.empty())
+          this->pubQueueBacklog.erase(backlogIt);
+      }
     }
 
     // Send the message to all the local handlers.
@@ -2253,7 +2323,7 @@ bool NodeShared::RemoveHandlersFromPubQueue(const std::string &_topic,
     {
       if ((*handlerIt)->NodeUuid() == _nUuid)
       {
-        msgDetails->localHandlers.erase(handlerIt);
+        handlerIt = msgDetails->localHandlers.erase(handlerIt);
       }
       else
         ++handlerIt;
@@ -2264,7 +2334,7 @@ bool NodeShared::RemoveHandlersFromPubQueue(const std::string &_topic,
          handlerIt != msgDetails->rawHandlers.end();)
     {
       if ((*handlerIt)->NodeUuid() == _nUuid)
-        msgDetails->rawHandlers.erase(handlerIt);
+        handlerIt = msgDetails->rawHandlers.erase(handlerIt);
       else
         ++handlerIt;
     }
@@ -2295,7 +2365,7 @@ bool NodeShared::RemoveHandlerFromPubQueue(const std::string &_topic,
       if ((*handlerIt)->NodeUuid() == _nUuid &&
           _hUuid == (*handlerIt)->HandlerUuid())
       {
-        msgDetails->localHandlers.erase(handlerIt);
+        handlerIt = msgDetails->localHandlers.erase(handlerIt);
       }
       else
       {
@@ -2310,7 +2380,7 @@ bool NodeShared::RemoveHandlerFromPubQueue(const std::string &_topic,
       if ((*handlerIt)->NodeUuid() == _nUuid &&
           _hUuid == (*handlerIt)->HandlerUuid())
       {
-        msgDetails->rawHandlers.erase(handlerIt);
+        handlerIt = msgDetails->rawHandlers.erase(handlerIt);
       }
       else
       {
