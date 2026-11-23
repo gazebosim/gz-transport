@@ -18,15 +18,11 @@ bazel_dep(name = "rules_cc", version = "0.1.2")
 # GZ_TRANSPORT_ZENOH_MIN_VERSION in CMakeLists.txt (see #868).
 # Patch release required for zenoh-c to build even though gz-transport
 # doesn't explicitly depend on it
-bazel_dep(name = "zenoh-c", version = "1.8.0.bcr.1")
-bazel_dep(name = "zenoh-cpp", version = "1.8.0")
+bazel_dep(name = "zenoh-c", version = "1.10.1.bcr.1")
+bazel_dep(name = "zenoh-cpp", version = "1.10.1")
 bazel_dep(name = "rules_rs", version = "0.0.109")
 
 rust_toolchains = use_extension("@rules_rs//rs/toolchains:module_extension.bzl", "toolchains")
-rust_toolchains.toolchain(
-    edition = "2021",
-    version = "1.93.0",
-)
 use_repo(rust_toolchains, "default_rust_toolchains")
 
 rules_rust = use_extension("@rules_rs//rs:rules_rust.bzl", "rules_rust")
