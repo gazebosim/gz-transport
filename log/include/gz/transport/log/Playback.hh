@@ -162,7 +162,9 @@ namespace gz::transport::log
     public: void Stop();
 
     /// \brief Jump current playback time to a specific elapsed time
-    /// \param[in] _newElapsedTime Elapsed time at which playback will jump
+    /// \param[in] _newElapsedTime Elapsed time at which playback will jump.
+    /// If there are no messages at or after that time, the playback position
+    /// doesn't change.
     public: void Seek(const std::chrono::nanoseconds &_newElapsedTime);
 
     /// \brief Step the playback by a given amount of nanoseconds
