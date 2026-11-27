@@ -1101,8 +1101,13 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     {
       // ZMQ sockets are not thread safe and the reception thread is polling
       // the subscriber socket, so let that thread connect and subscribe.
+      if (!this->connections.HasPublisher(addr))
+      {
+        this->dataPtr->SendSubscriberCmd(
+          NodeSharedPrivate::SubscriberCmd::kConnect, addr);
+      }
       this->dataPtr->SendSubscriberCmd(
-        this->connections.HasPublisher(addr) ? std::string() : addr, topic);
+        NodeSharedPrivate::SubscriberCmd::kSubscribe, topic);
 
       // Register the new connection with the publisher.
       this->connections.AddPublisher(_pub);
@@ -1564,38 +1569,73 @@ std::vector<MessagePublisher> NodeShared::HandlerWrapper::Convert(
 }
 
 //////////////////////////////////////////////////
-void NodeSharedPrivate::SendSubscriberCmd(const std::string &_addr,
-    const std::string &_topic)
+void NodeSharedPrivate::SendSubscriberCmd(SubscriberCmd _cmd,
+    const std::string &_arg)
 {
-  // Fails only if the sockets were not initialized, in which case there is
-  // no reception thread either.
-  if (this->subscriberCmdSender->send(zmq::buffer(_addr),
-        zmq::send_flags::sndmore | zmq::send_flags::dontwait))
+  try
   {
-    this->subscriberCmdSender->send(zmq::buffer(_topic),
-      zmq::send_flags::dontwait);
+    // Fails only if the sockets were not initialized, in which case there is
+    // no reception thread either.
+    if (this->subscriberCmdSender->send(zmq::buffer(&_cmd, sizeof(_cmd)),
+          zmq::send_flags::sndmore | zmq::send_flags::dontwait) &&
+        this->subscriberCmdSender->send(zmq::buffer(_arg),
+          zmq::send_flags::dontwait))
+    {
+      return;
+    }
+    std::cerr << "Error sending subscriber command: not connected"
+              << std::endl;
+  }
+  catch(const zmq::error_t &_error)
+  {
+    std::cerr << "Error sending subscriber command: " << _error.what()
+              << std::endl;
   }
 }
 
 //////////////////////////////////////////////////
 void NodeSharedPrivate::RecvSubscriberCmds()
 {
-  zmq::message_t addr;
-  zmq::message_t topic;
-  while (this->subscriberCmdReceiver->recv(addr, zmq::recv_flags::dontwait) &&
-         this->subscriberCmdReceiver->recv(topic))
+  zmq::message_t cmd;
+  zmq::message_t arg;
+  try
   {
-    try
+    while (this->subscriberCmdReceiver->recv(cmd, zmq::recv_flags::dontwait))
     {
-      if (addr.size() > 0)
-        this->subscriber->connect(addr.to_string());
-      this->subscriber->set(zmq::sockopt::subscribe, topic.to_string());
+      if (!this->subscriberCmdReceiver->recv(arg) ||
+          cmd.size() != sizeof(SubscriberCmd))
+      {
+        continue;
+      }
+
+      try
+      {
+        switch (*cmd.data<SubscriberCmd>())
+        {
+          case SubscriberCmd::kConnect:
+            this->subscriber->connect(arg.to_string());
+            break;
+          case SubscriberCmd::kSubscribe:
+            this->subscriber->set(zmq::sockopt::subscribe, arg.to_string());
+            break;
+          case SubscriberCmd::kUnsubscribe:
+            this->subscriber->set(zmq::sockopt::unsubscribe, arg.to_string());
+            break;
+          default:
+            break;
+        }
+      }
+      catch(const zmq::error_t &_error)
+      {
+        std::cerr << "Error applying subscriber command: " << _error.what()
+                  << std::endl;
+      }
     }
-    catch(const zmq::error_t &_error)
-    {
-      std::cerr << "Error applying subscriber command: " << _error.what()
-                << std::endl;
-    }
+  }
+  catch(const zmq::error_t &_error)
+  {
+    std::cerr << "Error receiving subscriber command: " << _error.what()
+              << std::endl;
   }
 }
 
@@ -2185,10 +2225,12 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
     // Remove the filter for this topic if I am the last subscriber.
     if (this->GzImplementation() == "zeromq")
     {
+      // The reception thread applies it, so messages already queued may
+      // still arrive. They are dropped, since there are no handlers left.
       if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
       {
-        this->dataPtr->subscriber->set(
-          zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+        this->dataPtr->SendSubscriberCmd(
+          NodeSharedPrivate::SubscriberCmd::kUnsubscribe, fullyQualifiedTopic);
       }
     }
 #ifdef HAVE_ZENOH

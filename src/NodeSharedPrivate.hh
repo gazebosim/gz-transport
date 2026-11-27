@@ -196,15 +196,26 @@ namespace gz::transport
     /// \brief Initialize security
     public: void SecurityInit();
 
-    /// \brief Ask the reception thread to connect the subscriber socket and
-    /// add a topic filter. ZMQ sockets are not thread safe and the reception
-    /// thread owns the subscriber socket. The caller must hold
-    /// NodeShared::mutex.
-    /// \param[in] _addr Publisher address to connect to, or empty if the
-    /// subscriber is already connected to it.
-    /// \param[in] _topic Topic filter to subscribe to.
-    public: void SendSubscriberCmd(const std::string &_addr,
-                                   const std::string &_topic);
+    /// \brief Commands applied to the subscriber socket by the reception
+    /// thread.
+    public: enum class SubscriberCmd : char
+    {
+      /// \brief Connect to a publisher address.
+      kConnect,
+      /// \brief Add a topic filter.
+      kSubscribe,
+      /// \brief Remove a topic filter.
+      kUnsubscribe
+    };
+
+    /// \brief Ask the reception thread to apply a command to the subscriber
+    /// socket. ZMQ sockets are not thread safe and the reception thread owns
+    /// the subscriber socket. The caller must hold NodeShared::mutex, which
+    /// also serializes the users of the sender socket.
+    /// \param[in] _cmd The command.
+    /// \param[in] _arg Publisher address for kConnect, or topic filter.
+    public: void SendSubscriberCmd(SubscriberCmd _cmd,
+                                   const std::string &_arg);
 
     /// \brief Apply all pending subscriber commands. Only called from the
     /// reception thread.
