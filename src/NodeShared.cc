@@ -401,7 +401,9 @@ void NodeShared::RunReceptionTask()
     {
       {static_cast<void*>(*this->dataPtr->subscriber), 0, ZMQ_POLLIN, 0},
       {static_cast<void*>(*this->dataPtr->replier), 0, ZMQ_POLLIN, 0},
-      {static_cast<void*>(*this->dataPtr->responseReceiver), 0, ZMQ_POLLIN, 0}
+      {static_cast<void*>(*this->dataPtr->responseReceiver), 0, ZMQ_POLLIN, 0},
+      {static_cast<void*>(*this->dataPtr->subscriberCmdReceiver), 0,
+        ZMQ_POLLIN, 0}
     };
     try
     {
@@ -420,6 +422,8 @@ void NodeShared::RunReceptionTask()
       this->RecvSrvRequest();
     if (items[2].revents & ZMQ_POLLIN)
       this->RecvSrvResponse();
+    if (items[3].revents & ZMQ_POLLIN)
+      this->dataPtr->RecvSubscriberCmds();
   }
 }
 
@@ -1095,15 +1099,15 @@ void NodeShared::OnNewConnection(const MessagePublisher &_pub)
     if (this->localSubscribers.HasSubscriber(topic) &&
         this->pUuid.compare(procUuid) != 0)
     {
-      // Handle security
-      this->dataPtr->SecurityOnNewConnection();
-
-      // I am not connected to the process.
-      if (!this->connections.HasPublisher(addr) && this->dataPtr->subscriber)
-        this->dataPtr->subscriber->connect(addr.c_str());
-
-      // Add a new filter for the topic.
-      this->dataPtr->subscriber->set(zmq::sockopt::subscribe, topic);
+      // ZMQ sockets are not thread safe and the reception thread is polling
+      // the subscriber socket, so let that thread connect and subscribe.
+      if (!this->connections.HasPublisher(addr))
+      {
+        this->dataPtr->SendSubscriberCmd(
+          NodeSharedPrivate::SubscriberCmd::kConnect, addr);
+      }
+      this->dataPtr->SendSubscriberCmd(
+        NodeSharedPrivate::SubscriberCmd::kSubscribe, topic);
 
       // Register the new connection with the publisher.
       this->connections.AddPublisher(_pub);
@@ -1359,6 +1363,19 @@ bool NodeShared::InitializeSockets()
 
     this->dataPtr->requester->set(zmq::sockopt::linger, lingerVal);
     this->dataPtr->requester->set(zmq::sockopt::router_mandatory, routeOn);
+
+    // Inproc pair carrying subscriber commands to the reception thread.
+    // Unlimited queues, so a sender holding NodeShared::mutex never blocks.
+    std::string cmdEp = "inproc://gz-transport-subscriber-" + this->pUuid;
+    for (auto *sock : {this->dataPtr->subscriberCmdSender.get(),
+                       this->dataPtr->subscriberCmdReceiver.get()})
+    {
+      sock->set(zmq::sockopt::linger, lingerVal);
+      sock->set(zmq::sockopt::sndhwm, 0);
+      sock->set(zmq::sockopt::rcvhwm, 0);
+    }
+    this->dataPtr->subscriberCmdReceiver->bind(cmdEp);
+    this->dataPtr->subscriberCmdSender->connect(cmdEp);
   }
   catch(const zmq::error_t& ze)
   {
@@ -1552,20 +1569,73 @@ std::vector<MessagePublisher> NodeShared::HandlerWrapper::Convert(
 }
 
 //////////////////////////////////////////////////
-void NodeSharedPrivate::SecurityOnNewConnection()
+void NodeSharedPrivate::SendSubscriberCmd(SubscriberCmd _cmd,
+    const std::string &_arg)
 {
-  std::string user, pass;
-
-  // Set username and pass if they exist
-  // \todo(anyone): This will cause the subscriber to connect only to secure
-  // connections. Would be nice if the subscriber could still connect to
-  // unsecure connections. This might require an unsecure and secure
-  // subscriber.
-  // See issue #74
-  if (userPass(user, pass))
+  try
   {
-    this->subscriber->set(zmq::sockopt::plain_username, user);
-    this->subscriber->set(zmq::sockopt::plain_password, pass);
+    // Fails only if the sockets were not initialized, in which case there is
+    // no reception thread either.
+    if (this->subscriberCmdSender->send(zmq::buffer(&_cmd, sizeof(_cmd)),
+          zmq::send_flags::sndmore | zmq::send_flags::dontwait) &&
+        this->subscriberCmdSender->send(zmq::buffer(_arg),
+          zmq::send_flags::dontwait))
+    {
+      return;
+    }
+    std::cerr << "Error sending subscriber command: not connected"
+              << std::endl;
+  }
+  catch(const zmq::error_t &_error)
+  {
+    std::cerr << "Error sending subscriber command: " << _error.what()
+              << std::endl;
+  }
+}
+
+//////////////////////////////////////////////////
+void NodeSharedPrivate::RecvSubscriberCmds()
+{
+  zmq::message_t cmd;
+  zmq::message_t arg;
+  try
+  {
+    while (this->subscriberCmdReceiver->recv(cmd, zmq::recv_flags::dontwait))
+    {
+      if (!this->subscriberCmdReceiver->recv(arg) ||
+          cmd.size() != sizeof(SubscriberCmd))
+      {
+        continue;
+      }
+
+      try
+      {
+        switch (*cmd.data<SubscriberCmd>())
+        {
+          case SubscriberCmd::kConnect:
+            this->subscriber->connect(arg.to_string());
+            break;
+          case SubscriberCmd::kSubscribe:
+            this->subscriber->set(zmq::sockopt::subscribe, arg.to_string());
+            break;
+          case SubscriberCmd::kUnsubscribe:
+            this->subscriber->set(zmq::sockopt::unsubscribe, arg.to_string());
+            break;
+          default:
+            break;
+        }
+      }
+      catch(const zmq::error_t &_error)
+      {
+        std::cerr << "Error applying subscriber command: " << _error.what()
+                  << std::endl;
+      }
+    }
+  }
+  catch(const zmq::error_t &_error)
+  {
+    std::cerr << "Error receiving subscriber command: " << _error.what()
+              << std::endl;
   }
 }
 
@@ -1590,6 +1660,14 @@ void NodeSharedPrivate::SecurityInit()
 
     this->publisher->set(zmq::sockopt::plain_server, asPlainSecurityServer);
     this->publisher->set(zmq::sockopt::zap_domain, kGzAuthDomain);
+
+    // \todo(anyone): This will cause the subscriber to connect only to secure
+    // connections. Would be nice if the subscriber could still connect to
+    // unsecure connections. This might require an unsecure and secure
+    // subscriber.
+    // See issue #74
+    this->subscriber->set(zmq::sockopt::plain_username, user);
+    this->subscriber->set(zmq::sockopt::plain_password, pass);
   }
 }
 
@@ -2147,10 +2225,12 @@ bool NodeShared::Unsubscribe(const std::string &_topic,
     // Remove the filter for this topic if I am the last subscriber.
     if (this->GzImplementation() == "zeromq")
     {
+      // The reception thread applies it, so messages already queued may
+      // still arrive. They are dropped, since there are no handlers left.
       if (!this->localSubscribers.HasSubscriber(fullyQualifiedTopic))
       {
-        this->dataPtr->subscriber->set(
-          zmq::sockopt::unsubscribe, fullyQualifiedTopic);
+        this->dataPtr->SendSubscriberCmd(
+          NodeSharedPrivate::SubscriberCmd::kUnsubscribe, fullyQualifiedTopic);
       }
     }
 #ifdef HAVE_ZENOH
