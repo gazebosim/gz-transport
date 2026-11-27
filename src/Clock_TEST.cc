@@ -26,6 +26,10 @@
 #include "gz/transport/TransportTypes.hh"
 #include "gtest/gtest.h"
 
+#include <gz/utils/Environment.hh>
+
+#include "test_utils.hh"
+
 using namespace gz;
 
 //////////////////////////////////////////////////
@@ -152,4 +156,15 @@ TEST(ClockTest, BadNetworkClock)
   badTimebaseClock.SetTime(std::chrono::seconds(10));
   std::this_thread::sleep_for(sleepTime);  // Wait for clock distribution
   EXPECT_FALSE(badTimebaseClock.IsReady());
+}
+
+//////////////////////////////////////////////////
+int main(int argc, char **argv)
+{
+  // Use a random partition: the tests share the "/clock" topic, so copies of
+  // this test running in parallel would receive each other's clock messages.
+  gz::utils::setenv("GZ_PARTITION", testing::getRandomNumber());
+
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
