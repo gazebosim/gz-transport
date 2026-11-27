@@ -175,8 +175,7 @@ class PlaybackHandle::Implementation
           std::unordered_map<std::string,
             gz::transport::Node::Publisher>> publishers;
 
-  /// \brief Mutex guarding changes to stop, paused and finished, and the
-  /// pause bookkeeping in Pause().
+  /// \brief Mutex guarding changes to stop, paused and finished.
   public: std::mutex stateMutex;
 
   /// \brief Notified on every change to stop, paused or finished. It wakes up

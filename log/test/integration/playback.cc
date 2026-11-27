@@ -23,6 +23,8 @@
 #include <functional>
 #include <system_error>
 
+#include <gz/msgs/stringmsg.pb.h>
+
 #include <gz/transport/log/Log.hh>
 #include <gz/transport/log/Playback.hh>
 #include <gz/transport/log/Recorder.hh>
@@ -759,12 +761,13 @@ TEST(playback, GZ_UTILS_TEST_DISABLED_ON_MAC(PauseWhileWaiting))
   std::error_code ec;
   std::filesystem::remove(logName, ec);
 
-  // A log with two messages two seconds apart. The data is a serialized
-  // gz.msgs.StringMsg with "x" as its data field.
+  // A log with two messages two seconds apart.
   {
     gz::transport::log::Log log;
     ASSERT_TRUE(log.Open(logName, std::ios_base::out));
-    const std::string data{"\x12\x01x"};
+    gz::msgs::StringMsg msg;
+    msg.set_data("x");
+    const std::string data = msg.SerializeAsString();
     for (const auto time : {std::chrono::seconds(1), std::chrono::seconds(3)})
     {
       ASSERT_TRUE(log.InsertMessage(time, topic, "gz.msgs.StringMsg",

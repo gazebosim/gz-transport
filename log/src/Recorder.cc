@@ -224,33 +224,42 @@ void Recorder::Implementation::OnMessageReceived(
     LWRN("Clock isn't ready yet. Dropping message\n");
   }
 
-  std::lock_guard<std::mutex> lock(this->dataQueueMutex);
-
   // Don't store anything in the queue unless the data writer has started, which
   // happens when Recorder::Start is called.
-  if (this->dataWriterState)
   {
-    std::vector<char> tmp(_data, _data+_len);
-
-    // If the maxBufferSize is zero, we have an infinite queue
-    if (this->maxBufferSize > 0)
-    {
-      // Only pop if we have a message in the queue.
-      if ((this->bufferSize + _len > this->maxBufferSize) &&
-          !this->dataQueue.empty())
-      {
-        this->DecrementBufferSize(this->dataQueue.front().msgData.size());
-        this->dataQueue.pop_front();
-      }
-    }
-
-    this->bufferSize += _len;
-    // If the message being added here is larger than maxBufferSize, it should
-    // still be recorded. It just means that the buffer cannot hold another
-    // message until it is recorded.
-    this->dataQueue.emplace_back(this->clock->Time(), std::move(tmp), _info);
-    this->dataQueueCondVar.notify_one();
+    std::lock_guard<std::mutex> lock(this->dataQueueMutex);
+    if (!this->dataWriterState)
+      return;
   }
+
+  // Copy outside the lock, so a large message doesn't block the writer.
+  std::vector<char> tmp(_data, _data+_len);
+  const auto time = this->clock->Time();
+
+  std::lock_guard<std::mutex> lock(this->dataQueueMutex);
+
+  // The writer may have stopped while copying.
+  if (!this->dataWriterState)
+    return;
+
+  // If the maxBufferSize is zero, we have an infinite queue
+  if (this->maxBufferSize > 0)
+  {
+    // Make room for the new message, as long as there are messages to drop.
+    while ((this->bufferSize + _len > this->maxBufferSize) &&
+           !this->dataQueue.empty())
+    {
+      this->DecrementBufferSize(this->dataQueue.front().msgData.size());
+      this->dataQueue.pop_front();
+    }
+  }
+
+  this->bufferSize += _len;
+  // If the message being added here is larger than maxBufferSize, it should
+  // still be recorded. It just means that the buffer cannot hold another
+  // message until it is recorded.
+  this->dataQueue.emplace_back(time, std::move(tmp), _info);
+  this->dataQueueCondVar.notify_one();
 }
 
 //////////////////////////////////////////////////
