@@ -68,6 +68,20 @@ TEST(Record, StartStopStart)
 }
 
 //////////////////////////////////////////////////
+/// \brief Stop right after Start many times. Stop used to hang when the data
+/// writer thread missed its wake up.
+TEST(Record, StartStopManyTimes)
+{
+  transport::log::Recorder recorder;
+  for (int i = 0; i < 10000; ++i)
+  {
+    ASSERT_EQ(
+        transport::log::RecorderError::SUCCESS, recorder.Start(":memory:"));
+    recorder.Stop();
+  }
+}
+
+//////////////////////////////////////////////////
 TEST(Record, AddValidTopic)
 {
   transport::log::Recorder recorder;
